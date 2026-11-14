@@ -28,6 +28,7 @@ export const TOOLS = [
   'quantify',
   'versions',
   'insights',
+  'pack',
 ] as const;
 export type Tool = (typeof TOOLS)[number];
 

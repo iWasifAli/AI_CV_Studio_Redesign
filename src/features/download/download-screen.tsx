@@ -8,6 +8,7 @@ import { ArrowLeft, Crown, Download, FileJson, FileText, LogIn, Printer } from '
 import { Banner } from '@/components/ui/banner';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { useAccount } from '@/features/account/account-context';
+import { PackButton } from '@/features/export/pack-dialog';
 import { isPremiumDesign, remaining, useEntitlements } from '@/features/account/entitlements';
 import { ops } from '@/modules/resume/ops';
 import { getRepository } from '@/modules/storage/repository';
@@ -272,6 +273,9 @@ export function DownloadScreen({ doc: initialDoc }: { doc: ResumeDocument }) {
                 >
                   Download Word (.docx)
                 </Button>
+                {account.status === 'signedIn' && !lockedDesign && (
+                  <PackButton cv={doc} label="CV with certificates (one PDF or ZIP)" />
+                )}
                 {left !== null && Number.isFinite(left) && (
                   <p className="text-ink-muted text-sm" data-testid="downloads-left">
                     {left} of {ent!.limits['pdf.download']} downloads left this month.

@@ -13,6 +13,7 @@ import { buildLetterHtml } from '@/modules/letters/build-letter';
 import { getRepository } from '@/modules/storage/repository';
 import { saveBlob } from '@/lib/save-blob';
 import { jobAiApi, JobsError } from './api';
+import { PackButton } from '@/features/export/pack-dialog';
 
 type Problem = { message: string; premium?: boolean };
 
@@ -189,6 +190,7 @@ export function KitSection({
             >
               Download CV and letter
             </Button>
+            <PackButton cv={cv} letter={`job:${job.id}`} label="One file with certificates" />
             <Button variant="secondary" icon={<Copy aria-hidden size={18} />} onClick={copyEmail}>
               Copy email
             </Button>

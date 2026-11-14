@@ -236,6 +236,23 @@ test('switching off application results hides them and refuses the API (R9.10)',
   await expect(page.getByText('Your job tracker still works as usual.')).toBeVisible();
 });
 
+test('switching off application packs hides the button and refuses the API', async ({
+  page,
+  request,
+}) => {
+  await setConfig(request, { ...BASE, features: { ...BASE.features, pack: false } });
+  const r = await page.request.post('/api/pack', {
+    multipart: { document: JSON.stringify(driver), format: 'pdf' },
+  });
+  expect(r.status()).toBe(403);
+  await page.addInitScript((d) => {
+    localStorage.setItem(`cvstudio:v1:doc:${d.id}`, JSON.stringify(d));
+  }, driver);
+  await page.goto(`/cv/${driver.id}/download`);
+  await expect(page.getByRole('button', { name: 'Download PDF' })).toBeVisible();
+  await expect(page.getByTestId('pack-open')).toHaveCount(0);
+});
+
 test('product numbers show the nine targets and count tools used (spec §17.2)', async ({
   browser,
   page,

@@ -81,6 +81,9 @@ export const EVENTS = [
   'makeover_saved_visitor',
   'makeover_download_24h',
   'designer_first_replaced',
+  'pack_pdf',
+  'pack_zip',
+  'pack_fail',
 ] as const;
 export type MetricEvent = (typeof EVENTS)[number];
 

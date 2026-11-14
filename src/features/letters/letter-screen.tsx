@@ -21,6 +21,7 @@ import type { ResumeDocument } from '@/modules/resume/schema';
 import { getRepository } from '@/modules/storage/repository';
 import { lettersApi } from './api';
 import { ScaledPage, resolvePage } from './scaled-page';
+import { PackButton } from '@/features/export/pack-dialog';
 
 type Editable = Pick<
   SavedLetter,
@@ -349,6 +350,13 @@ function Editor({ initial }: { initial: SavedLetter }) {
           >
             Download PDF
           </Button>
+          {!dirty && draft.paragraphs.some((p) => p.trim()) && (
+            <PackButton
+              cv={design}
+              letter={`letter:${saved.id}`}
+              label="With CV and certificates"
+            />
+          )}
           <Button
             variant="ghost"
             icon={<Trash2 aria-hidden size={18} />}

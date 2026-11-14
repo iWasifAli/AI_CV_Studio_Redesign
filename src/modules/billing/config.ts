@@ -124,6 +124,8 @@ export const businessConfig = z.object({
     proofread: z.boolean().default(true),
     /** Questions that help put numbers in CV points (AI, spec §9.3). */
     quantify: z.boolean().default(true),
+    /** One-file application pack: CV + letter + added documents as one PDF or ZIP. */
+    pack: z.boolean().default(true),
   }),
   /** AI actions that cost more than one (complete-studio-spec §14: weights are config data). */
   aiWeights: z
@@ -287,6 +289,7 @@ export const DEFAULT_CONFIG: BusinessConfig = {
     jobInsights: true,
     proofread: true,
     quantify: true,
+    pack: true,
   },
   aiWeights: {
     kit: 3,

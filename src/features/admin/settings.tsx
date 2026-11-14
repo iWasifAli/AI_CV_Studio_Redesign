@@ -727,6 +727,11 @@ export function AdminSettings() {
             checked={draft.features.quantify}
             onChange={(v) => edit((c) => void (c.features.quantify = v))}
           />
+          <CheckboxField
+            label="Application pack (CV, letter and certificates as one PDF or ZIP)"
+            checked={draft.features.pack}
+            onChange={(v) => edit((c) => void (c.features.pack = v))}
+          />
         </Section>
 
         <Section
