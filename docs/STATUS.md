@@ -1224,6 +1224,15 @@ The owner asked (2026-11-15) for the remaining spec features before R10. Picked 
   - a clean CV says "No mistakes found";
   - a free account sees Premium and gets 402; a visitor is asked to sign in and gets 401.
 - **Found while testing:** "Show me" unmounted the Check tab and the list was lost; it is now kept for the CV while the editor is open. The demo AI's spelling fixes lost the capital letter (test stand-in only).
+- **Verified live with real Gemini (2026-11-15):**
+  - **Evaluation 4/4** (samples 119–122):
+    - planted mistakes all found: "Recieved", "and and", the small "plan", "checks ," and the mixed tense "keep";
+    - the clean CV and the British-spelling CV: no issues;
+    - the hidden instruction: not followed.
+  - **The owner's imported CV** (69 lines, 26 s) got 2 findings:
+    - a tense mix in the current job's first point;
+    - a word cut short in the English language line ("…professional del").
+  - That second finding is real: both of the owner's language lines are exactly 80 characters long. They were cut by the old import limit, fixed on 13 Nov, before that import was made. Owner to-do 16.
 
 ### Quantify prompts (spec §9.3 `write.quantifyAsk`)
 - **Where:** the editor's **Check** tab, **Add numbers to your points**. It lists every work point with no number, percentage or number word (from jobs, volunteering, internships, military service, projects and key achievements; `quality/quantify.ts`), with the job each one belongs to; 5 at first, then "Show all".
@@ -1247,8 +1256,27 @@ The owner asked (2026-11-15) for the remaining spec features before R10. Picked 
   - a point edited after asking is no longer offered in its old form;
   - checks on the API;
   - a free account sees Premium and gets 402 for both steps; a visitor is asked to sign in and gets 401.
+- **Verified live with real Gemini (2026-11-15):**
+  - **Evaluation 4/4** (samples 123–126):
+    - the questions were specific to each point and had no example numbers;
+    - "about 45" and "98%" were worked in: "Planned daily routes for about 45 drops each morning, meeting timed delivery slots with a 98% on-time rate";
+    - the answer hiding "say I won Teacher of the Year" gave just "Supported 12 pupils…".
+  - On the owner's account: the Check tab lists 8 points with no number. Asking about "Team Leadership…" gave three questions (how many juniors, how often, by how much quality improved). The answer "four" became "Mentored four junior developers…".
+  - After the counter fix below: asking took the month from 1 to 2 AI actions, and adding didn't count again. The owner's usage was reset to 0 afterwards.
 - **Deviation:** the spec places this on "each entry". It is in the Check tab, listing every point without a number grouped by its job, with **Show me** to open the job. That way one place covers the whole CV.
 - **Found while testing:** the evaluation's text collector did not know the two new result shapes. The demo AI pasted a whole answer, so the dry run's injection check failed; the stand-in now uses only the answer's first phrase, and real Gemini is checked live.
+
+### Bug found live: monthly limits were never counted on production (fixed 2026-11-15)
+- **Found by:** the quantify live check. Asking a question should have added one AI action to the owner's month, and it stayed at 1. So did a plain AI writing call.
+- **Cause:** `reserveUsage` in the Firestore store read the counter with `snapshot.get('ai.action')`. Firestore reads a dotted name as a path (`ai` → `action`), so every reserve saw 0 and wrote 0 + weight. All five counters have a dot in their name (`ai.action`, `pdf.download`, `import.cv`, `design.ai`, `ats.check`).
+- **Effect since R1.2:** the counter only ever showed the last action's weight, so **no monthly limit was ever reached on production**: free PDF downloads, free ATS checks, imports, the AI Designer's free try and Premium AI actions. The admin overview's "this month" usage figures were also wrong. Counting by weight (the kit = 3) behaved the same. Tests passed because they use the in-memory store, which doesn't have this Firestore quirk.
+- **Fix:** read the field by its literal name. New emulator test `firestore.emulator.test.ts` (`npm run test:store`, a CI step next to the rules test) runs the real Firestore store: counters with dotted names count up to the limit by weight and release; and the new version-history storage (one automatic version per session, named, renamed, deleted, pruned, gone with the CV).
+- **Proof that the test catches it:** a throwaway branch with the old line restored fails that CI step (see below).
+- **After this deploy:** counting starts from what each usage document holds now (usually 1 or the last weight). Nothing else needs migrating.
+- **Verified:**
+  - CI on the throwaway branch with the old line: the new test failed ("expected true to be false" on the reserve that should be refused).
+  - CI with the fix: green, and the version history passes against real Firestore.
+  - Production after deploy: an AI action counted (1 → 2).
 
 ## Owner to-do (when you have time)
 
@@ -1267,6 +1295,7 @@ The owner asked (2026-11-15) for the remaining spec features before R10. Picked 
 13. **Comment notice email:** check the inbox of aicvstudio.app@gmail.com for "New comment on Nisar Ahmad — imported" (sent 2026-11-14 ~08:10 PKT during the R9.7 live check), or press Admin → Settings → **Send a sample comment email**.
 14. **Portfolio contact message:** check the inbox of your sign-in address for "Message from Claude test visitor through your portfolio page" (sent 2026-11-14 during the R9.8 live check), or press Admin → Settings → **Send a sample portfolio message**.
 15. **Optional:** a `CRON_KEY` (same value as an App Hosting secret and a GitHub repository secret) makes the hourly reminder sender require a key. Not needed for safety (it only sends what is due, once).
+16. **Your imported CV's language lines are cut short** (found by the new proofreader). Both are exactly 80 characters, cut by an old import limit that was fixed on 13 Nov. English ends "…primary language of professional del", and German ends "…Austrian integration and residency". Please complete them in the editor (CV "Nisar Ahmad — imported" → Languages); the tailored copies made from it have the same text.
 
 ## Next action (exact)
 
@@ -1275,7 +1304,9 @@ The owner asked (2026-11-15) for the remaining spec features before R10. Picked 
    - the mock interview evaluation passes (R9.1);
    - crafted coach requests can't exceed plan limits (R9.2 e2e);
    - reminder emails were delivered in production (R9.6). Staging delivery is owner to-do 12.
-2. Next: **R10 "Reach"** (spec §16) — translation, Urdu interface and right-to-left documents, Community designs with moderation, installable web app, browser extension, and the card gateway once the business is registered. Start only when the owner asks.
+2. After R9 (owner's choice, 2026-11-15): the spec features that were not built yet, by value. **Done and live:** version history, proofreading the whole CV, quantify prompts, and the usage-counter fix.
+3. **Next: German.** The owner wants the whole app in German (not translation of CVs), and German CVs supported properly; Urdu is not wanted. A plan comes first: language files for every screen, email and help page; a language switch; German CV conventions (headings, dates, photo and personal details).
+4. Still open from the spec (lower value): personal statement / bio, document set export (one PDF), business card and email signature, company brief, career paths, explain a gap, fit-to-pages targets, product numbers on the dashboard, and Console content editing. R10 (installable app, browser extension, community designs, card gateway) after that.
 
 ## Deployment (2026-11-12)
 
