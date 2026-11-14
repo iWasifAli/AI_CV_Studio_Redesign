@@ -23,7 +23,7 @@ _Last updated: 2026-11-14 (live on Firebase App Hosting at aicvstudio.app)_
 | R6 Design engine | `r6/design-engine` | ✅ Live on aicvstudio.app (2026-11-13); Design Studio switched on and checked live |
 | R7 Describe your design | `r7/describe` | ✅ Live on aicvstudio.app (2026-11-13): 32 designs, AI Designer on, verified with real Gemini; preference test and outside review are owner to-dos |
 | R8 One studio | `r8/studio` | ✅ Live on aicvstudio.app (2026-11-13): studio shell and Home, letters, Presence, application kit, ATS check, 24 section types, edit on the page, Console switches |
-| R9 Coach | `r9/*` | 🟡 In progress: mock interview, career coach, story bank, skill plan, job from URL, reminders, share comments, portfolio themes and LinkedIn review live (2026-11-14) |
+| R9 Coach | `r9/*` | ✅ All ten parts live on aicvstudio.app (2026-11-15). One acceptance item is the owner's: a reminder email received on staging (to-do 12) |
 
 ## Phase 0 report
 
@@ -1157,7 +1157,17 @@ Spec: `docs/product/complete-studio-spec.md` §7.4, §7.7, §7.8, §8, §16 (R7)
     - each account sees only its own results;
     - visitor 401.
   - Switch-off test in `admin.spec`.
-- **Found while testing:** on phones the tables' scroll area couldn't be reached by keyboard (axe), and Replies and Interviews were cut off. Phones now get stacked rows; wider screens keep a focusable table.
+- **Found while testing:**
+  - On phones the tables' scroll area couldn't be reached by keyboard (axe), and Replies and Interviews were cut off. Phones now get stacked rows; wider screens keep a focusable table.
+  - The switched-off message wasn't shown: the jobs API client looked for `error.reason`, while the server sends `error.details.reason`. The client now reads both. Nothing else used the field.
+- **Verified live on aicvstudio.app (2026-11-15, owner's account):**
+  - The page and API answer: 0 sent and 2 saved jobs for the owner.
+  - A temporary job with the owner's tailored Northwind CV ticked was moved to Applied. Production recorded the CV as a tailored copy of "Nisar Ahmad — imported" in the Linea design.
+  - Moved to Interview, the page showed 1 sent, 1 reply and 1 interview, with the right rows by CV and by design, and this week's bar.
+  - Moving it back to Applied forgot the interview. Closing it with no reason counted it as "no answer" and listed it under "How did these end?". "They said no" made it a reply.
+  - The board showed "Your results" and the card's outcome.
+  - The test job was deleted, and the owner's two saved jobs are untouched.
+- **Known:** stage days are counted in UTC, like the existing applied date, so between midnight and 05:00 in Pakistan a change is dated the day before. This only shifts reply times by a day at most.
 
 ## Owner to-do (when you have time)
 
@@ -1179,7 +1189,12 @@ Spec: `docs/product/complete-studio-spec.md` §7.4, §7.7, §7.8, §8, §16 (R7)
 
 ## Next action (exact)
 
-1. R9 "Coach": R9.1 mock interview, R9.2 career coach, R9.3 story bank, R9.4 skill plan, R9.5 job from URL, R9.6 reminders, R9.7 share comments, R9.8 portfolio themes and R9.9 LinkedIn review are live. Next: R9.10 application analytics (the last R9 item) — spec §16. (Console switches and weights for the R9 tools came with R9.3.)
+1. R9 "Coach" is complete: all ten parts are live (R9.1 mock interview to R9.10 application analytics). R9 acceptance (spec §16):
+   - the coach passes its 20 scripted tasks (R9.2);
+   - the mock interview evaluation passes (R9.1);
+   - crafted coach requests can't exceed plan limits (R9.2 e2e);
+   - reminder emails were delivered in production (R9.6). Staging delivery is owner to-do 12.
+2. Next: **R10 "Reach"** (spec §16) — translation, Urdu interface and right-to-left documents, Community designs with moderation, installable web app, browser extension, and the card gateway once the business is registered. Start only when the owner asks.
 
 ## Deployment (2026-11-12)
 
