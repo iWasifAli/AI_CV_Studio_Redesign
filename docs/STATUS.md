@@ -1111,6 +1111,10 @@ Spec: `docs/product/complete-studio-spec.md` §7.4, §7.7, §7.8, §8, §16 (R7)
     - **Correct quotes of lists were removed:** "Driving, Customer Service, Time Management" against the PDF's separate lines. Quotes are now matched on words only (punctuation and line breaks ignored, whole words, so a fragment like "rive" doesn't pass).
     - **Title Case false alarms** in headlines ("Parcel Delivery" when the profile says "delivering parcels"). The guard now treats a capitalised word as an ordinary word when another form of it is in the text: plurals, -ing/-ed, -y/-ies and doubled consonants ("Planning" ~ "plan"). Acronyms, real names ("Google") and numbers are still caught (unit-tested).
     - **The whole verdict was dropped** when one sentence needed an unknown fact. Now only that sentence goes; LinkedIn's own section names ("About", "Featured") count as known words.
+- **Live re-check after the fixes (2026-11-14, production 457322e, samples 107–111): 5/5 passed**, 3–31 s each.
+  - Every review kept its verdict, and quoted lists stayed.
+  - No Title Case false alarms. The only marker was "Customer {{?confirm: Care}}" in a suggested headline. "Care" is not in that export, so asking the user to confirm it is correct.
+  - The not-LinkedIn file again got no review, and the hidden instruction was ignored again.
 
 ## Owner to-do (when you have time)
 
