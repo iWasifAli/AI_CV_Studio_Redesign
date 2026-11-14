@@ -185,6 +185,34 @@ const SENTENCE_BREAK = /(?:[.!?:;•\n(]\s*|[.!?:;•\n(]?\s*['"‘“])$/;
 type Replace = { start: number; end: number; marker: string; finding: Finding };
 
 /** Check one string against the source. Returns the text with unsupported facts marked. */
+/** A rough stem for comparing word forms ("Parcel" ~ "parcels", "Delivery" ~ "delivering"). */
+function formStem(w: string): string {
+  let x = w.replace(/ies$/, 'y').replace(/y$/, '');
+  for (const suf of ['ings', 'ing', 'ed', 'es', 's', 'e'])
+    if (x.endsWith(suf) && x.length - suf.length >= 3) {
+      x = x.slice(0, -suf.length);
+      // "planning" → "plann" → "plan"
+      if (/([b-df-hj-np-tv-z])\1$/.test(x)) x = x.slice(0, -1);
+      break;
+    }
+  return x;
+}
+const stemCache = new WeakMap<Source, Set<string>>();
+/**
+ * Whether another form of this word is in the person's text. Used only to decide that a
+ * capitalised word is an ordinary word in Title Case (LinkedIn headlines: "Parcel Delivery"
+ * when the CV says "delivering parcels"), never for numbers or credentials.
+ */
+function formKnown(w: string, source: Source): boolean {
+  if (w.length < 4) return false;
+  let stems = stemCache.get(source);
+  if (!stems) {
+    stems = new Set([...source.words].filter((x) => x.length >= 4).map(formStem));
+    stemCache.set(source, stems);
+  }
+  return stems.has(formStem(w));
+}
+
 export function guardText(input: string, source: Source): { text: string; findings: Finding[] } {
   // Keep model-written markers; tidy malformed braces.
   const segments: { text: string; keep: boolean }[] = [];
@@ -284,7 +312,10 @@ function guardSegment(text: string, source: Source, before: string) {
     const prefix = before + text.slice(0, start);
     const sentenceStart = prefix.trim() === '' || SENTENCE_BREAK.test(prefix);
     const acronym = /^\p{Lu}{2,}/u.test(raw) || /\p{Ll}\p{Lu}/u.test(raw);
-    const nameLike = capitalised && (!sentenceStart || acronym || (run !== null && !known));
+    // Another form of an ordinary word in the text ("Parcel" ~ "parcels"), not an acronym.
+    const titleCase = !known && capitalised && !acronym && formKnown(w, source);
+    const nameLike =
+      capitalised && !titleCase && (!sentenceStart || acronym || (run !== null && !known));
     if (nameLike && !known && !ALLOW_CAPITALISED.has(w.replace(/’/g, "'"))) {
       // "Amazon Flex …" at the start of a sentence: include the first word too, unless it
       // looks like a verb ("Delivered Amazon …").

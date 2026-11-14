@@ -75,7 +75,13 @@ describe('quotes must be on the page', () => {
     ).toBe(true);
     expect(onPage(S.ENGINEER, 'I build reliable payment … no unplanned downtime.')).toBe(true);
   });
+  it('ignores punctuation and line breaks: a list quoted with commas matches its lines', () => {
+    expect(onPage(S.DRIVER, 'Driving, Customer Service, Time Management')).toBe(true);
+    expect(onPage(S.DRIVER, 'Beaumont Leys School — GCSEs, English and Maths')).toBe(true);
+    expect(onPage(S.DRIVER, 'www.linkedin.com/in/imranqureshi-4b2a91')).toBe(true);
+  });
   it('refuses words that aren’t there', () => {
+    expect(onPage(S.DRIVER, 'rive')).toBe(false); // part of "driver", not a quote
     expect(onPage(S.DRIVER, 'Award-winning driver with 20 years')).toBe(false);
     expect(onPage(S.DRIVER, '')).toBe(false);
     expect(onPage(S.DRIVER, 'I build reliable … Delivering parcels.')).toBe(false);
@@ -160,7 +166,8 @@ describe('the linkedin.review task', () => {
     const r = await runTask('linkedin.review', input, 0, {
       provider: fake({
         isLinkedin: true,
-        overall: 'Your jobs are clear.',
+        overall:
+          'Your jobs are clear. Profiles with 17 skills get 5x more views. Add a fuller About.',
         sections: [
           {
             key: 'experience',
@@ -193,6 +200,8 @@ describe('the linkedin.review task', () => {
     expect(job!.rewrite).toContain('{{?');
     expect(job!.notes).toEqual(['Say how many parcels you deliver.']);
     expect(r.findings.length).toBeGreaterThan(0);
+    // The verdict keeps its sentences that need no unknown fact.
+    expect(r.result.overall).toBe('Your jobs are clear. Add a fuller About.');
   });
 
   it('returns nothing for a file that isn’t a LinkedIn export', async () => {

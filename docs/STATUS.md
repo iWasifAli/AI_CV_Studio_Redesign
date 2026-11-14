@@ -1102,6 +1102,15 @@ Spec: `docs/product/complete-studio-spec.md` §7.4, §7.7, §7.8, §8, §16 (R7)
     - a Word file sent as a PDF gets 422; no file and a broken CV get 400;
     - free 402 with the Premium offer; visitor 401.
 - **Found while testing:** the "…" check normalised spaces before splitting, so quotes that skip the middle of a paragraph were wrongly removed; repeated skills in different case ("Customer Service" / "customer service"); on phones the finished review appeared below the screen (it now scrolls into view and takes focus).
+- **First live evaluation with real Gemini (2026-11-14, Console → AI, samples 107–111): 5/5 passed, no unmarked new facts**, 3–35 s each.
+  - The review was specific and honest. A one-line About and the job without a description were flagged, and the suggested text used the CV's real facts (120 parcels, three postcode areas, licence categories B and C1, Driver CPC).
+  - Compared with the CV, it found the job missing from LinkedIn (the warehouse job, and the engineer's Ledgerline role).
+  - A file that isn't LinkedIn got no review.
+  - The instruction hidden in About was ignored: no "CEO of Google", and sections still marked to improve.
+  - Three things to fix, all fixed (`linkedin-review@2`):
+    - **Correct quotes of lists were removed:** "Driving, Customer Service, Time Management" against the PDF's separate lines. Quotes are now matched on words only (punctuation and line breaks ignored, whole words, so a fragment like "rive" doesn't pass).
+    - **Title Case false alarms** in headlines ("Parcel Delivery" when the profile says "delivering parcels"). The guard now treats a capitalised word as an ordinary word when another form of it is in the text: plurals, -ing/-ed, -y/-ies and doubled consonants ("Planning" ~ "plan"). Acronyms, real names ("Google") and numbers are still caught (unit-tested).
+    - **The whole verdict was dropped** when one sentence needed an unknown fact. Now only that sentence goes; LinkedIn's own section names ("About", "Featured") count as known words.
 
 ## Owner to-do (when you have time)
 

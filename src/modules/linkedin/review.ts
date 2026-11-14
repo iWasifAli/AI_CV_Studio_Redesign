@@ -106,29 +106,31 @@ export const factsLines = (f: ExportFacts) =>
     `Profile address: ${f.defaultUrl ? 'LinkedIn’s default (ends in random characters)' : 'personal or unknown'}`,
   ].join('\n');
 
+/** Lower case, letters and digits only: punctuation and line breaks don't matter to a quote. */
 const norm = (s: string) =>
   s
     .toLowerCase()
     .replace(/[‘’ʼ]/g, "'")
-    .replace(/[“”]/g, '"')
-    .replace(/[–—]/g, '-')
-    .replace(/\s+/g, ' ')
+    .replace(/[^\p{L}\p{N}']+/gu, ' ')
     .trim();
 
 /**
- * Whether a quote is really in the export. Lines in a PDF wrap anywhere, so the text is joined
- * with spaces and also with nothing (for words split across lines like "imran-\nqureshi").
+ * Whether a quote is really in the export. Lines in a PDF wrap anywhere and lists lose their
+ * commas, so only the words count, in order ("Driving, Customer Service" matches the two lines;
+ * "imran-\nqureshi" matches "imran-qureshi").
  */
 export function onPage(exportText: string, quote: string): boolean {
-  if (norm(quote).length < 2) return false;
-  const spaced = norm(exportText);
-  const joined = norm(exportText.replace(/-\n/g, '-').replace(/\n/g, ' '));
+  if (norm(quote).length < 3) return false;
+  const spaced = ` ${norm(exportText)} `;
+  const joined = ` ${norm(exportText.replace(/-\n/g, ''))} `;
   // A quote may skip the middle of a long paragraph with "…"; each part must be on the page.
   const parts = quote
     .split(/…|\.\.\./)
     .map(norm)
-    .filter((p) => p.length > 1);
-  return parts.length > 0 && parts.every((p) => spaced.includes(p) || joined.includes(p));
+    .filter((p) => p.length > 2);
+  return (
+    parts.length > 0 && parts.every((p) => spaced.includes(` ${p} `) || joined.includes(` ${p} `))
+  );
 }
 
 const clip = (s: string, n: number) => {

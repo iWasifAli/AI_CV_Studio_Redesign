@@ -180,3 +180,17 @@ describe('truth guard: "degree" for a named degree (live skills eval)', () => {
     expect(guardText("Your master's degree helps.", src).findings.length).toBeGreaterThan(0);
   });
 });
+
+describe('Title Case words (LinkedIn headlines)', () => {
+  const src = buildSource([
+    'Multi-drop driver. Deliver around 120 parcels a day. Plan routes each morning. Delivering on time.',
+  ]);
+  it('another form of an ordinary word in the text is not a name', () => {
+    const r = guardText('Multi-drop Driver | Parcel Delivery | Route Planning', src);
+    expect(r.findings).toEqual([]);
+  });
+  it('real names and acronyms are still caught', () => {
+    const r = guardText('Driver | Parcel Delivery for Google | CEO', src);
+    expect(r.findings.map((f) => f.value)).toEqual(expect.arrayContaining(['Google', 'CEO']));
+  });
+});
