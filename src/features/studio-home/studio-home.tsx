@@ -15,6 +15,8 @@ import {
 import { ButtonLink } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/misc';
 import { useAccount } from '@/features/account/account-context';
+import { useEntitlements } from '@/features/account/entitlements';
+import { factsOf, wasSent } from '@/modules/jobs/insights';
 import { jobsApi } from '@/features/jobs/api';
 import { dayLabel } from '@/features/jobs/reminders-card';
 import { soonest, todayIn } from '@/modules/jobs/reminders';
@@ -287,6 +289,7 @@ export function StudioHome() {
               ))}
             </ul>
           )}
+          <SentLine jobs={jobs} />
           {next && (
             <p className="text-sm" data-testid="next-reminder">
               <Bell aria-hidden size={14} className="text-primary mr-1 inline" />
@@ -371,3 +374,20 @@ const zone = () => {
     return 'UTC';
   }
 };
+
+/** Home: a one-line summary of sent applications, linking to the results page (R9.10). */
+function SentLine({ jobs }: { jobs: Job[] | null }) {
+  const { ent } = useEntitlements();
+  if (!jobs || ent?.features.jobInsights === false) return null;
+  const sent = jobs.filter(wasSent);
+  if (!sent.length) return null;
+  const replies = sent.filter((j) => factsOf(j).replied).length;
+  return (
+    <p className="text-sm" data-testid="home-results">
+      {sent.length} sent · {replies} {replies === 1 ? 'reply' : 'replies'} ·{' '}
+      <Link href="/jobs/insights" className="text-primary font-semibold underline">
+        See your results
+      </Link>
+    </p>
+  );
+}

@@ -867,7 +867,7 @@ Spec: `docs/product/complete-studio-spec.md` §7.4, §7.7, §7.8, §8, §16 (R7)
   - per-task AI switches and model per tier.
   These belong with the R9/R10 tools that need them.
 
-## Release 9 — Coach (in progress: R9.1–R9.9 live)
+## Release 9 — Coach (R9.1–R9.10)
 
 ### R9.1 Mock interview
 - **On every job (and from Coach):**
@@ -1115,6 +1115,49 @@ Spec: `docs/product/complete-studio-spec.md` §7.4, §7.7, §7.8, §8, §16 (R7)
   - Every review kept its verdict, and quoted lists stayed.
   - No Title Case false alarms. The only marker was "Customer {{?confirm: Care}}" in a suggested headline. "Care" is not in that export, so asking the user to confirm it is correct.
   - The not-LinkedIn file again got no review, and the hidden instruction was ignored again.
+
+### R9.10 Application analytics
+- **What it is** (spec §10.2: "applications sent, replies, interviews, by CV version and design", P2): **Your application results** at `/jobs/insights`. It is linked from the job board ("Your results"), from Home ("N sent · N replies · See your results") and from the command palette.
+- **Totals:**
+  - applications sent, replies (with the rate), interviews (with the rate), offers, and still waiting;
+  - how many were closed with no answer;
+  - how long replies usually take (the median in days, shown once two employers have answered);
+  - a sent → replies → interviews → offers bar;
+  - applications per week for the last 12 weeks.
+- **By CV and by design:** sent, replies, interviews and offers for each.
+  - Tailored copies made for each job are counted together under the CV they were made from ("Tailored copies of “Main CV”"), so the person can see whether tailoring helps.
+  - Rates only appear once a row has 5 or more applications. Below that the row says "Too few to compare yet", and the page says plainly that small differences are often luck.
+  - On phones the rows are stacked lines instead of a table.
+- **What counts:**
+  - **Sent:** the job reached Applied (or has an applied date), unless it was closed as "I didn't apply".
+  - **Reply:** an interview, an offer, or a "no" from the employer. Silence doesn't count.
+  - **No answer:** closed without a reply, or with the reason "No reply" or "I withdrew".
+  - (`jobs/insights.ts`, pure and unit-tested.)
+- **New on jobs:**
+  - **How it ended**, asked when a job is closed (on the job page, on the board's card, and on the results page under "Fill in the gaps"). The choices are: They said no · No reply · I withdrew · I turned down the offer · I accepted the offer · I didn't apply. It is cleared if the job is reopened.
+  - **Stage history** (`reached`, server only): the first day each stage was reached. Skipping straight to Interview also stamps Applied. Closing keeps the furthest stage reached. Moving back to an earlier open stage is treated as a correction, so later stages are forgotten.
+  - **The CV sent** (`sent`, server only): when a job is applied for, the CV ticked last (the kit's CV is added last) is recorded with its title, whether it was a tailored copy, and its design **as it was then**. Redesigning the CV later doesn't rewrite history. The record changes only if the person ticks a different CV. The job page says "Sent with “…” in Clarity".
+  - Jobs from before R9.10 work out their history from where they are now: those days are unknown and never used for timing. Their CV is the one linked now.
+  - Nothing new is stored beyond these fields, and the numbers are worked out on each request.
+- **Plans:** every signed-in account (like the job tracker); not an AI action. Console switch: **Application results**. When it is off, `GET /api/jobs/insights` returns 403, the link is hidden, and the page says the tracker still works.
+- **Tests:**
+  - 9 unit tests:
+    - stage history (stamps, skipping, closing, corrections, older jobs, new jobs added at a later stage);
+    - what counts as a reply;
+    - totals, groups, weeks and the median;
+    - the CV snapshot (kept after a redesign, follows a change of CV, the tailored copy under its base, never another account's CV).
+  - e2e `insights.spec` (desktop and phone):
+    - the empty state (axe);
+    - five jobs built through the API: a waiting one, a tailored copy that got an interview, one closed without a reason, one never applied, and one with no CV. Checked: the totals and rates, the rows by CV and by design, and the gaps (axe);
+    - choosing "They said no" turns that job into a reply;
+    - a later redesign doesn't move a job to another design;
+    - the job page's "Sent with" and outcome;
+    - Home's summary line and its link;
+    - no sideways scrolling at 360 px;
+    - each account sees only its own results;
+    - visitor 401.
+  - Switch-off test in `admin.spec`.
+- **Found while testing:** on phones the tables' scroll area couldn't be reached by keyboard (axe), and Replies and Interviews were cut off. Phones now get stacked rows; wider screens keep a focusable table.
 
 ## Owner to-do (when you have time)
 

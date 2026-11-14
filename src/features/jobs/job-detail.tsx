@@ -10,7 +10,15 @@ import { Card } from '@/components/ui/card';
 import { TextArea, TextField } from '@/components/ui/field';
 import { useToast } from '@/components/ui/toast';
 import { CheckboxField } from '@/features/editor/fields';
-import { JOB_STAGES, STAGE_LABEL, type Job, type JobStage } from '@/modules/jobs/schema';
+import {
+  JOB_OUTCOMES,
+  JOB_STAGES,
+  OUTCOME_LABEL,
+  STAGE_LABEL,
+  type Job,
+  type JobOutcome,
+  type JobStage,
+} from '@/modules/jobs/schema';
 import { getRepository } from '@/modules/storage/repository';
 import { jobsApi } from './api';
 import { JobTools } from './job-tools';
@@ -25,6 +33,7 @@ type Draft = Pick<
   | 'url'
   | 'advert'
   | 'stage'
+  | 'outcome'
   | 'notes'
   | 'appliedOn'
   | 'documentIds'
@@ -36,6 +45,7 @@ const pick = (j: Job): Draft => ({
   url: j.url,
   advert: j.advert,
   stage: j.stage,
+  outcome: j.outcome ?? '',
   notes: j.notes,
   appliedOn: j.appliedOn,
   documentIds: j.documentIds,
@@ -161,6 +171,29 @@ export function JobDetail({ id }: { id: string }) {
                 </button>
               ))}
             </div>
+            {draft.stage === 'closed' && (
+              <label className="flex max-w-sm flex-col gap-1.5">
+                <span className="text-sm font-semibold">
+                  How did it end? <span className="text-ink-muted font-normal">(optional)</span>
+                </span>
+                <select
+                  className="border-line-strong bg-surface h-11 rounded-md border px-3"
+                  value={draft.outcome}
+                  onChange={(e) => set('outcome', e.target.value as JobOutcome | '')}
+                  data-testid="job-outcome"
+                >
+                  <option value="">Not said</option>
+                  {JOB_OUTCOMES.map((o) => (
+                    <option key={o} value={o}>
+                      {OUTCOME_LABEL[o]}
+                    </option>
+                  ))}
+                </select>
+                <span className="text-ink-muted text-sm">
+                  It helps your results: a “no” counts as a reply, silence doesn’t.
+                </span>
+              </label>
+            )}
             <TextField
               label="Applied on"
               optional
@@ -184,6 +217,13 @@ export function JobDetail({ id }: { id: string }) {
 
           <Card className="flex flex-col gap-3 p-5">
             <h2 className="text-lg font-semibold">CVs used for this job</h2>
+            {job.sent && (
+              <p className="text-ink-muted text-sm" data-testid="job-sent">
+                Sent with “{job.sent.title}”{' '}
+                {job.sent.designId ? `in ${job.sent.designName}` : 'in a design of your own'}. Your
+                results count this application under that CV and design.
+              </p>
+            )}
             {cvs.length === 0 ? (
               <p className="text-ink-muted text-sm">
                 You have no CVs yet.{' '}

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
-import { Bell, Briefcase, Link2, Lock, Plus, X } from 'lucide-react';
+import { BarChart3, Bell, Briefcase, Link2, Lock, Plus, X } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -12,7 +12,15 @@ import { useToast } from '@/components/ui/toast';
 import { useAccount } from '@/features/account/account-context';
 import { useEntitlements } from '@/features/account/entitlements';
 import type { JobFromUrl } from '@/modules/jobs/from-url';
-import { JOB_STAGES, STAGE_LABEL, type Job, type JobStage } from '@/modules/jobs/schema';
+import {
+  JOB_OUTCOMES,
+  JOB_STAGES,
+  OUTCOME_LABEL,
+  STAGE_LABEL,
+  type Job,
+  type JobOutcome,
+  type JobStage,
+} from '@/modules/jobs/schema';
 import { JobsError, jobsApi } from './api';
 
 const fmt = (d: string) =>
@@ -43,12 +51,17 @@ export function JobsBoard() {
     if (account.status === 'signedIn') load();
   }, [account.status, load]);
 
-  const move = async (job: Job, stage: JobStage) => {
-    setData((d) => d && { ...d, jobs: d.jobs.map((j) => (j.id === job.id ? { ...j, stage } : j)) });
+  const move = async (job: Job, patch: { stage?: JobStage; outcome?: JobOutcome }) => {
+    setData(
+      (d) => d && { ...d, jobs: d.jobs.map((j) => (j.id === job.id ? { ...j, ...patch } : j)) },
+    );
     try {
-      const next = await jobsApi.update(job.id, { stage });
+      const next = await jobsApi.update(job.id, patch);
       setData((d) => d && { ...d, jobs: d.jobs.map((j) => (j.id === job.id ? next : j)) });
-      toast.show({ tone: 'success', message: `Moved to ${STAGE_LABEL[stage]}` });
+      toast.show({
+        tone: 'success',
+        message: patch.stage ? `Moved to ${STAGE_LABEL[patch.stage]}` : 'Saved',
+      });
     } catch (e) {
       setError((e as Error).message);
       load();
@@ -85,15 +98,26 @@ export function JobsBoard() {
             ? `${data.jobs.length} job${data.jobs.length === 1 ? '' : 's'}`
             : `${data.jobs.length} of ${data.max} jobs`}
         </p>
-        {!adding && (
-          <Button
-            icon={<Plus aria-hidden size={18} />}
-            onClick={() => setAdding(true)}
-            disabled={full}
-          >
-            Add a job
-          </Button>
-        )}
+        <div className="flex flex-wrap gap-2">
+          {ent?.features.jobInsights !== false && data.jobs.length > 0 && (
+            <ButtonLink
+              href="/jobs/insights"
+              variant="secondary"
+              icon={<BarChart3 aria-hidden size={18} />}
+            >
+              Your results
+            </ButtonLink>
+          )}
+          {!adding && (
+            <Button
+              icon={<Plus aria-hidden size={18} />}
+              onClick={() => setAdding(true)}
+              disabled={full}
+            >
+              Add a job
+            </Button>
+          )}
+        </div>
       </div>
       {full && !adding && (
         <Banner
@@ -181,7 +205,7 @@ export function JobsBoard() {
                         className="border-line-strong bg-surface h-9 min-w-0 flex-1 rounded-sm border px-1.5"
                         value={j.stage}
                         aria-label={`Stage for ${j.title}`}
-                        onChange={(e) => void move(j, e.target.value as JobStage)}
+                        onChange={(e) => void move(j, { stage: e.target.value as JobStage })}
                       >
                         {JOB_STAGES.map((s) => (
                           <option key={s} value={s}>
@@ -190,6 +214,24 @@ export function JobsBoard() {
                         ))}
                       </select>
                     </label>
+                    {j.stage === 'closed' && (
+                      <label className="mt-2 flex items-center gap-2 text-sm">
+                        <span className="text-ink-muted">Ended</span>
+                        <select
+                          className="border-line-strong bg-surface h-9 min-w-0 flex-1 rounded-sm border px-1.5"
+                          value={j.outcome ?? ''}
+                          aria-label={`How it ended: ${j.title}`}
+                          onChange={(e) => void move(j, { outcome: e.target.value as JobOutcome })}
+                        >
+                          <option value="">Not said</option>
+                          {JOB_OUTCOMES.map((o) => (
+                            <option key={o} value={o}>
+                              {OUTCOME_LABEL[o]}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    )}
                   </article>
                 ))}
               </section>

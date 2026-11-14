@@ -1,6 +1,7 @@
 'use client';
 
 import type { JobFromUrl } from '@/modules/jobs/from-url';
+import type { Insights } from '@/modules/jobs/insights';
 import type { Job, JobInput } from '@/modules/jobs/schema';
 import type { ResumeDocument } from '@/modules/resume/schema';
 
@@ -33,6 +34,8 @@ async function call<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const jobsApi = {
+  /** R9.10 application results. */
+  insights: () => call<{ insights: Insights; total: number }>('/api/jobs/insights'),
   list: () => call<{ jobs: Job[]; max: number }>('/api/jobs'),
   get: (id: string) => call<{ job: Job }>(`/api/jobs/${id}`).then((r) => r.job),
   create: (input: JobInput) =>

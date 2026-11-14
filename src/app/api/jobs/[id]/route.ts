@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { apiError, readJson, requestId } from '@/lib/http';
 import { currentUser } from '@/modules/identity/session';
-import { applyJobPatch } from '@/modules/jobs/server';
+import { applyJobPatch, withSent } from '@/modules/jobs/server';
 import { getUserStore } from '@/modules/store';
 
 export const runtime = 'nodejs';
@@ -35,8 +35,9 @@ export async function PUT(req: Request, ctx: Ctx) {
   if (!body.ok) return apiError(body.code, 'Invalid request.', r.rid);
   const next = applyJobPatch(r.job, body.value);
   if ('error' in next) return apiError('INVALID_INPUT', next.error, r.rid);
-  await getUserStore().putJob(r.user.uid, next);
-  return NextResponse.json({ job: next }, noStore);
+  const saved = await withSent(r.user.uid, r.job, next);
+  await getUserStore().putJob(r.user.uid, saved);
+  return NextResponse.json({ job: saved }, noStore);
 }
 
 export async function DELETE(_req: Request, ctx: Ctx) {

@@ -710,6 +710,11 @@ export function AdminSettings() {
             checked={draft.features.linkedinReview}
             onChange={(v) => edit((c) => void (c.features.linkedinReview = v))}
           />
+          <CheckboxField
+            label="Application results (replies and interviews by CV and design)"
+            checked={draft.features.jobInsights}
+            onChange={(v) => edit((c) => void (c.features.jobInsights = v))}
+          />
         </Section>
 
         <Section

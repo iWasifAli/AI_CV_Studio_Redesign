@@ -16,6 +16,41 @@ export const STAGE_LABEL: Record<JobStage, string> = {
   closed: 'Closed',
 };
 
+/** How a closed application ended (R9.10). Optional; it decides what counts as a reply. */
+export const JOB_OUTCOMES = [
+  'rejected',
+  'no_reply',
+  'withdrew',
+  'declined',
+  'accepted',
+  'not_applied',
+] as const;
+export type JobOutcome = (typeof JOB_OUTCOMES)[number];
+export const OUTCOME_LABEL: Record<JobOutcome, string> = {
+  rejected: 'They said no',
+  no_reply: 'No reply',
+  withdrew: 'I withdrew',
+  declined: 'I turned down the offer',
+  accepted: 'I accepted the offer',
+  not_applied: 'I didn’t apply',
+};
+
+/** yyyy-mm-dd per stage, the first day the job reached it (written by the server). */
+export type StageDates = Partial<Record<JobStage, string>>;
+
+/** The CV sent for an application, as it was then (written by the server, R9.10). */
+export type SentWith = {
+  cvId: string;
+  title: string;
+  /** A copy tailored for this job, made from another CV (`baseId`). */
+  tailored: boolean;
+  baseId?: string;
+  baseTitle?: string;
+  /** Catalogue design id, or null for a design of the person's own. */
+  designId: string | null;
+  designName: string;
+};
+
 export const jobInput = z.object({
   title: z.string().trim().min(1, 'Add the job title.').max(160),
   company: z.string().trim().max(160).default(''),
@@ -29,6 +64,8 @@ export const jobInput = z.object({
   /** The advert text, pasted by the person (used for matching and letters). */
   advert: z.string().max(20_000).default(''),
   stage: z.enum(JOB_STAGES).default('saved'),
+  /** How it ended, when closed. */
+  outcome: z.enum(JOB_OUTCOMES).or(z.literal('')).default(''),
   notes: z.string().max(4000).default(''),
   /** yyyy-mm-dd, when they applied (set automatically when moved to Applied). */
   appliedOn: z
@@ -61,6 +98,10 @@ export const job = jobInput.extend({
   kit: z.object({ cvId: z.string().max(64), at: z.string() }).optional(),
   /** Reminders (R9.6), written through /api/jobs/[id]/reminders only. */
   reminders: z.custom<Reminder[]>().optional(),
+  /** First day each stage was reached (R9.10, server only). */
+  reached: z.custom<StageDates>().optional(),
+  /** The CV sent, as it was when applied (R9.10, server only). */
+  sent: z.custom<SentWith | null>().optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

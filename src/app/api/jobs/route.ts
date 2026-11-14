@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { apiError, readJson, requestId } from '@/lib/http';
 import { currentUser } from '@/modules/identity/session';
 import { jobInput, type Job } from '@/modules/jobs/schema';
-import { jobAllowance } from '@/modules/jobs/server';
+import { jobAllowance, newJobHistory, withSent } from '@/modules/jobs/server';
 import { getUserStore } from '@/modules/store';
 
 export const runtime = 'nodejs';
@@ -54,6 +54,7 @@ export async function POST(req: Request) {
         ? now.slice(0, 10)
         : parsed.data.appliedOn,
   };
-  await store.putJob(user.uid, job);
-  return NextResponse.json({ job }, noStore);
+  const ready = await withSent(user.uid, null, newJobHistory(job));
+  await store.putJob(user.uid, ready);
+  return NextResponse.json({ job: ready }, noStore);
 }

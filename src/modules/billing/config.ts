@@ -118,6 +118,8 @@ export const businessConfig = z.object({
     portfolioContact: z.boolean().default(true),
     /** R9 LinkedIn review from the person's LinkedIn PDF export. */
     linkedinReview: z.boolean().default(true),
+    /** R9 application analytics (results of the person's applications, by CV and design). */
+    jobInsights: z.boolean().default(true),
   }),
   /** AI actions that cost more than one (complete-studio-spec §14: weights are config data). */
   aiWeights: z
@@ -267,6 +269,7 @@ export const DEFAULT_CONFIG: BusinessConfig = {
     shareComments: true,
     portfolioContact: true,
     linkedinReview: true,
+    jobInsights: true,
   },
   aiWeights: { kit: 3, mockTurn: 1, coachTurn: 1, storyDraft: 1, skillGap: 1, linkedinReview: 1 },
   content: { hiddenLetterTypes: [] },

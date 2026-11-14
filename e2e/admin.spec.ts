@@ -220,6 +220,22 @@ test('R8 switches: letters off, a hidden letter type, the kit off', async ({ pag
   await expect(page.getByText('Letters are switched off right now.')).toBeVisible();
 });
 
+test('switching off application results hides them and refuses the API (R9.10)', async ({
+  page,
+  request,
+}) => {
+  await page.request.post('/api/jobs', { data: { title: 'Driver', stage: 'applied' } });
+  await setConfig(request, { ...BASE, features: { ...BASE.features, jobInsights: false } });
+  const r = await page.request.get('/api/jobs/insights');
+  expect(r.status()).toBe(403);
+  await page.goto('/jobs');
+  await expect(page.getByTestId('job-card')).toHaveCount(1);
+  await expect(page.getByRole('link', { name: 'Your results' })).toHaveCount(0);
+  await page.goto('/jobs/insights');
+  await expect(page.getByText('Application results are switched off right now.')).toBeVisible();
+  await expect(page.getByText('Your job tracker still works as usual.')).toBeVisible();
+});
+
 test('the AI page runs the live evaluation in batches and reports the pass mark', async ({
   browser,
 }) => {

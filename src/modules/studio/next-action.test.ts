@@ -24,6 +24,7 @@ const job = (o: Partial<Job> = {}): Job => ({
   url: '',
   advert: 'An advert',
   stage: 'saved',
+  outcome: '',
   notes: '',
   appliedOn: '',
   documentIds: [],
