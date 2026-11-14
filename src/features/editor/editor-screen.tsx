@@ -36,7 +36,7 @@ export function PreviewStatusLine({
       className="text-ink-muted flex min-h-6 flex-wrap items-center gap-x-3 gap-y-1 text-sm"
       aria-live="polite"
     >
-      <span>
+      <span data-testid="page-count">
         {status.pages} {status.pages === 1 ? 'page' : 'pages'}
       </span>
       {status.nearlyFits && onCompact && (

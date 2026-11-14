@@ -29,6 +29,8 @@ import { currentDesignId } from '@/modules/design/catalogue';
 import { DESIGN_META } from '@/modules/design/designs';
 import { ops } from '@/modules/resume/ops';
 import type { DocumentEditor } from './use-document-editor';
+import { cutSuggestions, meetsTarget, type Cut, type PageTarget } from '@/modules/design/fit';
+import { Segmented } from '@/components/ui/segmented';
 
 type Opt<T extends string | number> = { value: T; label: string };
 const words = (v: string) => v.charAt(0).toUpperCase() + v.slice(1).replace(/-/g, ' ');
@@ -219,6 +221,9 @@ export function DesignStudio({
   }, [status]);
   const [fitting, setFitting] = useState(false);
   const [fitReport, setFitReport] = useState<string | null>(null);
+  const [target, setTarget] = useState<PageTarget>(1);
+  const [cuts, setCuts] = useState<Cut[]>([]);
+  const pagesWord = (n: number) => (n === 1 ? 'one page' : `${n} pages`);
   const waitForLayout = async (prev: PreviewStatus | null) => {
     for (let i = 0; i < 60; i++) {
       await new Promise((r) => setTimeout(r, 100));
@@ -227,8 +232,13 @@ export function DesignStudio({
     return statusRef.current;
   };
   const fit = async () => {
-    if (!statusRef.current || statusRef.current.pages <= 1) {
-      setFitReport('It already fits on one page.');
+    setCuts([]);
+    if (target === 0) {
+      setFitReport('No page limit is set, so nothing needs to change.');
+      return;
+    }
+    if (!statusRef.current || meetsTarget(statusRef.current.pages, target)) {
+      setFitReport(`It already fits on ${pagesWord(target)}.`);
       return;
     }
     setFitting(true);
@@ -271,7 +281,7 @@ export function DesignStudio({
     ];
     const done: string[] = [];
     for (const [label, step, keepBase] of steps) {
-      if ((statusRef.current?.pages ?? 1) <= 1) break;
+      if (meetsTarget(statusRef.current?.pages ?? 1, target)) break;
       if (attached && !keepBase) break;
       const prev = statusRef.current;
       edit(step, { keepBase });
@@ -280,11 +290,25 @@ export function DesignStudio({
     }
     const pages = statusRef.current?.pages ?? 0;
     setFitting(false);
+    const changed = done.length ? ` Changed: ${done.join(', ')}.` : '';
+    if (meetsTarget(pages, target)) {
+      setFitReport(`Now fits on ${pagesWord(target)}.${changed}`);
+      return;
+    }
+    // Spacing alone wasn't enough: suggest content cuts (never made without the person).
+    setCuts(cutSuggestions(docRef.current));
     setFitReport(
-      pages <= 1
-        ? `Now fits on one page. Changed: ${done.join(', ')}.`
-        : `Still ${pages} pages after: ${done.join(', ')}.${attached ? ' Adjusting the design further (below) or shortening some points will help.' : ' Shortening some points will help.'} Undo puts it back.`,
+      `Still ${pages} pages.${changed}${attached ? ' Adjusting the design further (below) or' : ''} Leaving something out will help — the ideas below are only suggestions. Undo puts any change back.`,
     );
+  };
+  const docRef = useRef(doc);
+  useEffect(() => {
+    docRef.current = doc;
+  }, [doc]);
+  const applyCut = (c: Cut) => {
+    if (!c.apply) return;
+    update((x) => c.apply!(x));
+    setCuts((cs) => cs.filter((x) => x.key !== c.key));
   };
 
   // ---- Saved designs
@@ -352,15 +376,30 @@ export function DesignStudio({
           checked={spec.atsSafe}
           onChange={(v) => edit((s) => void (s.atsSafe = v), { keepBase: true })}
         />
+        <Segmented
+          label="Page target"
+          value={String(target) as '1' | '2' | '0'}
+          onChange={(v) => {
+            setTarget(Number(v) as PageTarget);
+            setFitReport(null);
+            setCuts([]);
+          }}
+          options={[
+            { value: '1', label: '1 page' },
+            { value: '2', label: '2 pages' },
+            { value: '0', label: 'No limit' },
+          ]}
+        />
         <Button
           size="sm"
           variant="secondary"
           icon={<Minimize2 aria-hidden size={16} />}
           onClick={() => void fit()}
           loading={fitting}
-          data-testid="fit-one-page"
+          disabled={target === 0}
+          data-testid="fit-pages"
         >
-          Fit to one page
+          {target === 2 ? 'Fit to 2 pages' : 'Fit to one page'}
         </Button>
         {!attached && !spec.atsSafe && (
           <Button
@@ -381,6 +420,24 @@ export function DesignStudio({
         >
           {fitReport}
         </p>
+      )}
+      {cuts.length > 0 && (
+        <ul
+          className="flex flex-col gap-1.5 text-sm"
+          data-testid="fit-cuts"
+          aria-label="Ideas to save space"
+        >
+          {cuts.map((c) => (
+            <li key={c.key} className="flex flex-wrap items-center justify-between gap-2">
+              <span>{c.label}</span>
+              {c.apply && (
+                <Button size="sm" variant="ghost" onClick={() => applyCut(c)}>
+                  Do this
+                </Button>
+              )}
+            </li>
+          ))}
+        </ul>
       )}
       {spec.atsSafe && (
         <p className="text-ink-muted flex items-start gap-1.5 text-sm">

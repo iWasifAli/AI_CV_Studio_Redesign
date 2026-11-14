@@ -111,13 +111,13 @@ test('ATS-safe, saved designs, and Fit to one page', async ({ page, request }) =
   await expect(page.getByTestId('studio-base')).toContainText('Your own design');
 
   // Fit to one page runs the repair steps and reports what it changed.
-  await expect(page.getByText(/^2 pages$/)).toBeVisible({ timeout: 15_000 });
-  await page.getByTestId('fit-one-page').click();
+  await expect(page.getByTestId('page-count')).toHaveText('2 pages', { timeout: 15_000 });
+  await page.getByTestId('fit-pages').click();
   await expect(page.getByTestId('fit-report')).toContainText(/fits on one page|Still \d pages/, {
     timeout: 30_000,
   });
   await expect(page.getByTestId('fit-report')).toContainText('compact spacing');
-  await expect(page.getByText(/^1 page$/)).toBeVisible();
+  await expect(page.getByTestId('page-count')).toHaveText('1 page');
 
   // Save as my design; it is listed after a reload and applies to another CV.
   await studio.getByLabel('Design name').fill('Compact sidebar');
@@ -140,6 +140,40 @@ test('ATS-safe, saved designs, and Fit to one page', async ({ page, request }) =
   expect(weird.status()).toBe(201);
   const w = (await weird.json()) as { design: { spec: { layout: { type: string } } } };
   expect(w.design.spec.layout.type).toBe('single');
+});
+
+test('Fit to pages: a page target, spacing first, then content cuts as suggestions', async ({
+  page,
+  request,
+}) => {
+  await on(request);
+  const doc = { ...structuredClone(FIXTURES.extreme), id: 'fit-extreme' };
+  await openDesign(page, doc);
+  const studio = page.getByTestId('design-studio');
+  await expect(page.getByTestId('page-count')).toHaveText(/\d pages?/, { timeout: 15_000 });
+  await studio.getByRole('radio', { name: 'No limit' }).click();
+  await expect(page.getByTestId('fit-pages')).toBeDisabled();
+  await studio.getByRole('radio', { name: '1 page' }).click();
+  await page.getByTestId('fit-pages').click();
+  await expect(page.getByTestId('fit-report')).toContainText('Still', { timeout: 30_000 });
+  await expect(page.getByTestId('fit-report')).toContainText('only suggestions');
+  const cuts = page.getByTestId('fit-cuts');
+  const trim = cuts.getByRole('listitem').filter({ hasText: 'Keep the first 6 of 12 points' });
+  await expect(trim).toBeVisible();
+  // Nothing was cut without the person: the long job still has 12 points.
+  const points = async () =>
+    page
+      .frameLocator('iframe[data-active][title^="Preview of your CV"]')
+      .first()
+      .getByText(/^Responsibility number \d+:/)
+      .count();
+  await expect.poll(points).toBe(12);
+  await trim.getByRole('button', { name: 'Do this' }).click();
+  await expect(trim).toHaveCount(0);
+  await expect.poll(points).toBe(6);
+  // Undo puts it back.
+  await page.keyboard.press('Control+z');
+  await expect.poll(points).toBe(12);
 });
 
 test('custom designs download with Premium; the ATS-safe version is free', async ({ request }) => {
