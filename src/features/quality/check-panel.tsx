@@ -15,6 +15,7 @@ import { CommentsPanel } from '@/features/share/comments-panel';
 import { HealthPanel } from './health-panel';
 import { ProofreadPanel } from './proofread-panel';
 import { QuantifyPanel } from './quantify-panel';
+import { GapPanel } from './gap-panel';
 
 const ICON = { pass: CircleCheck, 'needs-work': CircleAlert, info: Info } as const;
 const TONE = { pass: 'text-success', 'needs-work': 'text-danger', info: 'text-primary' } as const;
@@ -44,6 +45,7 @@ export function CheckPanel({
       <HealthPanel doc={doc} pages={pages} onShow={onShow} />
       {apply && <ProofreadPanel doc={doc} onShow={onShow} apply={apply} />}
       {apply && <QuantifyPanel doc={doc} onShow={onShow} apply={apply} />}
+      {apply && <GapPanel doc={doc} apply={apply} />}
       <AtsPanel doc={doc} onShow={onShow} onDesign={onDesign} />
     </div>
   );

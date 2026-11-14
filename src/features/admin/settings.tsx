@@ -20,6 +20,7 @@ const AI_WEIGHTS = [
   ['linkedinReview', 'LinkedIn review'],
   ['proofread', 'Proofread the whole CV'],
   ['quantify', 'Questions to add numbers to a point'],
+  ['gap', 'Wording for a gap in work history'],
 ] as const;
 import { AdminHeading } from './admin-shell';
 import { adminGet, adminSend } from './api';
@@ -731,6 +732,11 @@ export function AdminSettings() {
             label="Application pack (CV, letter and certificates as one PDF or ZIP)"
             checked={draft.features.pack}
             onChange={(v) => edit((c) => void (c.features.pack = v))}
+          />
+          <CheckboxField
+            label="Explain a gap in work history (AI wording)"
+            checked={draft.features.gapCoach}
+            onChange={(v) => edit((c) => void (c.features.gapCoach = v))}
           />
         </Section>
 

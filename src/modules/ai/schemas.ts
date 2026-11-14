@@ -38,6 +38,7 @@ export const TASK_IDS = [
   'write.fromNotes',
   'write.rewrite',
   'write.quantify',
+  'coach.gap',
   'suggest.skills',
   'import.structure',
   'job.match',
@@ -157,6 +158,15 @@ export const taskInputs = {
     tone: z.enum(['formal', 'friendly']).default('formal'),
     /** The whole field the selection is in (facts may come from it too). */
     context: z.string().max(3000).default(''),
+  }),
+  /** Explain a gap (spec §9.3): neutral wording of the person's own answer about a break. */
+  'coach.gap': z.object({
+    reason: z.string().max(60),
+    answer: z.string().max(400).default(''),
+    /** "about 8 months". */
+    length: z.string().max(40),
+    after: z.string().max(200).default(''),
+    before: z.string().max(200).default(''),
   }),
   /** Quantify prompts (spec §9.3): ask about a point with no number, then add only the answers. */
   'write.quantify': z.object({
@@ -390,6 +400,12 @@ export const taskOutputs = {
   'write.improveBullets': z.object({ bullets: z.array(z.string().min(1).max(260)).min(1).max(12) }),
   'write.fromNotes': z.object({ bullets: z.array(z.string().min(1).max(260)).min(1).max(8) }),
   'write.rewrite': z.object({ text: z.string().min(1).max(2000) }),
+  'coach.gap': z.object({
+    /** One neutral line for the CV's career-break entry. */
+    cvLine: z.string().min(3).max(200),
+    /** One or two sentences to say in an interview or a letter. */
+    interviewLine: z.string().min(3).max(400),
+  }),
   'write.quantify': z.object({
     /** mode "ask": 1–3 questions about this point; [] for "insert". */
     questions: z

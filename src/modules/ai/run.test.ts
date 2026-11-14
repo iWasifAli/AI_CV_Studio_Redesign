@@ -227,6 +227,11 @@ describe('mock provider', () => {
     'quality.atsKeywords': { advert: ADVERT, profile: profileDigest(F.driver).text },
     'quality.proofread': { lines: 'L1: Recieved parcels and and loaded vans' },
     'write.quantify': { mode: 'ask', point: 'Delivered parcels across Leicester', job: 'Driver' },
+    'coach.gap': {
+      reason: 'Caring for family',
+      answer: 'Looked after my father',
+      length: 'about 8 months',
+    },
     'write.rewrite': {
       text: 'delivered parcels to costumers',
       mode: 'grammar',

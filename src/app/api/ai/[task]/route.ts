@@ -22,6 +22,7 @@ const INTERNAL = new Set<string>([
   'quality.atsKeywords',
   'quality.proofread',
   'write.quantify',
+  'coach.gap',
   'interview.turn',
   'coach.chat',
   'story.draft',

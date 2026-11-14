@@ -177,6 +177,7 @@ export async function entitlementsFor(user: SessionUser | null) {
       proofread: cfg.features.proofread,
       quantify: cfg.features.quantify,
       pack: cfg.features.pack,
+      gapCoach: cfg.features.gapCoach,
     },
     aiWeights: cfg.aiWeights,
     hiddenLetterTypes: cfg.content.hiddenLetterTypes,

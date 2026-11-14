@@ -84,6 +84,7 @@ export const EVENTS = [
   'pack_pdf',
   'pack_zip',
   'pack_fail',
+  'gap_explain',
 ] as const;
 export type MetricEvent = (typeof EVENTS)[number];
 

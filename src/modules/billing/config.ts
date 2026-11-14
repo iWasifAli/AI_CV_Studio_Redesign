@@ -126,6 +126,8 @@ export const businessConfig = z.object({
     quantify: z.boolean().default(true),
     /** One-file application pack: CV + letter + added documents as one PDF or ZIP. */
     pack: z.boolean().default(true),
+    /** Explain a gap: neutral wording for breaks of over six months (AI, spec §9.3). */
+    gapCoach: z.boolean().default(true),
   }),
   /** AI actions that cost more than one (complete-studio-spec §14: weights are config data). */
   aiWeights: z
@@ -138,6 +140,7 @@ export const businessConfig = z.object({
       linkedinReview: z.number().int().min(1).max(10).default(1),
       proofread: z.number().int().min(1).max(10).default(1),
       quantify: z.number().int().min(1).max(10).default(1),
+      gap: z.number().int().min(1).max(10).default(1),
     })
     .default({
       kit: 3,
@@ -148,6 +151,7 @@ export const businessConfig = z.object({
       linkedinReview: 1,
       proofread: 1,
       quantify: 1,
+      gap: 1,
     }),
   /** Content the owner can change without a deploy (spec §15). */
   content: z
@@ -290,6 +294,7 @@ export const DEFAULT_CONFIG: BusinessConfig = {
     proofread: true,
     quantify: true,
     pack: true,
+    gapCoach: true,
   },
   aiWeights: {
     kit: 3,
@@ -300,6 +305,7 @@ export const DEFAULT_CONFIG: BusinessConfig = {
     linkedinReview: 1,
     proofread: 1,
     quantify: 1,
+    gap: 1,
   },
   content: { hiddenLetterTypes: [] },
   announcement: { enabled: false, text: '' },

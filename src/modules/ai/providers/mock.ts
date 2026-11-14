@@ -235,6 +235,17 @@ function answer(task: TaskId, input: unknown, attempt: number, files: AiFile[] =
       const firstBullet = digestLines(i.profile).find((l) => /\.B\d+$/.test(l.id))?.id ?? '';
       return { terms: terms.map((term, n) => ({ term, line: n === 0 ? firstBullet : '' })) };
     }
+    case 'coach.gap': {
+      const i = input as ParsedInput<'coach.gap'>;
+      const said = i.answer.split(/[.;]/)[0]!.trim();
+      // Test hook: an answer saying ZZ-GAP makes the demo AI invent a course nobody mentioned.
+      const extra = said.includes('ZZ-GAP') ? ' and earned a Harvard MBA' : '';
+      const what = said.replace(' ZZ-GAP', '') || i.reason.toLowerCase();
+      return {
+        cvLine: `Career break: ${what}${extra}`,
+        interviewLine: `I took time out for ${i.reason.toLowerCase()}${said ? ` (${what})` : ''}${extra}, and I am ready for my next role.`,
+      };
+    }
     case 'write.quantify': {
       const i = input as ParsedInput<'write.quantify'>;
       if (i.mode === 'ask')
