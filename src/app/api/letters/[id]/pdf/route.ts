@@ -40,6 +40,7 @@ export async function POST(req: Request, ctx: LetterCtx) {
         to: letter.to,
         subject: letter.subject,
         kind: type.title.toLowerCase(),
+        form: type.form,
       },
       { fonts: { kind: 'inline', read: readFontBase64 } },
     );

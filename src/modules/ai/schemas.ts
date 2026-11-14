@@ -242,6 +242,8 @@ export const taskInputs = {
     tone: z.enum(['warm', 'formal']).default('warm'),
     /** Story-bank stories (R9.3), "S1: title [skills] — story" per line: the person's own facts. */
     stories: z.string().max(8000).default(''),
+    /** "statement": personal statements and bios — no greeting or sign-off, more paragraphs. */
+    form: z.enum(['letter', 'statement']).default('letter'),
   }),
   'quality.atsKeywords': z.object({
     advert: z.string().min(80).max(12_000),
@@ -504,7 +506,7 @@ export const taskOutputs = {
   }),
   'letter.generic': z.object({
     greeting: z.string().max(80),
-    paragraphs: z.array(z.string().min(1).max(1200)).min(1).max(5),
+    paragraphs: z.array(z.string().min(1).max(1200)).min(1).max(6),
     closing: z.string().max(80),
   }),
   'quality.atsKeywords': z.object({

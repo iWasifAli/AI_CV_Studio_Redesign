@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { LETTER_TYPES, LETTER_TYPE, fill, missingAnswers, starterLetter } from './types';
 
 describe('letter types', () => {
-  it('has the seven library letters plus a general cover letter, each a 3–5 question form', () => {
+  it('has the seven library letters, a general cover letter, a statement and a bio', () => {
     expect(LETTER_TYPES.map((t) => t.id)).toEqual([
       'cover',
       'resignation',
@@ -12,13 +12,15 @@ describe('letter types', () => {
       'offer-accept',
       'salary',
       'networking',
+      'personal-statement',
+      'bio',
     ]);
     for (const t of LETTER_TYPES) {
       expect(t.questions.length).toBeGreaterThanOrEqual(3);
       expect(t.questions.length).toBeLessThanOrEqual(5);
-      expect(t.questions.some((q) => q.required)).toBe(true);
-      // Every placeholder names a question.
-      const ids = new Set(t.questions.map((q) => q.id));
+      expect(t.questions.some((q) => q.required || q.options)).toBe(true);
+      // Every placeholder names a question (or a CV detail).
+      const ids = new Set([...t.questions.map((q) => q.id), 'name', 'headline', 'location']);
       for (const line of [...t.starter, t.subject])
         for (const m of line.matchAll(/\{(\w+)/g)) expect(ids, `${t.id}: ${m[1]}`).toContain(m[1]);
     }
@@ -40,11 +42,22 @@ describe('letter types', () => {
         t.questions.filter((q) => q.required).map((q) => [q.id, `X-${q.id}`]),
       );
       expect(missingAnswers(t, answers)).toEqual([]);
-      const s = starterLetter(t, answers);
-      expect(s.paragraphs.length, t.id).toBeGreaterThanOrEqual(2);
+      const s = starterLetter(t, answers, { name: 'Sam Lee', headline: 'Driver', location: '' });
+      expect(s.paragraphs.length, t.id).toBeGreaterThanOrEqual(t.form === 'statement' ? 1 : 2);
       expect(s.paragraphs.join(' ')).not.toMatch(/[{}]/);
       expect(s.subject).not.toMatch(/[{}]/);
     }
+    const bio = starterLetter(
+      LETTER_TYPE.bio,
+      {},
+      {
+        name: 'Sam Lee',
+        headline: 'Delivery Driver',
+        location: 'Leicester',
+      },
+    );
+    expect(bio.paragraphs[0]).toBe('Sam Lee, Delivery Driver, based in Leicester.');
+    expect(bio.subject).toBe('About Sam Lee');
     const r = starterLetter(LETTER_TYPE.resignation, {
       role: 'Driver',
       organisation: 'Swift',

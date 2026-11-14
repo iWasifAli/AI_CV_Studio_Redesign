@@ -18,7 +18,15 @@ export function buildLetterHtml(
   cv: ResumeDocument,
   l: Pick<Letter, 'greeting' | 'paragraphs' | 'closing'>,
   /** A job's cover letter (title, company) or a library letter (recipient lines and subject). */
-  job: { title: string; company: string; to?: string[]; subject?: string; kind?: string },
+  job: {
+    title: string;
+    company: string;
+    to?: string[];
+    subject?: string;
+    kind?: string;
+    /** "statement": a titled text (personal statement, bio) — no date, recipient or sign-off. */
+    form?: 'statement';
+  },
   opts: { fonts: FontSource; date?: Date },
 ): string {
   const t = getTemplate(cv.design.templateId);
@@ -50,6 +58,7 @@ h1{font-family:var(--font-heading);font-weight:var(--heading-weight);color:var(-
 .meta p{margin:0}
 .re{font-weight:600;color:var(--ink);margin-top:10pt!important}
 .body p{margin:0 0 10pt}
+.st-title{font-family:var(--font-heading);font-weight:var(--heading-weight);color:var(--ink);font-size:14pt;margin:20pt 0 12pt}
 .sign{margin-top:16pt}.sign .name{font-weight:600;margin-top:22pt}
 mark.ask{background:#fff1c2;color:inherit;padding:0 2px;border-radius:2px}
 @media screen{body{background:#eef0f2}.page{margin:0 auto;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.12)}}`;
@@ -61,13 +70,21 @@ mark.ask{background:#fff1c2;color:inherit;padding:0 2px;border-radius:2px}
         .join('')}${job.subject ? `<p class="re">${esc(job.subject)}</p>` : ''}`
     : `${job.company ? `<p>${esc(job.company)}</p>` : ''}<p class="re">${esc(job.title ? `Application: ${job.title}` : 'Application')}</p>`;
   const kind = job.kind ?? 'cover letter';
-  const body = `<div class="page"><div class="bar"></div>
+  const statement = job.form === 'statement';
+  const body = statement
+    ? `<div class="page"><div class="bar"></div>
+<header class="head"><h1>${esc(b.name || 'Your name')}</h1>${b.headline ? `<p class="role">${esc(b.headline)}</p>` : ''}${contacts ? `<p class="contact">${contacts}</p>` : ''}</header>
+${job.subject ? `<h2 class="st-title">${esc(job.subject)}</h2>` : ''}<div class="body">${l.paragraphs
+        .filter((p) => p.trim())
+        .map((p) => `<p>${mark(p)}</p>`)
+        .join('')}</div></div>`
+    : `<div class="page"><div class="bar"></div>
 <header class="head"><h1>${esc(b.name || 'Your name')}</h1>${b.headline ? `<p class="role">${esc(b.headline)}</p>` : ''}${contacts ? `<p class="contact">${contacts}</p>` : ''}</header>
 <div class="meta"><p>${esc(date)}</p>${meta}</div>
 <div class="body"><p>${mark(l.greeting)}</p>${l.paragraphs
-    .filter((p) => p.trim())
-    .map((p) => `<p>${mark(p)}</p>`)
-    .join('')}</div>
+        .filter((p) => p.trim())
+        .map((p) => `<p>${mark(p)}</p>`)
+        .join('')}</div>
 <div class="sign"><p>${mark(l.closing)}</p><p class="name">${esc(b.name)}</p></div></div>`;
   const ready = `document.fonts.ready.then(function(){var h=document.querySelector('.page').scrollHeight;window.__CV_READY__={pages:Math.max(1,Math.round(h/(${d.page.heightMm}*96/25.4))),overflow:0,nearlyFits:false};document.documentElement.setAttribute('data-cv-ready','1');try{parent.postMessage({type:'cv:ready',result:window.__CV_READY__},'*')}catch(e){}});`;
   return `<!DOCTYPE html><html lang="${esc(cv.locale.split('-')[0] || 'en')}"><head><meta charset="utf-8">

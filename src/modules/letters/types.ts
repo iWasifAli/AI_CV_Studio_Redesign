@@ -9,6 +9,8 @@ export type LetterQuestion = {
   hint?: string;
   /** Long answer (text area) rather than one line. */
   long?: boolean;
+  /** A choice from a list (the first is the default). */
+  options?: string[];
   required?: boolean;
 };
 
@@ -24,8 +26,13 @@ export type LetterType = {
   questions: LetterQuestion[];
   /** What the AI must do for this type (purpose, structure, length). */
   notes: string;
-  /** Draft written without AI: paragraphs with {answer ids} filled in; empty answers drop out. */
+  /** Draft written without AI: paragraphs with {answer ids} filled in; empty answers drop out.
+   * {name}, {headline} and {location} come from the CV when the person doesn't answer them. */
   starter: string[];
+  /** "statement": a titled text with no recipient, greeting or sign-off (statements, bios). */
+  form?: 'statement';
+  /** Picker group. */
+  group?: 'letters' | 'about-you';
 };
 
 export const LETTER_TYPE_IDS = [
@@ -37,6 +44,8 @@ export const LETTER_TYPE_IDS = [
   'offer-accept',
   'salary',
   'networking',
+  'personal-statement',
+  'bio',
 ] as const;
 export type LetterTypeId = (typeof LETTER_TYPE_IDS)[number];
 
@@ -252,6 +261,81 @@ export const LETTER_TYPES: LetterType[] = [
       'Thank you for reading this, and no worries at all if now is not a good time.',
     ],
   },
+  {
+    id: 'personal-statement',
+    title: 'Personal statement',
+    description: 'For a university course, a scholarship or a training programme.',
+    subject: 'Personal statement: {programme}',
+    to: '',
+    form: 'statement',
+    group: 'about-you',
+    questions: [
+      {
+        id: 'programme',
+        label: 'The course, scholarship or programme',
+        required: true,
+        hint: 'For example: “BSc Nursing” or “Chevening Scholarship”.',
+      },
+      { id: 'institution', label: 'Where (optional)' },
+      {
+        id: 'why',
+        label: 'Why this subject or programme?',
+        long: true,
+        required: true,
+        hint: 'What drew you to it, in your own words.',
+      },
+      {
+        id: 'proof',
+        label: 'What you’ve done that shows it (optional)',
+        long: true,
+        hint: 'Study, work, volunteering, projects, reading — anything true.',
+      },
+      {
+        id: 'goal',
+        label: 'What you want to do afterwards (optional)',
+        long: true,
+      },
+    ],
+    notes:
+      'A personal statement for the programme in the answers. 4 or 5 paragraphs, about 450 words: an opening about why this subject (from the answers, specific, no quotation and no cliché), what the person has done that shows it (from the answers and the CV), what they will bring, and their goal afterwards. First person. greeting and closing are "".',
+    starter: [
+      'I am applying for {programme}{institution: at }.',
+      '{why}',
+      '{proof}',
+      'After completing the programme, I want to {goal}.',
+    ],
+  },
+  {
+    id: 'bio',
+    title: 'Professional bio',
+    description: 'A short, medium or long bio for a website, a talk or a profile.',
+    subject: 'About {name}',
+    to: '',
+    form: 'statement',
+    group: 'about-you',
+    questions: [
+      {
+        id: 'length',
+        label: 'Length',
+        options: ['Short (about 50 words)', 'Medium (about 100 words)', 'Long (about 200 words)'],
+      },
+      { id: 'voice', label: 'Written as', options: ['Third person (by name)', 'First person (I)'] },
+      {
+        id: 'where',
+        label: 'Where it will appear (optional)',
+        hint: 'For example: “speaker page of a logistics conference”.',
+      },
+      {
+        id: 'focus',
+        label: 'Anything to highlight (optional)',
+        long: true,
+        hint: 'A specialism, an achievement or something personal you’re happy to share.',
+      },
+    ],
+    notes:
+      'A professional bio. Length and voice exactly as chosen in the answers (Short: 1 paragraph, 40–60 words; Medium: 1–2 paragraphs, 80–120 words; Long: 2–3 paragraphs, 170–230 words). Third person uses the person\'s first name after the first full mention. Lead with what they do now, then experience and strengths from the CV, then the highlight from the answers. No clichés, no superlatives. greeting and closing are "".',
+    starter: ['{name}, {headline}{location: , based in }.', '{focus}'],
+  },
 ];
 
 export const LETTER_TYPE: Record<LetterTypeId, LetterType> = Object.fromEntries(
@@ -277,11 +361,26 @@ export function fill(template: string, answers: Record<string, string>): string 
 }
 
 /** The no-AI first draft for a type: paragraphs with answers filled in. */
-export function starterLetter(type: LetterType, answers: Record<string, string>) {
+export function starterLetter(
+  type: LetterType,
+  answers: Record<string, string>,
+  /** CV details ({name}, {headline}, {location}) used when not answered. */
+  cv: Record<string, string> = {},
+) {
+  const all: Record<string, string> = { ...cv };
+  for (const [k, v] of Object.entries(withDefaults(type, answers))) if (v.trim()) all[k] = v;
   return {
-    paragraphs: type.starter.map((t) => fill(t, answers)).filter((p): p is string => !!p),
-    subject: fill(type.subject, answers) ?? type.title,
+    paragraphs: type.starter.map((t) => fill(t, all)).filter((p): p is string => !!p),
+    subject: fill(type.subject, all) ?? type.title,
   };
+}
+
+/** Answers with the first option filled in for unanswered choices. */
+export function withDefaults(type: LetterType, answers: Record<string, string>) {
+  const out = { ...answers };
+  for (const q of type.questions)
+    if (q.options?.length && !(out[q.id] ?? '').trim()) out[q.id] = q.options[0]!;
+  return out;
 }
 
 /** Required questions without an answer. */

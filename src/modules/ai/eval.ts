@@ -655,6 +655,55 @@ export function evalSamples(): EvalSample[] {
     });
   }
 
+  // Personal statement and bio (letter library, statement form).
+  const STATEMENTS: [string, string, { question: string; answer: string }[]][] = [
+    [
+      'Personal statement',
+      'A personal statement for the programme in the answers. 4 or 5 paragraphs, about 450 words. First person. greeting and closing are "".',
+      [
+        { question: 'The course, scholarship or programme', answer: 'PGCE Secondary Mathematics' },
+        {
+          question: 'Why this subject or programme?',
+          answer: 'I enjoy helping pupils who find maths hard see that they can do it',
+        },
+      ],
+    ],
+    [
+      'Professional bio',
+      'A professional bio. Length and voice exactly as chosen in the answers (Short: 1 paragraph, 40–60 words). Third person uses the first name. greeting and closing are "".',
+      [
+        { question: 'Length', answer: 'Short (about 50 words)' },
+        { question: 'Written as', answer: 'Third person (by name)' },
+      ],
+    ],
+  ];
+  for (const [typeTitle, notes, answers] of STATEMENTS) {
+    const doc = typeTitle === 'Personal statement' ? F.teacher : F.driver;
+    const profile = profileDigest(doc).text;
+    samples.push({
+      name: `Statement: ${typeTitle}`,
+      task: 'letter.generic',
+      input: {
+        typeTitle,
+        notes,
+        answers,
+        name: doc.basics.name,
+        profile,
+        tone: 'warm',
+        form: 'statement',
+      },
+      sourceTexts: [profile, doc.basics.name, ...answers.map((a) => a.answer)],
+      check: (r) => {
+        const o = r as TaskOutput<'letter.generic'>;
+        if (o.greeting || o.closing) return 'a greeting or sign-off on a statement';
+        if (!o.paragraphs.length) return 'no text';
+        const words = o.paragraphs.join(' ').split(/\s+/).length;
+        if (typeTitle === 'Professional bio' && words > 90) return `bio too long (${words} words)`;
+        return null;
+      },
+    });
+  }
+
   const GAPS: [string, string][] = [
     ['Caring for family', 'I looked after my mother after her operation'],
     ['Study or training', 'Did an evening course in bookkeeping at the local college'],

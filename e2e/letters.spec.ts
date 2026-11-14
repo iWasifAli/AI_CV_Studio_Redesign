@@ -167,3 +167,52 @@ test('Premium: a general cover letter drafted with AI uses the answers and the C
   await page.getByRole('link', { name: 'Letters', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'CVs' })).toHaveCount(0);
 });
+
+test.describe('statements and bios', () => {
+  test.use({ as: 'free' });
+  test('a bio written yourself starts from the CV, with no greeting or sign-off', async ({
+    page,
+  }) => {
+    await seedDocument(page, driver);
+    await page.goto('/letters/new');
+    await expect(page.getByRole('heading', { name: 'Statements and bios' })).toBeVisible();
+    await page.getByRole('link', { name: /Professional bio/ }).click();
+    const form = page.getByRole('form', { name: 'Professional bio' });
+    await expect(form.getByLabel('Length')).toHaveValue('Short (about 50 words)');
+    await form.getByLabel('Written as').selectOption('First person (I)');
+    await expect(form.getByLabel('Who it’s to')).toHaveCount(0);
+    await form.getByRole('button', { name: 'Write it myself' }).click();
+    await expect(page).toHaveURL(/\/letters\/[\w-]+$/, { timeout: 15_000 });
+    await expect(page.getByLabel('Title')).toHaveValue(`About ${driver.basics.name}`);
+    await expect(page.getByLabel('Paragraph 1')).toHaveValue(
+      new RegExp(`^${driver.basics.name}, ${driver.basics.headline}`),
+    );
+    await expect(page.getByLabel('Greeting')).toHaveCount(0);
+    await expect(page.getByLabel('Sign-off')).toHaveCount(0);
+    const preview = page.frameLocator('iframe[title="Letter preview"]');
+    await expect(
+      preview.getByRole('heading', { name: `About ${driver.basics.name}` }),
+    ).toBeVisible();
+    await expect(preview.getByText('Dear Hiring Manager,')).toHaveCount(0);
+    // The chosen voice is kept with the answers.
+    await page.getByText('Your answers and a new AI draft').click();
+    await expect(page.getByLabel('Written as')).toHaveValue('First person (I)');
+  });
+});
+
+test('Premium: a personal statement drafted with AI has no greeting', async ({ page }) => {
+  await seedDocument(page, driver);
+  await page.goto('/letters/new?type=personal-statement');
+  const form = page.getByRole('form', { name: 'Personal statement' });
+  await form.getByLabel('The course, scholarship or programme').fill('BSc Logistics');
+  await form
+    .getByLabel('Why this subject or programme?')
+    .fill('I want to plan routes, not only drive them');
+  await form.getByRole('button', { name: 'Write it with AI' }).click();
+  await expect(page).toHaveURL(/\/letters\/[\w-]+$/, { timeout: 30_000 });
+  await expect(page.getByLabel('Paragraph 1')).toHaveValue(/BSc Logistics/);
+  await expect(page.getByLabel('Title')).toHaveValue('Personal statement: BSc Logistics');
+  const preview = page.frameLocator('iframe[title="Letter preview"]');
+  await expect(preview.getByText('Dear Hiring Manager,')).toHaveCount(0);
+  await expect(preview.getByText(/Kind regards|Yours sincerely/)).toHaveCount(0);
+});

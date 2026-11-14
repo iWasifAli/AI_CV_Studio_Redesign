@@ -91,6 +91,7 @@ export async function POST(req: Request) {
           to: letter.to,
           subject: letter.subject,
           kind: LETTER_TYPE[letter.type].title.toLowerCase(),
+          form: LETTER_TYPE[letter.type].form,
         },
         fonts,
       );

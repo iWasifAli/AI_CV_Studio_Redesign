@@ -7,7 +7,7 @@ import { denialCode, getBusinessConfig, reserve } from '@/modules/billing/server
 import { profileDigest } from '@/modules/jobs/digest';
 import type { SavedLetter } from '@/modules/letters/schema';
 import { loadLetter, type LetterCtx } from '@/modules/letters/server';
-import { LETTER_TYPE, missingAnswers } from '@/modules/letters/types';
+import { withDefaults, LETTER_TYPE, missingAnswers } from '@/modules/letters/types';
 import { aiBudgetSpent, track } from '@/modules/metrics/server';
 import { resumeDocument } from '@/modules/resume/schema';
 import { getUserStore } from '@/modules/store';
@@ -56,8 +56,12 @@ export async function POST(req: Request, ctx: LetterCtx) {
     {
       typeTitle: type.title,
       notes: type.notes,
+      form: type.form ?? 'letter',
       answers: type.questions
-        .map((q) => ({ question: q.label, answer: (letter.answers[q.id] ?? '').trim() }))
+        .map((q) => ({
+          question: q.label,
+          answer: (withDefaults(type, letter.answers)[q.id] ?? '').trim(),
+        }))
         .filter((a) => a.answer),
       to: letter.to.filter(Boolean).join(', '),
       name: doc.data.basics.name,

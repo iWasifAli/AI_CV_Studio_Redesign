@@ -18,6 +18,7 @@ import {
   isLetterType,
   missingAnswers,
   starterLetter,
+  withDefaults,
   type LetterType,
 } from '@/modules/letters/types';
 import { getRepository } from '@/modules/storage/repository';
@@ -49,20 +50,36 @@ export function NewLetter() {
     return <Banner tone="info" title="Letters are switched off right now." />;
   if (isLetterType(type) && !hidden.has(type))
     return <LetterForm key={type} type={LETTER_TYPE[type]} />;
+  const groups: [string, LetterType[]][] = [
+    ['Letters', LETTER_TYPES.filter((t) => !hidden.has(t.id) && t.group !== 'about-you')],
+    [
+      'Statements and bios',
+      LETTER_TYPES.filter((t) => !hidden.has(t.id) && t.group === 'about-you'),
+    ],
+  ];
   return (
-    <ul className="grid gap-3 sm:grid-cols-2" aria-label="Letter types">
-      {LETTER_TYPES.filter((t) => !hidden.has(t.id)).map((t) => (
-        <li key={t.id}>
-          <Link
-            href={`/letters/new?type=${t.id}`}
-            className="border-line bg-surface hover:border-primary flex h-full flex-col gap-1 rounded-xl border p-5"
-          >
-            <span className="font-semibold">{t.title}</span>
-            <span className="text-ink-muted text-sm">{t.description}</span>
-          </Link>
-        </li>
-      ))}
-    </ul>
+    <div className="flex flex-col gap-6">
+      {groups
+        .filter(([, list]) => list.length)
+        .map(([title, list]) => (
+          <section key={title} aria-label={title} className="flex flex-col gap-3">
+            <h2 className="text-lg font-semibold">{title}</h2>
+            <ul className="grid gap-3 sm:grid-cols-2" aria-label={`${title}: types`}>
+              {list.map((t) => (
+                <li key={t.id}>
+                  <Link
+                    href={`/letters/new?type=${t.id}`}
+                    className="border-line bg-surface hover:border-primary flex h-full flex-col gap-1 rounded-xl border p-5"
+                  >
+                    <span className="font-semibold">{t.title}</span>
+                    <span className="text-ink-muted text-sm">{t.description}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+    </div>
   );
 }
 
@@ -89,7 +106,12 @@ function LetterForm({ type }: { type: LetterType }) {
     setBusy(withAi ? 'ai' : 'self');
     setProblem(null);
     try {
-      const start = starterLetter(type, answers);
+      const start = starterLetter(type, answers, {
+        name: source?.basics.name ?? '',
+        headline: source?.basics.headline ?? '',
+        location: source?.basics.location ?? '',
+      });
+      const statement = type.form === 'statement';
       const letter = await lettersApi.create({
         type: type.id,
         title: start.subject,
@@ -99,10 +121,10 @@ function LetterForm({ type }: { type: LetterType }) {
           .filter(Boolean)
           .slice(0, 5),
         subject: start.subject,
-        answers,
+        answers: withDefaults(type, answers),
         paragraphs: start.paragraphs,
-        greeting: 'Dear Hiring Manager,',
-        closing: tone === 'formal' ? 'Yours sincerely,' : 'Kind regards,',
+        greeting: statement ? '' : 'Dear Hiring Manager,',
+        closing: statement ? '' : tone === 'formal' ? 'Yours sincerely,' : 'Kind regards,',
         tone,
         documentId: source?.id ?? '',
       });
@@ -152,7 +174,20 @@ function LetterForm({ type }: { type: LetterType }) {
         </Banner>
       )}
       {type.questions.map((q) =>
-        q.long ? (
+        q.options ? (
+          <label key={q.id} className="flex flex-col gap-1.5 text-sm font-semibold">
+            {q.label}
+            <select
+              className="border-line-strong bg-surface min-h-11 rounded-md border px-3 text-[15px] font-normal"
+              value={answers[q.id] || q.options[0]}
+              onChange={(e) => setAnswers({ ...answers, [q.id]: e.target.value })}
+            >
+              {q.options.map((o) => (
+                <option key={o}>{o}</option>
+              ))}
+            </select>
+          </label>
+        ) : q.long ? (
           <TextArea
             key={q.id}
             label={q.label}
@@ -185,14 +220,16 @@ function LetterForm({ type }: { type: LetterType }) {
           />
         ),
       )}
-      <TextArea
-        label="Who it’s to"
-        hint={`One line each: name, organisation, address. Usually: ${type.to}.`}
-        optional
-        rows={2}
-        value={to}
-        onChange={(e) => setTo(e.target.value)}
-      />
+      {type.form !== 'statement' && (
+        <TextArea
+          label="Who it’s to"
+          hint={`One line each: name, organisation, address. Usually: ${type.to}.`}
+          optional
+          rows={2}
+          value={to}
+          onChange={(e) => setTo(e.target.value)}
+        />
+      )}
       {cvs.length > 0 && (
         <label className="flex flex-col gap-1.5 text-sm font-semibold">
           Design and contact details from

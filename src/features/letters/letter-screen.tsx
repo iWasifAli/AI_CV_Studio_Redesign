@@ -96,6 +96,7 @@ function Editor({ initial }: { initial: SavedLetter }) {
   const repo = typeof window === 'undefined' ? null : getRepository();
   const cvs = useMemo(() => repo?.list() ?? [], [repo]);
   // The design and contact details come from the chosen CV, or a plain page with the account name.
+  const statement = type.form === 'statement';
   const design: ResumeDocument = useMemo(() => {
     const doc = draft.documentId ? repo?.get(draft.documentId) : null;
     if (doc) return doc;
@@ -117,6 +118,7 @@ function Editor({ initial }: { initial: SavedLetter }) {
               to: draft.to,
               subject: draft.subject,
               kind: type.title.toLowerCase(),
+              form: type.form,
             },
             { fonts: { kind: 'url', baseUrl: window.location.origin } },
           ),
@@ -218,18 +220,35 @@ function Editor({ initial }: { initial: SavedLetter }) {
             Your answers and a new AI draft
           </summary>
           <div className="mt-4 flex flex-col gap-3">
-            {type.questions.map((q) => (
-              <TextField
-                key={q.id}
-                label={q.label}
-                optional={!q.required}
-                value={draft.answers[q.id] ?? ''}
-                maxLength={1500}
-                onChange={(e) =>
-                  setDraft({ ...draft, answers: { ...draft.answers, [q.id]: e.target.value } })
-                }
-              />
-            ))}
+            {type.questions.map((q) =>
+              q.options ? (
+                <label key={q.id} className="flex flex-col gap-1.5 text-sm font-semibold">
+                  {q.label}
+                  <select
+                    className="border-line-strong bg-surface min-h-11 rounded-md border px-3 text-[15px] font-normal"
+                    value={draft.answers[q.id] || q.options[0]}
+                    onChange={(e) =>
+                      setDraft({ ...draft, answers: { ...draft.answers, [q.id]: e.target.value } })
+                    }
+                  >
+                    {q.options.map((o) => (
+                      <option key={o}>{o}</option>
+                    ))}
+                  </select>
+                </label>
+              ) : (
+                <TextField
+                  key={q.id}
+                  label={q.label}
+                  optional={!q.required}
+                  value={draft.answers[q.id] ?? ''}
+                  maxLength={1500}
+                  onChange={(e) =>
+                    setDraft({ ...draft, answers: { ...draft.answers, [q.id]: e.target.value } })
+                  }
+                />
+              ),
+            )}
             <div role="radiogroup" aria-label="Tone" className="flex gap-2">
               {(['warm', 'formal'] as const).map((t) => (
                 <button
@@ -290,26 +309,34 @@ function Editor({ initial }: { initial: SavedLetter }) {
             </select>
           </label>
         )}
-        <TextArea
-          label="Who it’s to"
-          hint="One line each."
-          optional
-          rows={2}
-          value={draft.to.join('\n')}
-          onChange={(e) => setDraft({ ...draft, to: e.target.value.split('\n').slice(0, 5) })}
-        />
+        {!statement && (
+          <>
+            <TextArea
+              label="Who it’s to"
+              hint="One line each."
+              optional
+              rows={2}
+              value={draft.to.join('\n')}
+              onChange={(e) => setDraft({ ...draft, to: e.target.value.split('\n').slice(0, 5) })}
+            />
+          </>
+        )}
         <TextField
-          label="Subject"
+          label={statement ? 'Title' : 'Subject'}
           value={draft.subject}
           maxLength={160}
           onChange={(e) => setDraft({ ...draft, subject: e.target.value })}
         />
-        <TextField
-          label="Greeting"
-          value={draft.greeting}
-          maxLength={80}
-          onChange={(e) => setDraft({ ...draft, greeting: e.target.value })}
-        />
+        {!statement && (
+          <>
+            <TextField
+              label="Greeting"
+              value={draft.greeting}
+              maxLength={80}
+              onChange={(e) => setDraft({ ...draft, greeting: e.target.value })}
+            />
+          </>
+        )}
         {draft.paragraphs.map((p, i) => (
           <TextArea
             key={i}
@@ -330,12 +357,14 @@ function Editor({ initial }: { initial: SavedLetter }) {
             Add a paragraph
           </Button>
         )}
-        <TextField
-          label="Sign-off"
-          value={draft.closing}
-          maxLength={80}
-          onChange={(e) => setDraft({ ...draft, closing: e.target.value })}
-        />
+        {!statement && (
+          <TextField
+            label="Sign-off"
+            value={draft.closing}
+            maxLength={80}
+            onChange={(e) => setDraft({ ...draft, closing: e.target.value })}
+          />
+        )}
         <div className="flex flex-wrap gap-2">
           <Button disabled={!dirty || busy !== null} loading={busy === 'save'} onClick={save}>
             Save letter
