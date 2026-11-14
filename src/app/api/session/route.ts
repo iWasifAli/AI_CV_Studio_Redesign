@@ -12,6 +12,7 @@ import { getBusinessConfig } from '@/modules/billing/server';
 import { getUserStore } from '@/modules/store';
 import { track } from '@/modules/metrics/server';
 import { recordInvite } from '@/modules/referrals/server';
+import { noteUse } from '@/modules/metrics/activity';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -54,6 +55,7 @@ export async function POST(req: Request) {
           JSON.stringify({ level: 'error', route: '/api/session', rid, message: e.message }),
         ),
       );
+    await noteUse(session.uid, null);
     return NextResponse.json({ ok: true }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (err) {
     if (err instanceof AuthError) return apiError('UNAUTHORIZED', err.message, rid);

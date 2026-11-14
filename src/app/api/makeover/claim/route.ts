@@ -4,6 +4,7 @@ import { denialCode, reserve } from '@/modules/billing/server';
 import { currentUser } from '@/modules/identity/session';
 import { makeoverRecord, markClaimed, validMakeoverId } from '@/modules/makeover/server';
 import { track } from '@/modules/metrics/server';
+import { noteReveal } from '@/modules/metrics/activity';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -39,5 +40,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, already: true });
   }
   await track('makeover_saved');
+  if (rec.visitor) await track('makeover_saved_visitor');
+  await noteReveal(user.uid);
   return NextResponse.json({ ok: true });
 }

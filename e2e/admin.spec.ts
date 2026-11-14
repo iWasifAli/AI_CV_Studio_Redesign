@@ -236,6 +236,37 @@ test('switching off application results hides them and refuses the API (R9.10)',
   await expect(page.getByText('Your job tracker still works as usual.')).toBeVisible();
 });
 
+test('product numbers show the nine targets and count tools used (spec §17.2)', async ({
+  browser,
+  page,
+}) => {
+  // The test account (free) uses three tools today.
+  await page.request.get('/api/me');
+  await page.request.post('/api/jobs', { data: { title: 'Driver', stage: 'saved' } });
+  const doc = { ...driver, id: 'numbers-cv-1' };
+  const put = await page.request.put(`/api/documents/${doc.id}`, { data: { document: doc } });
+  expect(put.ok()).toBe(true);
+
+  const { context, page: admin } = await adminPage(browser);
+  const o = (await (await context.request.get('/api/admin/overview')).json()) as {
+    product: { key: string; value: number | null; base: number; target: number }[];
+  };
+  expect(o.product).toHaveLength(9);
+  const tools = o.product.find((n) => n.key === 'toolsPerUser')!;
+  expect(tools.base).toBeGreaterThanOrEqual(1);
+  expect(tools.value).toBeGreaterThan(0);
+
+  await admin.goto('/admin');
+  const section = admin.getByTestId('product-numbers');
+  await expect(section.getByRole('heading', { name: 'Product numbers' })).toBeVisible();
+  await expect(section.getByRole('listitem')).toHaveCount(9);
+  await expect(admin.getByTestId('number-makeoverCompletion')).toContainText('Target 90%');
+  await expect(admin.getByTestId('number-timeToReveal')).toContainText('Target under 30 s');
+  await expect(admin.getByTestId('number-week4Return')).toContainText('Target 25%');
+  await expect(admin.getByTestId('number-week4Return')).toHaveAttribute('data-status', 'few');
+  await context.close();
+});
+
 test('the AI page runs the live evaluation in batches and reports the pass mark', async ({
   browser,
 }) => {

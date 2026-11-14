@@ -19,11 +19,13 @@ export const validMakeoverId = (id: unknown): id is string =>
   typeof id === 'string' && ID_RE.test(id);
 
 /** Registers a new makeover; `paid` when its import allowance was already counted. */
-export async function issueMakeover(paid: boolean): Promise<string> {
+export async function issueMakeover(paid: boolean, visitor = false): Promise<string> {
   const id = randomUUID();
   const store = getUserStore();
   await store.reserveUsage(mk(id), MK_MONTH, 'issued', 1);
   if (paid) await store.reserveUsage(mk(id), MK_MONTH, 'paid', 1);
+  // Made before signing in: saving it later counts as "reveal → account".
+  if (visitor) await store.reserveUsage(mk(id), MK_MONTH, 'visitor', 1);
   return id;
 }
 
@@ -31,7 +33,11 @@ export async function makeoverRecord(id: string) {
   if (!validMakeoverId(id)) return null;
   const u = await getUserStore().getUsage(mk(id), MK_MONTH);
   if (u.issued !== 1) return null;
-  return { paid: (u.paid ?? 0) >= 1, claimed: (u.claimed ?? 0) >= 1 };
+  return {
+    paid: (u.paid ?? 0) >= 1,
+    claimed: (u.claimed ?? 0) >= 1,
+    visitor: (u.visitor ?? 0) >= 1,
+  };
 }
 
 /** Marks the makeover as saved to an account (once). */

@@ -7,6 +7,7 @@ import { denialCode, getBusinessConfig, includes, reserve } from '@/modules/bill
 import { currentUser } from '@/modules/identity/session';
 import { aiBudgetSpent, track } from '@/modules/metrics/server';
 import { cleanAnswers, hasNumber } from '@/modules/quality/quantify';
+import { noteUse } from '@/modules/metrics/activity';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -24,6 +25,7 @@ const clean = (v: unknown, max: number) =>
 export async function POST(req: Request) {
   const rid = requestId();
   const user = await currentUser();
+  if (user) await noteUse(user.uid, 'quantify');
   if (!user) return apiError('SIGN_IN_REQUIRED', 'Please sign in.', rid);
   const { value: cfg } = await getBusinessConfig();
   if (!cfg.features.quantify)

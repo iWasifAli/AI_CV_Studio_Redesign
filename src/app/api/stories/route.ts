@@ -4,6 +4,7 @@ import { currentUser } from '@/modules/identity/session';
 import { storyInput, type Story } from '@/modules/stories/schema';
 import { storyAllowance } from '@/modules/stories/server';
 import { getUserStore } from '@/modules/store';
+import { noteUse } from '@/modules/metrics/activity';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -26,6 +27,7 @@ export async function GET() {
 export async function POST(req: Request) {
   const rid = requestId();
   const user = await currentUser();
+  if (user) await noteUse(user.uid, 'stories');
   if (!user) return apiError('SIGN_IN_REQUIRED', 'Please sign in to keep stories.', rid);
   const body = await readJson(req, 32 * 1024);
   if (!body.ok) return apiError(body.code, 'Invalid request.', rid);

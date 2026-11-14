@@ -1,5 +1,6 @@
 import type { ShareComment } from '@/modules/share/comments';
 import 'server-only';
+import type { Activity } from '@/modules/metrics/numbers';
 import { FieldValue, type Firestore } from 'firebase-admin/firestore';
 import type { Job } from '@/modules/jobs/schema';
 import type { SavedLetter } from '@/modules/letters/schema';
@@ -31,6 +32,7 @@ import {
 
 /**
  * Firestore layout (owned by the user, written only by the server):
+ *   activity/{uid}                           product-number activity: days, tool names, dates only
  *   users/{uid}                              email, name, lastSeenAt (merged; old app fields untouched)
  *   users/{uid}/documents/{id}               { updatedAt, deleted, title, doc, serverUpdatedAt }
  *   users/{uid}/documents/{id}/versions/{v}  { savedAt, doc }   (last 10)
@@ -179,6 +181,24 @@ export class FirestoreUserStore implements UserStore {
     await this.plansCol(uid).doc(id).delete();
   }
 
+  async updateActivity(uid: string, edit: (cur: Activity | null) => Activity | null) {
+    const ref = this.db.collection('activity').doc(uid);
+    return this.db.runTransaction(async (tx) => {
+      const snap = await tx.get(ref);
+      const before = snap.exists ? (snap.data() as Activity) : null;
+      const after = edit(before ? structuredClone(before) : null);
+      if (after) tx.set(ref, after);
+      return { before, after };
+    });
+  }
+  async listActivity(fromDay: string, limit: number) {
+    const snap = await this.db
+      .collection('activity')
+      .where('lastDay', '>=', fromDay)
+      .limit(limit)
+      .get();
+    return snap.docs.map((d) => d.data() as Activity);
+  }
   async bumpMetrics(day: string, counts: Record<string, number>) {
     const inc = Object.fromEntries(
       Object.entries(counts).map(([k, v]) => [k, FieldValue.increment(v)]),
@@ -213,6 +233,7 @@ export class FirestoreUserStore implements UserStore {
     await this.db.recursiveDelete(this.db.collection('users').doc(uid));
     await this.db.collection('passes').doc(uid).delete();
     await this.db.collection('reminderQueue').doc(uid).delete();
+    await this.db.collection('activity').doc(uid).delete();
     const usage = await this.db.collection('usage').where('uid', '==', uid).get();
     const shares = await this.db.collection('shares').where('uid', '==', uid).get();
     const portfolios = await this.db.collection('portfolios').where('uid', '==', uid).get();

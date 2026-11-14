@@ -72,6 +72,15 @@ export const EVENTS = [
   'proofread_fail',
   'quantify_ask',
   'quantify_add',
+  // Product numbers (§17.2): time to reveal in buckets, visitors saving, downloads within 24 h.
+  'makeover_ms_10',
+  'makeover_ms_20',
+  'makeover_ms_30',
+  'makeover_ms_60',
+  'makeover_ms_more',
+  'makeover_saved_visitor',
+  'makeover_download_24h',
+  'designer_first_replaced',
 ] as const;
 export type MetricEvent = (typeof EVENTS)[number];
 

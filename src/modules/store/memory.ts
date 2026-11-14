@@ -1,3 +1,4 @@
+import type { Activity } from '@/modules/metrics/numbers';
 import type { ShareComment } from '@/modules/share/comments';
 import type { Job } from '@/modules/jobs/schema';
 import type { SavedLetter } from '@/modules/letters/schema';
@@ -177,6 +178,19 @@ export class MemoryUserStore implements UserStore {
     this.planBucket(uid).delete(id);
   }
 
+  private activity = new Map<string, Activity>();
+  async updateActivity(uid: string, edit: (cur: Activity | null) => Activity | null) {
+    const before = this.activity.has(uid) ? structuredClone(this.activity.get(uid)!) : null;
+    const after = edit(before ? structuredClone(before) : null);
+    if (after) this.activity.set(uid, structuredClone(after));
+    return { before, after };
+  }
+  async listActivity(fromDay: string, limit: number) {
+    return structuredClone(
+      [...this.activity.values()].filter((a) => a.lastDay >= fromDay).slice(0, limit),
+    );
+  }
+
   private metrics = new Map<string, Record<string, number>>();
   async bumpMetrics(day: string, counts: Record<string, number>) {
     const m = this.metrics.get(day) ?? {};
@@ -197,6 +211,7 @@ export class MemoryUserStore implements UserStore {
   async deleteUserData(uid: string) {
     this.users.delete(uid);
     this.seen.delete(uid);
+    this.activity.delete(uid);
     this.docs.delete(uid);
     for (const k of [...this.versions.keys()]) if (k.startsWith(`${uid}/`)) this.versions.delete(k);
     for (const k of [...this.comments.keys()]) if (k.startsWith(`${uid}/`)) this.comments.delete(k);

@@ -5,6 +5,7 @@ import { apiError, clientKey, createRateLimiter, readJson, requestId } from '@/l
 import { denialCode, reserve } from '@/modules/billing/server';
 import { track } from '@/modules/metrics/server';
 import { currentUser } from '@/modules/identity/session';
+import { noteUse } from '@/modules/metrics/activity';
 
 export const runtime = 'nodejs';
 export const maxDuration = 20;
@@ -36,6 +37,7 @@ export async function POST(req: Request) {
   if (!parsed.success) return apiError('INVALID_INPUT', 'This CV could not be read.', rid);
 
   const user = await currentUser();
+  if (user) await noteUse(user.uid, 'word');
   const gate = await reserve(user, 'pdf.download');
   if (!gate.decision.ok) {
     if (gate.decision.reason === 'sign_in') await track('pdf_denied_signin');

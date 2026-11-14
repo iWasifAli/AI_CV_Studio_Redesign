@@ -3,6 +3,7 @@ import { apiError, readJson, requestId } from '@/lib/http';
 import { safeParseResumeDocument } from '@/modules/resume/schema';
 import { currentUser } from '@/modules/identity/session';
 import { getUserStore, MAX_DOCS_PER_USER } from '@/modules/store';
+import { noteUse } from '@/modules/metrics/activity';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -26,6 +27,7 @@ export async function GET(_req: Request, ctx: Ctx) {
 export async function PUT(req: Request, ctx: Ctx) {
   const rid = requestId();
   const user = await currentUser();
+  if (user) await noteUse(user.uid, 'cv');
   if (!user) return apiError('UNAUTHORIZED', 'Please sign in.', rid);
   const { id } = await ctx.params;
   if (!validId(id)) return apiError('INVALID_INPUT', 'Invalid document.', rid);

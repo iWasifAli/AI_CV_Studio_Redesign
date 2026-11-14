@@ -4,6 +4,7 @@ import { runTask } from '@/modules/ai/run';
 import { prepareJobAi } from '@/modules/jobs/ai-route';
 import { profileDigest } from '@/modules/jobs/digest';
 import { getUserStore } from '@/modules/store';
+import { noteUse } from '@/modules/metrics/activity';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -13,6 +14,7 @@ export const maxDuration = 90;
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const p = await prepareJobAi(req, ctx);
   if ('error' in p) return p.error;
+  await noteUse(p.user.uid, 'letters');
   const tone = p.body.tone === 'formal' ? 'formal' : 'warm';
   const r = await runTask(
     'letter.write',

@@ -7,6 +7,7 @@ import { slugProblem } from '@/modules/portfolio/slug';
 import { extrasInput, usedImages } from '@/modules/portfolio/themes';
 import { getUserStore } from '@/modules/store';
 import type { Portfolio } from '@/modules/store/types';
+import { noteUse } from '@/modules/metrics/activity';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -28,6 +29,7 @@ export async function GET() {
 export async function PUT(req: Request) {
   const rid = requestId();
   const user = await currentUser();
+  if (user) await noteUse(user.uid, 'portfolio');
   if (!user) return apiError('SIGN_IN_REQUIRED', 'Please sign in.', rid);
   const { plan } = await planFor(user);
   if (plan !== 'premium')

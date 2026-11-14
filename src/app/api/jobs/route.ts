@@ -4,6 +4,7 @@ import { currentUser } from '@/modules/identity/session';
 import { jobInput, type Job } from '@/modules/jobs/schema';
 import { jobAllowance, newJobHistory, withSent } from '@/modules/jobs/server';
 import { getUserStore } from '@/modules/store';
+import { noteUse } from '@/modules/metrics/activity';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -26,6 +27,7 @@ export async function GET() {
 export async function POST(req: Request) {
   const rid = requestId();
   const user = await currentUser();
+  if (user) await noteUse(user.uid, 'jobs');
   if (!user) return apiError('SIGN_IN_REQUIRED', 'Please sign in to use the job tracker.', rid);
   const body = await readJson(req, 64 * 1024);
   if (!body.ok) return apiError(body.code, 'Invalid request.', rid);

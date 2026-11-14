@@ -1,3 +1,4 @@
+import type { Activity } from '@/modules/metrics/numbers';
 import type {
   PortfolioProject,
   PortfolioSection,
@@ -70,6 +71,16 @@ export interface UserStore {
   getSkillPlan(uid: string, id: string): Promise<SkillPlan | null>;
   putSkillPlan(uid: string, plan: SkillPlan): Promise<void>;
   deleteSkillPlan(uid: string, id: string): Promise<void>;
+  /**
+   * Per-account activity (product numbers, §17.2): `edit` gets the current record (or null) and
+   * returns the new one, inside a transaction. Returns the record before and after.
+   */
+  updateActivity(
+    uid: string,
+    edit: (cur: Activity | null) => Activity | null,
+  ): Promise<{ before: Activity | null; after: Activity | null }>;
+  /** Activity records of accounts active on or after `fromDay` (yyyy-mm-dd), at most `limit`. */
+  listActivity(fromDay: string, limit: number): Promise<Activity[]>;
   /** Adds to today's event counters (metrics/{yyyy-mm-dd}); names are [a-z0-9_]. */
   bumpMetrics(day: string, counts: Record<string, number>): Promise<void>;
   /** Daily counters for days in [from, to] (inclusive, yyyy-mm-dd), oldest first. */

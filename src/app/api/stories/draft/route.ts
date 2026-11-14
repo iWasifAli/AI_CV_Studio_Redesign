@@ -9,6 +9,7 @@ import { profileDigest } from '@/modules/jobs/digest';
 import { aiBudgetSpent, track } from '@/modules/metrics/server';
 import { safeParseResumeDocument } from '@/modules/resume/schema';
 import { storyPoints } from '@/modules/stories/points';
+import { noteUse } from '@/modules/metrics/activity';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -23,6 +24,7 @@ const noStore = { headers: { 'Cache-Control': 'no-store' } };
 export async function POST(req: Request) {
   const rid = requestId();
   const user = await currentUser();
+  if (user) await noteUse(user.uid, 'stories');
   if (!user) return apiError('SIGN_IN_REQUIRED', 'Please sign in.', rid);
   const { value: cfg } = await getBusinessConfig();
   if (!cfg.features.stories)

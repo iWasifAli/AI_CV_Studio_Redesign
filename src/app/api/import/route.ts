@@ -5,6 +5,7 @@ import { currentUser } from '@/modules/identity/session';
 import { ImportError, MAX_IMPORT_BYTES, TOO_LARGE_MESSAGE } from '@/modules/import/extract';
 import { readCv } from '@/modules/import/pipeline';
 import { track } from '@/modules/metrics/server';
+import { noteUse } from '@/modules/metrics/activity';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -27,6 +28,7 @@ export async function POST(req: Request) {
     return apiError('INVALID_INPUT', TOO_LARGE_MESSAGE, rid);
 
   const user = await currentUser();
+  if (user) await noteUse(user.uid, 'makeover');
   const gate = await reserve(user, 'import.cv');
   if (!gate.decision.ok)
     return apiError(denialCode(gate.decision), gate.decision.message, rid, {

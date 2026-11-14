@@ -3,6 +3,7 @@ import { adminAuth } from '@/lib/firebase-admin';
 import { apiError, readJson, requestId } from '@/lib/http';
 import { clearSessionCookie, currentUser } from '@/modules/identity/session';
 import { getUserStore } from '@/modules/store';
+import { noteUse } from '@/modules/metrics/activity';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -10,6 +11,7 @@ export const dynamic = 'force-dynamic';
 /** The signed-in user (or null). Plan and usage are added in R1.2. */
 export async function GET() {
   const user = await currentUser();
+  if (user) await noteUse(user.uid, null);
   return NextResponse.json(
     {
       user: user

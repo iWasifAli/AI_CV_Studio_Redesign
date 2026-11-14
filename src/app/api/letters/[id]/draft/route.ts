@@ -13,6 +13,7 @@ import { resumeDocument } from '@/modules/resume/schema';
 import { getUserStore } from '@/modules/store';
 import { storyLines } from '@/modules/stories/schema';
 import { storiesForAi } from '@/modules/stories/server';
+import { noteUse } from '@/modules/metrics/activity';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -26,6 +27,7 @@ export async function POST(req: Request, ctx: LetterCtx) {
   const r = await loadLetter(ctx);
   if ('error' in r) return r.error;
   const { rid, user, letter } = r;
+  await noteUse(user.uid, 'letters');
   const type = LETTER_TYPE[letter.type];
   const missing = missingAnswers(type, letter.answers);
   if (missing.length) return apiError('INVALID_INPUT', `Answer “${missing[0]!.label}” first.`, rid);

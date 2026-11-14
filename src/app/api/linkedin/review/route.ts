@@ -10,6 +10,7 @@ import { profileDigest } from '@/modules/jobs/digest';
 import { exportFacts, factsLines, looksLikeLinkedin } from '@/modules/linkedin/review';
 import { aiBudgetSpent, track } from '@/modules/metrics/server';
 import { safeParseResumeDocument } from '@/modules/resume/schema';
+import { noteUse } from '@/modules/metrics/activity';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -26,6 +27,7 @@ const NOT_LINKEDIN =
 export async function POST(req: Request) {
   const rid = requestId();
   const user = await currentUser();
+  if (user) await noteUse(user.uid, 'linkedin');
   if (!user) return apiError('SIGN_IN_REQUIRED', 'Please sign in.', rid);
   const { value: cfg } = await getBusinessConfig();
   if (!cfg.features.linkedinReview)

@@ -12,6 +12,7 @@ import { safeParseResumeDocument } from '@/modules/resume/schema';
 import { getUserStore } from '@/modules/store';
 import { storyLines } from '@/modules/stories/schema';
 import { storiesForAi } from '@/modules/stories/server';
+import { noteUse } from '@/modules/metrics/activity';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -43,6 +44,7 @@ export async function DELETE() {
 export async function POST(req: Request) {
   const rid = requestId();
   const user = await currentUser();
+  if (user) await noteUse(user.uid, 'coach');
   if (!user) return apiError('SIGN_IN_REQUIRED', 'Please sign in to talk to the coach.', rid);
   const { value: cfg } = await getBusinessConfig();
   if (!cfg.features.coach)

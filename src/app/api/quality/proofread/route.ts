@@ -8,6 +8,7 @@ import { currentUser } from '@/modules/identity/session';
 import { aiBudgetSpent, track } from '@/modules/metrics/server';
 import { checkIssues, proofLines, proofText } from '@/modules/quality/proofread';
 import { safeParseResumeDocument } from '@/modules/resume/schema';
+import { noteUse } from '@/modules/metrics/activity';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -23,6 +24,7 @@ const MAX_BODY = 768 * 1024;
 export async function POST(req: Request) {
   const rid = requestId();
   const user = await currentUser();
+  if (user) await noteUse(user.uid, 'proofread');
   if (!user) return apiError('SIGN_IN_REQUIRED', 'Please sign in.', rid);
   const { value: cfg } = await getBusinessConfig();
   if (!cfg.features.proofread)

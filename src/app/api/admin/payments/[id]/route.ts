@@ -4,6 +4,7 @@ import { actor, json, withAdmin } from '@/modules/admin/server';
 import { track } from '@/modules/metrics/server';
 import { getUserStore } from '@/modules/store';
 import { paymentEmail, sendMail } from '@/modules/notify/server';
+import { notePremium } from '@/modules/metrics/activity';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -35,6 +36,7 @@ export function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
         409,
       );
     await track(decided.status === 'approved' ? 'premium_approved' : 'premium_rejected');
+    if (decided.status === 'approved') await notePremium(decided.uid);
     if (decided.status === 'approved')
       await track(
         'premium_approval_minutes',

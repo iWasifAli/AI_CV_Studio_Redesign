@@ -7,6 +7,7 @@ import { denialCode, reserve } from '@/modules/billing/server';
 import { currentUser } from '@/modules/identity/session';
 import { sniff } from '@/modules/import/extract';
 import { aiBudgetSpent, track } from '@/modules/metrics/server';
+import { noteCompose } from '@/modules/metrics/activity';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -75,7 +76,8 @@ export async function POST(req: Request) {
   if (!files && description.length < 2)
     return apiError('INVALID_INPUT', 'Describe the design you imagine, or add a picture.', rid);
 
-  const gate = await reserve(await currentUser(), 'design.ai');
+  const me = await currentUser();
+  const gate = await reserve(me, 'design.ai');
   if (!gate.decision.ok)
     return apiError(denialCode(gate.decision), gate.decision.message, rid, {
       reason: gate.decision.reason,
@@ -112,5 +114,6 @@ export async function POST(req: Request) {
     );
   }
   await track('design_compose');
+  if (me) await noteCompose(me.uid, gate.plan === 'free');
   return NextResponse.json({ result: r.result, version: r.version });
 }

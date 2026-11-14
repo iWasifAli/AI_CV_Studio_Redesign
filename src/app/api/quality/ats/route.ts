@@ -12,6 +12,7 @@ import { aiBudgetSpent, track } from '@/modules/metrics/server';
 import { assessReadBack, checkKeywords, type AtsReport } from '@/modules/quality/ats';
 import { safeParseResumeDocument } from '@/modules/resume/schema';
 import { getUserStore } from '@/modules/store';
+import { noteUse } from '@/modules/metrics/activity';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -25,6 +26,7 @@ export const maxDuration = 60;
 export async function POST(req: Request) {
   const rid = requestId();
   const user = await currentUser();
+  if (user) await noteUse(user.uid, 'ats');
   const raw = await readJson(req, 512 * 1024);
   if (!raw.ok) return apiError(raw.code, 'Invalid request.', rid);
   const body = (raw.value ?? {}) as { document?: unknown; jobId?: unknown };

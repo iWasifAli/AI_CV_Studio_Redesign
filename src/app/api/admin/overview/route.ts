@@ -2,6 +2,7 @@ import { getBusinessConfig } from '@/modules/billing/server';
 import { monthKey } from '@/modules/billing/gate';
 import { json, withAdmin } from '@/modules/admin/server';
 import { metricsSummary } from '@/modules/metrics/server';
+import { dayOf, productNumbers } from '@/modules/metrics/numbers';
 import { getUserStore } from '@/modules/store';
 
 export const runtime = 'nodejs';
@@ -12,13 +13,15 @@ export function GET() {
     const store = getUserStore();
     const now = new Date().toISOString();
     const month = monthKey();
-    const [users, usage, passes, cfg, pending, metrics] = await Promise.all([
+    const [users, usage, passes, cfg, pending, metrics, acts] = await Promise.all([
       store.userStats(),
       store.usageTotals(month),
       store.listPasses(),
       getBusinessConfig(true),
       store.listPaymentRequests({ status: 'pending', limit: 200 }),
       metricsSummary(30),
+      // Accounts active in the last 120 days: enough for every cohort number (§17.2).
+      store.listActivity(dayOf(new Date(Date.now() - 120 * 86_400_000)), 20_000).catch(() => []),
     ]);
     const t = metrics.total;
     const d = metrics.today;
@@ -32,6 +35,8 @@ export function GET() {
         'ai.action': usage['ai.action'] ?? 0,
       },
       payments: { pending: pending.length },
+      // The nine product numbers and their targets (spec §17.2).
+      product: productNumbers(metrics.total, acts),
       // Success numbers (master plan §6), last 30 days unless marked "today".
       numbers: {
         from: metrics.from,

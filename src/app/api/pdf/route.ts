@@ -5,6 +5,7 @@ import { apiError, clientKey, createRateLimiter, readJson, requestId } from '@/l
 import { checkDesign, denialCode, reserve } from '@/modules/billing/server';
 import { track } from '@/modules/metrics/server';
 import { currentUser } from '@/modules/identity/session';
+import { notePdf } from '@/modules/metrics/activity';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -75,6 +76,7 @@ export async function POST(req: Request) {
   try {
     const { pdf, pages } = await renderResumePdf(parsed.data);
     await track('pdf_ok');
+    if (user) await notePdf(user.uid);
     return new Response(Buffer.from(pdf), {
       status: 200,
       headers: {

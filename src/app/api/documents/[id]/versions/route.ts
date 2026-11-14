@@ -5,6 +5,7 @@ import { safeParseResumeDocument } from '@/modules/resume/schema';
 import { cleanVersionName, versionMeta } from '@/modules/resume/versions';
 import { getUserStore } from '@/modules/store';
 import { MAX_NAMED_VERSIONS } from '@/modules/store/types';
+import { noteUse } from '@/modules/metrics/activity';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -34,6 +35,7 @@ export async function GET(_req: Request, ctx: Ctx) {
 export async function POST(req: Request, ctx: Ctx) {
   const rid = requestId();
   const user = await currentUser();
+  if (user) await noteUse(user.uid, 'versions');
   if (!user) return apiError('UNAUTHORIZED', 'Please sign in.', rid);
   const { id } = await ctx.params;
   if (!validId(id)) return apiError('INVALID_INPUT', 'Invalid document.', rid);

@@ -4,6 +4,7 @@ import { runTask } from '@/modules/ai/run';
 import { prepareJobAi } from '@/modules/jobs/ai-route';
 import { profileDigest } from '@/modules/jobs/digest';
 import { applyTailor } from '@/modules/jobs/match';
+import { noteUse } from '@/modules/metrics/activity';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -16,6 +17,7 @@ export const maxDuration = 90;
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const p = await prepareJobAi(req, ctx);
   if ('error' in p) return p.error;
+  await noteUse(p.user.uid, 'cv');
   const digest = profileDigest(p.doc);
   const r = await runTask(
     'job.tailor',

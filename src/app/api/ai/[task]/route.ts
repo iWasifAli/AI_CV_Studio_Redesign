@@ -7,6 +7,7 @@ import { apiError, clientKey, readJson, requestId } from '@/lib/http';
 import { denialCode, reserve } from '@/modules/billing/server';
 import { track } from '@/modules/metrics/server';
 import { currentUser } from '@/modules/identity/session';
+import { noteUse } from '@/modules/metrics/activity';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -80,7 +81,9 @@ export async function POST(req: Request, ctx: { params: Promise<{ task: string }
   const tries = Math.max(0, Math.min(5, Math.floor(Number(attempt) || 0)));
 
   // Entitlement gate: AI actions are part of Premium (monthly allowance, counted on success only).
-  const gate = await reserve(await currentUser(), 'ai.action');
+  const me = await currentUser();
+  if (me) await noteUse(me.uid, 'ai_writing');
+  const gate = await reserve(me, 'ai.action');
   if (!gate.decision.ok)
     return apiError(denialCode(gate.decision), gate.decision.message, rid, {
       reason: gate.decision.reason,

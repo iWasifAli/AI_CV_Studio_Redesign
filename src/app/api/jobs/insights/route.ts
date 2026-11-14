@@ -6,6 +6,7 @@ import { insights, wasSent } from '@/modules/jobs/insights';
 import type { SentWith } from '@/modules/jobs/schema';
 import { linkedCv, sentSnapshot } from '@/modules/jobs/server';
 import { getUserStore } from '@/modules/store';
+import { noteUse } from '@/modules/metrics/activity';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -17,6 +18,7 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   const rid = requestId();
   const user = await currentUser();
+  if (user) await noteUse(user.uid, 'insights');
   if (!user) return apiError('SIGN_IN_REQUIRED', 'Please sign in.', rid);
   const { value: cfg } = await getBusinessConfig();
   if (!cfg.features.jobInsights)

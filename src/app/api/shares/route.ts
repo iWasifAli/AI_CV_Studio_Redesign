@@ -3,6 +3,7 @@ import { apiError, readJson, requestId } from '@/lib/http';
 import { currentUser } from '@/modules/identity/session';
 import { newShareToken, publicShare } from '@/modules/share/server';
 import { getUserStore } from '@/modules/store';
+import { noteUse } from '@/modules/metrics/activity';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -34,6 +35,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const rid = requestId();
   const user = await currentUser();
+  if (user) await noteUse(user.uid, 'share');
   if (!user) return apiError('SIGN_IN_REQUIRED', 'Sign in to share a link to your CV.', rid);
   const body = await readJson(req, 4 * 1024);
   const docId = body.ok ? String((body.value as { docId?: unknown })?.docId ?? '') : '';

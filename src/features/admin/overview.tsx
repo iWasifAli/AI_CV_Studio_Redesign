@@ -5,6 +5,7 @@ import { Banner } from '@/components/ui/banner';
 import { ButtonLink } from '@/components/ui/button';
 import { AdminHeading } from './admin-shell';
 import { adminGet } from './api';
+import { numberStatus, MIN_BASE, type Num } from '@/modules/metrics/numbers';
 
 type Overview = {
   month: string;
@@ -15,6 +16,7 @@ type Overview = {
   usage: Record<'pdf.download' | 'import.cv' | 'ai.action', number>;
   premium: { active: number; total: number };
   payments: { pending: number };
+  product?: Num[];
   numbers: {
     from: string;
     newAccounts: number;
@@ -89,6 +91,7 @@ export function AdminOverview() {
             <Stat label={`PDF downloads (${data.month})`} value={data.usage['pdf.download']} />
             <Stat label={`AI actions (${data.month})`} value={data.usage['ai.action']} />
           </div>
+          {data.product && <ProductNumbers list={data.product} />}
           <Numbers n={data.numbers} />
           <section className="border-line bg-surface rounded-lg border p-5">
             <h2 className="mb-3 text-lg font-semibold">Switches</h2>
@@ -276,4 +279,64 @@ function fmtMinutes(m: number) {
   if (m < 60) return `${m} min`;
   if (m < 48 * 60) return `${Math.round(m / 60)} h`;
   return `${Math.round(m / 1440)} days`;
+}
+
+function show(n: Num, v: number | null) {
+  if (v === null) return '—';
+  if (n.unit === 'percent') return `${Math.round(v * 1000) / 10}%`;
+  if (n.unit === 'seconds')
+    return n.key === 'timeToReveal' && v > 60 ? 'over 60 s' : `under ${v} s`;
+  return (Math.round(v * 10) / 10).toString();
+}
+function showTarget(n: Num) {
+  if (n.unit === 'percent') return `${Math.round(n.target * 100)}%`;
+  if (n.unit === 'seconds') return `under ${n.target} s`;
+  return `${n.target} or more`;
+}
+
+const TONE = {
+  ok: { label: 'On target', cls: 'bg-[#e3f1e6] text-[#1f5c2e]' },
+  below: { label: 'Below target', cls: 'bg-[#fbe9e7] text-[#8a2a1b]' },
+  few: { label: 'Not enough data yet', cls: 'bg-sunken text-ink-muted' },
+} as const;
+
+/** The nine product numbers with their targets (spec §17.2). */
+function ProductNumbers({ list }: { list: Num[] }) {
+  return (
+    <section className="border-line bg-surface rounded-lg border p-5" data-testid="product-numbers">
+      <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="text-lg font-semibold">Product numbers</h2>
+        <span className="text-ink-muted text-sm">
+          Targets from the plan. Shown once at least {MIN_BASE} accounts or makeovers count.
+        </span>
+      </div>
+      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {list.map((n) => {
+          const st = numberStatus(n);
+          return (
+            <li
+              key={n.key}
+              className="border-line rounded-md border p-3"
+              data-testid={`number-${n.key}`}
+              data-status={st}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <h3 className="text-sm font-semibold">{n.label}</h3>
+                <span
+                  className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${TONE[st].cls}`}
+                >
+                  {TONE[st].label}
+                </span>
+              </div>
+              <p className="mt-1 text-2xl font-semibold tabular-nums">{show(n, n.value)}</p>
+              <p className="text-ink-muted text-sm">
+                Target {showTarget(n)} · based on {n.base.toLocaleString()}
+              </p>
+              <p className="text-ink-muted mt-1 text-xs">{n.definition}</p>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
 }

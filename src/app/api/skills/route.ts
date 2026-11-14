@@ -10,6 +10,7 @@ import { aiBudgetSpent, track } from '@/modules/metrics/server';
 import { safeParseResumeDocument } from '@/modules/resume/schema';
 import { checkGap, MAX_PLANS, type SkillPlan } from '@/modules/skills/gap';
 import { getUserStore } from '@/modules/store';
+import { noteUse } from '@/modules/metrics/activity';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -36,6 +37,7 @@ export async function GET() {
 export async function POST(req: Request) {
   const rid = requestId();
   const user = await currentUser();
+  if (user) await noteUse(user.uid, 'skills');
   if (!user) return apiError('SIGN_IN_REQUIRED', 'Please sign in.', rid);
   const { value: cfg } = await getBusinessConfig();
   if (!cfg.features.skillGap)

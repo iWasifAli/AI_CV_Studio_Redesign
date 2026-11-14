@@ -10,6 +10,8 @@ import { contentStats, rankDesigns } from '@/modules/makeover/rank';
 import { issueMakeover, takePreview } from '@/modules/makeover/server';
 import { track } from '@/modules/metrics/server';
 import { DESIGN_IDS, TEMPLATE_IDS, type DesignId } from '@/modules/resume/schema';
+import { noteReveal } from '@/modules/metrics/activity';
+import { revealBucket } from '@/modules/metrics/numbers';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -33,6 +35,7 @@ export async function POST(req: Request) {
   const ip = clientKey(req);
   if (!limiter(ip).ok)
     return apiError('RATE_LIMITED', 'Too many uploads. Please wait a minute.', rid);
+  const began = Date.now();
   const length = Number(req.headers.get('content-length') ?? 0);
   if (length > MAX_IMPORT_BYTES + 64 * 1024)
     return apiError('INVALID_INPUT', TOO_LARGE_MESSAGE, rid, { reason: 'TOO_LARGE' });
@@ -92,9 +95,11 @@ export async function POST(req: Request) {
     );
     const stats = contentStats(doc, profile.presetId, read.photo);
     const ranking = rankDesigns(stats, enabled.length ? enabled : [...TEMPLATE_IDS]);
-    const makeoverId = await issueMakeover(mode === 'full');
+    const makeoverId = await issueMakeover(mode === 'full', !user);
 
     await track('makeover_reveal');
+    await track(revealBucket(Date.now() - began));
+    if (user) await noteReveal(user.uid);
     if (mode === 'preview') await track('makeover_preview');
     await track('import_ok');
     await track(read.method === 'ai' ? 'import_ai' : 'import_rules');
