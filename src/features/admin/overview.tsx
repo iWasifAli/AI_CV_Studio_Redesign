@@ -310,7 +310,7 @@ function ProductNumbers({ list }: { list: Num[] }) {
           Targets from the plan. Shown once at least {MIN_BASE} accounts or makeovers count.
         </span>
       </div>
-      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <ul className="grid grid-cols-[repeat(auto-fill,minmax(13rem,1fr))] gap-3">
         {list.map((n) => {
           const st = numberStatus(n);
           return (
@@ -320,14 +320,12 @@ function ProductNumbers({ list }: { list: Num[] }) {
               data-testid={`number-${n.key}`}
               data-status={st}
             >
-              <div className="flex items-start justify-between gap-2">
-                <h3 className="text-sm font-semibold">{n.label}</h3>
-                <span
-                  className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${TONE[st].cls}`}
-                >
-                  {TONE[st].label}
-                </span>
-              </div>
+              <h3 className="text-sm font-semibold">{n.label}</h3>
+              <span
+                className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${TONE[st].cls}`}
+              >
+                {TONE[st].label}
+              </span>
               <p className="mt-1 text-2xl font-semibold tabular-nums">{show(n, n.value)}</p>
               <p className="text-ink-muted text-sm">
                 Target {showTarget(n)} · based on {n.base.toLocaleString()}
