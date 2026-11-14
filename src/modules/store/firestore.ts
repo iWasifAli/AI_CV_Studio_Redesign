@@ -603,7 +603,9 @@ export class FirestoreUserStore implements UserStore {
     const ref = this.usageRef(uid, month);
     return this.db.runTransaction(async (tx) => {
       const s = await tx.get(ref);
-      const n = Number(s.get(key) ?? 0);
+      // Read the field by its literal name: snapshot.get('ai.action') treats the dot as a path
+      // (ai → action), so every reserve saw 0 and the monthly limits were never reached.
+      const n = Number((s.data() as Record<string, unknown> | undefined)?.[key] ?? 0);
       if (limit !== -1 && n + weight > limit) return false;
       tx.set(ref, { uid, month, [key]: n + weight }, { merge: true });
       return true;

@@ -32,6 +32,8 @@ jobs:
           java-version: '21'
       - name: Firestore rules (emulator)
         run: npm run test:rules
+      - name: Firestore store (emulator)
+        run: npm run test:store
       - run: npm run build
         env:
           GEMINI_API_KEY: ci-sentinel-not-a-real-key-123
