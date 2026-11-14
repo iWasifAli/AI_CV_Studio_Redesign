@@ -174,6 +174,8 @@ export async function entitlementsFor(user: SessionUser | null) {
       portfolioContact: cfg.features.portfolioContact,
       linkedinReview: cfg.features.linkedinReview,
       jobInsights: cfg.features.jobInsights,
+      proofread: cfg.features.proofread,
+      quantify: cfg.features.quantify,
     },
     aiWeights: cfg.aiWeights,
     hiddenLetterTypes: cfg.content.hiddenLetterTypes,

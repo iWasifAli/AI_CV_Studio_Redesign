@@ -37,6 +37,7 @@ export const TASK_IDS = [
   'write.improveBullets',
   'write.fromNotes',
   'write.rewrite',
+  'write.quantify',
   'suggest.skills',
   'import.structure',
   'job.match',
@@ -44,6 +45,7 @@ export const TASK_IDS = [
   'letter.write',
   'letter.generic',
   'quality.atsKeywords',
+  'quality.proofread',
   'linkedin.write',
   'linkedin.review',
   'interview.prep',
@@ -156,6 +158,17 @@ export const taskInputs = {
     /** The whole field the selection is in (facts may come from it too). */
     context: z.string().max(3000).default(''),
   }),
+  /** Quantify prompts (spec §9.3): ask about a point with no number, then add only the answers. */
+  'write.quantify': z.object({
+    mode: z.enum(['ask', 'insert']),
+    point: z.string().trim().min(5).max(600),
+    /** "Delivery Driver at Swift Logistics". */
+    job: z.string().max(300).default(''),
+    answers: z
+      .array(z.object({ question: z.string().max(200), answer: z.string().max(200) }))
+      .max(3)
+      .default([]),
+  }),
   'write.fromNotes': z.object({
     presetId: z.enum(PRESET_IDS),
     role: short(160).default(''),
@@ -223,6 +236,10 @@ export const taskInputs = {
   'quality.atsKeywords': z.object({
     advert: z.string().min(80).max(12_000),
     profile: z.string().min(20).max(24_000),
+  }),
+  /** Proofread the whole CV: "L3: text" per line, one field per line (quality/proofread.ts). */
+  'quality.proofread': z.object({
+    lines: z.string().min(3).max(40_000),
   }),
   'interview.prep': z.object({
     advert: z.string().min(80).max(12_000),
@@ -373,6 +390,20 @@ export const taskOutputs = {
   'write.improveBullets': z.object({ bullets: z.array(z.string().min(1).max(260)).min(1).max(12) }),
   'write.fromNotes': z.object({ bullets: z.array(z.string().min(1).max(260)).min(1).max(8) }),
   'write.rewrite': z.object({ text: z.string().min(1).max(2000) }),
+  'write.quantify': z.object({
+    /** mode "ask": 1–3 questions about this point; [] for "insert". */
+    questions: z
+      .array(
+        z.object({
+          question: z.string().min(3).max(160),
+          /** What kind of answer helps, without example numbers. */
+          hint: z.string().max(120),
+        }),
+      )
+      .max(3),
+    /** mode "insert": the point with the answers worked in; "" for "ask". */
+    point: z.string().max(600),
+  }),
   'suggest.skills': z.object({ skills: z.array(z.string().min(1).max(60)).min(1).max(12) }),
   'import.transcribe': z.object({
     lines: z.array(z.string().max(600)).max(600),
@@ -471,6 +502,30 @@ export const taskOutputs = {
         }),
       )
       .max(25),
+  }),
+  'quality.proofread': z.object({
+    issues: z
+      .array(
+        z.object({
+          /** The line id, e.g. "L3". */
+          line: z.string().max(10),
+          kind: z.enum([
+            'spelling',
+            'grammar',
+            'punctuation',
+            'capitals',
+            'consistency',
+            'repetition',
+          ]),
+          /** The exact words in that line that are wrong (as short as possible). */
+          quote: z.string().max(300),
+          /** What replaces exactly those words. */
+          fix: z.string().max(400),
+          /** One short sentence, plain words. */
+          why: z.string().max(200),
+        }),
+      )
+      .max(60),
   }),
   'interview.prep': z.object({
     questions: z

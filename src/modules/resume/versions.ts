@@ -1,5 +1,6 @@
 import { currentDesignId } from '@/modules/design/catalogue';
 import { DESIGN_META } from '@/modules/design/designs';
+import { FONT_PAIRS } from '@/modules/templates/fonts';
 import type { DocVersion, VersionKind } from '@/modules/store/types';
 import type { ResumeDocument } from './schema';
 
@@ -217,10 +218,11 @@ export function diffDocs(before: ResumeDocument, after: ResumeDocument): Change[
   const da = designNameOf(before);
   const db = designNameOf(after);
   if (da !== db) out.push({ where: 'Design', kind: 'changed', before: da, after: db });
+  const cap = (x: string) => x.charAt(0).toUpperCase() + x.slice(1);
   const look = (d: ResumeDocument) => ({
     Colour: d.design.accent,
-    Font: d.design.fontPair,
-    Spacing: d.design.density,
+    Font: FONT_PAIRS[d.design.fontPair]?.label ?? d.design.fontPair,
+    Spacing: cap(d.design.density),
     Paper: d.design.pageSize,
   });
   const la = look(before);

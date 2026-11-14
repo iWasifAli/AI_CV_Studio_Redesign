@@ -120,6 +120,10 @@ export const businessConfig = z.object({
     linkedinReview: z.boolean().default(true),
     /** R9 application analytics (results of the person's applications, by CV and design). */
     jobInsights: z.boolean().default(true),
+    /** Proofread the whole CV (AI, spec §9.3). */
+    proofread: z.boolean().default(true),
+    /** Questions that help put numbers in CV points (AI, spec §9.3). */
+    quantify: z.boolean().default(true),
   }),
   /** AI actions that cost more than one (complete-studio-spec §14: weights are config data). */
   aiWeights: z
@@ -130,8 +134,19 @@ export const businessConfig = z.object({
       storyDraft: z.number().int().min(1).max(10).default(1),
       skillGap: z.number().int().min(1).max(10).default(1),
       linkedinReview: z.number().int().min(1).max(10).default(1),
+      proofread: z.number().int().min(1).max(10).default(1),
+      quantify: z.number().int().min(1).max(10).default(1),
     })
-    .default({ kit: 3, mockTurn: 1, coachTurn: 1, storyDraft: 1, skillGap: 1, linkedinReview: 1 }),
+    .default({
+      kit: 3,
+      mockTurn: 1,
+      coachTurn: 1,
+      storyDraft: 1,
+      skillGap: 1,
+      linkedinReview: 1,
+      proofread: 1,
+      quantify: 1,
+    }),
   /** Content the owner can change without a deploy (spec §15). */
   content: z
     .object({
@@ -270,8 +285,19 @@ export const DEFAULT_CONFIG: BusinessConfig = {
     portfolioContact: true,
     linkedinReview: true,
     jobInsights: true,
+    proofread: true,
+    quantify: true,
   },
-  aiWeights: { kit: 3, mockTurn: 1, coachTurn: 1, storyDraft: 1, skillGap: 1, linkedinReview: 1 },
+  aiWeights: {
+    kit: 3,
+    mockTurn: 1,
+    coachTurn: 1,
+    storyDraft: 1,
+    skillGap: 1,
+    linkedinReview: 1,
+    proofread: 1,
+    quantify: 1,
+  },
   content: { hiddenLetterTypes: [] },
   announcement: { enabled: false, text: '' },
   support: { email: '' },

@@ -193,6 +193,7 @@ export function EditorScreen({ initial }: { initial: ResumeDocument }) {
                     window.setTimeout(() => content.current?.reveal(ref), 50);
                   }}
                   onDesign={() => setView('design')}
+                  apply={(fn) => update(fn, `proofread.${Date.now()}`)}
                 />
               )}
             </div>

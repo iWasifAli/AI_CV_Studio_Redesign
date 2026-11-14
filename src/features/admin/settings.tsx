@@ -18,6 +18,8 @@ const AI_WEIGHTS = [
   ['storyDraft', 'Story draft'],
   ['skillGap', 'Skill gap plan'],
   ['linkedinReview', 'LinkedIn review'],
+  ['proofread', 'Proofread the whole CV'],
+  ['quantify', 'Questions to add numbers to a point'],
 ] as const;
 import { AdminHeading } from './admin-shell';
 import { adminGet, adminSend } from './api';
@@ -714,6 +716,16 @@ export function AdminSettings() {
             label="Application results (replies and interviews by CV and design)"
             checked={draft.features.jobInsights}
             onChange={(v) => edit((c) => void (c.features.jobInsights = v))}
+          />
+          <CheckboxField
+            label="Proofread the whole CV (AI)"
+            checked={draft.features.proofread}
+            onChange={(v) => edit((c) => void (c.features.proofread = v))}
+          />
+          <CheckboxField
+            label="Questions that add numbers to CV points (AI)"
+            checked={draft.features.quantify}
+            onChange={(v) => edit((c) => void (c.features.quantify = v))}
           />
         </Section>
 

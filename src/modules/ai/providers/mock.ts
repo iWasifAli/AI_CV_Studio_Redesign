@@ -235,6 +235,85 @@ function answer(task: TaskId, input: unknown, attempt: number, files: AiFile[] =
       const firstBullet = digestLines(i.profile).find((l) => /\.B\d+$/.test(l.id))?.id ?? '';
       return { terms: terms.map((term, n) => ({ term, line: n === 0 ? firstBullet : '' })) };
     }
+    case 'write.quantify': {
+      const i = input as ParsedInput<'write.quantify'>;
+      if (i.mode === 'ask')
+        return {
+          questions: [
+            {
+              question: 'About how many times did you do this in a week?',
+              hint: 'A rough number is fine',
+            },
+            {
+              question: 'What changed because of it?',
+              hint: 'Time saved, fewer mistakes, or similar',
+            },
+          ],
+          point: '',
+        };
+      // Only the answer's first phrase, the way a careful writer would use it.
+      const used = i.answers.map((a) => a.answer.split(/[,;.]/)[0]!.trim()).join(', ');
+      // Test hook: an answer saying ZZ-QUANT makes the demo AI add a number nobody gave.
+      const extra = used.includes('ZZ-QUANT') ? ' and cut costs by 45%' : '';
+      return {
+        questions: [],
+        point: `${i.point.replace(/\.$/, '')} (${used.replace(' ZZ-QUANT', '')})${extra}`,
+      };
+    }
+    case 'quality.proofread': {
+      const i = input as ParsedInput<'quality.proofread'>;
+      // A small fixed list of mistakes, found deterministically.
+      const WRONG: Record<string, string> = {
+        recieved: 'received',
+        responsable: 'responsible',
+        managment: 'management',
+        teh: 'the',
+        seperate: 'separate',
+      };
+      const issues: TaskOutput<'quality.proofread'>['issues'] = [];
+      for (const raw of i.lines.split('\n')) {
+        const m = /^(L\d+): (.*)$/.exec(raw);
+        if (!m) continue;
+        const [, line, text] = m as unknown as [string, string, string];
+        for (const w of text.match(/[A-Za-z]+/g) ?? []) {
+          const right = WRONG[w.toLowerCase()];
+          const cased =
+            right && /^[A-Z]/.test(w) ? right[0]!.toUpperCase() + right.slice(1) : right;
+          if (cased)
+            issues.push({
+              line,
+              kind: 'spelling',
+              quote: w,
+              fix: cased,
+              why: `“${cased}” is the usual spelling.`,
+            });
+        }
+        const twice = /\b(\w+) \1\b/i.exec(text);
+        if (twice)
+          issues.push({
+            line,
+            kind: 'repetition',
+            quote: twice[0],
+            fix: twice[1]!,
+            why: 'The same word twice.',
+          });
+        if (/^[a-z]/.test(text) && !/^[a-z]+:\/\//.test(text))
+          issues.push({
+            line,
+            kind: 'capitals',
+            quote: text.split(' ')[0]!,
+            fix: text[0]!.toUpperCase() + text.split(' ')[0]!.slice(1),
+            why: 'Start with a capital letter.',
+          });
+        // Test hooks: a quote that isn't in the line, and a fix that adds a fact.
+        if (text.includes('ZZ-PROOF'))
+          issues.push(
+            { line, kind: 'grammar', quote: 'words not on the line', fix: 'x', why: 'Made up.' },
+            { line, kind: 'grammar', quote: 'ZZ-PROOF', fix: 'by 45%', why: 'Adds a number.' },
+          );
+      }
+      return { issues };
+    }
     case 'jobs.extract': {
       const i = input as ParsedInput<'jobs.extract'>;
       const lines = i.text

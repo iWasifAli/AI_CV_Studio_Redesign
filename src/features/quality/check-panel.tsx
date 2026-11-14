@@ -13,6 +13,8 @@ import type { AtsCheck, AtsReport } from '@/modules/quality/ats';
 import type { ResumeDocument } from '@/modules/resume/schema';
 import { CommentsPanel } from '@/features/share/comments-panel';
 import { HealthPanel } from './health-panel';
+import { ProofreadPanel } from './proofread-panel';
+import { QuantifyPanel } from './quantify-panel';
 
 const ICON = { pass: CircleCheck, 'needs-work': CircleAlert, info: Info } as const;
 const TONE = { pass: 'text-success', 'needs-work': 'text-danger', info: 'text-primary' } as const;
@@ -27,16 +29,21 @@ export function CheckPanel({
   pages,
   onShow,
   onDesign,
+  apply,
 }: {
   doc: ResumeDocument;
   pages?: number;
   onShow: (ref: string) => void;
   onDesign: () => void;
+  /** Change the CV as one undo step (proofreading fixes). */
+  apply?: (fn: (d: ResumeDocument) => ResumeDocument) => void;
 }) {
   return (
     <div className="flex flex-col gap-5 pb-6">
       <CommentsPanel docId={doc.id} onShow={onShow} />
       <HealthPanel doc={doc} pages={pages} onShow={onShow} />
+      {apply && <ProofreadPanel doc={doc} onShow={onShow} apply={apply} />}
+      {apply && <QuantifyPanel doc={doc} onShow={onShow} apply={apply} />}
       <AtsPanel doc={doc} onShow={onShow} onDesign={onDesign} />
     </div>
   );

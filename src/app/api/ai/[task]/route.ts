@@ -19,6 +19,8 @@ const INTERNAL = new Set<string>([
   'makeover.diagnose',
   'letter.generic',
   'quality.atsKeywords',
+  'quality.proofread',
+  'write.quantify',
   'interview.turn',
   'coach.chat',
   'story.draft',
