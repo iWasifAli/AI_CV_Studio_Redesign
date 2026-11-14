@@ -7,7 +7,10 @@ import type { ReminderQueue } from './types';
 import type { CoachThread } from '@/modules/coach/thread';
 import type { ResumeDocument } from '@/modules/resume/schema';
 import {
+  AUTO_VERSION_EVERY_MS,
+  MAX_NAMED_VERSIONS,
   MAX_VERSIONS,
+  type DocVersion,
   type DocSummary,
   type PutResult,
   type StoredDoc,
@@ -27,7 +30,17 @@ import {
 export class MemoryUserStore implements UserStore {
   private users = new Map<string, { email: string | null; name: string | null }>();
   private docs = new Map<string, Map<string, StoredDoc>>();
-  private versions = new Map<string, { savedAt: string; doc: ResumeDocument }[]>();
+  private versions = new Map<string, DocVersion[]>();
+  /** When each CV last got an automatic version. */
+  private versionAt = new Map<string, number>();
+  private pushVersion(key: string, v: DocVersion) {
+    const list = [v, ...(this.versions.get(key) ?? [])];
+    let kept = 0;
+    this.versions.set(
+      key,
+      list.filter((x) => x.kind === 'named' || ++kept <= MAX_VERSIONS),
+    );
+  }
 
   private bucket(uid: string) {
     let b = this.docs.get(uid);
@@ -231,11 +244,21 @@ export class MemoryUserStore implements UserStore {
       const live = [...b.values()].filter((d) => !d.deleted).length;
       if (live >= maxDocs) return { ok: false, reason: 'limit' };
     }
-    if (cur?.doc && !cur.deleted && cur.updatedAt !== doc.updatedAt) {
-      const key = `${uid}/${doc.id}`;
-      const list = this.versions.get(key) ?? [];
-      list.unshift({ savedAt: new Date().toISOString(), doc: cur.doc });
-      this.versions.set(key, list.slice(0, MAX_VERSIONS));
+    const key = `${uid}/${doc.id}`;
+    const now = Date.now();
+    if (
+      cur?.doc &&
+      !cur.deleted &&
+      cur.updatedAt !== doc.updatedAt &&
+      now - (this.versionAt.get(key) ?? 0) >= AUTO_VERSION_EVERY_MS
+    ) {
+      this.pushVersion(key, {
+        id: crypto.randomUUID(),
+        savedAt: new Date(now).toISOString(),
+        kind: 'auto',
+        doc: structuredClone(cur.doc),
+      });
+      this.versionAt.set(key, now);
     }
     const stored: StoredDoc = {
       id: doc.id,
@@ -250,6 +273,7 @@ export class MemoryUserStore implements UserStore {
   async deleteDoc(uid: string, id: string, at: string) {
     this.bucket(uid).set(id, { id, updatedAt: at, deleted: true, doc: null });
     this.versions.delete(`${uid}/${id}`);
+    this.versionAt.delete(`${uid}/${id}`);
     this.comments.delete(`${uid}/${id}`);
     for (const [t, sh] of this.shares) if (sh.uid === uid && sh.docId === id) this.shares.delete(t);
   }
@@ -409,6 +433,42 @@ export class MemoryUserStore implements UserStore {
 
   async listVersions(uid: string, id: string) {
     return structuredClone(this.versions.get(`${uid}/${id}`) ?? []);
+  }
+  async getVersion(uid: string, id: string, vid: string) {
+    const v = this.versions.get(`${uid}/${id}`)?.find((x) => x.id === vid);
+    return v ? structuredClone(v) : null;
+  }
+  async addVersion(
+    uid: string,
+    id: string,
+    v: { kind: 'named' | 'restore'; name?: string; doc: ResumeDocument },
+  ): Promise<DocVersion | 'limit'> {
+    const key = `${uid}/${id}`;
+    const list = this.versions.get(key) ?? [];
+    if (v.kind === 'named' && list.filter((x) => x.kind === 'named').length >= MAX_NAMED_VERSIONS)
+      return 'limit';
+    const out: DocVersion = {
+      id: crypto.randomUUID(),
+      savedAt: new Date().toISOString(),
+      kind: v.kind,
+      ...(v.name ? { name: v.name } : {}),
+      doc: structuredClone(v.doc),
+    };
+    this.pushVersion(key, out);
+    return structuredClone(out);
+  }
+  async renameVersion(uid: string, id: string, vid: string, name: string) {
+    const v = this.versions.get(`${uid}/${id}`)?.find((x) => x.id === vid);
+    if (!v || v.kind !== 'named') return false;
+    v.name = name;
+    return true;
+  }
+  async deleteVersion(uid: string, id: string, vid: string) {
+    const key = `${uid}/${id}`;
+    const list = this.versions.get(key) ?? [];
+    const next = list.filter((x) => x.id !== vid);
+    this.versions.set(key, next);
+    return next.length !== list.length;
   }
 
   private passes = new Map<string, Pass>();

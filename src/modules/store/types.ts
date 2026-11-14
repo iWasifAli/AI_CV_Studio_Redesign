@@ -116,7 +116,17 @@ export interface UserStore {
   /** Without the picture data. */
   listPortfolioImages(uid: string): Promise<Omit<PortfolioImage, 'data'>[]>;
   deletePortfolioImage(uid: string, id: string): Promise<void>;
-  listVersions(uid: string, id: string): Promise<{ savedAt: string; doc: ResumeDocument }[]>;
+  // CV versions (spec §9.1), users/{uid}/documents/{id}/versions/{v}. Newest first.
+  listVersions(uid: string, id: string): Promise<DocVersion[]>;
+  getVersion(uid: string, id: string, vid: string): Promise<DocVersion | null>;
+  /** Keeps `doc` as a named version, or as the copy taken before a restore. */
+  addVersion(
+    uid: string,
+    id: string,
+    v: { kind: 'named' | 'restore'; name?: string; doc: ResumeDocument },
+  ): Promise<DocVersion | 'limit'>;
+  renameVersion(uid: string, id: string, vid: string, name: string): Promise<boolean>;
+  deleteVersion(uid: string, id: string, vid: string): Promise<boolean>;
 
   // Billing (studio-master-plan §4.3) — written only by the server.
   getPass(uid: string): Promise<Pass | null>;
@@ -293,7 +303,24 @@ export type PaymentRequest = {
 
 export type ConfigVersion = { version: number; savedAt: string; savedBy: string; value: unknown };
 
-export const MAX_VERSIONS = 10;
+/**
+ * CV versions. `auto`: the CV as it was before an editing session — kept at most once every
+ * AUTO_VERSION_EVERY_MS, so a burst of autosaves doesn't push real history out. `restore`: the CV
+ * just before a version was restored. `named`: saved by the person; never pruned.
+ */
+export type VersionKind = 'auto' | 'named' | 'restore';
+export type DocVersion = {
+  id: string;
+  savedAt: string;
+  kind: VersionKind;
+  name?: string;
+  doc: ResumeDocument;
+};
+/** Automatic and before-restore versions kept per CV (oldest pruned). */
+export const MAX_VERSIONS = 30;
+/** Named versions per CV. */
+export const MAX_NAMED_VERSIONS = 20;
+export const AUTO_VERSION_EVERY_MS = 15 * 60_000;
 
 /** reminderQueue/{uid}: who to email, when next, and whether they turned reminder emails off. */
 export type ReminderQueue = {

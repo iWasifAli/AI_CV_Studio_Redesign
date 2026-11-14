@@ -8,7 +8,11 @@ import type { SkillPlan } from '@/modules/skills/gap';
 import type { CoachThread } from '@/modules/coach/thread';
 import type { ResumeDocument } from '@/modules/resume/schema';
 import {
+  AUTO_VERSION_EVERY_MS,
+  MAX_NAMED_VERSIONS,
   MAX_VERSIONS,
+  type DocVersion,
+  type VersionKind,
   type DocSummary,
   type PutResult,
   type StoredDoc,
@@ -436,17 +440,28 @@ export class FirestoreUserStore implements UserStore {
         const live = await tx.get(this.col(uid).where('deleted', '==', false).count());
         if (live.data().count >= maxDocs) return { ok: false, reason: 'limit' };
       }
-      if (cur.exists && !curDeleted && cur.get('doc') && curUpdated !== doc.updatedAt) {
+      // One automatic version per editing session (spec §9.1): the CV as it was before the
+      // first save after a quiet spell, not one per autosave.
+      const now = Date.now();
+      const lastVersion = Number(cur.get('versionAt') ?? 0);
+      const takeVersion =
+        cur.exists &&
+        !curDeleted &&
+        !!cur.get('doc') &&
+        curUpdated !== doc.updatedAt &&
+        now - lastVersion >= AUTO_VERSION_EVERY_MS;
+      if (takeVersion)
         tx.set(ref.collection('versions').doc(), {
-          savedAt: new Date().toISOString(),
+          savedAt: new Date(now).toISOString(),
+          kind: 'auto',
           doc: cur.get('doc'),
         });
-      }
       tx.set(ref, {
         updatedAt: doc.updatedAt,
         deleted: false,
         title: doc.title,
         doc,
+        versionAt: takeVersion ? now : lastVersion,
         serverUpdatedAt: FieldValue.serverTimestamp(),
       });
       return { ok: true, stored: { id: doc.id, updatedAt: doc.updatedAt, deleted: false, doc } };
@@ -461,7 +476,8 @@ export class FirestoreUserStore implements UserStore {
       .collection('versions')
       .orderBy('savedAt', 'desc')
       .get();
-    const extra = snap.docs.slice(MAX_VERSIONS);
+    // Named versions are never pruned.
+    const extra = snap.docs.filter((d) => d.get('kind') !== 'named').slice(MAX_VERSIONS);
     if (!extra.length) return;
     const batch = this.db.batch();
     extra.forEach((d) => batch.delete(d.ref));
@@ -490,17 +506,78 @@ export class FirestoreUserStore implements UserStore {
     });
   }
 
+  private versionOf(d: FirebaseFirestore.DocumentSnapshot): DocVersion {
+    const kind = d.get('kind') as VersionKind | undefined;
+    const name = d.get('name') as string | undefined;
+    return {
+      id: d.id,
+      savedAt: String(d.get('savedAt')),
+      // Versions from before this release have no kind: they were automatic.
+      kind: kind === 'named' || kind === 'restore' ? kind : 'auto',
+      ...(name ? { name } : {}),
+      doc: d.get('doc') as ResumeDocument,
+    };
+  }
+
   async listVersions(uid: string, id: string) {
     const snap = await this.col(uid)
       .doc(id)
       .collection('versions')
       .orderBy('savedAt', 'desc')
-      .limit(MAX_VERSIONS)
+      .limit(MAX_VERSIONS + MAX_NAMED_VERSIONS)
       .get();
-    return snap.docs.map((d) => ({
-      savedAt: String(d.get('savedAt')),
-      doc: d.get('doc') as ResumeDocument,
-    }));
+    return snap.docs.map((d) => this.versionOf(d));
+  }
+
+  async getVersion(uid: string, id: string, vid: string) {
+    const d = await this.col(uid).doc(id).collection('versions').doc(vid).get();
+    return d.exists ? this.versionOf(d) : null;
+  }
+
+  async addVersion(
+    uid: string,
+    id: string,
+    v: { kind: 'named' | 'restore'; name?: string; doc: ResumeDocument },
+  ): Promise<DocVersion | 'limit'> {
+    const col = this.col(uid).doc(id).collection('versions');
+    if (v.kind === 'named') {
+      const named = await col.where('kind', '==', 'named').count().get();
+      if (named.data().count >= MAX_NAMED_VERSIONS) return 'limit';
+    }
+    const ref = col.doc();
+    const out: DocVersion = {
+      id: ref.id,
+      savedAt: new Date().toISOString(),
+      kind: v.kind,
+      ...(v.name ? { name: v.name } : {}),
+      doc: v.doc,
+    };
+    await ref.set({
+      savedAt: out.savedAt,
+      kind: out.kind,
+      ...(out.name ? { name: out.name } : {}),
+      doc: out.doc,
+    });
+    if (v.kind !== 'named') await this.trimVersions(uid, id).catch(() => {});
+    return out;
+  }
+
+  async renameVersion(uid: string, id: string, vid: string, name: string) {
+    const ref = this.col(uid).doc(id).collection('versions').doc(vid);
+    return this.db.runTransaction(async (tx) => {
+      const d = await tx.get(ref);
+      if (!d.exists || d.get('kind') !== 'named') return false;
+      tx.update(ref, { name });
+      return true;
+    });
+  }
+
+  async deleteVersion(uid: string, id: string, vid: string) {
+    const ref = this.col(uid).doc(id).collection('versions').doc(vid);
+    const d = await ref.get();
+    if (!d.exists) return false;
+    await ref.delete();
+    return true;
   }
 
   async getPass(uid: string) {

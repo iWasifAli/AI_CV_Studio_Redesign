@@ -18,6 +18,8 @@ import { CheckPanel } from '@/features/quality/check-panel';
 import { findInlineField, inlinePatch } from '@/modules/resume/inline-edit';
 import { ProfileSyncBanner } from './profile-sync-banner';
 import { useDocumentEditor } from './use-document-editor';
+import { VersionHistoryButton } from './version-history';
+import { useAccount } from '@/features/account/account-context';
 
 type View = 'content' | 'design' | 'check' | 'preview';
 
@@ -56,6 +58,7 @@ export function PreviewStatusLine({
 export function EditorScreen({ initial }: { initial: ResumeDocument }) {
   const editor = useDocumentEditor(initial);
   const { doc, update } = editor;
+  const signedIn = useAccount().status === 'signedIn';
   const params = useSearchParams();
   const [welcome, setWelcome] = useState(params.get('welcome') === '1');
   // ?tab=design opens the Look panel straight away (Studio Home and next-best-step links).
@@ -116,7 +119,12 @@ export function EditorScreen({ initial }: { initial: ResumeDocument }) {
           editor={editor}
           backHref="/documents"
           backLabel="Back to Documents"
-          action={download}
+          action={
+            <>
+              {signedIn && <VersionHistoryButton editor={editor} />}
+              {download}
+            </>
+          }
         />
         <div className="flex min-h-0 flex-1">
           <main
