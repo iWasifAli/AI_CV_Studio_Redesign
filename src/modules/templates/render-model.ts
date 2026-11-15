@@ -65,6 +65,11 @@ export type RenderModel = {
   contacts: Contact[];
   sections: RSection[];
   locale: string;
+  /**
+   * Key numbers for graphic designs: the person's own figures first, then honest counts from the
+   * CV (years of experience from the dates, languages, certifications). At most 3.
+   */
+  stats: { value: string; label: string }[];
 };
 
 const clean = (s: string) => s.replace(/\s+/g, ' ').trim();
@@ -294,10 +299,78 @@ export function toRenderModel(doc: ResumeDocument): RenderModel {
     firstName,
     lastName,
     initials,
+    stats: keyNumbers(doc),
     photo: doc.design.options.showPhoto === false ? '' : b.photo,
     headline: clean(b.headline),
     contacts,
     sections,
     locale: doc.locale,
   };
+}
+
+/** "2019-04" / "2019" → months since year 0; null when missing. */
+function monthOf(v: string): number | null {
+  const m = /^(\d{4})(?:-(\d{2}))?/.exec(v);
+  return m ? Number(m[1]) * 12 + (m[2] ? Number(m[2]) - 1 : 0) : null;
+}
+
+/** The key numbers strip: the person's own figures, then counts from the CV (never guesses). */
+export function keyNumbers(
+  doc: ResumeDocument,
+  now = new Date(),
+): { value: string; label: string }[] {
+  const own = (doc.basics.stats ?? [])
+    .map((k) => ({ value: clean(k.value), label: clean(k.label) }))
+    .filter((k) => k.value && k.label);
+  if (own.length >= 3) return own.slice(0, 3);
+  const out = [...own];
+  const today = now.getUTCFullYear() * 12 + now.getUTCMonth();
+  const spans: [number, number][] = [];
+  let roles = 0;
+  for (const s of doc.sections) {
+    if (s.hidden || !['experience', 'internships', 'military', 'volunteering'].includes(s.kind))
+      continue;
+    for (const it of s.items as { start: string; end: string; current: boolean }[]) {
+      const st = monthOf(it.start);
+      if (st === null) continue;
+      roles++;
+      const en = it.current ? today : (monthOf(it.end) ?? st);
+      spans.push([st, Math.max(st, en)]);
+    }
+  }
+  // Years worked: covered months (overlaps counted once), rounded down.
+  spans.sort((a, b) => a[0] - b[0]);
+  let covered = 0;
+  let reach = -1;
+  for (const [a, b] of spans) {
+    const from = Math.max(a, reach + 1);
+    if (b >= from) covered += b - from + 1;
+    reach = Math.max(reach, b);
+  }
+  const years = Math.floor(covered / 12);
+  const count = (kinds: string[]) =>
+    doc.sections
+      .filter((s) => !s.hidden && kinds.includes(s.kind))
+      .reduce((n, s) => n + s.items.length, 0);
+  const candidates: { value: string; label: string }[] = [];
+  if (years >= 1)
+    candidates.push({
+      value: String(years).padStart(2, '0'),
+      label: years === 1 ? 'Year of experience' : 'Years of experience',
+    });
+  if (roles >= 2) candidates.push({ value: String(roles).padStart(2, '0'), label: 'Roles held' });
+  const langs = count(['languages']);
+  if (langs >= 2) candidates.push({ value: String(langs).padStart(2, '0'), label: 'Languages' });
+  const creds = count(['certifications', 'licences', 'courses']);
+  if (creds >= 1)
+    candidates.push({
+      value: String(creds).padStart(2, '0'),
+      label: creds === 1 ? 'Certification' : 'Certifications',
+    });
+  const projects = count(['projects']);
+  if (projects >= 2)
+    candidates.push({ value: String(projects).padStart(2, '0'), label: 'Projects' });
+  for (const c of candidates)
+    if (out.length < 3 && !out.some((o) => o.label === c.label)) out.push(c);
+  return out;
 }

@@ -3,6 +3,7 @@ import { DESIGN_META, isSpecDesign } from '@/modules/design/designs';
 import type { DesignSpecV2 } from '@/modules/design/spec';
 import { newId } from './create';
 import type { Basics, DesignId, DesignSpec, ResumeDocument, Section, SectionKind } from './schema';
+import { GRAPHIC_META } from '@/modules/templates/graphic/meta';
 
 /**
  * Pure document operations. Every edit in the UI goes through one of these, which keeps
@@ -233,7 +234,13 @@ export const ops = {
   useDesign(doc: ResumeDocument, id: DesignId) {
     if (!isSpecDesign(id)) {
       const font = DESIGN_META[id].fontPair;
-      return ops.setDesign(doc, { templateId: id, ...(font ? { fontPair: font } : {}) });
+      // Graphic designs start in their signature colour (the person can change it).
+      const g = (GRAPHIC_META as Record<string, { accent: string }>)[id];
+      return ops.setDesign(doc, {
+        templateId: id,
+        ...(font ? { fontPair: font } : {}),
+        ...(g ? { accent: g.accent } : {}),
+      });
     }
     const { v2: _old, ...v1 } = doc.design;
     void _old;

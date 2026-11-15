@@ -39,6 +39,8 @@ export function inDesign(doc: ResumeDocument, id: DesignId, sample?: string): Re
 
 /** Single-column designs (incl. timeline): position-sorted text keeps the section order. */
 export function onlineSafe(d: DesignMeta): boolean {
+  // Graphic designs are made for people to look at; their ATS PDF is the online version.
+  if (d.family === 'graphic') return false;
   const t = designSpec(d.id, FIXTURES.teacher.design).layout.type;
   return t === 'single' || t === 'timeline';
 }
@@ -232,6 +234,23 @@ export function TemplateGallery() {
               <p className="text-ink-muted text-sm">
                 {FAMILY_LABEL[t.family].name} · {t.columns} column{t.columns > 1 ? 's' : ''}
                 {t.photo ? ' · photo' : ''}
+              </p>
+              <p
+                className="text-ink-muted inline-flex items-center gap-1.5 text-sm"
+                data-testid="design-use"
+              >
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                    onlineSafe(t)
+                      ? 'bg-success-soft text-success'
+                      : 'bg-accent-soft text-accent-ink'
+                  }`}
+                >
+                  {onlineSafe(t) ? 'ATS-friendly' : 'Creative'}
+                </span>
+                {onlineSafe(t)
+                  ? 'Good for online forms as it is'
+                  : 'To send to people; use its ATS PDF for online forms'}
               </p>
               <p className="text-ink-muted">{t.description}</p>
             </div>

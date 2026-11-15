@@ -37,6 +37,7 @@ export function createDocument(
       location: '',
       links: [],
       summary: '',
+      stats: [],
       photo: '',
     },
     sections: preset.sections.map((s) => emptySection(s.kind, s.title)),

@@ -10,6 +10,7 @@ import { meridian } from './library/meridian';
 import { sprout } from './library/sprout';
 import { vivid } from './library/vivid';
 import type { CatalogueTemplate } from './types';
+import { GRAPHIC_TEMPLATES } from './graphic';
 
 export const TEMPLATES: Record<TemplateId, CatalogueTemplate> = {
   clarity,
@@ -22,6 +23,7 @@ export const TEMPLATES: Record<TemplateId, CatalogueTemplate> = {
   folio,
   halo,
   sprout,
+  ...GRAPHIC_TEMPLATES,
 };
 
 /** Display order in pickers: a spread of styles, safest first. */
@@ -36,6 +38,7 @@ export const TEMPLATE_LIST: CatalogueTemplate[] = [
   folio,
   sprout,
   heritage,
+  ...Object.values(GRAPHIC_TEMPLATES),
 ];
 
 export function getTemplate(id: TemplateId): CatalogueTemplate {

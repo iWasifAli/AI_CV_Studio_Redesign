@@ -103,7 +103,9 @@ export function DesignDetail({ id }: { id: DesignId }) {
             {meta.photo ? ' · photo' : ''}
             {onlineSafe(meta)
               ? ' · best for online applications'
-              : ' · has an ATS-safe version for online forms'}
+              : meta.family === 'graphic'
+                ? ' · creative: made to be seen by people; download its ATS PDF for online forms'
+                : ' · has an ATS-safe version for online forms'}
           </p>
           {premium && (
             <p className="bg-accent-soft mt-3 inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm">

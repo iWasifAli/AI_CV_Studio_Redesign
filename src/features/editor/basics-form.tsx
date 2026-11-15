@@ -5,6 +5,7 @@ import { TextField } from '@/components/ui/field';
 import { IconButton } from '@/components/ui/icon-button';
 import { getPreset } from '@/modules/resume/presets';
 import { ops } from '@/modules/resume/ops';
+import { newId } from '@/modules/resume/create';
 import type { ResumeDocument } from '@/modules/resume/schema';
 import { PhotoField } from './photo-field';
 import type { DocumentEditor } from './use-document-editor';
@@ -70,6 +71,77 @@ export function BasicsForm({
       />
       <div className="col-span-2">
         <PhotoField editor={editor} />
+      </div>
+      <div className="col-span-2 flex flex-col gap-2" data-testid="key-numbers">
+        <p className="text-sm font-semibold">
+          Key numbers <span className="text-ink-muted font-normal">(optional)</span>
+        </p>
+        <p className="text-ink-muted text-sm">
+          Up to three figures you can stand behind, shown large by the graphic designs — for example
+          “12+” and “Years teaching”. Without them, designs show counts from your CV.
+        </p>
+        {b.stats.map((k) => (
+          <div key={k.id} className="grid grid-cols-[6.5rem_1fr_auto] items-end gap-2">
+            <TextField
+              label="Number"
+              value={k.value}
+              maxLength={12}
+              placeholder="e.g. 12+"
+              onChange={(e) =>
+                update(
+                  (d) =>
+                    ops.updateBasics(d, {
+                      stats: d.basics.stats.map((x) =>
+                        x.id === k.id ? { ...x, value: e.target.value } : x,
+                      ),
+                    }),
+                  `stat.${k.id}.value`,
+                )
+              }
+            />
+            <TextField
+              label="What it counts"
+              value={k.label}
+              maxLength={40}
+              placeholder="e.g. Years teaching"
+              onChange={(e) =>
+                update(
+                  (d) =>
+                    ops.updateBasics(d, {
+                      stats: d.basics.stats.map((x) =>
+                        x.id === k.id ? { ...x, label: e.target.value } : x,
+                      ),
+                    }),
+                  `stat.${k.id}.label`,
+                )
+              }
+            />
+            <IconButton
+              label="Remove this number"
+              icon={<Trash2 aria-hidden size={18} />}
+              onClick={() =>
+                update((d) =>
+                  ops.updateBasics(d, { stats: d.basics.stats.filter((x) => x.id !== k.id) }),
+                )
+              }
+            />
+          </div>
+        ))}
+        {b.stats.length < 3 && (
+          <button
+            type="button"
+            onClick={() =>
+              update((d) =>
+                ops.updateBasics(d, {
+                  stats: [...d.basics.stats, { id: newId(), value: '', label: '' }],
+                }),
+              )
+            }
+            className="text-primary hover:bg-primary-soft inline-flex min-h-11 items-center gap-2 self-start rounded-md px-2 text-[15px] font-semibold"
+          >
+            <Plus aria-hidden size={18} /> Add a key number
+          </button>
+        )}
       </div>
       {showLinks && (
         <div className="col-span-2 flex flex-col gap-3">

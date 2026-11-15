@@ -2,6 +2,7 @@ import { PRESETS } from '@/modules/resume/presets';
 import { PROFESSIONS, type PresetId } from '@/modules/resume/professions';
 import type { FontPairId, TemplateId } from '@/modules/resume/schema';
 import { ACCENT_PALETTE } from '@/modules/templates/design';
+import { GRAPHIC_META } from '@/modules/templates/graphic/meta';
 
 /**
  * What the AI may choose from, described in words. Kept separate from the template registry
@@ -81,6 +82,15 @@ export const TEMPLATE_CATALOG: Record<
     photo: false,
     font: 'classic',
   },
+  ...(Object.fromEntries(
+    Object.entries(GRAPHIC_META).map(([id, g]) => [
+      id,
+      { name: g.name, style: g.style, mood: g.mood, photo: true, font: g.fontPair },
+    ]),
+  ) as Record<
+    keyof typeof GRAPHIC_META,
+    { name: string; style: string; mood: string; photo: boolean; font: FontPairId }
+  >),
 };
 
 export const FONT_CATALOG: Record<FontPairId, string> = {

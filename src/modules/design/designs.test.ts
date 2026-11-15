@@ -8,13 +8,16 @@ import { currentDesignId, designSpec, tierDesignId } from './catalogue';
 import { DESIGNS, DESIGN_META, FAMILIES, SPEC_DESIGNS } from './designs';
 import { normalise } from './normalise';
 import { parseSpec } from './spec';
+import { GRAPHIC_META } from '@/modules/templates/graphic/meta';
+import { getTemplate } from '@/modules/templates/registry';
 
 const fonts = { kind: 'url' as const, baseUrl: 'https://cvstudio.test' };
 
 describe('R7 catalogue', () => {
-  it('has 32 designs: 8 families of 4, every id once', () => {
+  it('has 52 designs: 8 families of 4 and 20 graphic designs, every id once', () => {
     expect(DESIGNS.map((d) => d.id).sort()).toEqual([...DESIGN_IDS].sort());
-    for (const f of FAMILIES) expect(DESIGNS.filter((d) => d.family === f)).toHaveLength(4);
+    for (const f of FAMILIES)
+      expect(DESIGNS.filter((d) => d.family === f)).toHaveLength(f === 'graphic' ? 20 : 4);
     for (const id of SPEC_DESIGN_IDS) expect(SPEC_DESIGNS[id]).toBeDefined();
   });
 
@@ -24,9 +27,15 @@ describe('R7 catalogue', () => {
       return [s.layout.type, s.header.style, s.headings.style, s.decor.kind, s.baseId].join('|');
     };
     for (const f of FAMILIES) {
+      if (f === 'graphic') continue;
       const looks = DESIGNS.filter((d) => d.family === f).map((d) => look(d.id));
       expect(new Set(looks).size, f).toBe(4);
     }
+    // Graphic designs: their stylesheets differ in more than colour (hex values removed).
+    const graphic = DESIGNS.filter((d) => d.family === 'graphic').map((d) =>
+      getTemplate(d.id as Parameters<typeof getTemplate>[0]).css.replace(/#[0-9a-f]{3,8}\b/gi, ''),
+    );
+    expect(new Set(graphic).size).toBe(20);
   });
 
   it.each(SPEC_DESIGN_IDS)('%s composes for every fixture with its own spec', (id) => {
@@ -67,9 +76,11 @@ describe('R7 catalogue', () => {
   it('a crafted design renders exactly as before when picked through the catalogue', () => {
     for (const id of TEMPLATE_IDS) {
       const viaCatalogue = ops.useDesign(FIXTURES.engineer, id);
+      const accent = (GRAPHIC_META as Record<string, { accent: string }>)[id]?.accent;
       const viaV1 = ops.setDesign(FIXTURES.engineer, {
         templateId: id,
         ...(DESIGN_META[id].fontPair ? { fontPair: DESIGN_META[id].fontPair } : {}),
+        ...(accent ? { accent } : {}),
       });
       expect(buildDocumentHtml(viaCatalogue, { fonts })).toBe(buildDocumentHtml(viaV1, { fonts }));
     }
@@ -91,7 +102,7 @@ describe('R7 catalogue', () => {
       designs: TEMPLATE_IDS.map((id) => ({ id, enabled: true, tier: 'free', isNew: false })),
     };
     const cfg = parseConfig(old);
-    expect(cfg.designs).toHaveLength(32);
+    expect(cfg.designs).toHaveLength(DESIGN_IDS.length);
     expect(cfg.designs.find((d) => d.id === 'mosaic')).toEqual({
       id: 'mosaic',
       enabled: false,

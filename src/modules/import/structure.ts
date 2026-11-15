@@ -242,6 +242,7 @@ export function structureToDoc(
     createdAt: now,
     updatedAt: now,
     basics: {
+      stats: [],
       name,
       headline: cut(s.headline, 160),
       email: cut(s.email, 160),

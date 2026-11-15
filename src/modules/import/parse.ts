@@ -832,6 +832,7 @@ export function parseCv(
     createdAt: now,
     updatedAt: now,
     basics: {
+      stats: [],
       name: name.slice(0, 120),
       headline: headline.slice(0, 160),
       email: c.email.slice(0, 160),

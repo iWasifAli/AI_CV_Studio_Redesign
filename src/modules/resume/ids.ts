@@ -1,4 +1,27 @@
 /** Design identifiers shared by the document schema and the design engine (no imports: avoids cycles). */
+/** The 20 graphic designs (R12), hand-crafted in templates/graphic. */
+export const GRAPHIC_IDS = [
+  'neon',
+  'coral',
+  'ocean',
+  'emerald',
+  'magenta',
+  'citrus',
+  'cyber',
+  'ruby',
+  'blueprint',
+  'cobalt',
+  'violet',
+  'terra',
+  'graphite',
+  'tangerine',
+  'copper',
+  'electric',
+  'solar',
+  'ultraviolet',
+  'aurora',
+  'chromatic',
+] as const;
 export const TEMPLATE_IDS = [
   'clarity',
   'meridian',
@@ -10,6 +33,7 @@ export const TEMPLATE_IDS = [
   'folio',
   'halo',
   'sprout',
+  ...GRAPHIC_IDS,
 ] as const;
 /** R7 catalogue designs that are pure Design Specs (no hand-written template code). */
 export const SPEC_DESIGN_IDS = [

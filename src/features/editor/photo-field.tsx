@@ -1,7 +1,7 @@
 'use client';
 
 import { useId, useRef, useState } from 'react';
-import { ImagePlus, Trash2 } from 'lucide-react';
+import { Eye, EyeOff, ImagePlus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ops } from '@/modules/resume/ops';
 import { getTemplate } from '@/modules/templates/registry';
@@ -9,20 +9,27 @@ import type { DocumentEditor } from './use-document-editor';
 
 const SIZE = 480;
 
-/** Centre-crop to a square, resize and compress in the browser. Nothing is uploaded anywhere. */
-export async function imageFileToDataUrl(file: File): Promise<string> {
+export type Crop = { zoom: number; x: number; y: number };
+/** Default framing: centred, biased upwards for portraits (faces sit in the upper part). */
+export const DEFAULT_CROP: Crop = { zoom: 1, x: 0.5, y: 0.38 };
+
+function checkFile(file: File) {
   if (!/^image\/(jpeg|png|webp|heic|heif|gif)$/i.test(file.type))
     throw new Error('Please choose a photo (JPG, PNG or WebP).');
   if (file.size > 15_000_000)
     throw new Error('This photo is too large. Please choose one under 15 MB.');
-  const bitmap = await createImageBitmap(file);
-  const side = Math.min(bitmap.width, bitmap.height);
-  const sx = (bitmap.width - side) / 2;
-  // Portraits usually have the face in the upper part: bias the crop upwards a little.
-  const sy = Math.max(
-    0,
-    (bitmap.height - side) / 2 - (bitmap.height > bitmap.width ? side * 0.12 : 0),
-  );
+}
+
+/**
+ * Crops a square from the image: zoom 1 = the largest square, up to 3 = a third of it;
+ * x/y (0–1) place the square within the free space. Resized and compressed in the browser.
+ */
+export function cropToDataUrl(bitmap: ImageBitmap | HTMLImageElement, crop: Crop): string {
+  const w = bitmap.width;
+  const h = bitmap.height;
+  const side = Math.min(w, h) / Math.min(3, Math.max(1, crop.zoom));
+  const sx = (w - side) * Math.min(1, Math.max(0, crop.x));
+  const sy = (h - side) * Math.min(1, Math.max(0, crop.y));
   const canvas = document.createElement('canvas');
   canvas.width = SIZE;
   canvas.height = SIZE;
@@ -30,7 +37,6 @@ export async function imageFileToDataUrl(file: File): Promise<string> {
   if (!ctx) throw new Error('Your browser could not process this photo.');
   ctx.imageSmoothingQuality = 'high';
   ctx.drawImage(bitmap, sx, sy, side, side, 0, 0, SIZE, SIZE);
-  bitmap.close();
   let quality = 0.86;
   let url = canvas.toDataURL('image/jpeg', quality);
   while (url.length > 300_000 && quality > 0.5) {
@@ -40,12 +46,55 @@ export async function imageFileToDataUrl(file: File): Promise<string> {
   return url;
 }
 
+/** Crop to a square, resize and compress in the browser. Nothing is uploaded anywhere. */
+export async function imageFileToDataUrl(file: File, crop: Crop = DEFAULT_CROP): Promise<string> {
+  checkFile(file);
+  const bitmap = await createImageBitmap(file);
+  const url = cropToDataUrl(bitmap, crop);
+  bitmap.close();
+  return url;
+}
+
+function Slider({
+  label,
+  value,
+  min,
+  max,
+  step,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <label className="flex items-center gap-3 text-sm">
+      <span className="text-ink-muted w-20 shrink-0">{label}</span>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="accent-primary w-full max-w-56"
+      />
+    </label>
+  );
+}
+
 export function PhotoField({ editor }: { editor: DocumentEditor }) {
   const { doc, update } = editor;
   const id = useId();
   const input = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // The original picture, kept in memory only while this page is open, so the crop can be redone.
+  const original = useRef<ImageBitmap | null>(null);
+  const [crop, setCrop] = useState<Crop | null>(null);
   const photo = doc.basics.photo;
   const supports = getTemplate(doc.design.templateId).photo !== 'none';
   const hidden = doc.design.options.showPhoto === false;
@@ -54,7 +103,12 @@ export function PhotoField({ editor }: { editor: DocumentEditor }) {
     setBusy(true);
     setError(null);
     try {
-      const url = await imageFileToDataUrl(file);
+      checkFile(file);
+      const bitmap = await createImageBitmap(file);
+      original.current?.close();
+      original.current = bitmap;
+      setCrop(DEFAULT_CROP);
+      const url = cropToDataUrl(bitmap, DEFAULT_CROP);
       update((d) =>
         ops.setDesign(ops.updateBasics(d, { photo: url }), { options: { showPhoto: true } }),
       );
@@ -63,6 +117,13 @@ export function PhotoField({ editor }: { editor: DocumentEditor }) {
     } finally {
       setBusy(false);
     }
+  }
+
+  function reframe(next: Crop) {
+    setCrop(next);
+    if (!original.current) return;
+    const url = cropToDataUrl(original.current, next);
+    update((d) => ops.updateBasics(d, { photo: url }));
   }
 
   return (
@@ -90,12 +151,28 @@ export function PhotoField({ editor }: { editor: DocumentEditor }) {
           >
             {photo ? 'Change photo' : 'Add a photo'}
           </Button>
+          {photo && supports && (
+            <Button
+              size="sm"
+              variant="ghost"
+              icon={hidden ? <Eye aria-hidden size={16} /> : <EyeOff aria-hidden size={16} />}
+              onClick={() => update((d) => ops.setDesign(d, { options: { showPhoto: hidden } }))}
+              data-testid="photo-visibility"
+            >
+              {hidden ? 'Show on CV' : 'Hide on CV'}
+            </Button>
+          )}
           {photo && (
             <Button
               size="sm"
               variant="ghost"
               icon={<Trash2 aria-hidden size={16} />}
-              onClick={() => update((d) => ops.updateBasics(d, { photo: '' }))}
+              onClick={() => {
+                original.current?.close();
+                original.current = null;
+                setCrop(null);
+                update((d) => ops.updateBasics(d, { photo: '' }));
+              }}
             >
               Remove
             </Button>
@@ -115,6 +192,35 @@ export function PhotoField({ editor }: { editor: DocumentEditor }) {
           }}
         />
       </div>
+      {photo && crop && (
+        <fieldset className="flex flex-col gap-1.5" data-testid="photo-crop">
+          <legend className="text-ink mb-1 text-sm font-semibold">Frame your photo</legend>
+          <Slider
+            label="Zoom"
+            value={crop.zoom}
+            min={1}
+            max={3}
+            step={0.05}
+            onChange={(zoom) => reframe({ ...crop, zoom })}
+          />
+          <Slider
+            label="Left–right"
+            value={crop.x}
+            min={0}
+            max={1}
+            step={0.01}
+            onChange={(x) => reframe({ ...crop, x })}
+          />
+          <Slider
+            label="Up–down"
+            value={crop.y}
+            min={0}
+            max={1}
+            step={0.01}
+            onChange={(y) => reframe({ ...crop, y })}
+          />
+        </fieldset>
+      )}
       {error ? (
         <p role="alert" className="text-danger text-sm">
           {error}
@@ -124,8 +230,10 @@ export function PhotoField({ editor }: { editor: DocumentEditor }) {
           {photo && !supports
             ? 'This design doesn’t show photos. Pick one marked “Photo” in Design to show it.'
             : photo && hidden
-              ? 'Your photo is hidden. You can show it again in Design.'
-              : 'Some countries expect a photo, others prefer none. It’s saved with this CV.'}
+              ? 'Your photo is hidden on the CV. Choose “Show on CV” to bring it back.'
+              : photo && !crop
+                ? 'To frame it differently, choose the photo again.'
+                : 'Some countries expect a photo, others prefer none. It’s saved with this CV.'}
         </p>
       )}
     </div>

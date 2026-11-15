@@ -1,6 +1,7 @@
 import type { PresetId } from '@/modules/resume/professions';
 import { DESIGNS } from '@/modules/design/designs';
 import type { DesignId, ResumeDocument, TemplateId } from '@/modules/resume/schema';
+import { GRAPHIC_META } from '@/modules/templates/graphic/meta';
 
 /**
  * Design ranking (spec §6.3): a deterministic score per design, so the result is explainable and
@@ -90,6 +91,12 @@ const CRAFTED_TRAITS: Record<TemplateId, DesignTraits> = {
     photo: true,
     fit: { student: 1, retail: 1, driver: 0.6, healthcare: 0.5 },
   },
+  ...(Object.fromEntries(
+    Object.entries(GRAPHIC_META).map(([id, g]) => [
+      id,
+      { family: 'sidebar', bold: true, timeline: true, photo: true, fit: g.fit },
+    ]),
+  ) as Record<keyof typeof GRAPHIC_META, DesignTraits>),
 };
 
 /**

@@ -5,7 +5,7 @@ import type {
   PageSize,
   TemplateId,
 } from '@/modules/resume/schema';
-import { ensureContrast, mix } from './color';
+import { contrast, ensureContrast, mix } from './color';
 import { FONT_PAIRS, type FontPair } from './fonts';
 
 export const PAGE_DIMENSIONS: Record<
@@ -55,6 +55,10 @@ export type ResolvedDesign = {
   accentDeep: string;
   /** Light tint readable on dark accent areas. */
   accentBright: string;
+  /** The colour exactly as chosen, for large fills (graphic designs); text never uses it on white. */
+  accentRaw: string;
+  /** Ink or white, whichever reads better on `accentRaw`. */
+  onAccentRaw: string;
   font: FontPair;
   fontPairId: FontPairId;
   density: DensityScale;
@@ -88,6 +92,11 @@ export function resolveDesign(spec: DesignSpec, support: TemplateOptionSupport):
     accentLine: mix(accent, '#ffffff', 0.6),
     accentDeep: mix(accent, '#000000', 0.22),
     accentBright: mix(accent, '#ffffff', 0.72),
+    accentRaw: /^#[0-9a-f]{6}$/i.test(spec.accent) ? spec.accent : accent,
+    onAccentRaw:
+      contrast(/^#[0-9a-f]{6}$/i.test(spec.accent) ? spec.accent : accent, '#ffffff') >= 3.2
+        ? '#ffffff'
+        : '#0f1d2b',
     font: FONT_PAIRS[spec.fontPair],
     fontPairId: spec.fontPair,
     density: DENSITY[spec.density],
@@ -102,7 +111,7 @@ export function designCssVars(d: ResolvedDesign): string {
   const body = +(d.density.bodyPt * f.bodyScale).toFixed(2);
   return `:root{
 --page-w:${d.page.widthMm}mm;--page-h:${d.page.heightMm}mm;--fit-gap:1;--fit-margin:1;--fit-lh:0;--margin:calc(${d.density.marginMm}mm * var(--fit-margin));
---accent:${d.accent};--accent-soft:${d.accentSoft};--accent-tint:${d.accentTint};--accent-line:${d.accentLine};--accent-deep:${d.accentDeep};--accent-bright:${d.accentBright};
+--accent:${d.accent};--accent-soft:${d.accentSoft};--accent-tint:${d.accentTint};--accent-line:${d.accentLine};--accent-deep:${d.accentDeep};--accent-bright:${d.accentBright};--accent-raw:${d.accentRaw};--on-accent-raw:${d.onAccentRaw};
 --ink:#1b1e23;--ink-2:#41464e;--ink-3:#686e77;--rule:#d9dce1;
 --font-heading:'${f.heading}',${f.headingFallback};--font-body:'${f.body}',${f.bodyFallback};--heading-weight:${f.headingWeight};
 --fs:${body}pt;--lh:calc(${d.density.lineHeight} - var(--fit-lh));--section-gap:calc(${d.density.sectionGapPt}pt * var(--fit-gap));--item-gap:calc(${d.density.itemGapPt}pt * var(--fit-gap));

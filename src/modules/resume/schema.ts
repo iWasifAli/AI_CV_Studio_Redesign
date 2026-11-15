@@ -251,6 +251,14 @@ export const basics = z.object({
     .max(10)
     .default([]),
   summary: text(1500),
+  /**
+   * Optional "key numbers" (up to 3) shown as a strip by graphic designs: the person's own
+   * figures ("12+" / "Years teaching"). Never invented; designs fall back to counts from the CV.
+   */
+  stats: z
+    .array(z.object({ id, value: text(12), label: text(40) }))
+    .max(3)
+    .default([]),
   /** Optional profile photo as a small JPEG/PNG/WebP data URL (resized in the browser). */
   photo: z
     .string()

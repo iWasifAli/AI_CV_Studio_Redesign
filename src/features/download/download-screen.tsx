@@ -4,7 +4,17 @@ import { tierDesignId } from '@/modules/design/catalogue';
 import { DESIGN_META } from '@/modules/design/designs';
 import Link from 'next/link';
 import { useState } from 'react';
-import { ArrowLeft, Crown, Download, FileJson, FileText, LogIn, Printer } from 'lucide-react';
+import {
+  ArrowLeft,
+  Crown,
+  Download,
+  FileJson,
+  FileText,
+  LogIn,
+  Printer,
+  ScanText,
+} from 'lucide-react';
+import { specOf } from '@/modules/design/designer';
 import { Banner } from '@/components/ui/banner';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { useAccount } from '@/features/account/account-context';
@@ -35,6 +45,7 @@ export function DownloadScreen({ doc: initialDoc }: { doc: ResumeDocument }) {
   const [status, setStatus] = useState<PreviewStatus | null>(null);
   const [busy, setBusy] = useState(false);
   const [busyWord, setBusyWord] = useState(false);
+  const [busyAts, setBusyAts] = useState(false);
   const [failed, setFailed] = useState<string | null>(null);
   const [blocked, setBlocked] = useState<Blocked | null>(null);
   const editHref = `/cv/${doc.id}`;
@@ -62,15 +73,18 @@ export function DownloadScreen({ doc: initialDoc }: { doc: ResumeDocument }) {
   }
 
   const downloadPdf = () => download('pdf');
-  async function download(kind: 'pdf' | 'docx') {
-    const setB = kind === 'pdf' ? setBusy : setBusyWord;
+  async function download(kind: 'pdf' | 'docx' | 'ats') {
+    const setB = kind === 'pdf' ? setBusy : kind === 'ats' ? setBusyAts : setBusyWord;
     setB(true);
     setFailed(null);
     try {
-      const res = await fetch(kind === 'pdf' ? '/api/pdf' : '/api/docx', {
+      // The ATS PDF: the same words in one plain column, in reading order (Dual CV Export).
+      const document =
+        kind === 'ats' ? ops.setSpec(doc, { ...specOf(doc.design), atsSafe: true }) : doc;
+      const res = await fetch(kind === 'docx' ? '/api/docx' : '/api/pdf', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ document: doc }),
+        body: JSON.stringify({ document }),
       });
       if (!res.ok) {
         const body = (await res.json().catch(() => null)) as {
@@ -90,9 +104,21 @@ export function DownloadScreen({ doc: initialDoc }: { doc: ResumeDocument }) {
         throw new Error(body?.error?.message ?? 'We couldn’t create the file just now.');
       }
       const name = pdfFilename(doc.basics.name);
-      saveBlob(await res.blob(), kind === 'pdf' ? name : name.replace(/\.pdf$/, '.docx'));
+      saveBlob(
+        await res.blob(),
+        kind === 'pdf'
+          ? name
+          : kind === 'ats'
+            ? name.replace(/\.pdf$/, '-ATS.pdf')
+            : name.replace(/\.pdf$/, '.docx'),
+      );
       toast.show({
-        message: kind === 'pdf' ? 'Your PDF is downloading' : 'Your Word file is downloading',
+        message:
+          kind === 'pdf'
+            ? 'Your PDF is downloading'
+            : kind === 'ats'
+              ? 'Your ATS PDF is downloading'
+              : 'Your Word file is downloading',
         tone: 'success',
       });
       refresh();
@@ -263,6 +289,22 @@ export function DownloadScreen({ doc: initialDoc }: { doc: ResumeDocument }) {
                 >
                   Download PDF
                 </Button>
+                <Button
+                  variant="secondary"
+                  icon={<ScanText aria-hidden size={18} />}
+                  loading={busyAts}
+                  loadingText="Preparing your ATS PDF…"
+                  disabled={account.status === 'loading' || busy}
+                  onClick={() => download('ats')}
+                  data-testid="download-ats"
+                >
+                  ATS PDF (plain, one column)
+                </Button>
+                <p className="text-ink-muted max-w-md text-sm" data-testid="dual-export-hint">
+                  Two versions of the same CV: the PDF above exactly as designed, for people; the
+                  ATS PDF in one plain column with the text in reading order, for online application
+                  forms. No format can promise every system reads it perfectly.
+                </p>
                 <Button
                   variant="secondary"
                   icon={<FileText aria-hidden size={18} />}

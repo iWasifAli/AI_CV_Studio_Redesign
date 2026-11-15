@@ -185,14 +185,14 @@ test.describe('visitors', () => {
   });
 });
 
-test('the picker has 32 designs in 8 families; a spec design switches in one click', async ({
+test('the picker has 52 designs in 9 families; a spec design switches in one click', async ({
   page,
   request,
 }) => {
   await config(request);
   await openDesign(page, { ...structuredClone(FIXTURES.driver), id: 'designer-pick' });
   const picker = page.getByRole('radiogroup', { name: 'Design' });
-  await expect(picker.getByRole('radio')).toHaveCount(32);
+  await expect(picker.getByRole('radio')).toHaveCount(52);
   await page
     .getByRole('group', { name: 'Design families' })
     .getByRole('button', { name: 'Compact grid' })

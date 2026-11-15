@@ -23,7 +23,7 @@ import {
   type TemplateComponentProps,
   type TemplateHooks,
 } from '@/modules/templates/blocks';
-import { ensureContrast, mix } from '@/modules/templates/color';
+import { contrast, ensureContrast, mix } from '@/modules/templates/color';
 import { PAGE_DIMENSIONS, type ResolvedDesign } from '@/modules/templates/design';
 import { FONT_PAIRS } from '@/modules/templates/fonts';
 import type { REntry, RenderModel, RSection } from '@/modules/templates/render-model';
@@ -59,6 +59,8 @@ export function resolveSpec(s: DesignSpecV2): ResolvedDesign {
     accentLine: mix(accent, '#ffffff', 0.6),
     accentDeep: mix(accent, '#000000', 0.22),
     accentBright: mix(accent, '#ffffff', 0.72),
+    accentRaw: raw,
+    onAccentRaw: contrast(raw, '#ffffff') >= 3.2 ? '#ffffff' : '#0f1d2b',
     font: FONT_PAIRS[s.type.pair],
     fontPairId: s.type.pair,
     density: {

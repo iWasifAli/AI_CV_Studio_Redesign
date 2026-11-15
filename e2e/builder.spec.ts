@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import AxeBuilder from '@axe-core/playwright';
 import type { Page } from '@playwright/test';
 import { expect, test } from './support/test';
@@ -117,6 +118,14 @@ test('J1: a delivery driver creates, edits and downloads a CV', async ({ page, i
   const download = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Download PDF' }).click();
   expect((await download).suggestedFilename()).toBe('Imran-Qureshi-CV.pdf');
+  // Dual export: the same CV as a plain one-column ATS PDF.
+  await expect(page.getByTestId('dual-export-hint')).toContainText('No format can promise');
+  const ats = page.waitForEvent('download');
+  await page.getByTestId('download-ats').click();
+  const atsFile = await ats;
+  expect(atsFile.suggestedFilename()).toBe('Imran-Qureshi-CV-ATS.pdf');
+  const atsBytes = fs.readFileSync((await atsFile.path())!);
+  expect(atsBytes.subarray(0, 5).toString()).toBe('%PDF-');
   await axeClean(page);
 
   // Whole journey well under 10 minutes for a scripted user (real users: see docs).
@@ -182,6 +191,16 @@ test('a photo can be added, shown in photo designs, hidden, and removed', async 
     .setInputFiles({ name: 'me.jpg', mimeType: 'image/jpeg', buffer });
   await expect(page.getByRole('img', { name: 'Your photo' })).toBeVisible();
   await expect(previewFrame(page).locator('.cv-page .cv-portrait img')).toHaveCount(1);
+  // Framing: zoom changes the saved photo; visibility toggles from the same place.
+  const before = await page.getByRole('img', { name: 'Your photo' }).getAttribute('src');
+  await page.getByTestId('photo-crop').getByLabel('Zoom').fill('2');
+  await expect
+    .poll(() => page.getByRole('img', { name: 'Your photo' }).getAttribute('src'))
+    .not.toBe(before);
+  await page.getByTestId('photo-visibility').click();
+  await expect(previewFrame(page).locator('.cv-page .cv-portrait img')).toHaveCount(0);
+  await page.getByTestId('photo-visibility').click();
+  await expect(previewFrame(page).locator('.cv-page .cv-portrait img')).toHaveCount(1);
 
   await page.goto(page.url().replace(/\/guided$/, ''));
   await page.getByRole('tab', { name: 'Design' }).click();
@@ -196,7 +215,7 @@ test('a photo can be added, shown in photo designs, hidden, and removed', async 
   await expect(page.getByRole('img', { name: 'Your photo' })).toHaveCount(0);
 });
 
-test('the design picker offers all 32 designs with thumbnails', async ({ page, isMobile }) => {
+test('the design picker offers all 52 designs with thumbnails', async ({ page, isMobile }) => {
   test.skip(isMobile, 'Covered on desktop');
   await page.goto('/cv/new?work=driver');
   await page.getByLabel('Full name').fill('Imran Qureshi');
@@ -204,7 +223,7 @@ test('the design picker offers all 32 designs with thumbnails', async ({ page, i
   await page.goto(page.url().replace(/\/guided$/, ''));
   await page.getByRole('tab', { name: 'Design' }).click();
   const options = page.getByRole('radiogroup', { name: 'Design' }).getByRole('radio');
-  await expect(options).toHaveCount(32);
+  await expect(options).toHaveCount(52);
   for (const name of [
     'Creative sidebar',
     'Bold editorial',

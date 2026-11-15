@@ -86,16 +86,19 @@ test.describe('template engine parity (desktop only)', () => {
         if (doc.sections.some((s) => !s.hidden && s.items.length))
           expect(struct, 'section titles are headings').toMatch(/\bH2\b/);
         const text = pdfTool('pdftotext', pdf, ['-layout']).replace(/\s+/g, ' ');
-        if (doc.basics.name) expect(text).toContain(doc.basics.name.split(' ')[0]!);
+        // Case-insensitive: some designs set the name in capitals (text-transform).
+        if (doc.basics.name)
+          expect(text.toLowerCase()).toContain(doc.basics.name.split(' ')[0]!.toLowerCase());
         const firstRole = doc.sections.find((s) => s.kind === 'experience')?.items[0] as
           { role?: string } | undefined;
-        if (firstRole?.role) expect(text).toContain(firstRole.role.split(' ')[0]!);
+        if (firstRole?.role)
+          expect(text.toLowerCase()).toContain(firstRole.role.split(' ')[0]!.toLowerCase());
       }
     });
   }
 });
 
-test('Designs page shows all 32 designs with real content, filters and a page per design', async ({
+test('Designs page shows all 52 designs with real content, filters and a page per design', async ({
   page,
 }) => {
   await page.goto('/templates');
@@ -261,6 +264,7 @@ test.describe('layout invariants across all designs (desktop only)', () => {
     page,
     baseURL,
   }) => {
+    test.setTimeout(300_000); // 52 designs × 4 CVs × 2 page sizes
     for (const templateId of TEMPLATE_IDS)
       for (const fixture of ['teacher', 'engineer', 'nurse', 'executive'] as const)
         for (const pageSize of ['A4', 'Letter'] as const) {
@@ -278,6 +282,7 @@ test.describe('layout invariants across all designs (desktop only)', () => {
   });
 
   test('continuation headers keep name and role visibly apart', async ({ page, baseURL }) => {
+    test.setTimeout(120_000);
     for (const templateId of TEMPLATE_IDS) {
       const doc = structuredClone(FIXTURES.extreme);
       doc.design = { ...doc.design, templateId };

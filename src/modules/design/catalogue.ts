@@ -2,6 +2,7 @@ import type { DesignId, DesignSpec, TemplateId } from '@/modules/resume/schema';
 import { DENSITY } from '@/modules/templates/design';
 import { getTemplate } from '@/modules/templates/registry';
 import { DESIGN_META, LEGACY_FALLBACK, SPEC_DESIGNS, isSpecDesign } from './designs';
+import { GRAPHIC_META } from '@/modules/templates/graphic/meta';
 import { parseSpec, type DesignSpecV2, type DesignSpecV2Input } from './spec';
 
 /**
@@ -108,6 +109,27 @@ const C: Record<TemplateId, DesignSpecV2Input> = {
     lists: { skills: { style: 'tags' } },
     decor: { kind: 'signature:sprout' },
   },
+  // Graphic designs: the closest generic description (a deep header band, side column, photo).
+  ...(Object.fromEntries(
+    Object.entries(GRAPHIC_META).map(([id, g]) => [
+      id,
+      {
+        layout: { type: 'sidebar-right', sideWidthPct: 32, sideFill: 'none' },
+        placement: { side: ['skills', 'languages', 'certifications', 'licences', 'awards'] },
+        header: {
+          style: 'band',
+          band: 'solid',
+          name: { size: 'XL', weight: 800, twoTone: true },
+          photo: { shape: 'circle', position: 'right' },
+        },
+        headings: { style: 'filled', case: 'upper' },
+        entries: { layout: 'timeline-dots' },
+        lists: { skills: { style: 'tags' } },
+        color: { accent: g.accent },
+        decor: { kind: `signature:${id}` },
+      },
+    ]),
+  ) as unknown as Record<keyof typeof GRAPHIC_META, DesignSpecV2Input>),
 };
 
 /** A catalogue design as a spec, attached to its signature code. */

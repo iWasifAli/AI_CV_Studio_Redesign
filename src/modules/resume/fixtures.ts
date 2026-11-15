@@ -44,6 +44,7 @@ function build(
       summary: '',
       photo: '',
       ...basics,
+      stats: (basics.stats ?? []).map((x) => ({ ...x, id: id('k') })),
       links: (basics.links ?? []).map((l) => ({ ...l, id: id('l') })),
     },
     sections: sections.map(

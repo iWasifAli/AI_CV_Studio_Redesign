@@ -31,6 +31,7 @@ export const FAMILY_THEME: Record<Family, Theme> = {
   bold: 'bold',
   portrait: 'sidebar', // photo-led: the side column carries a large photo
   compact: 'clean',
+  graphic: 'bold',
 };
 
 /** The theme that matches a CV's design (a custom Design Studio design uses its origin). */

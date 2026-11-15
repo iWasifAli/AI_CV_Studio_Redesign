@@ -2,6 +2,7 @@ import type { PresetId } from '@/modules/resume/professions';
 import { DESIGN_IDS, SPEC_DESIGN_IDS } from '@/modules/resume/ids';
 import type { DesignId, FontPairId, SpecDesignId, TemplateId } from '@/modules/resume/schema';
 import type { DesignSpecV2Input } from './spec';
+import { GRAPHIC_META } from '@/modules/templates/graphic/meta';
 
 /**
  * The R7 catalogue (complete-studio-spec §8.1): 32 designs in 8 families of 4. The 10 hand-crafted
@@ -18,6 +19,7 @@ export const FAMILIES = [
   'bold',
   'portrait',
   'compact',
+  'graphic',
 ] as const;
 export type Family = (typeof FAMILIES)[number];
 
@@ -30,6 +32,10 @@ export const FAMILY_LABEL: Record<Family, { name: string; hint: string }> = {
   bold: { name: 'Bold', hint: 'Early career, sales and hospitality' },
   portrait: { name: 'Portrait', hint: 'Where a photo is expected' },
   compact: { name: 'Compact grid', hint: 'One page with many short sections' },
+  graphic: {
+    name: 'Graphic',
+    hint: 'Portfolio-style, full of colour — send the ATS version to online forms',
+  },
 };
 
 export type DesignMeta = {
@@ -667,6 +673,13 @@ export const DESIGNS: DesignMeta[] = [
       photo: false,
       fit: { tech: 0.9, office: 0.6, student: 0.6 },
     },
+  ),
+  ...Object.entries(GRAPHIC_META).map(([id, g]) =>
+    M(id as DesignId, 'graphic', g.name, g.style, g.description, {
+      columns: 2,
+      fontPair: g.fontPair,
+      fit: g.fit,
+    }),
   ),
 ];
 
