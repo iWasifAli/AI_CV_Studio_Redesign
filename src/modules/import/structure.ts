@@ -267,6 +267,7 @@ function toSection(sec: Structure['sections'][number]): Section | null {
               ),
               place: '',
               date: '',
+              signature: '',
             },
           ],
         };

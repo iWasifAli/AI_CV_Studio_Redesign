@@ -50,3 +50,37 @@ test('skill levels are kept with their skill and survive a reload', async ({ pag
     .click();
   await expect(page.getByLabel(`Level for ${first}`)).toHaveValue('5');
 });
+
+test('a declaration can be signed by drawing, and the signature prints under it', async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(isMobile, 'Desktop editor');
+  await seedDocument(page, driver);
+  await page.goto(`/cv/${driver.id}`);
+  await page.getByRole('button', { name: 'Add a section' }).click();
+  await page.getByLabel('Find a section type').fill('declaration');
+  await page
+    .getByRole('list', { name: 'Section types' })
+    .getByRole('button', { name: /Declaration/ })
+    .click();
+  await page.getByLabel('Statement').fill('I confirm that the information above is true.');
+  const pad = page.getByTestId('signature-pad');
+  const box = (await pad.boundingBox())!;
+  await page.mouse.move(box.x + 30, box.y + box.height * 0.6);
+  await page.mouse.down();
+  for (let i = 1; i <= 12; i++)
+    await page.mouse.move(box.x + 30 + i * 20, box.y + box.height * (0.6 - Math.sin(i) * 0.25));
+  await page.mouse.up();
+  await expect(
+    preview(page).locator('img.cv-signature[src^="data:image/png;base64,"]'),
+  ).toBeVisible();
+  await page.getByTestId('signature-field').getByRole('button', { name: 'Done' }).click();
+  await expect(page.getByRole('img', { name: 'Your signature' })).toBeVisible();
+  // Kept after a reload.
+  await page.waitForTimeout(800);
+  await page.reload();
+  await expect(
+    preview(page).locator('img.cv-signature[src^="data:image/png;base64,"]'),
+  ).toBeVisible();
+});

@@ -105,6 +105,7 @@ export function emptyItem(kind: SectionKind): Item {
         text: 'I hereby declare that the information given above is true to the best of my knowledge.',
         place: '',
         date: '',
+        signature: '',
       };
   }
 }

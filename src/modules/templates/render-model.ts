@@ -40,6 +40,8 @@ export type REntry = {
   level?: number;
   /** Lines shown as plain text, not as bullet points (declaration, quote, strength). */
   plain?: boolean;
+  /** A signature image under the entry (declaration). */
+  signature?: string;
 };
 
 export type RSection = {
@@ -197,6 +199,7 @@ function entriesOf(section: Section, locale: string): REntry[] {
         ref: ref(i.id),
         bullets: nonEmpty([i.text, [i.place, i.date].map(clean).filter(Boolean).join(', ')]),
         plain: true,
+        ...(i.signature ? { signature: i.signature } : {}),
       }));
     case 'custom':
     case 'achievements':

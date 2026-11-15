@@ -16,6 +16,7 @@ export type FieldDef =
       autoComplete?: string;
     }
   | { key: string; type: 'date'; label: string; half?: boolean }
+  | { key: string; type: 'signature' }
   | { key: string; type: 'current'; label: string }
   | { key: string; type: 'lines'; label: string; hint: string; placeholder?: (p: Preset) => string }
   | {
@@ -510,6 +511,7 @@ export const KIND_INFO: Record<SectionKind, KindInfo> = {
         half: true,
         placeholder: () => 'e.g. 13 November 2026',
       },
+      { key: 'signature', type: 'signature' },
     ],
     summary: ['text', 'place'],
   },

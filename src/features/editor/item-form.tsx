@@ -8,6 +8,7 @@ import { BulletsAssist, SkillsAssist } from '@/features/ai/assist';
 import { NeedsInputHint } from '@/features/ai/suggestion';
 import { CheckboxField, DateField, LinesField, TagsField } from './fields';
 import { KIND_INFO } from './item-fields';
+import { SignatureField } from './signature-field';
 
 type Item = Section['items'][number];
 
@@ -52,6 +53,14 @@ export function ItemForm({ kind, item, preset, onChange }: Props) {
                 value={String(values[f.key] ?? '')}
                 disabled={f.key === 'end' && current}
                 onChange={(v) => onChange({ [f.key]: v }, key)}
+              />
+            );
+          case 'signature':
+            return (
+              <SignatureField
+                key={f.key}
+                value={String(values[f.key] ?? '')}
+                onChange={(v) => onChange({ [f.key]: v }, `${key}.${Date.now()}`)}
               />
             );
           case 'current':

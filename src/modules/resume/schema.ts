@@ -99,6 +99,13 @@ export const declarationItem = z.object({
   text: text(800),
   place: text(120),
   date: text(60),
+  /** Optional signature: a small transparent PNG drawn or uploaded in the editor. */
+  signature: z
+    .string()
+    .max(90_000)
+    .regex(/^$|^data:image\/png;base64,[A-Za-z0-9+/=]+$/)
+    .catch('')
+    .default(''),
 });
 
 export const projectItem = z.object({

@@ -984,6 +984,7 @@ export function parseCv(
                 .slice(0, 800),
               place: '',
               date: '',
+              signature: '',
             },
           ],
         };

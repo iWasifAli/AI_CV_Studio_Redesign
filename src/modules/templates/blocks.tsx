@@ -241,6 +241,10 @@ function sectionBlocksRaw(
           <>
             {hooks.entryHead(e, section)}
             {head.length > 0 && <Bullets items={head} plain={e.plain} />}
+            {e.signature && rest.length === 0 && (
+              // eslint-disable-next-line @next/next/no-img-element -- static HTML for print
+              <img className="cv-signature" src={e.signature} alt="Signature" />
+            )}
           </>
         ),
       },
