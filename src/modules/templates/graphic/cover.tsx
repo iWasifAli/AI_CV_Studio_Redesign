@@ -119,11 +119,6 @@ export function coverTemplate(c: CoverConfig): CatalogueTemplate {
             <Portrait model={model} className="co-photo" />
           </div>
           <Monogram model={model} star="/" />
-          {model.headline && (
-            <p className="co-corner" aria-hidden="true">
-              {model.headline}
-            </p>
-          )}
         </div>
         <div className="co-strip">
           <span className="co-strip-dot" aria-hidden="true" />
@@ -149,13 +144,11 @@ export function coverTemplate(c: CoverConfig): CatalogueTemplate {
 .co-dark{position:relative;height:calc(89mm * (.42 + .58 * var(--fit-gap)));background:var(--g-ink);color:#fff;overflow:hidden;padding:0 var(--margin)}
 html[data-fit-compact] .co-dark{height:60mm}
 html[data-fit-compact] .co-eyebrow{display:none}
-html[data-fit-compact] .co-corner{display:none}
 html[data-fit-compact] .co-frame{zoom:.74}
 html[data-fit-compact] .co-id{top:12mm;bottom:7mm}
 html[data-fit-compact] .co-name{font-size:calc(40pt * var(--ns,1))}
 .co-art{position:absolute;inset:0;width:100%;height:100%}
 .co-head .g-mono{position:absolute;left:var(--margin);top:8mm;color:#fff}
-.co-corner{position:absolute;right:var(--margin);top:9mm;font-size:6.8pt;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.75);max-width:60mm;text-align:right}
 .co-id{position:absolute;left:var(--margin);right:86mm;top:19mm;bottom:9mm;display:flex;flex-direction:column;justify-content:flex-end}
 .co-eyebrow{font-size:6.8pt;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--g-hot);margin-bottom:6mm}
 .co-name{font-family:var(--g-display);font-weight:800;font-size:calc(52pt * var(--ns,1) * (.8 + .2 * var(--fit-gap)));line-height:.88;letter-spacing:-.06em;${c.caps ? 'text-transform:uppercase;' : ''}color:#fff;overflow-wrap:anywhere}
