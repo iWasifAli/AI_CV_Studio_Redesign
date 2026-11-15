@@ -192,7 +192,6 @@ export function spotTemplate(c: SpotConfig): CatalogueTemplate {
       <header className="sp-head">
         <div className="sp-dark">
           <Art kind={c.art} />
-          <Monogram model={model} />
           <div className="sp-id">
             {hello(model.locale) && <p className="sp-eyebrow">{hello(model.locale)}</p>}
             <SplitName model={model} className="sp-name" stop={c.stop} />
@@ -205,6 +204,8 @@ export function spotTemplate(c: SpotConfig): CatalogueTemplate {
             )}
           </div>
           <Portrait model={model} className="sp-photo" />
+          {/* After the name in the DOM: the PDF text then reads name first (paint order = DOM order). */}
+          <Monogram model={model} />
         </div>
         <KeyNumbers model={model} className="sp-stats" />
       </header>
@@ -238,7 +239,7 @@ html[data-fit-compact] .sp-id{top:12mm;bottom:7mm}
 html[data-fit-compact] .sp-name{font-size:calc(40pt * var(--ns,1))}
 .sp-art{position:absolute;inset:0;width:100%;height:100%}
 .g-mono{position:absolute;left:var(--margin);top:8.5mm;color:#fff}
-.sp-id{position:absolute;left:var(--margin);right:82mm;top:20mm;bottom:9mm;z-index:1;display:flex;flex-direction:column;justify-content:flex-end}
+.sp-id{position:absolute;left:var(--margin);right:82mm;top:20mm;bottom:9mm;display:flex;flex-direction:column;justify-content:flex-end}
 .sp-eyebrow{font-size:6.8pt;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--g-hot);margin-bottom:5mm}
 .sp-name{font-family:var(--g-display);font-weight:800;font-size:calc(50pt * var(--ns,1));line-height:.9;letter-spacing:-.055em;${c.caps ? 'text-transform:uppercase;' : ''}color:#fff;overflow-wrap:anywhere}
 .sp-name > span{display:block}

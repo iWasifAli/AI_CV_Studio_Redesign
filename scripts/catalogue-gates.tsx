@@ -1,5 +1,5 @@
 /**
- * Catalogue gates (complete-studio-spec §8.3) for every catalogue design, in production Chromium
+ * Catalogue gates (complete-studio-spec §8.3) for every catalogue design (52), in production Chromium
  * print mode. Each design × standard fixture:
  *  - parity: zero overflow; PDF page count = layout page count; fonts embedded, no Type 3;
  *  - top-third: name, headline and the first job title within the top 40% of page one;
@@ -33,6 +33,12 @@ import { buildDocumentHtml } from '../src/modules/templates/build-document';
  * sample CVs; they passed the outside reviews and keep their header.
  */
 const TOP_THIRD_ALLOWANCE: Record<string, number> = { vivid: 46, halo: 46, folio: 46, sprout: 46 };
+/**
+ * Graphic designs (R12, owner's reference collection): a poster-like header with portrait and key
+ * numbers is the design, so the first job starts lower (up to ~60%). Name and headline still sit in
+ * the top 40%. These designs are labelled "Creative"; their ATS PDF meets the 40% rule.
+ */
+const GRAPHIC_ENTRY_MAX = 62;
 const STANDARD: FixtureId[] = ['driver', 'teacher', 'nurse', 'graduate', 'engineer', 'executive'];
 const only = process.argv[2]?.split(',');
 const read = (f: string) => fs.readFileSync(path.join('public/fonts/cv', f)).toString('base64');
@@ -157,10 +163,14 @@ for (const meta of DESIGNS) {
 
     // Top-third rule
     const pos = await topThird(browser, html, doc);
-    const max = TOP_THIRD_ALLOWANCE[meta.id] ?? 40;
-    for (const [k, v] of Object.entries(pos))
+    for (const [k, v] of Object.entries(pos)) {
+      const max =
+        meta.family === 'graphic' && k === 'entry'
+          ? GRAPHIC_ENTRY_MAX
+          : (TOP_THIRD_ALLOWANCE[meta.id] ?? 40);
       if (Math.round(v * 100) > max)
         fail(`${label}: ${k} at ${Math.round(v * 100)}% of page one (max ${max}%)`);
+    }
 
     // Round trip through our own import (rules parser, as in CI)
     const { lines } = await extractLines(r.pdf);

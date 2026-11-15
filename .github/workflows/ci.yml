@@ -60,7 +60,7 @@ jobs:
         run: npm run qa:templates
         env:
           CHROME_EXECUTABLE_PATH: /usr/bin/google-chrome
-      - name: Catalogue gates (32 designs × fixtures; spec §8.3)
+      - name: Catalogue gates (52 designs × fixtures; spec §8.3)
         run: npm run gates:catalogue
         env:
           CHROME_EXECUTABLE_PATH: /usr/bin/google-chrome

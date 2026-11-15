@@ -110,8 +110,6 @@ export function coverTemplate(c: CoverConfig): CatalogueTemplate {
       <header className="co-head">
         <div className="co-dark">
           <Pattern kind={c.pattern} />
-          <Monogram model={model} star="/" />
-          {model.headline && <p className="co-corner">{model.headline}</p>}
           <div className="co-id">
             {EYEBROW(model.locale) && <p className="co-eyebrow">{EYEBROW(model.locale)}</p>}
             <SplitName model={model} className="co-name" stop={c.stop} />
@@ -120,6 +118,12 @@ export function coverTemplate(c: CoverConfig): CatalogueTemplate {
           <div className="co-frame">
             <Portrait model={model} className="co-photo" />
           </div>
+          <Monogram model={model} star="/" />
+          {model.headline && (
+            <p className="co-corner" aria-hidden="true">
+              {model.headline}
+            </p>
+          )}
         </div>
         <div className="co-strip">
           <span className="co-strip-dot" aria-hidden="true" />
@@ -152,17 +156,17 @@ html[data-fit-compact] .co-name{font-size:calc(40pt * var(--ns,1))}
 .co-art{position:absolute;inset:0;width:100%;height:100%}
 .co-head .g-mono{position:absolute;left:var(--margin);top:8mm;color:#fff}
 .co-corner{position:absolute;right:var(--margin);top:9mm;font-size:6.8pt;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.75);max-width:60mm;text-align:right}
-.co-id{position:absolute;left:var(--margin);right:86mm;top:19mm;bottom:9mm;z-index:1;display:flex;flex-direction:column;justify-content:flex-end}
+.co-id{position:absolute;left:var(--margin);right:86mm;top:19mm;bottom:9mm;display:flex;flex-direction:column;justify-content:flex-end}
 .co-eyebrow{font-size:6.8pt;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--g-hot);margin-bottom:6mm}
 .co-name{font-family:var(--g-display);font-weight:800;font-size:calc(52pt * var(--ns,1) * (.8 + .2 * var(--fit-gap)));line-height:.88;letter-spacing:-.06em;${c.caps ? 'text-transform:uppercase;' : ''}color:#fff;overflow-wrap:anywhere}
 .co-name > span{display:block}
 .co-name .g-last{color:var(--g-hot)}
 .co-name .g-stop{font-size:.55em;vertical-align:top;margin-left:.04em}
 .co-role{margin-top:5mm;font-size:7.6pt;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
-.co-frame{position:absolute;right:calc(var(--margin) + 2mm);top:calc(50% - 31mm);z-index:1}
+.co-frame{position:absolute;right:calc(var(--margin) + 2mm);top:calc(50% - 31mm)}
 ${FRAME[c.frame]}
 .cv-portrait--initials.co-photo{background:var(--g-soft);color:var(--g-ink);font-family:var(--g-display);font-weight:800;font-size:38pt}
-.co-strip{display:flex;justify-content:space-between;align-items:center;gap:4mm;background:var(--g-hot);color:var(--g-on-hot);padding:2.2mm calc(var(--margin) + 1mm);font-size:6.9pt;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+.co-strip{position:relative;display:flex;justify-content:space-between;align-items:center;gap:4mm;background:var(--g-hot);color:var(--g-on-hot);padding:2.2mm calc(var(--margin) + 1mm);font-size:6.9pt;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
 .co-strip span{min-width:0;overflow-wrap:anywhere}
 .co-strip span:not(.co-strip-dot){text-transform:none;letter-spacing:.04em}
 .co-strip-dot{flex:none;width:2mm;height:2mm;border-radius:50%;background:currentColor}

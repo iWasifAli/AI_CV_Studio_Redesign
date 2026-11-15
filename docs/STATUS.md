@@ -1297,6 +1297,16 @@ Everything below is built with unit and browser tests; each was deployed only af
 - **Career paths (§10.3)** — Skill plan page: near and stretch roles with what you have, what you'd need and a first step; "Plan the skills for this role" fills the skill plan.
 - **Bug fixed:** a settings save reached pages only after up to a minute (pages and API routes are separate module copies; the config cache now lives on `globalThis`).
 
+## R12 — graphic designs and Dual CV Export (2026-11-15)
+
+- **20 graphic designs** from the owner's reference collection (Neon, Coral, Ocean, Emerald, Magenta, Citrus, Cyber, Ruby, Blueprint, Cobalt, Violet, Terra, Graphite, Tangerine, Copper, Electric, Solar, Ultraviolet, Aurora, Chromatic) in four structures: spotlight header, full-height band, photo rail and cover. Portraits in five frames, key numbers, timelines, skill bars/rings/dots. Skill visuals use only the person's own 1–5 levels (no level: plain tags); key numbers are the person's own (Basics → Key numbers, optional) or honest counts from the CV. The demo portraits in the collection are not used or shipped. Compared page by page with the references (evidence page: "AI CV Studio — Template QA evidence" in the owner's artifacts).
+- **Dual CV Export** — download screen: "Download PDF" (as designed) and **"ATS PDF (plain, one column)"** (`Name-CV-ATS.pdf`): the same words in one column in reading order, tagged, real fonts. Wording promises no universal ATS compatibility.
+- **Photo framing** — zoom and position sliders after choosing a photo; Show/Hide on CV beside it.
+- **Gallery labels** — every design marked **Creative** (send to people; use the ATS PDF online) or **ATS-friendly**.
+- **Fit step 3 (compact header)** for graphic and composed designs: a smaller banner instead of a near-empty last page (thin last pages: graphic 19 → 4 of 160 test renders; existing designs 10 → 5 of 256). Text is never shrunk.
+- **Fixes:** timeline designs drew two dots per job; decorative stars now SVG (no Type 3 fallback fonts in PDFs); wide letter-spacing capped so headings extract as words; makeover strip shows at most one graphic design.
+- **Known caveats:** a few long CVs still end with a short last page; creative PDFs' plain-text order follows the layout (the ATS PDF is the version for online forms); photo reframing needs the photo chosen again.
+
 ## Owner to-do (when you have time)
 
 1. ~~Payments and sales~~: done on 2026-11-12.
@@ -1310,6 +1320,7 @@ Everything below is built with unit and browser tests; each was deployed only af
 9. **Makeover acceptance with real CVs:** try 40 real CVs (10 Word, 10 PDFs from other builders, 10 two-column, 5 scans, 5 phone photos) on `/makeover` and note any wrong or missing text.
 10. **R7 human checks:** the 30-person blind design preference test (target 60%) and an outside reviewer's rubric scores for the 22 new designs (minimum 8.5).
 11. **Browser extension:** `npm run extension:zip` → upload `dist/ai-cv-studio-extension.zip` to the Chrome Web Store (steps in `extension/README.md`).
+18. **Graphic designs:** the 20 new designs arrive hidden and Premium (marked New). Switch them on in Admin → Settings → Designs when you are happy with them (evidence page lists every render).
 17. **Community designs:** switch on in Admin → Settings when you want people to share designs; review them in Admin → Design review.
 12. **Reminder email on staging (R9 acceptance):** sign in once on https://aicvstudio-staging--ai-cv-studio.europe-west4.hosted.app and press Admin → Settings → **Send a sample reminder email** (or add a reminder for today on a job), then check the inbox. Production delivery was verified on 2026-11-14.
 13. **Comment notice email:** check the inbox of aicvstudio.app@gmail.com for "New comment on Nisar Ahmad — imported" (sent 2026-11-14 ~08:10 PKT during the R9.7 live check), or press Admin → Settings → **Send a sample comment email**.
@@ -1320,7 +1331,8 @@ Everything below is built with unit and browser tests; each was deployed only af
 ## Next action (exact)
 
 1. All spec features up to R10 are built (see R11 above), except German (deferred by the owner) and the card gateway (waits for business registration).
-2. **Next: templates (owner request, 2026-11-15).** Raise every existing design to 9.5/10, then build the 20 graphic designs from the owner's reference collection (`AI_CV_Studio_Graphic_Collection`), compared screenshot by screenshot, and add **Dual CV export**: a Creative PDF and an ATS PDF from the same CV.
+2. Templates request (2026-11-15): done in R12 (above). Remaining: the owner switches the 20 designs on; the human design checks (to-do 10) now cover 42 designs.
+3. Next: German (when the owner asks), card gateway (after business registration).
 
 ## Deployment (2026-11-12)
 

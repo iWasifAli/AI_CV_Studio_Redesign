@@ -20,6 +20,8 @@ import {
 
 type Kind = SectionKind | 'summary' | 'contact';
 /** Lower-case letters only; "&" and "and" are the same. */
+/** Decorative lines above a name in graphic designs. */
+const EYEBROW = /^(?:hello,? i['’]?m|the story of|curriculum vitae|cv(?: \d{4})?|r[ée]sum[ée])$/i;
 const headingKey = (s: string) =>
   s
     .toLowerCase()
@@ -680,14 +682,29 @@ export function parseCv(
     if (m && initials(m[2]!).startsWith(m[1]!)) rest = m[2]!;
     if (rest) head.push({ text: rest, contact });
   }
-  // A name split over two lines ("Imran" / "Qureshi").
-  if (
-    head.length > 1 &&
-    /^\p{Lu}[\p{L}'-]+$/u.test(head[0]!.text) &&
-    /^\p{Lu}[\p{L}'-]+$/u.test(head[1]!.text)
-  ) {
-    head[0]!.text = `${head[0]!.text} ${head[1]!.text}`;
-    head.splice(1, 1);
+  // Graphic designs: an eyebrow ("Hello, I'm", "Curriculum vitae") or a bare monogram ("DO", "DO/")
+  // above the name is decoration, not the name.
+  for (let i = 0; i < Math.min(head.length, 4);) {
+    const t = head[i]!.text;
+    if (EYEBROW.test(t) || (/^\p{Lu}{2,3}[/*.✳]?$/u.test(t) && !head[i]!.contact))
+      head.splice(i, 1);
+    else i++;
+  }
+  // A name split over two lines ("Imran" / "Qureshi", "DANIEL" / "OKAFOR."): the first such pair
+  // near the top. A decorative full stop after the last name is dropped.
+  const word = /^\p{Lu}[\p{L}'-]+[.*_+]?$/u;
+  for (let i = 0; i < Math.min(head.length - 1, 3); i++) {
+    const a = head[i]!.text;
+    const b = head[i + 1]!.text;
+    if (!word.test(a) || !word.test(b) || head[i]!.contact || head[i + 1]!.contact) continue;
+    let joined = `${a} ${b}`.replace(/[.*_+]$/, '');
+    if (joined === joined.toUpperCase())
+      joined = joined.toLowerCase().replace(/(^|[\s'-])\p{L}/gu, (x) => x.toUpperCase());
+    head[i]!.text = joined;
+    head.splice(i + 1, 1);
+    // A short line above the name (a location eyebrow) moves below it.
+    if (i > 0) head.push(...head.splice(0, i));
+    break;
   }
   const nameIdx = pickName(head.slice(0, 6));
   const name = nameIdx >= 0 ? head[nameIdx]!.text : '';
@@ -717,8 +734,19 @@ export function parseCv(
   // 3. Sections.
   const sections: Section[] = [];
   const merged = new Map<SectionKind, Section>();
-  const running = (l: string) =>
-    !!name && (l === name || l.startsWith(`${name} `)) && l.length < name.length + 100;
+  const lowName = name.toLowerCase();
+  const isName = (l: string) => {
+    const t = l.toLowerCase().replace(/[.*_+]$/, '');
+    return !!name && (t === lowName || t.startsWith(`${lowName} `)) && l.length < name.length + 100;
+  };
+  const running = isName;
+  // The running header on later pages: the name, sometimes followed by the headline on its own line.
+  const dropRunning = (ls: string[]) =>
+    ls.filter(
+      (l, i) =>
+        !isName(l) &&
+        !(i > 0 && isName(ls[i - 1]!) && !!headline && l.toLowerCase() === headline.toLowerCase()),
+    );
   // Two-column designs print the side column before page 2 of the main column. A running header
   // marks the page break; dated entries right after it continue the last timeline section.
   const LISTS: Kind[] = ['experience', 'volunteering', 'education', 'projects'];
@@ -726,7 +754,7 @@ export function parseCv(
     const b = blocks[bi]!;
     const at = b.lines.findIndex(running);
     if (at < 0 || LISTS.includes(b.heading!.kind)) continue;
-    const tail = b.lines.slice(at + 1);
+    const tail = dropRunning(b.lines.slice(at));
     if (!tail.slice(0, 3).some((l) => findDates(l)?.start)) continue;
     const target = blocks
       .slice(1, bi)
@@ -738,7 +766,7 @@ export function parseCv(
   }
   for (const b of blocks.slice(1)) {
     const h = b.heading!;
-    const lines = mergeWrapped(b.lines.filter((l) => !running(l)));
+    const lines = mergeWrapped(dropRunning(b.lines));
     if (h.kind === 'summary') {
       summary.push(...lines.map((l) => l.text));
       continue;

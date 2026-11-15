@@ -293,6 +293,8 @@ export function StackedContacts({ model }: TemplateComponentProps): ReactNode {
 /** CSS shared by every graphic design (each family adds its own layout and colours). */
 export const GRAPHIC_BASE_CSS = `
 :root{--can-compact:1}
+/* Positioned, so they paint (and extract) in DOM order after the name block. */
+.g-stats{position:relative}
 html[data-fit-compact] .g-stats{display:none}
 .g-glyph{display:inline-block;width:.78em;height:.78em;vertical-align:-.04em;flex:none}
 .g-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
