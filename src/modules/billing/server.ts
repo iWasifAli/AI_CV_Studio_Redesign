@@ -16,11 +16,18 @@ import { canUse, canUseDesign, monthKey, type Decision } from './gate';
 
 const CONFIG_AREA = 'business';
 const CACHE_MS = 60_000;
-let cache: { at: number; value: BusinessConfig; version: number } | null = null;
+type Cached = { at: number; value: BusinessConfig; version: number };
+/**
+ * Kept on globalThis: pages and API routes are separate module copies in the server bundle, so a
+ * module variable cleared by a settings save in an API route would leave pages on the old
+ * settings for up to a minute.
+ */
+const box = globalThis as unknown as { __cvStudioConfig?: Cached | null };
 
 export async function getBusinessConfig(
   fresh = false,
 ): Promise<{ value: BusinessConfig; version: number }> {
+  let cache = box.__cvStudioConfig ?? null;
   if (!fresh && cache && Date.now() - cache.at < CACHE_MS) return cache;
   try {
     const stored = await getUserStore().getConfig(CONFIG_AREA);
@@ -35,11 +42,12 @@ export async function getBusinessConfig(
     );
     cache = { at: Date.now(), value: cache?.value ?? DEFAULT_CONFIG, version: cache?.version ?? 0 };
   }
+  box.__cvStudioConfig = cache;
   return cache;
 }
 
 export function invalidateConfigCache() {
-  cache = null;
+  box.__cvStudioConfig = null;
 }
 
 export async function planFor(
@@ -178,6 +186,7 @@ export async function entitlementsFor(user: SessionUser | null) {
       quantify: cfg.features.quantify,
       pack: cfg.features.pack,
       gapCoach: cfg.features.gapCoach,
+      community: cfg.features.community,
     },
     aiWeights: cfg.aiWeights,
     hiddenLetterTypes: cfg.content.hiddenLetterTypes,

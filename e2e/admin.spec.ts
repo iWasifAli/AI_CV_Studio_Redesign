@@ -300,8 +300,10 @@ test('Help questions and Premium wording are edited in the Console', async ({ br
   await expect(admin.getByText(/^Saved as version/)).toBeVisible();
 
   await page.goto('/help');
-  const questions = page.locator('summary');
-  await expect(questions.nth(n - 2)).toContainText('Can I pay with JazzCash?');
+  await expect(page.getByText('Can I pay with JazzCash?')).toBeVisible();
+  const order = await page.locator('summary').allTextContents();
+  const at = order.findIndex((t) => t.includes('Can I pay with JazzCash?'));
+  expect(at, order.join(' | ')).toBe(n - 2);
   await page.goto('/premium');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(
     'Land the job with every design',
