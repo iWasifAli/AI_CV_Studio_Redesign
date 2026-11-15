@@ -715,7 +715,7 @@ RULES — follow all of them:
 
 const proofread: TaskDef<'quality.proofread'> = {
   id: 'quality.proofread',
-  version: 'proofread@3',
+  version: 'proofread@4',
   // Fast model without long thinking, one part of the CV per call, side by side (audit F-11):
   // spelling and grammar need care, not deliberation.
   tier: 'fast',
@@ -731,7 +731,7 @@ RULES — follow all of them:
    - grammar: wrong verb forms, agreement, missing or extra words;
    - punctuation: doubled or missing punctuation, stray spaces before commas or full stops;
    - capitals: a sentence or bullet starting with a small letter, "i" for "I", random capitals in ordinary words;
-   - consistency: mixed tenses within one job's points (past jobs in the past tense; lines marked "(current job)" in the present tense — never move a current job's points into the past), or bullets in one list mixing full stops and none;
+   - consistency: a job whose points mix tenses (some past, some present), or bullets in one list mixing full stops and none. A job whose points all use one tense is consistent: never change it. For a line marked "(current job)" both tenses are right (present for ongoing duties, past for finished results), so only flag it when that job mixes the two for the same kind of point, and never move a current job's points into the past;
    - repetition: the same word twice in a row, or the same opening verb in most points of one job.
 2. Keep the CV's own spelling variety: if it uses British spelling ("organised", "colour"), never change it to American, and the other way round. Never "fix" style the person chose (for example short phrases without "I").
 3. quote: the exact words from that line that are wrong, copied character for character, as short as possible (a word or a short phrase, never the whole line unless the line is very short). fix: what replaces exactly those words. Change nothing else.
