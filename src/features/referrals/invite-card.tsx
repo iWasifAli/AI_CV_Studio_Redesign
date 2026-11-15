@@ -42,15 +42,15 @@ export function InviteCard() {
       </h2>
       <p className="text-ink-muted">
         {t(
-          'Share your link. When a friend who joins with it buys their first Premium pass, you get{v}',
-          { v: ' ' },
-        )}
+          'Share your link. When a friend who joins with it buys their first Premium pass, you get',
+        )}{' '}
         <strong>
           {info.rewardDays} {t('days of Premium')}
         </strong>
         {info.welcomeDays > 0 && (
           <>
-            {t('{v} and they get', { v: ' ' })}{' '}
+            {' '}
+            {t('and they get')}{' '}
             <strong>
               {info.welcomeDays} {t('extra days')}
             </strong>
@@ -72,10 +72,10 @@ export function InviteCard() {
       </div>
       <p className="text-ink-muted text-sm" data-testid="invite-joined">
         {info.joined === 0
-          ? 'No one has joined with your link yet.'
+          ? t('No one has joined with your link yet.')
           : info.joined === 1
-            ? '1 friend has joined with your link.'
-            : `${info.joined} friends have joined with your link.`}
+            ? t('1 friend has joined with your link.')
+            : t('{joined} friends have joined with your link.', { joined: info.joined })}
       </p>
     </section>
   );

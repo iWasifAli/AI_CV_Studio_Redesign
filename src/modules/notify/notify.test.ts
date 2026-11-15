@@ -1,6 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { PaymentRequest } from '@/modules/store/types';
-import { mailSettings, paymentEmail, sendMail, testEmail } from './server';
+import {
+  commentEmail,
+  mailSettings,
+  paymentEmail,
+  reminderEmail,
+  sendMail,
+  testEmail,
+} from './server';
 
 const order = (o: Partial<PaymentRequest>): PaymentRequest =>
   ({
@@ -87,5 +94,33 @@ describe('sendMail', () => {
       port: 465,
       from: 'AI CV Studio <support@aicvstudio.app>',
     });
+  });
+});
+
+describe('emails in German', () => {
+  it('writes reminder and comment emails in the person’s language', () => {
+    const r = reminderEmail(
+      'a@example.com',
+      [
+        {
+          job: { id: 'j1', title: 'Fahrer', company: 'DHL' },
+          reminder: { note: '', on: '2026-11-14' },
+        },
+      ],
+      { today: '2026-11-15', unsubscribeUrl: 'https://x/stop', lang: 'de' },
+    );
+    expect(r.subject).toBe('Erinnerung: Fahrer');
+    expect(r.text).toContain('Fahrer bei DHL');
+    expect(r.text).toContain('seit');
+    const c = commentEmail('a@example.com', {
+      cvTitle: 'Mein Lebenslauf',
+      open: 2,
+      docId: 'd',
+      lang: 'de',
+    });
+    expect(c.subject).toBe('Neuer Kommentar zu Mein Lebenslauf');
+    expect(c.text).toContain('2 Kommentare warten auf Sie.');
+    const en = commentEmail('a@example.com', { cvTitle: 'My CV', open: 2, docId: 'd' });
+    expect(en.subject).toBe('New comment on My CV');
   });
 });

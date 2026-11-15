@@ -1,8 +1,12 @@
+import { getT } from '@/i18n/server';
 import type { Metadata } from 'next';
 import { Container } from '@/components/ui/misc';
 import { JobDetail } from '@/features/jobs/job-detail';
 
-export const metadata: Metadata = { title: 'Job', robots: { index: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t('Job'), robots: { index: false } };
+}
 
 export default async function JobPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

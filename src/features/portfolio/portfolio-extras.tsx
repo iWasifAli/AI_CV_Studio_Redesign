@@ -176,7 +176,7 @@ export function ThemePicker({
                   />
                   <span className="flex flex-col">
                     <span className="text-sm font-semibold">{o.name}</span>
-                    <span className="text-ink-muted text-xs">{o.hint}</span>
+                    <span className="text-ink-muted text-xs">{tx(o.hint)}</span>
                   </span>
                 </span>
               </label>
@@ -215,6 +215,7 @@ function MoveButtons({
   onMove: (by: number) => void;
   onRemove: () => void;
 }) {
+  const tx = useT();
   const btn =
     'text-ink-muted hover:text-ink hover:bg-sunken inline-flex size-9 items-center justify-center rounded-md disabled:opacity-40';
   return (
@@ -224,7 +225,7 @@ function MoveButtons({
         className={btn}
         disabled={i === 0}
         onClick={() => onMove(-1)}
-        aria-label={`Move ${name} up`}
+        aria-label={tx('Move {name} up', { name: name })}
       >
         <ArrowUp aria-hidden size={16} />
       </button>
@@ -233,7 +234,7 @@ function MoveButtons({
         className={btn}
         disabled={i === count - 1}
         onClick={() => onMove(1)}
-        aria-label={`Move ${name} down`}
+        aria-label={tx('Move {name} down', { name: name })}
       >
         <ArrowDown aria-hidden size={16} />
       </button>
@@ -241,7 +242,7 @@ function MoveButtons({
         type="button"
         className={cn(btn, 'hover:text-danger')}
         onClick={onRemove}
-        aria-label={`Remove ${name}`}
+        aria-label={tx('Remove {name}', { name: name })}
       >
         <Trash2 aria-hidden size={16} />
       </button>
@@ -449,7 +450,7 @@ export function ProjectsEditor({
       </div>
       {error && (
         <Banner tone="error" title={tx('Picture not added')} onDismiss={() => setError(null)}>
-          {error}
+          {tx(error)}
         </Banner>
       )}
       {value.map((p, i) => (
@@ -491,7 +492,7 @@ export function ProjectsEditor({
           {p.images.length > 0 && (
             <ul
               className="grid gap-3 sm:grid-cols-2"
-              aria-label={`Pictures for ${p.title || 'this project'}`}
+              aria-label={tx('Pictures for {v0}', { v0: p.title || 'this project' })}
             >
               {p.images.map((im, k) => (
                 <li key={im.id} className="border-line flex gap-3 rounded-md border p-2">
@@ -503,7 +504,7 @@ export function ProjectsEditor({
                   />
                   <div className="flex min-w-0 flex-1 flex-col gap-1">
                     <TextField
-                      label={`Describe picture ${k + 1}`}
+                      label={tx('Describe picture {v0}', { v0: k + 1 })}
                       hint={tx('For people who can’t see it.')}
                       value={im.alt}
                       maxLength={140}
@@ -537,7 +538,7 @@ export function ProjectsEditor({
               )}
             >
               <ImagePlus aria-hidden size={16} />
-              {busy === p.id ? 'Adding…' : 'Add pictures'}
+              {busy === p.id ? tx('Adding…') : tx('Add pictures')}
               <input
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
@@ -605,7 +606,7 @@ export function QrCard({ url, slug }: { url: string; slug: string }) {
         // eslint-disable-next-line @next/next/no-img-element -- generated here
         <img
           src={png}
-          alt={`QR code that opens ${url.replace(/^https?:\/\//, '')}`}
+          alt={tx('QR code that opens {v0}', { v0: url.replace(/^https?:\/\//, '') })}
           width={128}
           height={128}
           className="border-line rounded-md border"

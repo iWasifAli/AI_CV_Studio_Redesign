@@ -44,7 +44,7 @@ export function PreviewStatusLine({
       </span>
       {status.nearlyFits && onCompact && (
         <span>
-          {tx('· Only a little runs onto page 2.{v}', { v: ' ' })}
+          {tx('· Only a little runs onto page 2.')}{' '}
           <button
             type="button"
             onClick={onCompact}

@@ -121,14 +121,14 @@ function CoachJobs({ jobs }: { jobs: Job[] | null }) {
         >
           <div className="min-w-0 flex-1">
             <p className="truncate font-semibold">{j.title}</p>
-            <p className="text-ink-muted truncate text-sm">{j.company || 'Company not set'}</p>
+            <p className="text-ink-muted truncate text-sm">{j.company || t('Company not set')}</p>
           </div>
           <Link
             href={`/jobs/${j.id}#mock`}
             className="text-primary hover:bg-primary-soft inline-flex min-h-11 items-center gap-2 rounded-md px-3 font-semibold"
           >
             <MessagesSquare aria-hidden size={18} />
-            {j.mock?.current ? 'Continue mock interview' : 'Mock interview'}
+            {j.mock?.current ? t('Continue mock interview') : t('Mock interview')}
           </Link>
           <Link
             href={`/jobs/${j.id}`}

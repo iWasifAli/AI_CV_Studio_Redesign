@@ -7,18 +7,22 @@ import { AccountProvider } from '@/features/account/account-context';
 import { ServiceWorker } from '@/features/app/service-worker';
 import { I18nProvider } from '@/i18n/client';
 import { DICTS } from '@/i18n/dicts';
-import { getLang } from '@/i18n/server';
+import { getLang, getT } from '@/i18n/server';
 
-export const metadata: Metadata = {
-  title: {
-    default: 'AI CV Studio — A professional CV in your own words',
-    template: '%s · AI CV Studio',
-  },
-  description:
-    'Tell us what you do, answer a few simple questions, and get a professional CV you can edit and download as a PDF.',
-  applicationName: 'AI CV Studio',
-  appleWebApp: { capable: true, title: 'CV Studio', statusBarStyle: 'default' },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return {
+    title: {
+      default: `AI CV Studio — ${t('A professional CV in your own words')}`,
+      template: '%s · AI CV Studio',
+    },
+    description: t(
+      'Tell us what you do, answer a few simple questions, and get a professional CV you can edit and download as a PDF.',
+    ),
+    applicationName: 'AI CV Studio',
+    appleWebApp: { capable: true, title: 'CV Studio', statusBarStyle: 'default' },
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: '#faf8f4',

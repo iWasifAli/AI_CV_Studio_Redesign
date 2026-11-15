@@ -1,3 +1,4 @@
+import { getUserStore } from '@/modules/store';
 import { NextResponse } from 'next/server';
 import { apiError, clientKey, createRateLimiter, readJson, requestId } from '@/lib/http';
 import { getBusinessConfig } from '@/modules/billing/server';
@@ -56,7 +57,13 @@ export async function POST(req: Request, ctx: Ctx) {
     );
   const cfg = (await getBusinessConfig()).value;
   const sent = await sendMail(
-    contactEmail(owner, { ...parsed.data, slug: r.portfolio.slug }),
+    contactEmail(
+      owner,
+      { ...parsed.data, slug: r.portfolio.slug },
+      await getUserStore()
+        .userLang(r.portfolio.uid)
+        .catch(() => 'en' as const),
+    ),
     cfg.support.email,
   );
   await track(sent.ok ? 'portfolio_contact' : 'portfolio_contact_fail');

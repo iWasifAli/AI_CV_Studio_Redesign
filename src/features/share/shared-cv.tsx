@@ -69,7 +69,7 @@ export function SharedCv({
         >
           <DocumentPreview
             doc={doc}
-            title={`${name} — CV. Click a line to comment on it.`}
+            title={t('{name} — CV. Click a line to comment on it.', { name: name })}
             onSelect={(ref, text) => review.current?.pick(ref, text ?? '')}
           />
           <div className="lg:sticky lg:top-4 lg:max-h-[calc(100dvh-2rem)] lg:self-start lg:overflow-y-auto">
@@ -82,7 +82,7 @@ export function SharedCv({
         </main>
       )}
       <footer className="text-ink-muted px-4 pb-8 text-center text-sm">
-        {t('Shared with{v}', { v: ' ' })}
+        {t('Shared with')}{' '}
         <Link href="/" className="text-primary font-semibold">
           {t('AI CV Studio')}
         </Link>{' '}

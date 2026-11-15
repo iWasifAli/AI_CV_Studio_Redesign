@@ -3,7 +3,10 @@ import type { Metadata } from 'next';
 import { Container } from '@/components/ui/misc';
 import { TemplateGallery } from '@/features/gallery/template-gallery';
 
-export const metadata: Metadata = { title: 'Designs' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t('Designs') };
+}
 
 export default async function TemplatesPage() {
   const t = await getT();

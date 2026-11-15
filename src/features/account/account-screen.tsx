@@ -87,7 +87,7 @@ export function AccountScreen() {
           </dd>
           <dt className="text-ink-muted">{t('Your CVs')}</dt>
           <dd>
-            {t('Saved to your account and available wherever you sign in.{v}', { v: ' ' })}
+            {t('Saved to your account and available wherever you sign in.')}{' '}
             {account.sync === 'syncing' && <span className="text-ink-muted">{t('Saving…')}</span>}
             {account.sync === 'offline' && (
               <span className="text-warning">
@@ -186,9 +186,9 @@ export function AccountScreen() {
                   </dt>
                   <dd className="font-semibold">
                     {lim === 0
-                      ? 'Premium only'
+                      ? t('Premium only')
                       : lim === -1
-                        ? `${ent.usage[k]} used`
+                        ? t('{v0} used', { v0: ent.usage[k] })
                         : `${ent.usage[k]} of ${lim}`}
                   </dd>
                 </div>

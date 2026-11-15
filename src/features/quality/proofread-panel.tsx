@@ -133,7 +133,7 @@ export function ProofreadPanel({
         </p>
       ) : premiumOnly ? (
         <p className="text-ink-muted text-sm" data-testid="proofread-premium">
-          {t('Proofreading is part of{v}', { v: ' ' })}
+          {t('Proofreading is part of')}{' '}
           <Link href="/premium" className="text-primary font-semibold">
             {t('Premium')}
           </Link>
@@ -147,7 +147,7 @@ export function ProofreadPanel({
           loading={busy}
           onClick={run}
         >
-          {result ? 'Proofread again' : 'Proofread my CV'}
+          {result ? t('Proofread again') : t('Proofread my CV')}
         </Button>
       )}
       {problem && (
@@ -167,10 +167,10 @@ export function ProofreadPanel({
         <div className="flex flex-col gap-3" aria-live="polite" data-testid="proofread-result">
           <p className="font-semibold">
             {result.issues.length === 0
-              ? `No mistakes found in ${result.checked} lines.`
+              ? t('No mistakes found in {checked} lines.', { checked: result.checked })
               : open === 0
-                ? 'All done.'
-                : `${open} thing${open === 1 ? '' : 's'} to look at`}
+                ? t('All done.')
+                : t('{open} thing{v1} to look at', { open: open, v1: open === 1 ? '' : 's' })}
           </p>
           <ul className="flex flex-col gap-3">
             {result.issues.map((issue, n) => {
@@ -188,7 +188,7 @@ export function ProofreadPanel({
                   <p className="break-words">
                     <Context text={issue.text} quote={issue.quote} fix={issue.fix} />
                   </p>
-                  {issue.why && <p className="text-ink-muted">{issue.why}</p>}
+                  {issue.why && <p className="text-ink-muted">{t(issue.why)}</p>}
                   {st === 'open' ? (
                     <div className="flex flex-wrap gap-2">
                       <Button size="sm" onClick={() => fix(n, issue)}>
@@ -209,10 +209,10 @@ export function ProofreadPanel({
                     <p className="text-ink-muted flex items-center gap-1.5">
                       {st === 'fixed' && <Check aria-hidden size={16} className="text-success" />}
                       {st === 'fixed'
-                        ? 'Fixed. Undo puts it back.'
+                        ? t('Fixed. Undo puts it back.')
                         : st === 'left'
-                          ? 'Left as it is.'
-                          : 'This text has changed since the check, so it was not changed.'}
+                          ? t('Left as it is.')
+                          : t('This text has changed since the check, so it was not changed.')}
                     </p>
                   )}
                 </li>

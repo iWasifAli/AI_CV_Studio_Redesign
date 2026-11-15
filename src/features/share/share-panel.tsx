@@ -113,7 +113,7 @@ export function SharePanel({ docId }: { docId: string }) {
       </p>
       {error && (
         <Banner tone="error" title={t('That didn’t work')} onDismiss={() => setError(null)}>
-          {error}
+          {t(error)}
         </Banner>
       )}
       {!share ? (
@@ -180,14 +180,18 @@ export function SharePanel({ docId }: { docId: string }) {
                   data-testid="share-open-comments"
                 >
                   {share.openComments === 1
-                    ? 'Read the 1 comment waiting'
-                    : `Read the ${share.openComments} comments waiting`}
+                    ? t('Read the 1 comment waiting')
+                    : t('Read the {openComments} comments waiting', {
+                        openComments: share.openComments,
+                      })}
                 </Link>
               )}
             </div>
           )}
           <p className="text-ink-muted text-sm" data-testid="share-views">
-            {share.views === 1 ? 'Opened once' : `Opened ${share.views} times`}
+            {share.views === 1
+              ? t('Opened once')
+              : t('Opened {views} times', { views: share.views })}
             {share.lastViewedAt &&
               `, last on ${new Date(share.lastViewedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`}
             .

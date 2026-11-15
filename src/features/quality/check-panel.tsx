@@ -162,7 +162,7 @@ function AtsPanel({
               </select>
               {!premium && (
                 <span className="text-ink-muted font-normal">
-                  {tx('Job keywords are part of{v}', { v: ' ' })}
+                  {tx('Job keywords are part of')}{' '}
                   <Link href="/premium" className="text-primary font-semibold">
                     {tx('Premium')}
                   </Link>
@@ -179,7 +179,7 @@ function AtsPanel({
               disabled={busy || (ent !== null && left === 0)}
               onClick={run}
             >
-              {report ? 'Check again' : 'Run the ATS check'}
+              {report ? tx('Check again') : tx('Run the ATS check')}
             </Button>
             {ent && Number.isFinite(left) && (
               <span className="text-ink-muted text-sm" data-testid="ats-left">
@@ -208,8 +208,11 @@ function AtsPanel({
         <div className="flex flex-col gap-4" aria-live="polite" data-testid="ats-report">
           <p className="font-semibold">
             {toFix
-              ? `${toFix} thing${toFix === 1 ? '' : 's'} to fix for screening software`
-              : 'Screening software reads this CV well.'}
+              ? tx('{toFix} thing{v1} to fix for screening software', {
+                  toFix: toFix,
+                  v1: toFix === 1 ? '' : 's',
+                })
+              : tx('Screening software reads this CV well.')}
           </p>
           <ul className="flex flex-col gap-3">
             {report.checks.map((c) => {
@@ -244,7 +247,7 @@ function AtsPanel({
                         onClick={() => go(c)}
                         className="text-primary mt-1 text-sm font-semibold underline underline-offset-4"
                       >
-                        {c.where === 'design' ? 'Open the Design tab' : 'Show me'}
+                        {c.where === 'design' ? tx('Open the Design tab') : tx('Show me')}
                       </button>
                     )}
                   </div>

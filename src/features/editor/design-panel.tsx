@@ -133,7 +133,7 @@ export function DesignPanel({
                   : 'border-line-strong text-ink-muted hover:bg-sunken',
               )}
             >
-              {f === 'all' ? 'All' : FAMILY_LABEL[f].name}
+              {f === 'all' ? tx('All') : FAMILY_LABEL[f].name}
             </button>
           ))}
         </div>
@@ -171,7 +171,7 @@ export function DesignPanel({
                     decorative
                     lazy
                     debounceMs={300}
-                    title={`Your CV in the ${t.name} design`}
+                    title={tx('Your CV in the {name} design', { name: t.name })}
                   />
                   {selected && (
                     <span className="bg-primary text-on-primary shadow-1 absolute top-2 right-2 inline-flex size-6 items-center justify-center rounded-full">
@@ -187,7 +187,7 @@ export function DesignPanel({
                 <span className="px-1 pb-1">
                   <span className="text-ink block text-sm font-semibold">{t.style}</span>
                   <span className="text-ink-muted block text-xs">
-                    {t.name}
+                    {tx(t.name)}
                     {t.photo ? ' · Photo' : ''}
                   </span>
                 </span>
@@ -196,7 +196,7 @@ export function DesignPanel({
           })}
         </div>
         <p className="text-ink-muted text-sm">
-          {meta ? meta.description : 'Your own design, made in the Design Studio below.'}
+          {meta ? meta.description : tx('Your own design, made in the Design Studio below.')}
         </p>
         {meta && showPremium(meta.id) && (
           <p

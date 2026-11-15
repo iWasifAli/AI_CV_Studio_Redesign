@@ -1,4 +1,5 @@
 'use client';
+import { useLang } from '@/i18n/client';
 
 import { isSpecDesign } from '@/modules/design/designs';
 import { ops } from '@/modules/resume/ops';
@@ -23,6 +24,7 @@ export function CreateDocument() {
   const router = useRouter();
   const params = useSearchParams();
   const done = useRef(false);
+  const lang = useLang();
 
   useEffect(() => {
     if (done.current) return;
@@ -30,9 +32,12 @@ export function CreateDocument() {
     const work = params.get('work');
     const design = params.get('design');
     const preset: PresetId = PRESET_IDS.includes(work as PresetId) ? (work as PresetId) : 'general';
-    // The interface and CV wording are English for now; keep the region for paper size and dates.
+    // The CV starts in the interface language; the browser's region sets paper size and dates.
     const region = (navigator.language || '').split('-')[1]?.toUpperCase();
-    const locale = `en-${region && /^[A-Z]{2}$/.test(region) ? region : 'GB'}`;
+    const locale =
+      lang === 'de'
+        ? `de-${region && ['DE', 'AT', 'CH', 'LU', 'LI'].includes(region) ? region : 'DE'}`
+        : `en-${region && /^[A-Z]{2}$/.test(region) ? region : 'GB'}`;
     const doc = createDocument(preset, { locale });
     if (TEMPLATE_IDS.includes(design as TemplateId)) doc.design.templateId = design as TemplateId;
     // From "Describe what you need" (validated; anything unexpected is ignored).
@@ -53,7 +58,7 @@ export function CreateDocument() {
     const next = design && isSpecDesign(design) ? ops.useDesign(doc, design) : doc;
     getRepository().save(next);
     router.replace(`/cv/${next.id}/guided`);
-  }, [params, router]);
+  }, [params, router, lang]);
 
   return <StudioLoading />;
 }

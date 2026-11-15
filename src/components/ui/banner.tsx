@@ -52,8 +52,14 @@ export function Banner({
     >
       <span className="mt-0.5 shrink-0">{t.icon}</span>
       <div className="flex min-w-0 flex-1 flex-col gap-1">
-        {title && <p className="text-ink font-semibold">{title}</p>}
-        {children && <div className="text-ink-muted">{children}</div>}
+        {title && (
+          <p className="text-ink font-semibold">{typeof title === 'string' ? tx(title) : title}</p>
+        )}
+        {children && (
+          <div className="text-ink-muted">
+            {typeof children === 'string' ? tx(children) : children}
+          </div>
+        )}
         {action && <div className="mt-1">{action}</div>}
       </div>
       {onDismiss && (

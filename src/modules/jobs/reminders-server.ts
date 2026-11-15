@@ -89,6 +89,7 @@ export async function runReminders(
       const mail = reminderEmail(q.email, due, {
         today: todayIn(q.tz, now),
         unsubscribeUrl: stopUrl(q),
+        lang: await store.userLang(q.uid).catch(() => 'en' as const),
       });
       const r = await sendMail(mail, cfg.support.email);
       if (!r.ok) {

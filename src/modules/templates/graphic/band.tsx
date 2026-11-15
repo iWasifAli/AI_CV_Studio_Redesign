@@ -3,6 +3,7 @@
  * contact details, skill meters and recognition; the light main column opens with a huge
  * two-tone name, the role and the key numbers, then the timeline. The column stays on every page.
  */
+import { cvWords } from '@/modules/resume/cv-words';
 import type { ReactNode } from 'react';
 import { Portrait, type TemplateComponentProps } from '../blocks';
 import type { CatalogueTemplate } from '../types';
@@ -253,7 +254,7 @@ ${
       <>
         <h2 className={`g-h g-h--${c.marker === 'number' ? 'bar' : c.marker}`}>
           <span className="g-h-m" aria-hidden="true" />
-          <span className="g-h-t">Contact</span>
+          <span className="g-h-t">{cvWords(p.model.locale)('Contact')}</span>
         </h2>
         <div style={{ height: '3.4mm' }} />
         <StackedContacts {...p} />

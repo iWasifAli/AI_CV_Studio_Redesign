@@ -137,7 +137,7 @@ export function AdminUsers() {
               }
               data-testid="admin-user-plan"
             >
-              {premiumActive ? 'Premium' : 'Free'}
+              {premiumActive ? t('Premium') : t('Free')}
               {user.disabled && ' · blocked'}
               {user.admin && ' · admin'}
             </span>
@@ -145,7 +145,7 @@ export function AdminUsers() {
           <dl className="mt-4 grid grid-cols-[max-content_1fr] gap-x-6 gap-y-1.5 text-sm">
             <dt className="text-ink-muted">{t('Email')}</dt>
             <dd>
-              {user.email} {user.emailVerified ? '(verified)' : '(not verified)'}
+              {user.email} {user.emailVerified ? t('(verified)') : t('(not verified)')}
             </dd>
             <dt className="text-ink-muted">{t('Signs in with')}</dt>
             <dd>{user.providers.join(', ') || '—'}</dd>
@@ -168,7 +168,7 @@ export function AdminUsers() {
           <div className="mt-5 flex flex-col gap-3">
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-sm font-semibold">
-                {premiumActive ? 'Extend Premium:' : 'Grant Premium:'}
+                {premiumActive ? t('Extend Premium:') : t('Grant Premium:')}
               </span>
               {GRANT_OPTIONS.map((d) => (
                 <Button
@@ -202,7 +202,7 @@ export function AdminUsers() {
                 disabled={busy}
                 onClick={() => act({ action: 'resetUsage' }, "This month's usage was reset")}
               >
-                {t('Reset this month&apos;s usage')}
+                {t('Reset this month’s usage')}
               </Button>
               <Button
                 size="sm"
@@ -215,7 +215,7 @@ export function AdminUsers() {
                       act({ action: 'disable' }, 'Account blocked')
                 }
               >
-                {user.disabled ? 'Allow sign-in' : 'Block sign-in'}
+                {user.disabled ? t('Allow sign-in') : t('Block sign-in')}
               </Button>
             </div>
           </div>

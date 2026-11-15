@@ -357,11 +357,14 @@ export function MakeoverScreen() {
         </h2>
         <p className="text-ink-muted">
           {profession
-            ? `Read as ${/^[aeiou]/i.test(profession) ? 'an' : 'a'} ${profession.toLowerCase()} CV. `
+            ? tx('Read as {v0} {v1} CV. ', {
+                v0: /^[aeiou]/i.test(profession) ? 'an' : 'a',
+                v1: profession.toLowerCase(),
+              })
             : ''}
           {result.method === 'ai'
-            ? 'Sorted by AI, then checked word by word against your file — nothing was added.'
-            : 'Everything is in editable sections. Check each one before you send it.'}
+            ? tx('Sorted by AI, then checked word by word against your file — nothing was added.')
+            : tx('Everything is in editable sections. Check each one before you send it.')}
         </p>
       </div>
 
@@ -437,11 +440,11 @@ export function MakeoverScreen() {
                         firstPageOnly
                         decorative
                         debounceMs={i * 60}
-                        title={`${t.name} design`}
+                        title={tx('{name} design', { name: t.name })}
                       />
                     </div>
                     <span className="text-sm font-semibold">
-                      {t.name}
+                      {tx(t.name)}
                       {locked(r.id) && (
                         <span className="text-ink-muted ml-1 text-xs font-normal">
                           {tx('Premium')}
@@ -624,7 +627,9 @@ function Compare({
           <DocumentPreview
             doc={doc}
             debounceMs={0}
-            title={`Your new CV in the ${DESIGN_META[currentDesignId(doc.design) ?? doc.design.templateId].name} design`}
+            title={tx('Your new CV in the {name} design', {
+              name: DESIGN_META[currentDesignId(doc.design) ?? doc.design.templateId].name,
+            })}
           />
           {watermark && (
             <div

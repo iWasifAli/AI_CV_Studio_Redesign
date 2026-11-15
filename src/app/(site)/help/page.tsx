@@ -5,7 +5,10 @@ import { Container } from '@/components/ui/misc';
 import { getBusinessConfig } from '@/modules/billing/server';
 import { InstallApp } from '@/features/app/install-app';
 
-export const metadata: Metadata = { title: 'Help' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t('Help') };
+}
 
 // Reads the support email from settings (cached 60 s on the server); not baked in at build time.
 export const dynamic = 'force-dynamic';
@@ -30,7 +33,7 @@ export default async function HelpPage() {
             className="group px-5 py-4 [&_summary::-webkit-details-marker]:hidden"
           >
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-sm text-[17px] font-semibold">
-              {item.q}
+              {t(item.q)}
               <span
                 aria-hidden
                 className="text-ink-subtle text-xl transition-transform group-open:rotate-45"
@@ -38,7 +41,7 @@ export default async function HelpPage() {
                 +
               </span>
             </summary>
-            <p className="text-ink-muted mt-3">{item.a}</p>
+            <p className="text-ink-muted mt-3">{t(item.a)}</p>
           </details>
         ))}
       </div>
@@ -47,7 +50,7 @@ export default async function HelpPage() {
       </div>
       {email && (
         <p className="mt-8" data-testid="support-contact">
-          {t('Still stuck? Email us at{v}', { v: ' ' })}
+          {t('Still stuck? Email us at')}{' '}
           <a
             href={`mailto:${email}`}
             className="text-primary font-semibold underline underline-offset-4"
@@ -58,11 +61,11 @@ export default async function HelpPage() {
         </p>
       )}
       <p className="text-ink-muted mt-4">
-        {t('Read how we handle your information in our{v}', { v: ' ' })}
+        {t('Read how we handle your information in our')}{' '}
         <Link href="/privacy" className="text-primary font-semibold underline underline-offset-4">
           {t('privacy notice')}
         </Link>{' '}
-        {t('and the{v}', { v: ' ' })}
+        {t('and the')}{' '}
         <Link href="/terms" className="text-primary font-semibold underline underline-offset-4">
           {t('terms of use')}
         </Link>

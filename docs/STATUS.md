@@ -1345,6 +1345,16 @@ Everything below is built with unit and browser tests; each was deployed only af
 - **Fixes:** timeline designs drew two dots per job; decorative stars now SVG (no Type 3 fallback fonts in PDFs); wide letter-spacing capped so headings extract as words; makeover strip shows at most one graphic design.
 - **Known caveats:** a few long CVs still end with a short last page; creative PDFs' plain-text order follows the layout (the ATS PDF is the version for online forms); photo reframing needs the photo chosen again.
 
+## R14 — German (branch `r14/german`, local only, not deployed) (2026-11-15)
+
+- **Whole interface in German** (formal "Sie"): switch in the footer and in the profile menu ("Deutsch / English"), kept in a `lang` cookie and with the account (so emails follow). English text is the key; a missing German text falls back to English, so nothing can break. ~2,900 German texts (`src/i18n/de.ts`, built by `scripts/i18n-compile.mjs` from `i18n-work/`), including page titles, help answers, the Premium offer, server error messages and design/profession names. The brand "AI CV Studio" is never translated.
+- **German CVs:** a CV's language is its own (Basics → "Language of this CV"), separate from the interface. German CVs print German section names, "03/2019 – heute", German level words and key-number labels, "Kontakt"; switching renames only section names the person never changed. New CVs start in the interface language. Imports detect German CVs (German headings such as Berufserfahrung/Ausbildung/Kenntnisse, dates such as "März 2017 bis heute", "seit 10/2020", "01.04.2016").
+- **German letters:** German first drafts for all 10 letter types, "Sehr geehrte Damen und Herren," / "Mit freundlichen Grüßen", German dates, "Bewerbung als …".
+- **AI in German:** text for the CV/letters follows the language of the person's own material; advice follows the interface language; copy-only tasks never change language. The fact guard no longer takes German nouns for invented names (still checks names, numbers and credentials).
+- **Emails in German** (reminders, comments, portfolio messages, payment decisions) for people who chose German.
+- **Portfolio pages** speak the CV's language; the page renders on the server again (fixes a leak found by the e2e privacy check while converting it).
+- **Not translated by design:** the owner's Console wording when changed from the defaults, design names (proper names), the admin Console.
+
 ## Owner to-do (when you have time)
 
 1. ~~Payments and sales~~: done on 2026-11-12.
@@ -1370,7 +1380,7 @@ Everything below is built with unit and browser tests; each was deployed only af
 
 1. All spec features up to R10 are built (see R11 above), except German (deferred by the owner) and the card gateway (waits for business registration).
 2. Templates request (2026-11-15): done in R12 (above). Remaining: the owner switches the 20 designs on; the human design checks (to-do 10) now cover 42 designs.
-3. Next: German (when the owner asks), card gateway (after business registration).
+3. German: built on local branch `r14/german` (R14 above), kept off `main` until the owner approves it. Then: card gateway (after business registration).
 
 ## Deployment (2026-11-12)
 

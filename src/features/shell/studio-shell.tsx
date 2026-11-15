@@ -70,7 +70,7 @@ export function ShellTop() {
         content: (
           <>
             <CircleUserRound aria-hidden size={22} />
-            <span className="max-w-32 truncate">{account.user?.name || 'Profile'}</span>
+            <span className="max-w-32 truncate">{account.user?.name || t('Profile')}</span>
           </>
         ),
         className:
@@ -115,7 +115,7 @@ export function ShellTop() {
                     : 'text-ink-muted hover:bg-sunken hover:text-ink',
                 )}
               >
-                <d.icon aria-hidden size={20} /> {d.label}
+                <d.icon aria-hidden size={20} /> {t(d.label)}
               </Link>
             );
           })}
@@ -180,8 +180,8 @@ export function ShellTop() {
                   <c.icon aria-hidden size={20} />
                 </span>
                 <span>
-                  <span className="block font-semibold">{c.label}</span>
-                  <span className="text-ink-muted block text-sm">{c.hint}</span>
+                  <span className="block font-semibold">{t(c.label)}</span>
+                  <span className="text-ink-muted block text-sm">{t(c.hint)}</span>
                 </span>
               </Link>
             </li>
@@ -214,7 +214,7 @@ export function ShellBottom() {
             )}
           >
             <d.icon aria-hidden size={20} />
-            {d.label}
+            {t(d.label)}
           </Link>
         );
       })}

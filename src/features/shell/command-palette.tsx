@@ -96,7 +96,7 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
             onClick={() => go(e)}
             className={`flex cursor-pointer items-center justify-between rounded-md px-3 py-2.5 ${i === sel ? 'bg-primary-soft' : ''}`}
           >
-            <span className="font-semibold">{e.label}</span>
+            <span className="font-semibold">{t(e.label)}</span>
             <span className="text-ink-muted text-xs">{e.group}</span>
           </li>
         ))}

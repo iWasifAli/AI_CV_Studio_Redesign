@@ -3,7 +3,10 @@ import type { Metadata } from 'next';
 import { Container } from '@/components/ui/misc';
 import { CoachClient } from '@/features/coach/client';
 
-export const metadata: Metadata = { title: 'Coach', robots: { index: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t('Coach'), robots: { index: false } };
+}
 
 export default async function CoachPage() {
   const t = await getT();

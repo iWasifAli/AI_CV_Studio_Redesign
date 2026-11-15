@@ -5,7 +5,10 @@ import Link from 'next/link';
 import { Container } from '@/components/ui/misc';
 import { getBusinessConfig } from '@/modules/billing/server';
 
-export const metadata: Metadata = { title: 'Terms of use' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t('Terms of use') };
+}
 // Reads the support email from settings (cached 60 s on the server); not baked in at build time.
 export const dynamic = 'force-dynamic';
 
@@ -28,9 +31,8 @@ export default async function TermsPage() {
         <p className="text-sm">{t('Last updated {UPDATED}', { UPDATED: UPDATED })}</p>
         <p>
           {t(
-            'These terms explain what you can expect from AI CV Studio and what we expect from you. By creating an account or using the studio you agree to them. Our{v}',
-            { v: ' ' },
-          )}
+            'These terms explain what you can expect from AI CV Studio and what we expect from you. By creating an account or using the studio you agree to them. Our',
+          )}{' '}
           <Link href="/privacy">{t('privacy notice')}</Link>{' '}
           {t('explains how we handle your information.')}
         </p>

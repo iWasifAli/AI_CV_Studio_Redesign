@@ -98,8 +98,11 @@ export function JobsBoard() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-ink-muted" data-testid="jobs-count">
           {data.max === -1
-            ? `${data.jobs.length} job${data.jobs.length === 1 ? '' : 's'}`
-            : `${data.jobs.length} of ${data.max} jobs`}
+            ? t('{length} job{v1}', {
+                length: data.jobs.length,
+                v1: data.jobs.length === 1 ? '' : 's',
+              })
+            : t('{length} of {max} jobs', { length: data.jobs.length, max: data.max })}
         </p>
         <div className="flex flex-wrap gap-2">
           {ent?.features.jobInsights !== false && data.jobs.length > 0 && (
@@ -125,7 +128,7 @@ export function JobsBoard() {
       {full && !adding && (
         <Banner
           tone="info"
-          title={`Your plan tracks up to ${data.max} jobs at a time.`}
+          title={t('Your plan tracks up to {max} jobs at a time.', { max: data.max })}
           action={
             ent?.features.sales ? (
               <ButtonLink href="/premium" size="sm">
@@ -139,7 +142,7 @@ export function JobsBoard() {
       )}
       {error && (
         <Banner tone="error" title={t('That didn’t work')} onDismiss={() => setError(null)}>
-          {error}
+          {t(error)}
         </Banner>
       )}
       {adding && (
@@ -200,7 +203,9 @@ export function JobsBoard() {
                       </p>
                     )}
                     <p className="text-ink-subtle mt-1 text-xs">
-                      {j.appliedOn ? `Applied ${fmt(j.appliedOn)}` : `Added ${fmt(j.createdAt)}`}
+                      {j.appliedOn
+                        ? t('Applied {v0}', { v0: fmt(j.appliedOn) })
+                        : t('Added {v0}', { v0: fmt(j.createdAt) })}
                     </p>
                     <NextReminder job={j} />
                     <label className="mt-2 flex items-center gap-2 text-sm">
@@ -208,7 +213,7 @@ export function JobsBoard() {
                       <select
                         className="border-line-strong bg-surface h-9 min-w-0 flex-1 rounded-sm border px-1.5"
                         value={j.stage}
-                        aria-label={`Stage for ${j.title}`}
+                        aria-label={t('Stage for {title}', { title: j.title })}
                         onChange={(e) => void move(j, { stage: e.target.value as JobStage })}
                       >
                         {JOB_STAGES.map((s) => (
@@ -224,7 +229,7 @@ export function JobsBoard() {
                         <select
                           className="border-line-strong bg-surface h-9 min-w-0 flex-1 rounded-sm border px-1.5"
                           value={j.outcome ?? ''}
-                          aria-label={`How it ended: ${j.title}`}
+                          aria-label={t('How it ended: {title}', { title: j.title })}
                           onChange={(e) => void move(j, { outcome: e.target.value as JobOutcome })}
                         >
                           <option value="">{t('Not said')}</option>
@@ -417,7 +422,7 @@ function AddJob({
         />
         {error && (
           <p role="alert" className="text-danger text-sm">
-            {error}
+            {t(error)}
           </p>
         )}
         <div className="flex gap-3">
@@ -435,6 +440,7 @@ function AddJob({
 
 /** The job's next open reminder on its card ("Due" when today or earlier). */
 function NextReminder({ job }: { job: Job }) {
+  const tx = useT();
   const r = (job.reminders ?? [])
     .filter((x) => !x.done)
     .sort((a, b) => a.on.localeCompare(b.on))[0];
@@ -447,7 +453,7 @@ function NextReminder({ job }: { job: Job }) {
       data-testid="card-reminder"
     >
       <Bell aria-hidden size={12} />
-      {due ? 'Due: ' : `${fmt(r.on)}: `}
+      {due ? tx('Due: ') : `${fmt(r.on)}: `}
       {r.note}
     </p>
   );

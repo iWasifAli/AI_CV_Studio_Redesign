@@ -4,7 +4,7 @@ import type { ResumeDocument } from '@/modules/resume/schema';
 import { importWithAi } from './ai';
 import { coverage, type Coverage } from './coverage';
 import { extractLines, ImportError, SCAN_UNREADABLE, type ImportKind } from './extract';
-import { parseCv, type ImportReport } from './parse';
+import { detectCvLocale, parseCv, type ImportReport } from './parse';
 import { findPortrait } from './portrait';
 import { tidyImport } from './tidy';
 import { transcribeFile } from './vision';
@@ -70,17 +70,20 @@ export async function readCv(
     scanned: ex.scanned,
     box: photoBox,
   });
+  // The CV's own language decides its section names and dates, whatever the browser says.
+  const locale = detectCvLocale(lines, opts.locale);
   const left = 55_000 - (Date.now() - started);
   const ai =
     opts.ai && left > 12_000
-      ? await importWithAi(lines, opts.key, { locale: opts.locale, timeoutMs: left })
+      ? await importWithAi(lines, opts.key, { locale, timeoutMs: left })
       : ({ ok: false, reason: opts.ai ? 'no_time' : 'switched_off' } as const);
-  const parsed = ai.ok ? ai : parseCv(lines, { locale: opts.locale });
+  const parsed = ai.ok ? ai : parseCv(lines, { locale });
   const portrait = await portraitP;
   opts.onStep?.('structure');
   const doc = tidyImport(parsed.doc);
   const report = parsed.report;
-  if (/-(US|CA)$/.test(opts.locale)) doc.design.pageSize = 'Letter';
+  doc.locale = locale;
+  if (/-(US|CA)$/.test(locale)) doc.design.pageSize = 'Letter';
   return {
     doc,
     report,

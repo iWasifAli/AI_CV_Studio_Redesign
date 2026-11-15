@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ResumeDocument } from '@/modules/resume/schema';
 import { buildDocumentHtml } from '@/modules/templates/build-document';
@@ -59,6 +60,7 @@ export function DocumentPreview({
   decorative = false,
   lazy = false,
 }: Props) {
+  const tx = useT();
   const wrapRef = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(!lazy);
   useEffect(() => {
@@ -224,7 +226,7 @@ export function DocumentPreview({
               ref={(el) => {
                 frames.current[i] = el;
               }}
-              title={i === active ? title : `${title} (updating)`}
+              title={i === active ? title : tx('{title} (updating)', { title: title })}
               aria-hidden={i === active && !decorative ? undefined : true}
               tabIndex={i === active && !decorative ? 0 : -1}
               inert={decorative || i !== active ? true : undefined}

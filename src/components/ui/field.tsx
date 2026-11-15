@@ -26,18 +26,18 @@ export function FieldShell({ label, hint, error, optional, className, children }
   return (
     <div className={cn('flex flex-col gap-1.5', className)}>
       <label htmlFor={id} className="text-ink text-sm font-semibold">
-        {label}
+        {typeof label === 'string' ? t(label) : label}
         {optional && <span className="text-ink-subtle ml-1.5 font-normal">{t('(optional)')}</span>}
       </label>
       {children({ id, describedBy, invalid: Boolean(error) })}
       {error ? (
         <p id={hintId} className="text-danger flex items-start gap-1.5 text-sm">
           <CircleAlert aria-hidden size={16} className="mt-0.5 shrink-0" />
-          {error}
+          {typeof error === 'string' ? t(error) : error}
         </p>
       ) : hint ? (
         <p id={hintId} className="text-ink-muted text-sm">
-          {hint}
+          {typeof hint === 'string' ? t(hint) : hint}
         </p>
       ) : null}
     </div>

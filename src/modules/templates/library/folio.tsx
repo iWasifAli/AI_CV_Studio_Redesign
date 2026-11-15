@@ -6,6 +6,7 @@ import {
   type TemplateComponentProps,
   type TemplateHooks,
 } from '../blocks';
+import { cvWords } from '@/modules/resume/cv-words';
 import type { CatalogueTemplate } from '../types';
 
 /**
@@ -68,7 +69,7 @@ function Header({ model }: TemplateComponentProps) {
     <header className="f-header">
       <div className="f-id">
         <h1 className="f-name">
-          <span className="f-first">{model.firstName || 'Your name'}</span>
+          <span className="f-first">{model.firstName || cvWords(model.locale)('Your name')}</span>
           {model.lastName && <span className="f-last">{model.lastName}</span>}
         </h1>
         {model.headline && (

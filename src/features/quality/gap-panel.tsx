@@ -182,7 +182,9 @@ export function GapPanel({
                   {monthName(g.from)} – {monthName(g.to)} ({gapLength(g.months)})
                 </p>
                 <p className="text-ink-muted">
-                  {g.before ? `Between ${g.after} and ${g.before}` : `Since ${g.after}`}
+                  {g.before
+                    ? t('Between {after} and {before}', { after: g.after, before: g.before })
+                    : t('Since {after}', { after: g.after })}
                 </p>
               </div>
               <fieldset className="flex flex-col gap-2">
@@ -237,7 +239,7 @@ export function GapPanel({
                     disabled={!d.reason}
                     onClick={() => void word(g, d, false)}
                   >
-                    {canAi ? 'Simple wording (no AI)' : 'Suggest wording'}
+                    {canAi ? t('Simple wording (no AI)') : t('Suggest wording')}
                   </Button>
                   {!signedIn && (
                     <span className="text-ink-muted self-center text-xs">

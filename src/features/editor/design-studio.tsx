@@ -77,6 +77,7 @@ function Choice<T extends string | number>({
   /** Picture tiles (level 2): a small drawing of each choice above its label. */
   picture?: (v: T) => ReactNode;
 }) {
+  const tx = useT();
   const id = useId();
   if (picture)
     return (
@@ -105,7 +106,7 @@ function Choice<T extends string | number>({
               )}
             >
               {picture(o.value)}
-              <span>{o.label}</span>
+              <span>{tx(o.label)}</span>
             </button>
           ))}
         </div>
@@ -131,7 +132,7 @@ function Choice<T extends string | number>({
                 : 'border-line-strong bg-surface hover:bg-sunken',
             )}
           >
-            {o.label}
+            {tx(o.label)}
           </button>
         ))}
       </div>
@@ -410,10 +411,12 @@ export function DesignStudio({
         </h3>
         <p className="text-ink-muted text-sm" data-testid="studio-base">
           {spec.atsSafe
-            ? 'ATS-safe version: one plain column that every screening system reads.'
+            ? tx('ATS-safe version: one plain column that every screening system reads.')
             : attached
-              ? `Based on ${base.name}. Changing a choice below makes it your own design.`
-              : `Your own design, started from ${base.name}.`}
+              ? tx('Based on {name}. Changing a choice below makes it your own design.', {
+                  name: base.name,
+                })
+              : tx('Your own design, started from {name}.', { name: base.name })}
         </p>
       </div>
 
@@ -446,7 +449,7 @@ export function DesignStudio({
           disabled={target === 0}
           data-testid="fit-pages"
         >
-          {target === 2 ? 'Fit to 2 pages' : 'Fit to one page'}
+          {target === 2 ? tx('Fit to 2 pages') : tx('Fit to one page')}
         </Button>
         {!attached && !spec.atsSafe && (
           <Button
@@ -476,7 +479,7 @@ export function DesignStudio({
         >
           {cuts.map((c) => (
             <li key={c.key} className="flex flex-wrap items-center justify-between gap-2">
-              <span>{c.label}</span>
+              <span>{tx(c.label)}</span>
               {c.apply && (
                 <Button size="sm" variant="ghost" onClick={() => applyCut(c)}>
                   {tx('Do this')}
@@ -959,7 +962,7 @@ export function DesignStudio({
                     )}
                     <button
                       type="button"
-                      aria-label={`Delete ${d.name}`}
+                      aria-label={tx('Delete {name}', { name: d.name })}
                       className="text-ink-muted hover:text-danger inline-flex size-9 items-center justify-center"
                       onClick={() => void remove(d.id)}
                     >

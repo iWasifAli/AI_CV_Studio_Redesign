@@ -171,15 +171,18 @@ export function PremiumScreen() {
           <Sparkles aria-hidden size={16} /> {t('Premium')}
         </p>
         <h1 className="font-display text-[34px] leading-tight font-semibold tracking-tight sm:text-5xl">
-          {offer.wording.title}
+          {t(offer.wording.title)}
         </h1>
         {offer.wording.intro && (
-          <p className="text-ink-muted max-w-2xl text-lg">{offer.wording.intro}</p>
+          <p className="text-ink-muted max-w-2xl text-lg">{t(offer.wording.intro)}</p>
         )}
       </header>
 
       {isPremium && me?.passExpiresAt && (
-        <Banner tone="success" title={`You have Premium until ${fmtDate(me.passExpiresAt)}.`}>
+        <Banner
+          tone="success"
+          title={t('You have Premium until {v0}.', { v0: fmtDate(me.passExpiresAt) })}
+        >
           {t('Buying another pass adds its days to the end of this one.')}
         </Banner>
       )}
@@ -207,7 +210,7 @@ export function PremiumScreen() {
               {rows.map((r) => (
                 <tr key={r.label} className="border-line border-b last:border-0">
                   <th scope="row" className="font-normal">
-                    {r.label}
+                    {t(r.label)}
                   </th>
                   <td className="text-ink-muted">
                     {r.free ?? (
@@ -272,7 +275,7 @@ export function PremiumScreen() {
                       {t('Best value')}
                     </span>
                   )}
-                  <span className="text-lg font-semibold">{p.label}</span>
+                  <span className="text-lg font-semibold">{t(p.label)}</span>
                   <span className="font-display text-3xl font-semibold">{pkr(p.pricePkr)}</span>
                   <span className="text-ink-muted text-sm">
                     {t('{days} days of Premium', { days: p.days })}
@@ -378,14 +381,14 @@ export function PremiumScreen() {
                             : 'border-line-strong bg-surface hover:bg-sunken min-h-11 rounded-full border px-4 font-semibold'
                         }
                       >
-                        {m.label}
+                        {t(m.label)}
                       </button>
                     ))}
                   </div>
                 )}
                 {method && pass && (
                   <Card className="flex flex-col gap-1 p-5" data-testid="payment-details">
-                    <p className="text-ink-muted text-sm font-semibold">{method.label}</p>
+                    <p className="text-ink-muted text-sm font-semibold">{t(method.label)}</p>
                     <CopyLine label={t('Amount')} value={String(amount)} shown={pkr(amount)} />
                     {method.details
                       .split('\n')
@@ -457,7 +460,7 @@ export function PremiumScreen() {
                   />
                   {error && (
                     <p role="alert" className="text-danger text-sm">
-                      {error}
+                      {t(error)}
                     </p>
                   )}
                   <Button
@@ -528,7 +531,7 @@ function CopyLine({ label, value, shown }: { label?: string; value: string; show
         size="sm"
         variant="ghost"
         icon={<Copy aria-hidden size={16} />}
-        aria-label={`Copy ${label ?? value}`}
+        aria-label={t('Copy {v0}', { v0: label ?? value })}
         onClick={() =>
           navigator.clipboard
             .writeText(value)

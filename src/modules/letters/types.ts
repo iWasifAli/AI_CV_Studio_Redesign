@@ -35,6 +35,8 @@ export type LetterType = {
   group?: 'letters' | 'about-you';
 };
 
+import { STARTERS_DE } from './types-de';
+
 export const LETTER_TYPE_IDS = [
   'cover',
   'resignation',
@@ -366,12 +368,15 @@ export function starterLetter(
   answers: Record<string, string>,
   /** CV details ({name}, {headline}, {location}) used when not answered. */
   cv: Record<string, string> = {},
+  /** The letter's language (the CV's locale): German letters get German wording. */
+  locale = 'en-GB',
 ) {
   const all: Record<string, string> = { ...cv };
   for (const [k, v] of Object.entries(withDefaults(type, answers))) if (v.trim()) all[k] = v;
+  const words = locale.startsWith('de') ? STARTERS_DE[type.id] : type;
   return {
-    paragraphs: type.starter.map((t) => fill(t, all)).filter((p): p is string => !!p),
-    subject: fill(type.subject, all) ?? type.title,
+    paragraphs: words.starter.map((t) => fill(t, all)).filter((p): p is string => !!p),
+    subject: fill(words.subject, all) ?? type.title,
   };
 }
 

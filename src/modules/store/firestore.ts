@@ -437,6 +437,17 @@ export class FirestoreUserStore implements UserStore {
       });
   }
 
+  async setUserLang(uid: string, lang: 'en' | 'de') {
+    await this.db.collection('users').doc(uid).set({ lang }, { merge: true });
+  }
+  async userLang(uid: string): Promise<'en' | 'de'> {
+    try {
+      return (await this.db.collection('users').doc(uid).get()).get('lang') === 'de' ? 'de' : 'en';
+    } catch {
+      return 'en';
+    }
+  }
+
   async knownUser(uid: string) {
     return (await this.db.collection('users').doc(uid).get()).exists;
   }

@@ -111,7 +111,7 @@ export function AdminDesignReview() {
       {!items && !error && <div className="skeleton h-40 rounded-lg" aria-busy="true" />}
       {items && items.length === 0 && (
         <p className="text-ink-muted" data-testid="review-empty">
-          {tab === 'pending' ? 'Nothing is waiting for review.' : 'None yet.'}
+          {tab === 'pending' ? tx('Nothing is waiting for review.') : tx('None yet.')}
         </p>
       )}
       <ul className="flex flex-col gap-6" data-testid="review-list">
@@ -128,10 +128,10 @@ export function AdminDesignReview() {
                   {d.featured && <span className="text-primary text-sm">{tx('· Featured')}</span>}
                 </h2>
                 <p className="text-ink-muted text-sm">
-                  {d.credit ? `By ${d.credit}` : 'Anonymous'} ·{' '}
+                  {d.credit ? `By ${d.credit}` : tx('Anonymous')} ·{' '}
                   {new Date(d.createdAt).toLocaleDateString('en-GB')}
                 </p>
-                {d.description && <p className="mt-1">{d.description}</p>}
+                {d.description && <p className="mt-1">{tx(d.description)}</p>}
               </div>
             </div>
             <div className="grid grid-cols-3 gap-3" aria-label={tx('On three sample CVs')}>
@@ -142,7 +142,7 @@ export function AdminDesignReview() {
                     firstPageOnly
                     decorative
                     lazy
-                    title={`${d.name} on a sample CV`}
+                    title={tx('{name} on a sample CV', { name: d.name })}
                   />
                 </div>
               ))}
@@ -183,7 +183,7 @@ export function AdminDesignReview() {
                   loading={busy?.startsWith(`${d.id}:`) && busy.endsWith('feature')}
                   onClick={() => void act(d, d.featured ? 'unfeature' : 'feature')}
                 >
-                  {d.featured ? 'Stop featuring' : 'Feature'}
+                  {d.featured ? tx('Stop featuring') : tx('Feature')}
                 </Button>
               )}
               {d.status === 'pending' && (

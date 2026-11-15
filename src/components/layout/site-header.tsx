@@ -72,7 +72,7 @@ export function SiteHeader() {
                     : 'text-ink-muted hover:bg-sunken hover:text-ink',
                 )}
               >
-                {item.label}
+                {t(item.label)}
               </Link>
             );
           })}
@@ -106,7 +106,7 @@ export function SiteHeader() {
             className="text-ink hover:bg-sunken inline-flex size-11 items-center justify-center rounded-md md:hidden"
             aria-expanded={open}
             aria-controls="mobile-menu"
-            aria-label={open ? 'Close menu' : 'Open menu'}
+            aria-label={open ? t('Close menu') : t('Open menu')}
             onClick={() => setOpen((v) => !v)}
           >
             {open ? <X aria-hidden size={22} /> : <Menu aria-hidden size={22} />}
@@ -126,7 +126,7 @@ export function SiteHeader() {
                 href={item.href}
                 className="text-ink hover:bg-sunken rounded-md px-3 py-3 text-base font-semibold"
               >
-                {item.label}
+                {t(item.label)}
               </Link>
             ))}
             <Link

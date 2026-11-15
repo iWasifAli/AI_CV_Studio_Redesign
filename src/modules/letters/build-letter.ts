@@ -1,3 +1,4 @@
+import { cvWords } from '@/modules/resume/cv-words';
 import type { ResumeDocument } from '@/modules/resume/schema';
 import { designCssVars, resolveDesign } from '@/modules/templates/design';
 import { fontFaceCss, type FontSource } from '@/modules/templates/fonts';
@@ -32,6 +33,7 @@ export function buildLetterHtml(
   const t = getTemplate(cv.design.templateId);
   const d = resolveDesign(cv.design, t.support);
   const b = cv.basics;
+  const w = cvWords(cv.locale);
   const date = (opts.date ?? new Date()).toLocaleDateString(cv.locale || 'en-GB', {
     day: 'numeric',
     month: 'long',
@@ -68,18 +70,20 @@ mark.ask{background:#fff1c2;color:inherit;padding:0 2px;border-radius:2px}
         .filter((t) => t.trim())
         .map((t) => `<p>${esc(t)}</p>`)
         .join('')}${job.subject ? `<p class="re">${esc(job.subject)}</p>` : ''}`
-    : `${job.company ? `<p>${esc(job.company)}</p>` : ''}<p class="re">${esc(job.title ? `Application: ${job.title}` : 'Application')}</p>`;
+    : `${job.company ? `<p>${esc(job.company)}</p>` : ''}<p class="re">${esc(
+        job.title ? `${w('Application:')} ${job.title}` : w('Application').replace(/:$/, ''),
+      )}</p>`;
   const kind = job.kind ?? 'cover letter';
   const statement = job.form === 'statement';
   const body = statement
     ? `<div class="page"><div class="bar"></div>
-<header class="head"><h1>${esc(b.name || 'Your name')}</h1>${b.headline ? `<p class="role">${esc(b.headline)}</p>` : ''}${contacts ? `<p class="contact">${contacts}</p>` : ''}</header>
+<header class="head"><h1>${esc(b.name || w('Your name'))}</h1>${b.headline ? `<p class="role">${esc(b.headline)}</p>` : ''}${contacts ? `<p class="contact">${contacts}</p>` : ''}</header>
 ${job.subject ? `<h2 class="st-title">${esc(job.subject)}</h2>` : ''}<div class="body">${l.paragraphs
         .filter((p) => p.trim())
         .map((p) => `<p>${mark(p)}</p>`)
         .join('')}</div></div>`
     : `<div class="page"><div class="bar"></div>
-<header class="head"><h1>${esc(b.name || 'Your name')}</h1>${b.headline ? `<p class="role">${esc(b.headline)}</p>` : ''}${contacts ? `<p class="contact">${contacts}</p>` : ''}</header>
+<header class="head"><h1>${esc(b.name || w('Your name'))}</h1>${b.headline ? `<p class="role">${esc(b.headline)}</p>` : ''}${contacts ? `<p class="contact">${contacts}</p>` : ''}</header>
 <div class="meta"><p>${esc(date)}</p>${meta}</div>
 <div class="body"><p>${mark(l.greeting)}</p>${l.paragraphs
         .filter((p) => p.trim())

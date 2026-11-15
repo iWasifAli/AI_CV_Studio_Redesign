@@ -4,7 +4,10 @@ import { Suspense } from 'react';
 import { Container } from '@/components/ui/misc';
 import { JobsBoard } from '@/features/jobs/jobs-board';
 
-export const metadata: Metadata = { title: 'Job tracker', robots: { index: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t('Job tracker'), robots: { index: false } };
+}
 
 export default async function JobsPage() {
   const t = await getT();

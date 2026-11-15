@@ -44,8 +44,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
         <h1 className="font-display text-3xl font-semibold">{t('Administrators only')}</h1>
         <p className="text-ink-muted">
           {account.status === 'signedOut'
-            ? 'Please sign in with an administrator account.'
-            : 'This account is not an administrator.'}
+            ? t('Please sign in with an administrator account.')
+            : t('This account is not an administrator.')}
         </p>
         {account.status === 'signedOut' && (
           <ButtonLink href="/signin?next=/admin">{t('Sign in')}</ButtonLink>

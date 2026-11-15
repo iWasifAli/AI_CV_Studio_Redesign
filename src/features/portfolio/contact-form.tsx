@@ -117,7 +117,7 @@ export function ContactForm({
       </div>
       {error && (
         <Banner tone="error" title={t('Not sent')} onDismiss={() => setError(null)}>
-          {error}
+          {t(error)}
         </Banner>
       )}
       <Button

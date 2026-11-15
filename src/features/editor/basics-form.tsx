@@ -1,6 +1,6 @@
 'use client';
 
-import { useT } from '@/i18n/client';
+import { useLang, useT } from '@/i18n/client';
 import { Plus, Trash2 } from 'lucide-react';
 import { TextField } from '@/components/ui/field';
 import { IconButton } from '@/components/ui/icon-button';
@@ -8,6 +8,7 @@ import { getPreset } from '@/modules/resume/presets';
 import { ops } from '@/modules/resume/ops';
 import { newId } from '@/modules/resume/create';
 import type { ResumeDocument } from '@/modules/resume/schema';
+import { CV_LANGUAGES, cvLang, withCvLanguage } from '@/modules/resume/cv-words';
 import { MARKETS } from '@/modules/resume/markets';
 import { PhotoField } from './photo-field';
 import type { DocumentEditor } from './use-document-editor';
@@ -20,6 +21,15 @@ export function BasicsForm({
   showLinks?: boolean;
 }) {
   const t = useT();
+  const lang = useLang();
+  const regionName = (code: string, fallback: string) => {
+    if (lang === 'en') return fallback;
+    try {
+      return new Intl.DisplayNames([lang], { type: 'region' }).of(code) ?? fallback;
+    } catch {
+      return fallback;
+    }
+  };
   const { doc, update } = editor;
   const b = doc.basics;
   const preset = getPreset(doc.presetId);
@@ -86,9 +96,35 @@ export function BasicsForm({
           <option value="">{t('Not saying / several countries')}</option>
           {MARKETS.map((m) => (
             <option key={m.code} value={m.code}>
-              {m.name}
+              {regionName(m.code, m.name)}
             </option>
           ))}
+        </select>
+      </label>
+      <label className="col-span-2 flex flex-col gap-1.5 text-sm font-semibold">
+        {t('Language of this CV')}
+        <span className="text-ink-muted font-normal">
+          {t(
+            'Sets section names and dates on the CV. To translate what you wrote, use Translate at the top.',
+          )}
+        </span>
+        <select
+          className="border-line-strong bg-surface min-h-11 rounded-md border px-3 text-[15px] font-normal"
+          value={cvLang(doc.locale)}
+          onChange={(e) => {
+            const pick = CV_LANGUAGES.find((l) => cvLang(l.locale) === e.target.value);
+            if (pick) update((d) => withCvLanguage(d, pick.locale), 'locale');
+          }}
+          data-testid="cv-language"
+        >
+          {CV_LANGUAGES.map((l) => (
+            <option key={l.locale} value={cvLang(l.locale)}>
+              {l.label}
+            </option>
+          ))}
+          {!CV_LANGUAGES.some((l) => cvLang(l.locale) === cvLang(doc.locale)) && (
+            <option value={cvLang(doc.locale)}>{doc.locale}</option>
+          )}
         </select>
       </label>
       <div className="col-span-2">

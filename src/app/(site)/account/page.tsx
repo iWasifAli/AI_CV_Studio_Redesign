@@ -3,7 +3,10 @@ import type { Metadata } from 'next';
 import { Container } from '@/components/ui/misc';
 import { AccountScreen } from '@/features/account/account-screen';
 
-export const metadata: Metadata = { title: 'Your account' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t('Your account') };
+}
 
 export default async function AccountPage() {
   const t = await getT();

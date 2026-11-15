@@ -250,8 +250,8 @@ export function SkillPlans() {
               </Button>
               <p className="text-ink-muted text-sm">
                 {tx('Reads your CV “')}
-                {source.title || source.basics.name || 'Untitled'}”.
-                {aiLocked ? ' Part of Premium.' : ' Uses one AI action.'}
+                {source.title || source.basics.name || tx('Untitled')}”.
+                {aiLocked ? tx(' Part of Premium.') : tx(' Uses one AI action.')}
               </p>
             </div>
             {full && (
@@ -414,7 +414,7 @@ function PlanView({
         <button
           type="button"
           className="text-ink-muted hover:bg-sunken hover:text-danger rounded-sm p-2"
-          aria-label={`Delete the plan for “${plan.role}”`}
+          aria-label={tx('Delete the plan for “{role}”', { role: plan.role })}
           onClick={onDelete}
         >
           <Trash2 aria-hidden size={18} />
@@ -484,7 +484,7 @@ function PlanView({
                     </span>
                   </p>
                   <select
-                    aria-label={`Progress on ${s.skill}`}
+                    aria-label={tx('Progress on {skill}', { skill: s.skill })}
                     className="border-line-strong bg-surface h-10 rounded-sm border px-2 text-sm"
                     value={s.status}
                     disabled={saving === i}

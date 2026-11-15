@@ -25,6 +25,7 @@ type Props = {
 
 /** Renders the plain-language form for one item, driven by KIND_INFO. */
 export function ItemForm({ kind, item, preset, onChange }: Props) {
+  const tx = useT();
   const values = item as unknown as Record<string, unknown>;
   const current = Boolean(values.current);
   return (
@@ -38,8 +39,8 @@ export function ItemForm({ kind, item, preset, onChange }: Props) {
               <TextField
                 key={f.key}
                 containerClassName={span}
-                label={f.label}
-                hint={f.hint}
+                label={tx(f.label)}
+                hint={tx(f.hint)}
                 placeholder={f.placeholder?.(preset)}
                 value={String(values[f.key] ?? '')}
                 onChange={(e) => onChange({ [f.key]: e.target.value }, key)}
@@ -50,7 +51,7 @@ export function ItemForm({ kind, item, preset, onChange }: Props) {
               <DateField
                 key={f.key}
                 className={span}
-                label={f.label}
+                label={tx(f.label)}
                 value={String(values[f.key] ?? '')}
                 disabled={f.key === 'end' && current}
                 onChange={(v) => onChange({ [f.key]: v }, key)}
@@ -68,7 +69,7 @@ export function ItemForm({ kind, item, preset, onChange }: Props) {
             return (
               <div key={f.key} className="col-span-2 -mt-2">
                 <CheckboxField
-                  label={f.label}
+                  label={tx(f.label)}
                   checked={current}
                   onChange={(v) => onChange({ current: v, ...(v ? { end: '' } : {}) }, key)}
                 />
@@ -79,8 +80,8 @@ export function ItemForm({ kind, item, preset, onChange }: Props) {
             return (
               <div key={f.key} className="col-span-2 flex flex-col gap-1.5">
                 <LinesField
-                  label={f.label}
-                  hint={f.hint}
+                  label={tx(f.label)}
+                  hint={tx(f.hint)}
                   placeholder={f.placeholder?.(preset)}
                   value={lines}
                   onChange={(v) => onChange({ [f.key]: v }, key)}
@@ -101,7 +102,7 @@ export function ItemForm({ kind, item, preset, onChange }: Props) {
           case 'select':
             return (
               <label key={f.key} className={`${span} flex flex-col gap-1.5 text-sm font-semibold`}>
-                {f.label}
+                {tx(f.label)}
                 <select
                   className="border-line-strong bg-surface min-h-11 rounded-md border px-3 text-[15px] font-normal"
                   value={String(values[f.key] ?? '')}
@@ -109,11 +110,11 @@ export function ItemForm({ kind, item, preset, onChange }: Props) {
                 >
                   {f.options.map((o) => (
                     <option key={o.value} value={o.value}>
-                      {o.label}
+                      {tx(o.label)}
                     </option>
                   ))}
                 </select>
-                {f.hint && <span className="text-ink-muted font-normal">{f.hint}</span>}
+                {f.hint && <span className="text-ink-muted font-normal">{tx(f.hint)}</span>}
               </label>
             );
           case 'tags': {
@@ -128,8 +129,8 @@ export function ItemForm({ kind, item, preset, onChange }: Props) {
             return (
               <div key={f.key} className="col-span-2 flex flex-col gap-2">
                 <TagsField
-                  label={f.label}
-                  hint={f.hint}
+                  label={tx(f.label)}
+                  hint={tx(f.hint)}
                   value={tags}
                   suggestions={preset.suggestedSkills}
                   onChange={setTags}
@@ -190,7 +191,7 @@ function SkillLevels({
             <li key={`${t}-${i}`} className="flex items-center justify-between gap-3 text-sm">
               <span className="min-w-0 truncate">{t}</span>
               <select
-                aria-label={`Level for ${t}`}
+                aria-label={tx('Level for {t}', { t: t })}
                 className="border-line-strong bg-surface min-h-10 rounded-md border px-2"
                 value={levels[i] ?? 0}
                 onChange={(e) => {

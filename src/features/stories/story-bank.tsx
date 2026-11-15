@@ -144,7 +144,7 @@ export function StoryBank() {
         <p className="text-ink-muted text-sm" data-testid="story-count">
           {data.max === -1
             ? `${data.stories.length} ${data.stories.length === 1 ? 'story' : 'stories'}`
-            : `${data.stories.length} of ${data.max} stories`}
+            : t('{length} of {max} stories', { length: data.stories.length, max: data.max })}
         </p>
         {!editing && (
           <Button
@@ -164,8 +164,8 @@ export function StoryBank() {
           tone="info"
           title={
             data.max === 0
-              ? 'The story bank isn’t part of your plan.'
-              : `Your plan keeps up to ${data.max} stories.`
+              ? t('The story bank isn’t part of your plan.')
+              : t('Your plan keeps up to {max} stories.', { max: data.max })
           }
           action={
             ent?.features.sales ? (
@@ -246,7 +246,7 @@ export function StoryBank() {
                   <button
                     type="button"
                     className="text-ink-muted hover:bg-sunken hover:text-ink rounded-sm p-2"
-                    aria-label={`Edit “${s.title}”`}
+                    aria-label={t('Edit “{title}”', { title: s.title })}
                     onClick={() => {
                       setProblem(null);
                       setEditing({ ...s });
@@ -258,7 +258,7 @@ export function StoryBank() {
                   <button
                     type="button"
                     className="text-ink-muted hover:bg-sunken hover:text-danger rounded-sm p-2"
-                    aria-label={`Delete “${s.title}”`}
+                    aria-label={t('Delete “{title}”', { title: s.title })}
                     onClick={() => remove(s)}
                   >
                     <Trash2 aria-hidden size={16} />
@@ -339,7 +339,7 @@ function StoryEditor({
       data-testid="story-editor"
     >
       <h2 id="story-editor-h" className="text-lg font-semibold">
-        {draft.id ? 'Edit story' : 'New story'}
+        {draft.id ? t('Edit story') : t('New story')}
       </h2>
 
       {points.length > 0 && (
@@ -392,7 +392,7 @@ function StoryEditor({
               {t(
                 'Uses only what your CV point and your notes say; anything missing becomes a question for you.',
               )}{' '}
-              {aiLocked && 'Drafting is part of Premium; writing it yourself is free.'}
+              {aiLocked && t('Drafting is part of Premium; writing it yourself is free.')}
             </p>
           </div>
         </details>
@@ -435,7 +435,7 @@ function StoryEditor({
             <Chip
               key={k}
               mode="remove"
-              aria-label={`Remove ${k}`}
+              aria-label={t('Remove {k}', { k: k })}
               onClick={() => set({ skills: draft.skills.filter((x) => x !== k) })}
             >
               {k}
@@ -486,7 +486,7 @@ function StoryEditor({
         </Button>
       </div>
       <p className="text-ink-muted text-xs">
-        {t('Your stories are used as your own facts in{v}', { v: ' ' })}
+        {t('Your stories are used as your own facts in')}{' '}
         <Link href="/coach" className="text-primary underline">
           {t('mock interviews and the coach')}
         </Link>{' '}

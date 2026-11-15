@@ -148,7 +148,7 @@ export function JobDetail({ id }: { id: string }) {
       </div>
       {error && (
         <Banner tone="error" title={t('That didn’t work')} onDismiss={() => setError(null)}>
-          {error}
+          {t(error)}
         </Banner>
       )}
 
@@ -230,7 +230,7 @@ export function JobDetail({ id }: { id: string }) {
             )}
             {cvs.length === 0 ? (
               <p className="text-ink-muted text-sm">
-                {t('You have no CVs yet.{v}', { v: ' ' })}
+                {t('You have no CVs yet.')}{' '}
                 <Link href="/start" className="text-primary font-semibold">
                   {t('Create one')}
                 </Link>
@@ -241,7 +241,7 @@ export function JobDetail({ id }: { id: string }) {
                 {cvs.map((c) => (
                   <li key={c.id} className="flex items-center justify-between gap-3">
                     <CheckboxField
-                      label={c.title || c.name || 'Untitled CV'}
+                      label={c.title || c.name || t('Untitled CV')}
                       checked={draft.documentIds.includes(c.id)}
                       onChange={(v) =>
                         set(
@@ -337,7 +337,7 @@ export function JobDetail({ id }: { id: string }) {
       <div className="border-line bg-surface/95 fixed right-0 bottom-[var(--shell-bottom,0px)] left-[var(--shell-left,0px)] z-20 border-t backdrop-blur">
         <div className="mx-auto flex max-w-[1200px] items-center justify-end gap-3 px-4 py-3 md:px-8">
           <span className="text-ink-muted text-sm" aria-live="polite">
-            {dirty ? 'Unsaved changes' : 'All changes saved'}
+            {dirty ? t('Unsaved changes') : t('All changes saved')}
           </span>
           <Button variant="ghost" disabled={!dirty || saving} onClick={() => setDraft(pick(job))}>
             {t('Discard')}

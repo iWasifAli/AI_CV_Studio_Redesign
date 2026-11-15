@@ -229,7 +229,9 @@ export function AdminSettings() {
                       <input
                         type="number"
                         min={-1}
-                        aria-label={`${draft.plans[p].label}: jobs tracked at once`}
+                        aria-label={tx('{label}: jobs tracked at once', {
+                          label: draft.plans[p].label,
+                        })}
                         className="border-line-strong bg-surface h-10 w-28 rounded-sm border px-2"
                         value={draft.plans[p].maxJobs}
                         onChange={(e) =>
@@ -246,7 +248,7 @@ export function AdminSettings() {
                       <input
                         type="number"
                         min={-1}
-                        aria-label={`${draft.plans[p].label}: stories kept`}
+                        aria-label={tx('{label}: stories kept', { label: draft.plans[p].label })}
                         className="border-line-strong bg-surface h-10 w-28 rounded-sm border px-2"
                         value={draft.plans[p].maxStories}
                         onChange={(e) =>
@@ -304,7 +306,7 @@ export function AdminSettings() {
                   <select
                     className="border-line-strong bg-surface h-10 rounded-sm border px-2"
                     value={d.tier}
-                    aria-label={`${cap(d.id)} tier`}
+                    aria-label={tx('{v0} tier', { v0: cap(d.id) })}
                     onChange={(e) =>
                       editDesign(i, (d) => void (d.tier = e.target.value as 'free' | 'premium'))
                     }
@@ -364,7 +366,7 @@ export function AdminSettings() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  aria-label={`Remove ${p.label}`}
+                  aria-label={tx('Remove {v0}', { v0: tx(p.label) })}
                   icon={<Trash2 aria-hidden size={16} />}
                   onClick={() => edit((c) => void c.passes.splice(i, 1))}
                 />
@@ -479,7 +481,7 @@ export function AdminSettings() {
                   {draft.passes.map((p) => (
                     <CheckboxField
                       key={p.id}
-                      label={p.label}
+                      label={tx(p.label)}
                       checked={c.passIds.includes(p.id)}
                       onChange={(v) =>
                         editCoupon(
@@ -501,7 +503,7 @@ export function AdminSettings() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  aria-label={`Remove code ${c.code}`}
+                  aria-label={tx('Remove code {code}', { code: c.code })}
                   icon={<Trash2 aria-hidden size={16} />}
                   onClick={() => edit((c) => void c.coupons.splice(i, 1))}
                 />
@@ -606,7 +608,7 @@ export function AdminSettings() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    aria-label={`Remove ${m.label}`}
+                    aria-label={tx('Remove {v0}', { v0: tx(m.label) })}
                     icon={<Trash2 aria-hidden size={16} />}
                     onClick={() => edit((c) => void c.payments.methods.splice(i, 1))}
                   />
@@ -615,7 +617,7 @@ export function AdminSettings() {
                   label={tx('Account details')}
                   rows={3}
                   value={m.details}
-                  placeholder={'Account title: …\nIBAN: …'}
+                  placeholder={tx('Account title: …\nIBAN: …')}
                   onChange={(e) => editMethod(i, (x) => void (x.details = e.target.value))}
                 />
               </li>
@@ -828,7 +830,7 @@ export function AdminSettings() {
                 type="number"
                 min={1}
                 max={10}
-                aria-label={`AI actions per ${label.toLowerCase()}`}
+                aria-label={tx('AI actions per {v0}', { v0: label.toLowerCase() })}
                 className="border-line-strong bg-surface h-10 w-24 rounded-sm border px-2"
                 value={draft.aiWeights[key]}
                 onChange={(e) =>
@@ -921,7 +923,7 @@ export function AdminSettings() {
             ).map(([k, label]) => (
               <TextField
                 key={k}
-                label={`${label} ($ per million)`}
+                label={tx('{label} ($ per million)', { label: label })}
                 type="number"
                 min={0}
                 step="0.01"
@@ -964,15 +966,15 @@ export function AdminSettings() {
           {(['approved', 'rejected'] as const).map((k) => (
             <div key={k} className="flex flex-col gap-2" data-testid={`email-${k}`}>
               <h3 className="font-semibold">
-                {k === 'approved' ? 'Payment approved' : 'Payment not confirmed'}
+                {k === 'approved' ? tx('Payment approved') : tx('Payment not confirmed')}
               </h3>
               <TextField
                 label={tx('Subject')}
                 maxLength={160}
                 placeholder={
                   k === 'approved'
-                    ? 'Premium is active — order {order}'
-                    : 'About your order {order}'
+                    ? tx('Premium is active — order {order}')
+                    : tx('About your order {order}')
                 }
                 value={draft.emails[k].subject}
                 onChange={(e) => edit((c) => void (c.emails[k].subject = e.target.value))}
@@ -1040,13 +1042,13 @@ export function AdminSettings() {
             {draft.content.faq.map((f, i) => (
               <li key={i} className="border-line flex flex-col gap-2 rounded-md border p-3">
                 <TextField
-                  label={`Question ${i + 1}`}
+                  label={tx('Question {v0}', { v0: i + 1 })}
                   maxLength={200}
                   value={f.q}
                   onChange={(e) => edit((c) => void (c.content.faq[i]!.q = e.target.value))}
                 />
                 <TextArea
-                  label={`Answer ${i + 1}`}
+                  label={tx('Answer {v0}', { v0: i + 1 })}
                   rows={3}
                   maxLength={1500}
                   value={f.a}
@@ -1057,7 +1059,7 @@ export function AdminSettings() {
                     size="sm"
                     variant="ghost"
                     disabled={i === 0}
-                    aria-label={`Move question ${i + 1} up`}
+                    aria-label={tx('Move question {v0} up', { v0: i + 1 })}
                     onClick={() =>
                       edit((c) => {
                         const a = c.content.faq;
@@ -1071,7 +1073,7 @@ export function AdminSettings() {
                     size="sm"
                     variant="ghost"
                     disabled={i === draft.content.faq.length - 1}
-                    aria-label={`Move question ${i + 1} down`}
+                    aria-label={tx('Move question {v0} down', { v0: i + 1 })}
                     onClick={() =>
                       edit((c) => {
                         const a = c.content.faq;
@@ -1085,7 +1087,7 @@ export function AdminSettings() {
                     size="sm"
                     variant="ghost"
                     icon={<Trash2 aria-hidden size={16} />}
-                    aria-label={`Remove question ${i + 1}`}
+                    aria-label={tx('Remove question {v0}', { v0: i + 1 })}
                     onClick={() => edit((c) => void c.content.faq.splice(i, 1))}
                   >
                     {tx('Remove')}
@@ -1171,7 +1173,9 @@ export function AdminSettings() {
             </p>
           )}
           <span className="text-ink-muted text-sm" aria-live="polite">
-            {dirty ? 'Unsaved changes' : `Version ${base.version} · saved`}
+            {dirty
+              ? tx('Unsaved changes')
+              : tx('Version {version} · saved', { version: base.version })}
           </span>
           <Button
             variant="ghost"
@@ -1209,10 +1213,14 @@ function EmailCheck() {
     <div className="mt-4 flex flex-col gap-2" data-testid="email-check">
       <p className="text-sm">
         {status === null
-          ? 'Checking email…'
+          ? tx('Checking email…')
           : status.configured
-            ? `Buyer emails are on${status.from ? `, sent from ${status.from}` : ''}.`
-            : 'Buyer emails are off: the mailbox password (SMTP_PASSWORD) is not set on the server yet.'}
+            ? tx('Buyer emails are on{v0}.', {
+                v0: status.from ? `, sent from ${status.from}` : '',
+              })
+            : tx(
+                'Buyer emails are off: the mailbox password (SMTP_PASSWORD) is not set on the server yet.',
+              )}
       </p>
       <div>
         <Button

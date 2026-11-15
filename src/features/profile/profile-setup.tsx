@@ -1,6 +1,6 @@
 'use client';
 
-import { useT } from '@/i18n/client';
+import { useLang, useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -14,6 +14,7 @@ import { getRepository, type DocumentSummary } from '@/modules/storage/repositor
 
 /** /profile: open the career profile, or create it from a CV, an import, or from scratch. */
 export function ProfileSetup() {
+  const lang = useLang();
   const t = useT();
   const account = useAccount();
   const router = useRouter();
@@ -34,7 +35,9 @@ export function ProfileSetup() {
 
   const create = (fromId?: string) => {
     const repo = getRepository();
-    const base = fromId ? repo.get(fromId) : createDocument('general');
+    const base = fromId
+      ? repo.get(fromId)
+      : createDocument('general', { locale: lang === 'de' ? 'de-DE' : 'en-GB' });
     if (!base) return;
     const p = makeProfile(base);
     repo.save(p);
@@ -71,7 +74,7 @@ export function ProfileSetup() {
           <ul className="divide-line divide-y">
             {cvs.map((c) => (
               <li key={c.id} className="flex items-center justify-between gap-3 py-2">
-                <span className="min-w-0 truncate">{c.title || c.name || 'Untitled CV'}</span>
+                <span className="min-w-0 truncate">{c.title || c.name || t('Untitled CV')}</span>
                 <button
                   type="button"
                   className="text-primary min-h-10 shrink-0 font-semibold"

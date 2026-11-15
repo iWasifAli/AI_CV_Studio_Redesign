@@ -34,6 +34,9 @@ export type PutResult =
 
 export interface UserStore {
   touchUser(uid: string, info: { email: string | null; name: string | null }): Promise<void>;
+  /** The person's interface language, so emails to them are in it ('en' when never set). */
+  setUserLang(uid: string, lang: 'en' | 'de'): Promise<void>;
+  userLang(uid: string): Promise<'en' | 'de'>;
   /**
    * Account deletion: removes the user record, every CV and version, the pass and usage.
    * Payment requests are kept for accounting with the email removed.

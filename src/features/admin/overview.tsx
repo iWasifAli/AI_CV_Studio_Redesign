@@ -80,7 +80,10 @@ export function AdminOverview() {
           {data.payments.pending > 0 && (
             <Banner
               tone="warning"
-              title={`${data.payments.pending} payment${data.payments.pending === 1 ? '' : 's'} waiting for a check`}
+              title={t('{pending} payment{v1} waiting for a check', {
+                pending: data.payments.pending,
+                v1: data.payments.pending === 1 ? '' : 's',
+              })}
               action={
                 <ButtonLink href="/admin/payments" size="sm">
                   {t('Review payments')}
@@ -91,8 +94,14 @@ export function AdminOverview() {
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4" data-testid="admin-stats">
             <Stat label={t('Accounts')} value={data.users.total} />
             <Stat label={t('Premium active')} value={data.premium.active} />
-            <Stat label={`PDF downloads (${data.month})`} value={data.usage['pdf.download']} />
-            <Stat label={`AI actions (${data.month})`} value={data.usage['ai.action']} />
+            <Stat
+              label={t('PDF downloads ({month})', { month: data.month })}
+              value={data.usage['pdf.download']}
+            />
+            <Stat
+              label={t('AI actions ({month})', { month: data.month })}
+              value={data.usage['ai.action']}
+            />
           </div>
           {data.product && <ProductNumbers list={data.product} />}
           <Numbers n={data.numbers} />
@@ -101,10 +110,13 @@ export function AdminOverview() {
             <ul className="flex flex-wrap gap-2 text-sm">
               <Flag on={data.config.sales} label={t('Premium sales')} />
               <Flag on={data.config.ai} label={t('AI help (setting)')} />
-              <Flag on={data.aiProvider !== 'off'} label={`AI server: ${data.aiProvider}`} />
+              <Flag
+                on={data.aiProvider !== 'off'}
+                label={t('AI server: {aiProvider}', { aiProvider: data.aiProvider })}
+              />
               <Flag
                 on={!data.config.maintenance}
-                label={data.config.maintenance ? 'Maintenance mode' : 'Open'}
+                label={data.config.maintenance ? t('Maintenance mode') : t('Open')}
               />
             </ul>
             <p className="text-ink-muted mt-3 text-sm">
@@ -290,7 +302,7 @@ function Numbers({ n }: { n: Overview['numbers'] }) {
         )}
         {n.aiCost && (
           <p className="mt-3 text-sm" data-testid="ai-cost">
-            {t('AI cost (estimate):{v}', { v: ' ' })}
+            {t('AI cost (estimate):')}{' '}
             <strong className="tabular-nums">
               {t('Rs {v}', { v: n.aiCost.month.pkr.toLocaleString() })}
             </strong>{' '}
@@ -354,7 +366,7 @@ function ProductNumbers({ list }: { list: Num[] }) {
               data-testid={`number-${n.key}`}
               data-status={st}
             >
-              <h3 className="text-sm font-semibold">{n.label}</h3>
+              <h3 className="text-sm font-semibold">{t(n.label)}</h3>
               <span
                 className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${TONE[st].cls}`}
               >

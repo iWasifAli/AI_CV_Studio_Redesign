@@ -1,3 +1,4 @@
+import { looksGerman } from './language';
 /**
  * Deterministic truth guard (docs/engineering/ai-architecture.md → Validation and guards).
  *
@@ -135,6 +136,39 @@ const partsKnown = (w: string, source: Source) =>
   w.split(/[-/]+/).every((p, i) => !p || source.words.has(p) || (i > 0 && GENERIC_PARTS.has(p)));
 
 /** Sentence openers never joined into a flagged name ("A GMC-registered…" flags only the name). */
+/** Capitalised German words that start sentences and greetings, never names. */
+const GERMAN_FUNCTION = new Set([
+  'sehr',
+  'geehrte',
+  'geehrter',
+  'liebe',
+  'lieber',
+  'mit',
+  'freundlichen',
+  'grüßen',
+  'grüße',
+  'ich',
+  'sie',
+  'ihr',
+  'ihre',
+  'ihnen',
+  'wir',
+  'als',
+  'in',
+  'bei',
+  'für',
+  'die',
+  'der',
+  'das',
+  'den',
+  'dem',
+  'ein',
+  'eine',
+  'damen',
+  'herren',
+  'vielen',
+  'dank',
+]);
 const OPENERS = new Set(['a', 'an', 'the', 'my', 'our', 'this', 'as', 'in', 'at', 'with', 'for']);
 
 /** Capitalised words that are not names (still checked if they carry a number). */
@@ -225,6 +259,8 @@ export function guardText(input: string, source: Source): { text: string; findin
   if (last < input.length) segments.push({ text: input.slice(last), keep: false });
 
   const findings: Finding[] = [];
+  // German capitalises every noun, so there a lone capitalised word is not a sign of a name.
+  const german = looksGerman(input);
   const out = segments
     .map((seg, i) => {
       if (seg.keep) return seg.text;
@@ -232,7 +268,7 @@ export function guardText(input: string, source: Source): { text: string; findin
         .slice(0, i)
         .map((s) => s.text)
         .join('');
-      const r = guardSegment(seg.text.replace(/\{\{|\}\}/g, ''), source, before);
+      const r = guardSegment(seg.text.replace(/\{\{|\}\}/g, ''), source, before, german);
       findings.push(...r.findings);
       return r.text;
     })
@@ -240,7 +276,7 @@ export function guardText(input: string, source: Source): { text: string; findin
   return { text: out.replace(/\s{2,}/g, ' ').trim(), findings };
 }
 
-function guardSegment(text: string, source: Source, before: string) {
+function guardSegment(text: string, source: Source, before: string, german = false) {
   const reps: Replace[] = [];
 
   // 1. Numbers (digits, with optional %, k, +). Years get their own message.
@@ -314,8 +350,18 @@ function guardSegment(text: string, source: Source, before: string) {
     const acronym = /^\p{Lu}{2,}/u.test(raw) || /\p{Ll}\p{Lu}/u.test(raw);
     // Another form of an ordinary word in the text ("Parcel" ~ "parcels"), not an acronym.
     const titleCase = !known && capitalised && !acronym && formKnown(w, source);
+    const nextWord = text.slice(end).match(/^\s+(\p{Lu}[\p{L}\p{N}'’&.+#-]*)/u)?.[1];
     const nameLike =
-      capitalised && !titleCase && (!sentenceStart || acronym || (run !== null && !known));
+      capitalised &&
+      !titleCase &&
+      (german
+        ? // German: acronyms, or two capitalised unknown words side by side ("Deutsche Bahn").
+          acronym ||
+          run !== null ||
+          (nextWord !== undefined &&
+            !source.words.has(stripWord(nextWord)) &&
+            !GERMAN_FUNCTION.has(stripWord(nextWord)))
+        : !sentenceStart || acronym || (run !== null && !known));
     if (nameLike && !known && !ALLOW_CAPITALISED.has(w.replace(/’/g, "'"))) {
       // "Amazon Flex …" at the start of a sentence: include the first word too, unless it
       // looks like a verb ("Delivered Amazon …").

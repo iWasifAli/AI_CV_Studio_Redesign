@@ -73,7 +73,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             {t.tone === 'error' && (
               <CircleAlert aria-hidden size={18} className="shrink-0 text-[#f4a39b]" />
             )}
-            <span className="flex-1">{t.message}</span>
+            <span className="flex-1">{tx(t.message)}</span>
             {t.action && (
               <button
                 type="button"
@@ -83,7 +83,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                   dismiss(t.id);
                 }}
               >
-                {t.action.label}
+                {tx(t.action.label)}
               </button>
             )}
             <button

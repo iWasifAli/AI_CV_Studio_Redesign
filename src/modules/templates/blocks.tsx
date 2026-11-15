@@ -1,3 +1,4 @@
+import { cvWords } from '@/modules/resume/cv-words';
 import { cloneElement, type ReactNode } from 'react';
 import type { ResolvedDesign } from './design';
 import type { Contact, REntry, RenderModel, RSection } from './render-model';
@@ -73,7 +74,9 @@ function levelsAsWords(e: REntry): REntry {
   if (!e.levels?.some((l) => l > 0)) return e;
   return {
     ...e,
-    tags: e.tags.map((t, i) => (e.levels![i] ? `${t} (${LEVEL_WORD[e.levels![i]!]})` : t)),
+    tags: e.tags.map((t, i) =>
+      e.levels![i] ? `${t} (${cvWords(e.locale)(LEVEL_WORD[e.levels![i]!] ?? '')})` : t,
+    ),
   };
 }
 
@@ -407,7 +410,10 @@ export function Portrait({
     return (
       <div className={`cv-portrait ${className}`}>
         {/* eslint-disable-next-line @next/next/no-img-element -- static CV document, not app UI */}
-        <img src={model.photo} alt={model.name ? `Photo of ${model.name}` : 'Profile photo'} />
+        <img
+          src={model.photo}
+          alt={model.name ? `Photo of ${model.name}` : cvWords(model.locale)('Profile photo')}
+        />
       </div>
     );
   if (fallback === 'none' || !model.initials) return null;

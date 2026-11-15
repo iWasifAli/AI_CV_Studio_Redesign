@@ -174,7 +174,9 @@ export function JobTools({ job, onJobChange }: { job: Job; onJobChange: (j: Job)
             >
               {cvs.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.role === 'profile' ? 'Career profile' : c.title || c.name || 'Untitled CV'}
+                  {c.role === 'profile'
+                    ? tx('Career profile')
+                    : c.title || c.name || tx('Untitled CV')}
                 </option>
               ))}
             </select>
@@ -206,7 +208,7 @@ export function JobTools({ job, onJobChange }: { job: Job; onJobChange: (j: Job)
               loading={busy === 'match'}
               onClick={checkMatch}
             >
-              {job.match ? 'Check again' : 'Check how my CV matches'}
+              {job.match ? tx('Check again') : tx('Check how my CV matches')}
             </Button>
             <Button
               variant="secondary"
@@ -232,14 +234,14 @@ export function JobTools({ job, onJobChange }: { job: Job; onJobChange: (j: Job)
                 ) : undefined
               }
             >
-              {problem.message}
+              {tx(problem.message)}
             </Banner>
           )}
 
           {job.match && <MatchView match={job.match} cvId={sourceId} />}
           {job.match && ent?.features.skillGap !== false && (
             <p className="text-sm">
-              {tx('Missing some of it?{v}', { v: ' ' })}
+              {tx('Missing some of it?')}{' '}
               <Link href={`/skills?job=${job.id}`} className="text-primary font-semibold underline">
                 {tx('Make a learning plan for this job')}
               </Link>
@@ -438,7 +440,7 @@ function InterviewPrepSection({
         onClick={prepare}
         className="self-start"
       >
-        {prep ? 'New questions' : 'Prepare for the interview'}
+        {prep ? tx('New questions') : tx('Prepare for the interview')}
       </Button>
       {prep && (
         <div className="flex flex-col gap-3" data-testid="interview">
@@ -448,7 +450,7 @@ function InterviewPrepSection({
                 <p className="text-ink-muted text-xs font-semibold tracking-wide uppercase">
                   {KIND_LABEL[q.kind]}
                 </p>
-                <p className="mt-1 font-semibold">{q.question}</p>
+                <p className="mt-1 font-semibold">{tx(q.question)}</p>
                 {q.why && <p className="text-ink-muted mt-1 text-sm">{q.why}</p>}
                 {q.points.length > 0 && (
                   <ul className="mt-2 flex list-disc flex-col gap-1 pl-5 text-sm">
@@ -461,7 +463,7 @@ function InterviewPrepSection({
                 )}
                 {q.evidence.length > 0 && (
                   <p className="text-ink-muted mt-2 text-xs">
-                    {tx('From your CV:{v}', { v: ' ' })}
+                    {tx('From your CV:')}{' '}
                     {q.evidence.map((ev, j) => (
                       <span key={j}>
                         {j > 0 && ' · '}
@@ -626,7 +628,9 @@ function MatchView({ match, cvId }: { match: MatchResult; cvId: string }) {
               >
                 {k.found ? '✓ ' : ''}
                 {k.term}
-                <span className="sr-only">{k.found ? ' (in your CV)' : ' (not in your CV)'}</span>
+                <span className="sr-only">
+                  {k.found ? tx(' (in your CV)') : tx(' (not in your CV)')}
+                </span>
               </li>
             ))}
           </ul>
@@ -745,7 +749,7 @@ function LetterEditor({
                   : 'border-line-strong bg-surface hover:bg-sunken min-h-10 rounded-full border px-3.5 text-sm font-semibold'
               }
             >
-              {t === 'warm' ? 'Warm' : 'Formal'}
+              {t === 'warm' ? tx('Warm') : tx('Formal')}
             </button>
           ))}
         </div>
@@ -761,13 +765,16 @@ function LetterEditor({
         }}
         className="self-start"
       >
-        {draft ? 'Write a new draft' : 'Write a cover letter'}
+        {draft ? tx('Write a new draft') : tx('Write a cover letter')}
       </Button>
 
       {draft && (
         <div className="flex flex-col gap-3" data-testid="letter-editor">
           {asks > 0 && (
-            <Banner tone="warning" title={`${asks} detail${asks > 1 ? 's' : ''} to fill in`}>
+            <Banner
+              tone="warning"
+              title={tx('{asks} detail{v1} to fill in', { asks: asks, v1: asks > 1 ? 's' : '' })}
+            >
               {tx('Replace the highlighted [brackets] with your own details before sending.')}
             </Banner>
           )}
@@ -780,7 +787,7 @@ function LetterEditor({
           {draft.paragraphs.map((p, i) => (
             <TextArea
               key={i}
-              label={`Paragraph ${i + 1}`}
+              label={tx('Paragraph {v0}', { v0: i + 1 })}
               rows={5}
               value={p}
               maxLength={1500}
@@ -819,7 +826,7 @@ function LetterEditor({
               disabled={dirty || busy !== null || !design}
               loading={busy === 'pdf'}
               onClick={pdf}
-              title={dirty ? 'Save the letter first' : undefined}
+              title={dirty ? tx('Save the letter first') : undefined}
             >
               {tx('Download PDF')}
             </Button>

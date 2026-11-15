@@ -43,6 +43,7 @@ function useDocuments() {
 }
 
 function Thumb({ doc, label }: { doc: ResumeDocument; label: string }) {
+  const tx = useT();
   return (
     <Link
       href={`/cv/${doc.id}`}
@@ -56,7 +57,7 @@ function Thumb({ doc, label }: { doc: ResumeDocument; label: string }) {
           decorative
           lazy
           debounceMs={0}
-          title={`Thumbnail of ${doc.title}`}
+          title={tx('Thumbnail of {title}', { title: doc.title })}
         />
       </div>
     </Link>
@@ -64,6 +65,7 @@ function Thumb({ doc, label }: { doc: ResumeDocument; label: string }) {
 }
 
 function Ring({ percent }: { percent: number }) {
+  const tx = useT();
   const r = 34;
   const c = 2 * Math.PI * r;
   return (
@@ -71,7 +73,7 @@ function Ring({ percent }: { percent: number }) {
       viewBox="0 0 80 80"
       className="size-24 shrink-0"
       role="img"
-      aria-label={`Profile ${percent}% complete`}
+      aria-label={tx('Profile {percent}% complete', { percent: percent })}
     >
       <circle cx="40" cy="40" r={r} fill="none" stroke="var(--color-sunken)" strokeWidth="8" />
       <circle
@@ -177,7 +179,7 @@ export function StudioHome() {
   return (
     <div className="mx-auto flex max-w-[1180px] flex-col gap-10 px-4 py-8 md:px-8 md:py-10">
       <h1 className="font-display text-[32px] leading-tight font-semibold tracking-tight sm:text-4xl">
-        {name ? `Welcome back, ${name}` : 'Your studio'}
+        {name ? tx('Welcome back, {name}', { name: name }) : tx('Your studio')}
       </h1>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
@@ -191,7 +193,7 @@ export function StudioHome() {
             </h2>
             <div className="flex gap-4">
               <div className="w-36 shrink-0 sm:w-44">
-                <Thumb doc={latestDoc} label={`Open ${latestDoc.title}`} />
+                <Thumb doc={latestDoc} label={tx('Open {title}', { title: latestDoc.title })} />
               </div>
               <div className="flex min-w-0 flex-1 flex-col justify-center gap-3">
                 <p className="line-clamp-3 text-lg font-semibold break-words">{latestDoc.title}</p>
@@ -216,10 +218,10 @@ export function StudioHome() {
           <h2 id="next" className="text-primary text-sm font-semibold tracking-wide uppercase">
             {tx('Next best step')}
           </h2>
-          <p className="font-display text-2xl font-semibold">{action.title}</p>
-          <p className="text-ink-muted">{action.body}</p>
+          <p className="font-display text-2xl font-semibold">{tx(action.title)}</p>
+          <p className="text-ink-muted">{tx(action.body)}</p>
           <ButtonLink href={action.href} className="self-start">
-            {action.cta}
+            {tx(action.cta)}
           </ButtonLink>
         </section>
       </div>
@@ -244,7 +246,7 @@ export function StudioHome() {
           </li>
           {row.map((d) => (
             <li key={d.id} className="flex flex-col gap-2">
-              <Thumb doc={d} label={`Open ${d.title}`} />
+              <Thumb doc={d} label={tx('Open {title}', { title: d.title })} />
               <span className="truncate text-sm font-semibold">{d.title}</span>
             </li>
           ))}
@@ -275,7 +277,7 @@ export function StudioHome() {
             <Skeleton className="h-16 w-full rounded-md" />
           ) : jobs.length === 0 ? (
             <p className="text-ink-muted">
-              {tx('No jobs yet.{v}', { v: ' ' })}
+              {tx('No jobs yet.')}{' '}
               <Link href="/jobs?new=1" className="text-primary font-semibold hover:underline">
                 {tx('Add one you want')}
               </Link>{' '}
@@ -295,7 +297,7 @@ export function StudioHome() {
           {next && (
             <p className="text-sm" data-testid="next-reminder">
               <Bell aria-hidden size={14} className="text-primary mr-1 inline" />
-              {tx('Next reminder:{v}', { v: ' ' })}
+              {tx('Next reminder:')}{' '}
               <Link href={`/jobs/${next.job.id}`} className="text-primary font-semibold underline">
                 {next.reminder.note}
               </Link>{' '}
@@ -336,9 +338,8 @@ export function StudioHome() {
           ) : (
             <p className="text-ink-muted">
               {tx(
-                'Your career profile holds everything about you once, so every CV and letter starts complete.{v}',
-                { v: ' ' },
-              )}
+                'Your career profile holds everything about you once, so every CV and letter starts complete.',
+              )}{' '}
               <Link href="/profile" className="text-primary font-semibold hover:underline">
                 {tx('Set it up')}
               </Link>
@@ -360,8 +361,8 @@ export function StudioHome() {
                 className="border-line bg-surface hover:border-primary flex h-full flex-col gap-2 rounded-xl border p-5"
               >
                 <t.icon aria-hidden size={22} className="text-primary" />
-                <span className="font-semibold">{t.title}</span>
-                <span className="text-ink-muted text-sm">{t.body}</span>
+                <span className="font-semibold">{tx(t.title)}</span>
+                <span className="text-ink-muted text-sm">{tx(t.body)}</span>
               </Link>
             </li>
           ))}

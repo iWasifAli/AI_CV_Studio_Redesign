@@ -1,3 +1,4 @@
+import { cvWords } from '@/modules/resume/cv-words';
 import { formatPartialDate, formatRange } from '@/modules/resume/dates';
 import {
   LAYOUT_KIND,
@@ -36,6 +37,8 @@ export type REntry = {
   metaHref?: string;
   /** Skill levels 1–5 per tag (0 = not set); present only when the person set levels. */
   levels?: number[];
+  /** The CV's locale, set with levels so level words can be printed in the CV's language. */
+  locale?: string;
   /** Language level as 1–5 (0 = not set). */
   level?: number;
   /** Lines shown as plain text, not as bullet points (declaration, quote, strength). */
@@ -150,6 +153,7 @@ function entriesOf(section: Section, locale: string): REntry[] {
           label: clean(i.label),
           tags: pairs.map((p) => p.k),
           levels: pairs.some((p) => p.l > 0) ? pairs.map((p) => p.l) : undefined,
+          locale,
         };
       });
     case 'languages':
@@ -157,7 +161,7 @@ function entriesOf(section: Section, locale: string): REntry[] {
         ...blank,
         ref: ref(i.id),
         title: clean(i.language),
-        label: clean(i.fluency) || levelLabel(i.level),
+        label: clean(i.fluency) || levelLabel(i.level, locale),
         level: levelValue(i.level),
       }));
     case 'personalDetails':
@@ -233,7 +237,8 @@ const LEVEL_LABEL: Record<string, string> = {
   fluent: 'Fluent',
   native: 'Native',
 };
-const levelLabel = (l?: LanguageLevel) => (l ? (LEVEL_LABEL[l] ?? l) : '');
+const levelLabel = (l: LanguageLevel | undefined, locale: string) =>
+  l ? cvWords(locale)(LEVEL_LABEL[l] ?? l) : '';
 
 /** Only http(s) links are made clickable; anything else stays plain text. */
 function toHref(url: string): string | undefined {
@@ -271,7 +276,7 @@ export function toRenderModel(doc: ResumeDocument): RenderModel {
     sections.push({
       id: 'summary',
       kind: 'summary',
-      title: 'Profile',
+      title: cvWords(doc.locale)('Profile'),
       entries: [],
       text: clean(b.summary),
     });
@@ -373,7 +378,9 @@ export function keyNumbers(
   const projects = count(['projects']);
   if (projects >= 2)
     candidates.push({ value: String(projects).padStart(2, '0'), label: 'Projects' });
+  const w = cvWords(doc.locale);
   for (const c of candidates)
-    if (out.length < 3 && !out.some((o) => o.label === c.label)) out.push(c);
+    if (out.length < 3 && !out.some((o) => o.label === w(c.label)))
+      out.push({ ...c, label: w(c.label) });
   return out;
 }

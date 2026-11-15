@@ -80,7 +80,7 @@ export function DescribeBox({ onCreate }: { onCreate: (href: string) => void }) 
       </form>
       {error ? (
         <p role="alert" className="text-danger text-[15px]">
-          {error}
+          {t(error)}
         </p>
       ) : (
         <p className="text-ink-muted text-sm">

@@ -182,7 +182,7 @@ export function TagsField({
               <Chip
                 mode="remove"
                 selected
-                aria-label={`Remove ${v}`}
+                aria-label={t('Remove {v}', { v: v })}
                 onClick={() => onChange(value.filter((_, k) => k !== i))}
               >
                 {v}

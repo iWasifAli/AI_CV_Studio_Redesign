@@ -176,12 +176,12 @@ export const ContentPanel = forwardRef<ContentPanelHandle, { editor: DocumentEdi
                 ...others.map((k) => ({ kind: k, title: KIND_INFO[k].title })),
               ]
                 .filter((opt) =>
-                  `${opt.title} ${KIND_INFO[opt.kind].description}`
+                  `${t(opt.title)} ${KIND_INFO[opt.kind].description}`
                     .toLowerCase()
                     .includes(filter.trim().toLowerCase()),
                 )
                 .map((opt) => (
-                  <li key={`${opt.kind}-${opt.title}`}>
+                  <li key={`${opt.kind}-${t(opt.title)}`}>
                     <button
                       type="button"
                       onClick={() => {
@@ -190,7 +190,7 @@ export const ContentPanel = forwardRef<ContentPanelHandle, { editor: DocumentEdi
                       }}
                       className="border-line hover:border-primary hover:bg-primary-soft flex min-h-12 w-full flex-col items-start rounded-md border px-3 py-2 text-left"
                     >
-                      <span className="font-semibold">{opt.title}</span>
+                      <span className="font-semibold">{t(opt.title)}</span>
                       <span className="text-ink-muted text-sm">
                         {KIND_INFO[opt.kind].description}
                       </span>

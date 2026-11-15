@@ -111,7 +111,7 @@ function CandidateCard({
           firstPageOnly
           onStatus={onStatus}
           decorative
-          title={`${c.name} design preview`}
+          title={t('{name} design preview', { name: c.name })}
         />
       </div>
       <div className="flex min-w-0 flex-col gap-1">
@@ -124,7 +124,9 @@ function CandidateCard({
           )}
         </p>
         <p className="text-ink-muted text-sm">
-          {c.fallback ? `The closest design from our catalogue: ${c.name}.` : c.explanation}
+          {c.fallback
+            ? t('The closest design from our catalogue: {name}.', { name: c.name })
+            : c.explanation}
         </p>
         {c.unmet.map((u) => (
           <p
@@ -139,7 +141,7 @@ function CandidateCard({
           size="sm"
           className="mt-1 self-start"
           onClick={() => onUse(spec)}
-          aria-label={`Use the ${c.name} design`}
+          aria-label={t('Use the {name} design', { name: c.name })}
         >
           {t('Use this')}
         </Button>
@@ -412,7 +414,7 @@ export function Designer({ editor }: { editor: DocumentEditor }) {
             disabled={!canCompose}
             icon={<Wand2 aria-hidden size={16} />}
           >
-            {busy === 'compose' ? 'Designing…' : 'Design it'}
+            {busy === 'compose' ? t('Designing…') : t('Design it')}
           </Button>
         </div>
       </form>
@@ -501,7 +503,7 @@ export function Designer({ editor }: { editor: DocumentEditor }) {
           variant="secondary"
           disabled={refineText.trim().length < 2 || busy !== null}
         >
-          {busy === 'refine' ? 'Changing…' : 'Change'}
+          {busy === 'refine' ? t('Changing…') : t('Change')}
         </Button>
       </form>
       {note && (

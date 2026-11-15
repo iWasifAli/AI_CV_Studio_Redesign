@@ -140,7 +140,7 @@ export function TranslateButton({ doc }: { doc: ResumeDocument }) {
               )}
               {premiumOnly ? (
                 <p className="text-sm">
-                  {t('Translation is part of{v}', { v: ' ' })}
+                  {t('Translation is part of')}{' '}
                   <Link href="/premium" className="text-primary font-semibold">
                     {t('Premium')}
                   </Link>
@@ -166,7 +166,10 @@ export function TranslateButton({ doc }: { doc: ResumeDocument }) {
           ) : (
             <div className="flex flex-col gap-4" data-testid="translate-review">
               {kept > 0 && (
-                <Banner tone="warning" title={`${kept} piece${kept === 1 ? '' : 's'} need you`}>
+                <Banner
+                  tone="warning"
+                  title={t('{kept} piece{v1} need you', { kept: kept, v1: kept === 1 ? '' : 's' })}
+                >
                   {t(
                     'These couldn’t be translated safely (a name or number would have changed). Write them yourself, or leave them empty to keep the original.',
                   )}
@@ -186,11 +189,11 @@ export function TranslateButton({ doc }: { doc: ResumeDocument }) {
                       {p.original}
                     </p>
                     <textarea
-                      aria-label={`Translation of: ${p.original.slice(0, 60)}`}
+                      aria-label={t('Translation of: {v0}', { v0: p.original.slice(0, 60) })}
                       className={`bg-surface min-h-10 rounded-md border px-2 py-1.5 ${p.kept && !p.text.trim() ? 'border-warning' : 'border-line-strong'}`}
                       rows={Math.min(6, Math.max(1, Math.ceil(p.original.length / 60)))}
                       value={p.text}
-                      placeholder={p.kept ? 'Write the translation (or keep the original)' : ''}
+                      placeholder={p.kept ? t('Write the translation (or keep the original)') : ''}
                       onChange={(e) =>
                         setPieces((all) =>
                           all!.map((x, j) => (j === i ? { ...x, text: e.target.value } : x)),

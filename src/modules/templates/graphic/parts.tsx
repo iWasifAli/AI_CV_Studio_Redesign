@@ -4,6 +4,7 @@
  * appear only for skills the person gave a level, and key numbers come from what they entered or
  * from counts in the CV (never invented).
  */
+import { cvWords } from '@/modules/resume/cv-words';
 import type { ReactNode } from 'react';
 import {
   ContactList,
@@ -58,7 +59,7 @@ export function SplitName({
   /** A full stop or star after the last name (decorative, hidden from screen readers). */
   stop?: string;
 }) {
-  const first = model.firstName || model.name || 'Your name';
+  const first = model.firstName || model.name || cvWords(model.locale)('Your name');
   const last = model.lastName;
   return (
     <h1 className={className} style={{ ['--ns' as string]: nameScale(model) }}>
@@ -85,7 +86,7 @@ export function SplitName({
  * never run into the photo or the band below. Returns a font-size multiplier.
  */
 export function nameScale(model: RenderModel): number {
-  const name = model.name || 'Your name';
+  const name = model.name || cvWords(model.locale)('Your name');
   const longest = Math.max(...name.split(/[\s-]+/).map((w) => w.length));
   const len = name.length;
   let k = len <= 14 ? 1 : len <= 20 ? 0.84 : len <= 28 ? 0.68 : len <= 40 ? 0.54 : 0.44;
@@ -179,7 +180,7 @@ function SkillGroup({ e, look }: { e: REntry; look: SkillLook }) {
                 className="g-ring"
                 style={{ ['--p' as string]: `${r.l * 20}` }}
                 role="img"
-                aria-label={`${r.t}: ${LEVEL_WORD[r.l]}`}
+                aria-label={`${r.t}: ${cvWords(e.locale)(LEVEL_WORD[r.l] ?? '')}`}
               >
                 <span className="g-ring-in">
                   {r.l}
@@ -200,7 +201,9 @@ function SkillGroup({ e, look }: { e: REntry; look: SkillLook }) {
           <li key={i}>
             <span className="g-meter-l">
               {r.t}
-              {r.l > 0 && <span className="g-sr"> — {LEVEL_WORD[r.l]}</span>}
+              {r.l > 0 && (
+                <span className="g-sr"> — {cvWords(e.locale)(LEVEL_WORD[r.l] ?? '')}</span>
+              )}
             </span>
             {r.l > 0 &&
               (look === 'bars' ? (

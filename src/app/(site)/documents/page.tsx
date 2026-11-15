@@ -5,7 +5,10 @@ import { Container } from '@/components/ui/misc';
 import { Suspense } from 'react';
 import { DocumentsHubClient } from '@/features/library/client';
 
-export const metadata: Metadata = { title: 'Documents', robots: { index: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t('Documents'), robots: { index: false } };
+}
 
 export default async function DocumentsPage() {
   const t = await getT();

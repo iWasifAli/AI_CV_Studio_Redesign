@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useId, useRef, type KeyboardEvent } from 'react';
 import { cn } from '@/lib/cn';
 
@@ -21,6 +22,7 @@ export function Segmented<T extends string>({
   onChange,
   className,
 }: SegmentedProps<T>) {
+  const tr = useT();
   const id = useId();
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
 
@@ -44,7 +46,7 @@ export function Segmented<T extends string>({
   return (
     <div className={cn('flex flex-col gap-1.5', className)}>
       <span id={id} className="text-ink text-sm font-semibold">
-        {label}
+        {tr(label)}
       </span>
       <div
         role="radiogroup"
@@ -70,7 +72,7 @@ export function Segmented<T extends string>({
                 checked ? 'bg-surface text-ink shadow-1' : 'text-ink-muted hover:text-ink',
               )}
             >
-              {opt.label}
+              {tr(opt.label)}
             </button>
           );
         })}

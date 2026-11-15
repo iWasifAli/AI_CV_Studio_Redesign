@@ -28,7 +28,7 @@ export function SaveStatus({ state }: { state: DocumentEditor['saveState'] }) {
         <>
           <Cloud aria-hidden size={16} />{' '}
           <span className="hidden sm:inline">
-            {signedIn ? 'Saved to your account' : 'Saved on this device'}
+            {signedIn ? t('Saved to your account') : t('Saved on this device')}
           </span>
           <span className="sm:hidden">{t('Saved')}</span>
         </>

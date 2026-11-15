@@ -69,7 +69,7 @@ function MeridianMini() {
         {[0, 1].map((k) => (
           <div key={k} className="flex flex-col gap-2">
             <div className="text-[8px] font-bold tracking-[0.1em] text-[#1e5a55] uppercase">
-              {k === 0 ? 'Experience' : 'Education'}
+              {k === 0 ? tx('Experience') : tx('Education')}
             </div>
             <Line w="62%" tone="bg-[#9db1ad]" />
             <Bullets rows={k === 0 ? ['95%', '88%', '70%'] : ['80%']} />
@@ -108,7 +108,7 @@ function HeritageMini() {
       {[0, 1].map((k) => (
         <div key={k} className="flex w-full flex-col gap-2">
           <div className="text-center text-[7.5px] tracking-[0.2em] text-[#8a6a3a] uppercase">
-            {k === 0 ? 'Leadership' : 'Board roles'}
+            {k === 0 ? tx('Leadership') : tx('Board roles')}
           </div>
           <Line w="100%" />
           <Line w="90%" />

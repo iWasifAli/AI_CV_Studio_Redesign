@@ -22,12 +22,17 @@ import {
 type Kind = SectionKind | 'summary' | 'contact';
 /** Lower-case letters only; "&" and "and" are the same. */
 /** Decorative lines above a name in graphic designs. */
-const EYEBROW = /^(?:hello,? i['’]?m|the story of|curriculum vitae|cv(?: \d{4})?|r[ée]sum[ée])$/i;
+const EYEBROW =
+  /^(?:hello,? i['’]?m|the story of|curriculum vitae|cv(?: \d{4})?|r[ée]sum[ée]|lebenslauf|tabellarischer lebenslauf)$/i;
 const headingKey = (s: string) =>
   s
     .toLowerCase()
+    .replace(/ä/g, 'ae')
+    .replace(/ö/g, 'oe')
+    .replace(/ü/g, 'ue')
+    .replace(/ß/g, 'ss')
     .replace(/&/g, ' and ')
-    .replace(/\band\b/g, '')
+    .replace(/\b(?:and|und)\b/g, '')
     .replace(/[^a-z]/g, '');
 
 /** Heading words → section kind. Keys are lower-case letters only (handles "W O R K  H I S T O R Y"). */
@@ -246,6 +251,138 @@ add(
   'personal information and interests',
 );
 
+// German CVs (Lebenslauf): the same kinds, with German default names.
+add(
+  'summary',
+  'Profil',
+  'profil',
+  'kurzprofil',
+  'über mich',
+  'zusammenfassung',
+  'berufliches profil',
+  'persönliches profil',
+  'karriereziel',
+);
+add(
+  'contact',
+  'Kontakt',
+  'kontakt',
+  'kontaktdaten',
+  'persönliche angaben',
+  'persönliche daten',
+  'angaben zur person',
+);
+add(
+  'experience',
+  'Berufserfahrung',
+  'berufserfahrung',
+  'berufliche erfahrung',
+  'beruflicher werdegang',
+  'werdegang',
+  'berufspraxis',
+  'beschäftigungsverlauf',
+  'praxiserfahrung',
+  'berufliche stationen',
+  'erfahrung',
+);
+add(
+  'education',
+  'Ausbildung',
+  'ausbildung',
+  'bildungsweg',
+  'schulbildung',
+  'studium',
+  'schul und berufsausbildung',
+  'akademischer werdegang',
+  'bildung',
+  'schulische ausbildung',
+  'hochschulbildung',
+  'aus und weiterbildung',
+);
+add(
+  'skills',
+  'Kenntnisse',
+  'kenntnisse',
+  'fähigkeiten',
+  'kompetenzen',
+  'fachkenntnisse',
+  'besondere kenntnisse',
+  'edv kenntnisse',
+  'it kenntnisse',
+  'fachliche kompetenzen',
+  'kenntnisse und fähigkeiten',
+  'fähigkeiten und kenntnisse',
+  'qualifikationen',
+  'schlüsselqualifikationen',
+  'stärken',
+);
+add(
+  'languages',
+  'Sprachen',
+  'sprachen',
+  'sprachkenntnisse',
+  'fremdsprachen',
+  'fremdsprachenkenntnisse',
+);
+add('certifications', 'Zertifikate', 'zertifikate', 'zertifizierungen', 'zertifikate und lizenzen');
+add(
+  'licences',
+  'Führerscheine',
+  'führerschein',
+  'führerscheine',
+  'fahrerlaubnis',
+  'führerscheinklassen',
+);
+add('projects', 'Projekte', 'projekte', 'ausgewählte projekte', 'projekterfahrung');
+add(
+  'volunteering',
+  'Ehrenamt',
+  'ehrenamt',
+  'ehrenamtliches engagement',
+  'ehrenamtliche tätigkeiten',
+  'soziales engagement',
+  'engagement',
+);
+add(
+  'awards',
+  'Auszeichnungen',
+  'auszeichnungen',
+  'preise',
+  'preise und auszeichnungen',
+  'ehrungen',
+);
+add('references', 'Referenzen', 'referenzen');
+add('publications', 'Veröffentlichungen', 'veröffentlichungen', 'publikationen');
+add(
+  'courses',
+  'Weiterbildungen',
+  'weiterbildung',
+  'weiterbildungen',
+  'fortbildungen',
+  'fort und weiterbildung',
+  'kurse',
+  'seminare',
+  'schulungen',
+);
+add('memberships', 'Mitgliedschaften', 'mitgliedschaften', 'mitgliedschaft');
+add('conferences', 'Konferenzen & Vorträge', 'vorträge', 'konferenzen', 'konferenzen und vorträge');
+add('patents', 'Patente', 'patente');
+add('military', 'Wehrdienst', 'wehrdienst', 'zivildienst', 'bundeswehr', 'wehr und zivildienst');
+add('internships', 'Praktika', 'praktika', 'praktikum', 'praktische erfahrung');
+add(
+  'interests',
+  'Interessen',
+  'interessen',
+  'hobbys',
+  'freizeit',
+  'hobbys und interessen',
+  'interessen und hobbys',
+  'freizeitaktivitäten',
+);
+add('achievements', 'Wichtigste Erfolge', 'erfolge', 'wichtigste erfolge', 'berufliche erfolge');
+add('declaration', 'Erklärung', 'erklärung');
+add('custom', 'Sonstiges', 'sonstiges', 'weitere angaben', 'sonstige kenntnisse');
+
 export function headingOf(line: string): { kind: Kind; title: string } | null {
   if (line.startsWith(SPACED_MARK)) {
     const words = line.slice(1);
@@ -262,20 +399,35 @@ export function headingOf(line: string): { kind: Kind; title: string } | null {
 // ---------- dates ----------
 
 const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+/** German month names that don't start like the English ones. */
+const MONTHS_DE: Record<string, number> = { jän: 1, mär: 3, mae: 3, mai: 5, okt: 10, dez: 12 };
 const MONTH =
-  '(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\\.?';
-const POINT = `(?:${MONTH}\\s*,?\\s*\\d{4}|\\d{1,2}\\s*[/.]\\s*\\d{4}|\\d{4}\\s*-\\s*(?:0[1-9]|1[0-2])(?!\\d)|(?:19|20)\\d{2})`;
-const NOW = '(?:present|current|now|today|to date|ongoing|date)';
-const RANGE = new RegExp(`(${POINT})\\s*(?:–|—|-|to|until|till)\\s*(${POINT}|${NOW})`, 'i');
+  '(?:jan(?:uary|uar)?|jän(?:ner)?|feb(?:ruary|ruar)?|mar(?:ch)?|mär(?:z)?|maerz|apr(?:il)?|may|mai|june?|juni|july?|juli|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|okt(?:ober)?|nov(?:ember)?|dec(?:ember)?|dez(?:ember)?)\\.?';
+const POINT = `(?:${MONTH}\\s*,?\\s*\\d{4}|\\d{1,2}\\.\\d{1,2}\\.\\d{4}|\\d{1,2}\\s*[/.]\\s*\\d{4}|\\d{4}\\s*-\\s*(?:0[1-9]|1[0-2])(?!\\d)|(?:19|20)\\d{2})`;
+const NOW =
+  '(?:present|current|now|today|to date|ongoing|date|heute|bis heute|aktuell|derzeit|jetzt|laufend|dato)';
+const RANGE = new RegExp(
+  `(?:seit\\s+|von\\s+|ab\\s+)?(${POINT})\\s*(?:–|—|-|to|until|till|bis)\\s*(${POINT}|${NOW})`,
+  'i',
+);
+/** German "seit 03/2019" (since): an open range. */
+const SINCE = new RegExp(`\\bseit\\s+(${POINT})`, 'i');
 const SINGLE = new RegExp(`(?:^|[\\s(·|,])(${POINT})(?=$|[\\s)·|,])`, 'i');
 
 /** "Sep 2020" → "2020-09"; "2019" → "2019"; "03/2021" → "2021-03". */
 export function toPartial(raw: string): string {
   const s = raw.trim().toLowerCase();
-  let m = s.match(/^([a-z]+)\.?\s*,?\s*(\d{4})$/);
+  let m = s.match(/^([a-zäö]+)\.?\s*,?\s*(\d{4})$/);
   if (m) {
-    const i = MONTHS.indexOf(m[1]!.slice(0, 3));
-    return i >= 0 ? `${m[2]}-${String(i + 1).padStart(2, '0')}` : (m[2] ?? '');
+    const k = m[1]!.slice(0, 3);
+    const i = MONTHS.indexOf(k);
+    const n = i >= 0 ? i + 1 : (MONTHS_DE[k] ?? 0);
+    return n ? `${m[2]}-${String(n).padStart(2, '0')}` : (m[2] ?? '');
+  }
+  m = s.match(/^\d{1,2}\.(\d{1,2})\.(\d{4})$/);
+  if (m) {
+    const mo = Number(m[1]);
+    return mo >= 1 && mo <= 12 ? `${m[2]}-${String(mo).padStart(2, '0')}` : (m[2] ?? '');
   }
   m = s.match(/^(\d{1,2})\s*[/.]\s*(\d{4})$/);
   if (m) {
@@ -309,6 +461,14 @@ export function findDates(line: string): FoundDates {
       rest: tidy(line.replace(r[0], ' ')),
     };
   }
+  const since = line.match(SINCE);
+  if (since)
+    return {
+      start: toPartial(since[1]!),
+      end: '',
+      current: true,
+      rest: tidy(line.replace(since[0], ' ')),
+    };
   const one = line.match(SINGLE);
   if (one) {
     // A lone 4-digit number inside a sentence is more likely content than a date.
@@ -611,7 +771,7 @@ function skillItems(lines: { text: string; bullet: boolean }[]): SkillGroupItem[
 }
 
 const FLUENCY =
-  /\b(native|mother tongue|bilingual|fluent|proficient|advanced|upper[- ]intermediate|intermediate|conversational|basic|beginner|elementary|working knowledge|professional working|limited working|full professional|[ABC][12])\b.*$/i;
+  /\b(native|mother tongue|bilingual|fluent|proficient|advanced|upper[- ]intermediate|intermediate|conversational|basic|beginner|elementary|working knowledge|professional working|limited working|full professional|[ABC][12]|muttersprache|fließend|fliessend|verhandlungssicher|sehr gut|gut|grundkenntnisse|gute kenntnisse|sehr gute kenntnisse|erweiterte kenntnisse)\b.*$/i;
 
 function languageItems(lines: { text: string; bullet: boolean }[]): LanguageItem[] {
   const out: LanguageItem[] = [];
@@ -1054,7 +1214,7 @@ const initials = (name: string) =>
     .toUpperCase();
 
 const JOB_WORDS =
-  /\b(?:driver|teacher|engineer|manager|nurse|officer|assistant|developer|designer|analyst|consultant|director|graduate|student|accountant|executive|specialist|operative|technician|lead|cv|resume|curriculum|vitae)\b/i;
+  /\b(?:driver|teacher|engineer|manager|nurse|officer|assistant|developer|designer|analyst|consultant|director|graduate|student|accountant|executive|specialist|operative|technician|lead|cv|resume|curriculum|vitae|lebenslauf|fahrer|lehrer(?:in)?|ingenieur(?:in)?|pflegefachkraft|entwickler(?:in)?|berater(?:in)?|kauffrau|kaufmann|leiter(?:in)?|elektriker(?:in)?)\b/i;
 
 /** Index of the line that looks most like a person's name (or -1). */
 function pickName(lines: { text: string; contact: boolean }[]): number {
@@ -1104,4 +1264,24 @@ function joinSpacedHeadings(lines: string[]): string[] {
     out.push(SPACED_MARK + parts.map((p) => p.replace(/\s/g, '')).join(' '));
   }
   return out;
+}
+
+const GERMAN_WORDS =
+  /\b(?:und|der|die|das|mit|für|bei|von|seit|bis|heute|berufserfahrung|ausbildung|kenntnisse|sprachen|lebenslauf|verantwortlich|betreuung|erstellung|durchführung|mitarbeiter(?:in)?|gmbh|deutsch|englisch)\b/gi;
+const ENGLISH_WORDS =
+  /\b(?:and|the|with|for|from|to|of|in|present|experience|education|skills|languages|responsible|managed|led|delivered)\b/gi;
+
+/**
+ * The CV's language from its own words: German when German function words clearly outnumber
+ * English ones. Returns a locale for that language, keeping the region from `fallback` when it fits.
+ */
+export function detectCvLocale(lines: string[], fallback: string): string {
+  const text = lines.join(' ');
+  const de = text.match(GERMAN_WORDS)?.length ?? 0;
+  const en = text.match(ENGLISH_WORDS)?.length ?? 0;
+  const region = fallback.split('-')[1] ?? '';
+  if (de >= 5 && de > en * 1.5)
+    return ['DE', 'AT', 'CH', 'LU', 'LI'].includes(region) ? `de-${region}` : 'de-DE';
+  if (en >= 5 && en > de * 1.5 && fallback.startsWith('de')) return 'en-GB';
+  return fallback;
 }

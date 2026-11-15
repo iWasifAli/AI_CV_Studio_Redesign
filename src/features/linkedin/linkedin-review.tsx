@@ -169,10 +169,9 @@ export function LinkedinReview() {
         <ol className="text-ink-muted flex list-decimal flex-col gap-1 pl-5 text-sm">
           <li>{t('On LinkedIn, open your own profile.')}</li>
           <li>
-            {t('Press')} <strong className="text-ink">{t('More')}</strong> {t('(or{v}', { v: ' ' })}
+            {t('Press')} <strong className="text-ink">{t('More')}</strong> {t('(or')}{' '}
             <strong className="text-ink">{t('Resources')}</strong>
-            {t('), then{v}', { v: ' ' })}
-            <strong className="text-ink">{t('Save to PDF')}</strong>.
+            {t('), then')} <strong className="text-ink">{t('Save to PDF')}</strong>.
           </li>
           <li>{t('Upload that file here. We read it and don’t keep it.')}</li>
         </ol>
@@ -182,7 +181,7 @@ export function LinkedinReview() {
             icon={<FileUp aria-hidden size={18} />}
             onClick={() => input.current?.click()}
           >
-            {file ? 'Choose another file' : 'Choose the PDF'}
+            {file ? t('Choose another file') : t('Choose the PDF')}
           </Button>
           <input
             ref={input}
@@ -197,7 +196,7 @@ export function LinkedinReview() {
             }}
           />
           <span className="text-sm" data-testid="linkedin-file">
-            {file ? file.name : 'No file chosen'}
+            {file ? file.name : t('No file chosen')}
           </span>
         </div>
         {cvs.length > 0 && (
@@ -211,7 +210,9 @@ export function LinkedinReview() {
               <option value="">{t('Don’t compare')}</option>
               {cvs.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.role === 'profile' ? 'Career profile' : c.title || c.name || 'Untitled CV'}
+                  {c.role === 'profile'
+                    ? t('Career profile')
+                    : c.title || c.name || t('Untitled CV')}
                 </option>
               ))}
             </select>
@@ -286,7 +287,10 @@ export function LinkedinReview() {
           </div>
           {review.overall && <p className="text-[17px] leading-relaxed">{review.overall}</p>}
           {asks > 0 && (
-            <Banner tone="warning" title={`${asks} detail${asks > 1 ? 's' : ''} to check`}>
+            <Banner
+              tone="warning"
+              title={t('{asks} detail{v1} to check', { asks: asks, v1: asks > 1 ? 's' : '' })}
+            >
               {t(
                 'Replace or remove the parts in [brackets] before you paste. They mark facts that aren’t in your profile or CV.',
               )}
@@ -307,7 +311,7 @@ export function LinkedinReview() {
                           st.className,
                         )}
                       >
-                        <Icon aria-hidden size={14} /> {st.label}
+                        <Icon aria-hidden size={14} /> {t(st.label)}
                       </span>
                     </div>
                     {s.current && (
@@ -327,7 +331,7 @@ export function LinkedinReview() {
                     )}
                     {s.rewrite && (
                       <CopyField
-                        label={`Suggested text — ${s.title}`}
+                        label={t('Suggested text — {title}', { title: s.title })}
                         value={s.rewrite}
                         limit={LINKEDIN_LIMITS[s.key]}
                         rows={s.key === 'about' ? 10 : s.key === 'headline' ? 2 : 4}

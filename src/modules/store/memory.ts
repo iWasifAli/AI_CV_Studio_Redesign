@@ -227,6 +227,7 @@ export class MemoryUserStore implements UserStore {
   }
 
   async deleteUserData(uid: string) {
+    this.langs.delete(uid);
     this.users.delete(uid);
     this.seen.delete(uid);
     this.activity.delete(uid);
@@ -249,6 +250,14 @@ export class MemoryUserStore implements UserStore {
     this.referredBy.delete(uid);
     for (const k of [...this.usage.keys()]) if (k.startsWith(`${uid}/`)) this.usage.delete(k);
     for (const p of this.payments) if (p.uid === uid) p.email = null;
+  }
+
+  private langs = new Map<string, 'en' | 'de'>();
+  async setUserLang(uid: string, lang: 'en' | 'de') {
+    this.langs.set(uid, lang);
+  }
+  async userLang(uid: string) {
+    return this.langs.get(uid) ?? 'en';
   }
 
   async knownUser(uid: string) {

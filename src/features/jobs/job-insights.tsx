@@ -68,7 +68,7 @@ export function JobInsights() {
   if (error && !data)
     return (
       <Banner tone={error.off ? 'info' : 'error'} title={error.message}>
-        {error.off ? 'Your job tracker still works as usual.' : undefined}
+        {error.off ? t('Your job tracker still works as usual.') : undefined}
       </Banner>
     );
   if (!data)
@@ -129,8 +129,13 @@ export function JobInsights() {
         </dl>
         <p className="text-ink-muted text-sm" data-testid="reply-time">
           {s.medianDaysToReply !== null
-            ? `Replies usually came ${s.medianDaysToReply === 0 ? 'the same day' : `${plural(s.medianDaysToReply, 'day')} after you applied`} (the middle value).`
-            : 'Once two employers have answered, you’ll see how long replies usually take.'}
+            ? t('Replies usually came {v0} (the middle value).', {
+                v0:
+                  s.medianDaysToReply === 0
+                    ? 'the same day'
+                    : `${plural(s.medianDaysToReply, 'day')} after you applied`,
+              })
+            : t('Once two employers have answered, you’ll see how long replies usually take.')}
         </p>
       </section>
 
@@ -153,7 +158,7 @@ export function JobInsights() {
                     </Link>
                     <select
                       className="border-line-strong bg-surface h-9 rounded-sm border px-1.5"
-                      aria-label={`How it ended: ${j.title}`}
+                      aria-label={t('How it ended: {title}', { title: j.title })}
                       defaultValue=""
                       onChange={(e) =>
                         e.target.value && void setOutcome(j.id, e.target.value as JobOutcome)
@@ -177,7 +182,7 @@ export function JobInsights() {
             <p className="text-sm" data-testid="no-cv">
               {plural(s.noCv.length, 'application')} {s.noCv.length === 1 ? 'has' : 'have'}{' '}
               {t('no CV ticked, so')} {s.noCv.length === 1 ? 'it' : 'they'}{' '}
-              {t('can’t be compared:{v}', { v: ' ' })}
+              {t('can’t be compared:')}{' '}
               {s.noCv.map((j, i) => (
                 <span key={j.id}>
                   {i > 0 && ', '}
@@ -225,7 +230,9 @@ export function JobInsights() {
         <div
           className="flex h-28 items-end gap-1.5"
           role="img"
-          aria-label={`Applications per week for the last 12 weeks: ${s.weeks.map((w) => `${weekLabel(w.start)} ${w.count}`).join(', ')}`}
+          aria-label={t('Applications per week for the last 12 weeks: {v0}', {
+            v0: s.weeks.map((w) => `${weekLabel(w.start)} ${w.count}`).join(', '),
+          })}
           data-testid="weeks"
         >
           {s.weeks.map((w) => (
@@ -324,7 +331,7 @@ function GroupTable({
       <ul className="flex flex-col sm:hidden" data-testid={`${testId}-list`}>
         {rows.map((r) => (
           <li key={r.key} className="border-line border-b py-2 text-sm last:border-0">
-            <p className="font-semibold">{r.label}</p>
+            <p className="font-semibold">{t(r.label)}</p>
             <p className="text-ink-muted tabular-nums">
               {t('{sent} sent · {replies}', { sent: r.sent, replies: r.replies })}{' '}
               {r.replies === 1 ? 'reply' : 'replies'}
@@ -342,13 +349,13 @@ function GroupTable({
         className="focus-visible:outline-primary hidden overflow-x-auto rounded-sm focus-visible:outline-2 sm:block"
         tabIndex={0}
         role="region"
-        aria-label={`${title}: table`}
+        aria-label={t('{title}: table', { title: title })}
       >
         <table className="w-full min-w-[520px] text-sm" data-testid={testId}>
           <thead>
             <tr className="text-ink-muted border-line border-b text-left">
               <th scope="col" className="py-2 pr-3 font-semibold">
-                {title === 'By CV' ? 'CV' : 'Design'}
+                {title === 'By CV' ? 'CV' : t('Design')}
               </th>
               <th scope="col" className="px-2 py-2 text-right font-semibold">
                 {t('Sent')}
@@ -368,7 +375,7 @@ function GroupTable({
             {rows.map((r) => (
               <tr key={r.key} className="border-line border-b last:border-0">
                 <th scope="row" className="py-2 pr-3 text-left font-semibold">
-                  {r.label}
+                  {t(r.label)}
                   {r.sent < FEW && (
                     <span className="text-ink-subtle block text-xs font-normal">
                       {t('Too few to compare yet')}

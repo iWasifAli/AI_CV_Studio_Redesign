@@ -136,19 +136,19 @@ export function SectionCard({ editor, section, index, count, preset, expanded, t
           </h3>
         )}
         <IconButton
-          label={`Move “${section.title}” up`}
+          label={t('Move “{title}” up', { title: section.title })}
           icon={<ArrowUp aria-hidden size={18} />}
           disabled={index === 0}
           onClick={() => update((d) => ops.moveSection(d, section.id, -1))}
         />
         <IconButton
-          label={`Move “${section.title}” down`}
+          label={t('Move “{title}” down', { title: section.title })}
           icon={<ArrowDown aria-hidden size={18} />}
           disabled={index === count - 1}
           onClick={() => update((d) => ops.moveSection(d, section.id, 1))}
         />
         <Menu
-          label={`More options for “${section.title}”`}
+          label={t('More options for “{title}”', { title: section.title })}
           items={[
             {
               label: 'Rename section',
@@ -251,14 +251,14 @@ export function SectionCard({ editor, section, index, count, preset, expanded, t
                   <>
                     <IconButton
                       size="sm"
-                      label={`Move ${title} up`}
+                      label={t('Move {title} up', { title: title })}
                       icon={<ArrowUp aria-hidden size={16} />}
                       disabled={i === 0}
                       onClick={() => update((d) => ops.moveItem(d, section.id, item.id, -1))}
                     />
                     <IconButton
                       size="sm"
-                      label={`Move ${title} down`}
+                      label={t('Move {title} down', { title: title })}
                       icon={<ArrowDown aria-hidden size={16} />}
                       disabled={i === section.items.length - 1}
                       onClick={() => update((d) => ops.moveItem(d, section.id, item.id, 1))}
@@ -267,7 +267,7 @@ export function SectionCard({ editor, section, index, count, preset, expanded, t
                 )}
                 <IconButton
                   size="sm"
-                  label={`Remove ${title}`}
+                  label={t('Remove {title}', { title: title })}
                   icon={<Trash2 aria-hidden size={16} />}
                   onClick={() => removeItem(item.id, title)}
                 />

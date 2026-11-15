@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useId, useRef, type KeyboardEvent, type ReactNode } from 'react';
 import { cn } from '@/lib/cn';
 
@@ -31,6 +32,7 @@ export function Tabs<T extends string>({
   className,
   idBase,
 }: TabsProps<T>) {
+  const tx = useT();
   const fallback = useId();
   const base = idBase ?? fallback;
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -80,7 +82,7 @@ export function Tabs<T extends string>({
             )}
           >
             {t.icon}
-            {t.label}
+            {typeof t.label === 'string' ? tx(t.label) : t.label}
           </button>
         );
       })}

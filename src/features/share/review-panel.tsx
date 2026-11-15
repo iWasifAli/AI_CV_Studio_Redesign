@@ -171,7 +171,7 @@ export const ReviewPanel = forwardRef<
           >
             {targets.map((t) => (
               <option key={t.ref || 'all'} value={t.ref}>
-                {t.label}
+                {tx(t.label)}
               </option>
             ))}
           </select>
@@ -206,7 +206,7 @@ export const ReviewPanel = forwardRef<
           maxLength={MAX_AUTHOR}
           autoComplete="name"
           onChange={(e) => setAuthor(e.target.value)}
-          hint={`So ${first} knows who it’s from.`}
+          hint={tx('So {first} knows who it’s from.', { first: first })}
         />
         {/* For robots only: hidden from people and screen readers. */}
         <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden">
@@ -222,11 +222,11 @@ export const ReviewPanel = forwardRef<
         </div>
         {error && (
           <Banner tone="error" title={tx('Not sent')} onDismiss={() => setError(null)}>
-            {error}
+            {tx(error)}
           </Banner>
         )}
         <p aria-live="polite" className="text-success text-sm font-semibold empty:hidden">
-          {sent ? `Sent. ${first} will see it in their studio.` : ''}
+          {sent ? tx('Sent. {first} will see it in their studio.', { first: first }) : ''}
         </p>
         <Button
           type="submit"

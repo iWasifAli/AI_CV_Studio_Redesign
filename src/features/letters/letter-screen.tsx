@@ -1,6 +1,6 @@
 'use client';
 
-import { useT } from '@/i18n/client';
+import { useLang, useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
@@ -81,6 +81,7 @@ export function LetterScreen({ id }: { id: string }) {
 }
 
 function Editor({ initial }: { initial: SavedLetter }) {
+  const lang = useLang();
   const tx = useT();
   const router = useRouter();
   const params = useSearchParams();
@@ -121,13 +122,13 @@ function Editor({ initial }: { initial: SavedLetter }) {
   const design: ResumeDocument = useMemo(() => {
     let doc = draft.documentId ? repo?.get(draft.documentId) : null;
     if (!doc) {
-      doc = createDocument('general');
+      doc = createDocument('general', { locale: lang === 'de' ? 'de-DE' : 'en-GB' });
       doc.basics.name = account.user?.name ?? '';
       doc.basics.email = account.user?.email ?? '';
     }
     const mine = draft.designId ? savedDesigns.find((d) => d.id === draft.designId) : null;
     return mine ? ops.setSpec(doc, mine.spec) : doc;
-  }, [draft.documentId, draft.designId, savedDesigns, repo, account.user]);
+  }, [draft.documentId, draft.designId, savedDesigns, repo, account.user, lang]);
   const html = useMemo(
     () =>
       typeof window === 'undefined'
@@ -214,7 +215,7 @@ function Editor({ initial }: { initial: SavedLetter }) {
           <ArrowLeft aria-hidden size={16} /> {tx('Your letters')}
         </Link>
         <div>
-          <p className="text-ink-muted text-sm font-semibold">{type.title}</p>
+          <p className="text-ink-muted text-sm font-semibold">{tx(type.title)}</p>
           <h1 className="font-display text-[28px] leading-tight font-semibold">
             {draft.subject || type.title}
           </h1>
@@ -233,7 +234,10 @@ function Editor({ initial }: { initial: SavedLetter }) {
           />
         )}
         {asks > 0 && (
-          <Banner tone="warning" title={`${asks} detail${asks > 1 ? 's' : ''} to fill in`}>
+          <Banner
+            tone="warning"
+            title={tx('{asks} detail{v1} to fill in', { asks: asks, v1: asks > 1 ? 's' : '' })}
+          >
             {tx('Replace the highlighted [brackets] with your own details before sending.')}
           </Banner>
         )}
@@ -246,7 +250,7 @@ function Editor({ initial }: { initial: SavedLetter }) {
             {type.questions.map((q) =>
               q.options ? (
                 <label key={q.id} className="flex flex-col gap-1.5 text-sm font-semibold">
-                  {q.label}
+                  {tx(q.label)}
                   <select
                     className="border-line-strong bg-surface min-h-11 rounded-md border px-3 text-[15px] font-normal"
                     value={draft.answers[q.id] || q.options[0]}
@@ -262,7 +266,7 @@ function Editor({ initial }: { initial: SavedLetter }) {
               ) : (
                 <TextField
                   key={q.id}
-                  label={q.label}
+                  label={tx(q.label)}
                   optional={!q.required}
                   value={draft.answers[q.id] ?? ''}
                   maxLength={1500}
@@ -286,7 +290,7 @@ function Editor({ initial }: { initial: SavedLetter }) {
                       : 'border-line-strong bg-surface hover:bg-sunken min-h-10 rounded-full border px-3.5 text-sm font-semibold'
                   }
                 >
-                  {t === 'warm' ? 'Warm' : 'Formal'}
+                  {t === 'warm' ? tx('Warm') : tx('Formal')}
                 </button>
               ))}
             </div>
@@ -305,7 +309,7 @@ function Editor({ initial }: { initial: SavedLetter }) {
             </Button>
             {aiLocked && (
               <p className="text-ink-muted text-sm">
-                {tx('AI drafts are part of{v}', { v: ' ' })}
+                {tx('AI drafts are part of')}{' '}
                 <Link href="/premium" className="text-primary font-semibold">
                   {tx('Premium')}
                 </Link>
@@ -326,7 +330,9 @@ function Editor({ initial }: { initial: SavedLetter }) {
               {!draft.documentId && <option value="">{tx('A plain page')}</option>}
               {cvs.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.role === 'profile' ? 'Career profile' : c.title || c.name || 'Untitled CV'}
+                  {c.role === 'profile'
+                    ? tx('Career profile')
+                    : c.title || c.name || tx('Untitled CV')}
                 </option>
               ))}
             </select>
@@ -341,7 +347,7 @@ function Editor({ initial }: { initial: SavedLetter }) {
               onChange={(e) => setDraft({ ...draft, designId: e.target.value })}
               data-testid="letter-design"
             >
-              <option value="">{draft.documentId ? 'The CV’s design' : 'Plain'}</option>
+              <option value="">{draft.documentId ? tx('The CV’s design') : tx('Plain')}</option>
               {savedDesigns.map((d) => (
                 <option key={d.id} value={d.id}>
                   {tx('My design: {name}', { name: d.name })}
@@ -363,7 +369,7 @@ function Editor({ initial }: { initial: SavedLetter }) {
           </>
         )}
         <TextField
-          label={statement ? 'Title' : 'Subject'}
+          label={statement ? tx('Title') : tx('Subject')}
           value={draft.subject}
           maxLength={160}
           onChange={(e) => setDraft({ ...draft, subject: e.target.value })}
@@ -381,7 +387,7 @@ function Editor({ initial }: { initial: SavedLetter }) {
         {draft.paragraphs.map((p, i) => (
           <TextArea
             key={i}
-            label={`Paragraph ${i + 1}`}
+            label={tx('Paragraph {v0}', { v0: i + 1 })}
             rows={4}
             value={p}
             maxLength={1500}
@@ -416,7 +422,7 @@ function Editor({ initial }: { initial: SavedLetter }) {
             disabled={dirty || busy !== null || !draft.paragraphs.some((p) => p.trim())}
             loading={busy === 'pdf'}
             onClick={pdf}
-            title={dirty ? 'Save the letter first' : undefined}
+            title={dirty ? tx('Save the letter first') : undefined}
           >
             {tx('Download PDF')}
           </Button>

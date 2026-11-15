@@ -141,8 +141,12 @@ function Suggestions({
       <Card className="flex flex-col items-start gap-3 p-4">
         <p className="text-[15px]">
           {chip === 'wording'
-            ? 'We’ll suggest fixes for spelling, grammar and “I/my” wording. Names, numbers, dates and employers are never changed.'
-            : 'We’ll suggest stronger openings for weak points. Nothing is added that isn’t already in your CV.'}
+            ? t(
+                'We’ll suggest fixes for spelling, grammar and “I/my” wording. Names, numbers, dates and employers are never changed.',
+              )
+            : t(
+                'We’ll suggest stronger openings for weak points. Nothing is added that isn’t already in your CV.',
+              )}
         </p>
         <Button size="sm" onClick={run} icon={<Sparkles aria-hidden size={16} />}>
           {t('Show suggestions')}
@@ -191,7 +195,12 @@ function Suggestions({
     <Card className="flex flex-col gap-3 p-4" data-testid="polish-list">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="font-semibold">
-          {open.length ? `${open.length} suggestion${open.length === 1 ? '' : 's'}` : 'All done'}
+          {open.length
+            ? t('{length} suggestion{v1}', {
+                length: open.length,
+                v1: open.length === 1 ? '' : 's',
+              })
+            : t('All done')}
         </p>
         {open.length > 1 && (
           <Button
@@ -275,7 +284,7 @@ function GapsList({
     <Card className="flex flex-col gap-3 p-4" data-testid="gaps-list">
       {fields.map((f) => (
         <label key={f.key} className="flex flex-col gap-1 text-sm font-semibold">
-          {f.label}
+          {t(f.label)}
           <input
             className="border-line-strong bg-surface h-11 rounded-md border px-3 text-[15px] font-normal"
             defaultValue={doc.basics[f.key]}

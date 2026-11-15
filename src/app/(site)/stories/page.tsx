@@ -3,7 +3,10 @@ import type { Metadata } from 'next';
 import { Container } from '@/components/ui/misc';
 import { StoriesClient } from '@/features/stories/client';
 
-export const metadata: Metadata = { title: 'Story bank', robots: { index: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t('Story bank'), robots: { index: false } };
+}
 
 export default async function StoriesPage() {
   const t = await getT();

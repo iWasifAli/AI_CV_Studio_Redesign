@@ -1,9 +1,13 @@
+import { getT } from '@/i18n/server';
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { Container } from '@/components/ui/misc';
 import { LetterScreenClient } from '@/features/letters/client';
 
-export const metadata: Metadata = { title: 'Letter', robots: { index: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t('Letter'), robots: { index: false } };
+}
 
 export default async function LetterPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

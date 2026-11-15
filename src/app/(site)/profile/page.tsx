@@ -3,7 +3,10 @@ import type { Metadata } from 'next';
 import { Container } from '@/components/ui/misc';
 import { ProfileSetup } from '@/features/profile/profile-setup';
 
-export const metadata: Metadata = { title: 'Career profile', robots: { index: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t('Career profile'), robots: { index: false } };
+}
 
 export default async function ProfilePage() {
   const t = await getT();

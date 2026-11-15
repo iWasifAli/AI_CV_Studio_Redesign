@@ -4,7 +4,10 @@ import { Suspense } from 'react';
 import { Container } from '@/components/ui/misc';
 import { NewLetterClient } from '@/features/letters/client';
 
-export const metadata: Metadata = { title: 'New letter', robots: { index: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t('New letter'), robots: { index: false } };
+}
 
 export default async function NewLetterPage() {
   const t = await getT();

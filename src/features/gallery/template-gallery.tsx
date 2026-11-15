@@ -138,7 +138,7 @@ export function TemplateGallery() {
                   : 'border-line-strong text-ink-muted hover:bg-sunken',
               )}
             >
-              {f === 'all' ? 'All designs' : FAMILY_LABEL[f].name}
+              {f === 'all' ? tx('All designs') : FAMILY_LABEL[f].name}
             </button>
           ))}
         </div>
@@ -174,7 +174,7 @@ export function TemplateGallery() {
               <option value="">{tx('Any kind of work')}</option>
               {PROFESSIONS.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.name}
+                  {tx(p.name)}
                 </option>
               ))}
             </select>
@@ -202,7 +202,7 @@ export function TemplateGallery() {
             <Link
               href={`/templates/${t.id}${show.startsWith('own:') ? `?cv=${show.slice(4)}` : ''}`}
               className="bg-surface shadow-page hover:ring-primary relative block overflow-hidden rounded-[4px] hover:ring-2"
-              aria-label={`${t.name}: see this design`}
+              aria-label={tx('{name}: see this design', { name: t.name })}
             >
               {/* Static thumbnail shows at once; the live preview renders over it in view. */}
               {/* eslint-disable-next-line @next/next/no-img-element -- pre-sized static webp */}
@@ -222,7 +222,7 @@ export function TemplateGallery() {
                 decorative
                 lazy
                 debounceMs={0}
-                title={`${t.name} design with ${label}`}
+                title={tx('{name} design with {label}', { name: t.name, label: label })}
               />
               {showPremium(t.id) && (
                 <span className="bg-ink/85 absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold text-white">
@@ -232,7 +232,7 @@ export function TemplateGallery() {
             </Link>
             <div className="flex flex-col gap-1">
               <h2 className="text-lg font-semibold">
-                {t.name} <span className="text-ink-muted font-normal">· {t.style}</span>
+                {tx(t.name)} <span className="text-ink-muted font-normal">· {tx(t.style)}</span>
               </h2>
               <p className="text-ink-muted text-sm">
                 {tx('{name} · {columns} column', {
@@ -253,13 +253,13 @@ export function TemplateGallery() {
                       : 'bg-accent-soft text-accent-ink'
                   }`}
                 >
-                  {onlineSafe(t) ? 'ATS-friendly' : 'Creative'}
+                  {onlineSafe(t) ? tx('ATS-friendly') : tx('Creative')}
                 </span>
                 {onlineSafe(t)
-                  ? 'Good for online forms as it is'
-                  : 'To send to people; use its ATS PDF for online forms'}
+                  ? tx('Good for online forms as it is')
+                  : tx('To send to people; use its ATS PDF for online forms')}
               </p>
-              <p className="text-ink-muted">{t.description}</p>
+              <p className="text-ink-muted">{tx(t.description)}</p>
             </div>
             <Link
               href={`/templates/${t.id}${show.startsWith('own:') ? `?cv=${show.slice(4)}` : ''}`}

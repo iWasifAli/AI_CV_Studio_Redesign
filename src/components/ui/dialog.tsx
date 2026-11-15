@@ -39,7 +39,7 @@ export function Dialog({
   return (
     <dialog
       ref={ref}
-      aria-label={title}
+      aria-label={typeof title === 'string' ? t(title) : undefined}
       onClose={onClose}
       onCancel={(e) => {
         e.preventDefault();
@@ -56,7 +56,9 @@ export function Dialog({
       {open && (
         <div className="flex flex-col gap-4 p-5">
           <div className="flex items-start justify-between gap-4">
-            <h2 className={cn('text-xl font-semibold', hideTitle && 'sr-only')}>{title}</h2>
+            <h2 className={cn('text-xl font-semibold', hideTitle && 'sr-only')}>
+              {typeof title === 'string' ? t(title) : title}
+            </h2>
             <button
               type="button"
               onClick={onClose}

@@ -116,7 +116,7 @@ export function CareerPaths({
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h3 className="font-semibold">{p.role}</h3>
                 <Badge tone={p.reach === 'near' ? 'success' : 'neutral'}>
-                  {p.reach === 'near' ? 'Within reach' : 'A bigger step'}
+                  {p.reach === 'near' ? t('Within reach') : t('A bigger step')}
                 </Badge>
               </div>
               <p className="text-sm">
@@ -152,7 +152,7 @@ export function CareerPaths({
       )}
       {locked ? (
         <p className="text-sm">
-          {t('Career paths are part of{v}', { v: ' ' })}
+          {t('Career paths are part of')}{' '}
           <Link href="/premium" className="text-primary font-semibold">
             {t('Premium')}
           </Link>
@@ -171,7 +171,7 @@ export function CareerPaths({
             } else void run();
           }}
         >
-          {paths ? 'Ask again' : 'Show me'}
+          {paths ? t('Ask again') : t('Show me')}
         </Button>
       )}
     </section>

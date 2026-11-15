@@ -10,9 +10,7 @@ export default async function NotFound() {
       className="flex min-h-dvh flex-col items-center justify-center gap-6 px-6 text-center"
     >
       <Logo />
-      <h1 className="font-display text-3xl font-semibold">
-        {t('We couldn&apos;t find that page')}
-      </h1>
+      <h1 className="font-display text-3xl font-semibold">{t('We couldn’t find that page')}</h1>
       <p className="text-ink-muted max-w-md">
         {t('The link may be old or mistyped. Your saved CVs are safe.')}
       </p>

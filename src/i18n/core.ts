@@ -12,7 +12,7 @@ export const LANG_NAME: Record<Lang, string> = { en: 'English', de: 'Deutsch' };
 
 export type Dict = Record<string, string>;
 export type Vars = Record<string, string | number | null | undefined>;
-export type T = (text: string, vars?: Vars) => string;
+export type T = (text: string | null | undefined, vars?: Vars) => string;
 
 export function isLang(v: unknown): v is Lang {
   return typeof v === 'string' && (LANGS as readonly string[]).includes(v);
@@ -25,11 +25,17 @@ export function translate(dict: Dict | null, text: string, vars?: Vars): string 
   const k = keyOf(text);
   const out = (dict && dict[k]) || k;
   if (!vars) return out;
-  return out.replace(/\{(\w+)\}/g, (m, name: string) => (name in vars ? String(vars[name]) : m));
+  return out.replace(/\{(\w+)\}/g, (m, name: string, at: number, all: string) => {
+    if (!(name in vars)) return m;
+    const v = String(vars[name] ?? '');
+    // A lone-space placeholder next to a space in the text would make a double space.
+    if (v === ' ' && (all[at - 1] === ' ' || all[at + m.length] === ' ')) return '';
+    return v;
+  });
 }
 
 export function makeT(dict: Dict | null): T {
-  return (text, vars) => translate(dict, text, vars);
+  return (text, vars) => (text ? translate(dict, text, vars) : '');
 }
 
 /** The first supported language in an Accept-Language header, or null. */

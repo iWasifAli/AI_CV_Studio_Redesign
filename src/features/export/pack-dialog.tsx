@@ -188,7 +188,7 @@ function PackDialog({
                     size="sm"
                     onClick={() => move(i, -1)}
                     disabled={i === 0}
-                    aria-label={`Move ${f.name} up`}
+                    aria-label={t('Move {name} up', { name: f.name })}
                   >
                     ↑
                   </Button>
@@ -197,7 +197,7 @@ function PackDialog({
                     size="sm"
                     onClick={() => move(i, 1)}
                     disabled={i === files.length - 1}
-                    aria-label={`Move ${f.name} down`}
+                    aria-label={t('Move {name} down', { name: f.name })}
                   >
                     ↓
                   </Button>
@@ -205,7 +205,7 @@ function PackDialog({
                     variant="ghost"
                     size="sm"
                     onClick={() => setFiles((fs) => fs.filter((_, k) => k !== i))}
-                    aria-label={`Remove ${f.name}`}
+                    aria-label={t('Remove {name}', { name: f.name })}
                   >
                     {t('Remove')}
                   </Button>
@@ -238,7 +238,7 @@ function PackDialog({
         </div>
         {problem && (
           <Banner tone="error" title={t('Something needs a look')}>
-            {problem}
+            {t(problem)}
           </Banner>
         )}
         <div className="flex justify-end gap-2">
@@ -246,7 +246,11 @@ function PackDialog({
             {t('Cancel')}
           </Button>
           <Button onClick={download} disabled={busy} data-testid="pack-download">
-            {busy ? 'Putting it together…' : format === 'pdf' ? 'Download PDF' : 'Download ZIP'}
+            {busy
+              ? t('Putting it together…')
+              : format === 'pdf'
+                ? t('Download PDF')
+                : t('Download ZIP')}
           </Button>
         </div>
         <p className="text-ink-muted text-xs">{t('Counts as one PDF download.')}</p>

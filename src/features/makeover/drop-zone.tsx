@@ -81,7 +81,7 @@ export function DropZone({
       </div>
       {error && (
         <p role="alert" className="text-danger text-sm" data-testid="drop-error">
-          {error}
+          {t(error)}
         </p>
       )}
     </div>

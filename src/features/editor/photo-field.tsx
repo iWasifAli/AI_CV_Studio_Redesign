@@ -190,7 +190,7 @@ export function PhotoField({ editor }: { editor: DocumentEditor }) {
             onClick={() => input.current?.click()}
             aria-describedby={`${id}-hint`}
           >
-            {photo ? 'Change photo' : 'Add a photo'}
+            {photo ? t('Change photo') : t('Add a photo')}
           </Button>
           {photo && supports && (
             <Button
@@ -200,7 +200,7 @@ export function PhotoField({ editor }: { editor: DocumentEditor }) {
               onClick={() => update((d) => ops.setDesign(d, { options: { showPhoto: hidden } }))}
               data-testid="photo-visibility"
             >
-              {hidden ? 'Show on CV' : 'Hide on CV'}
+              {hidden ? t('Show on CV') : t('Hide on CV')}
             </Button>
           )}
           {photo && (
@@ -272,15 +272,15 @@ export function PhotoField({ editor }: { editor: DocumentEditor }) {
       )}
       {error ? (
         <p role="alert" className="text-danger text-sm">
-          {error}
+          {t(error)}
         </p>
       ) : (
         <p id={`${id}-hint`} className="text-ink-muted text-sm">
           {photo && !supports
-            ? 'This design doesn’t show photos. Pick one marked “Photo” in Design to show it.'
+            ? t('This design doesn’t show photos. Pick one marked “Photo” in Design to show it.')
             : photo && hidden
-              ? 'Your photo is hidden on the CV. Choose “Show on CV” to bring it back.'
-              : 'Some countries expect a photo, others prefer none. It’s saved with this CV.'}
+              ? t('Your photo is hidden on the CV. Choose “Show on CV” to bring it back.')
+              : t('Some countries expect a photo, others prefer none. It’s saved with this CV.')}
         </p>
       )}
     </div>

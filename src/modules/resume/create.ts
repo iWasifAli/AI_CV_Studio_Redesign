@@ -1,4 +1,5 @@
 import { nanoid } from 'nanoid';
+import { cvWords } from './cv-words';
 import { getPreset } from './presets';
 import type { PresetId } from './professions';
 import { designSpec, type ResumeDocument, type Section, type SectionKind } from './schema';
@@ -24,7 +25,7 @@ export function createDocument(
   return {
     schemaVersion: 1,
     id: newId(),
-    title: 'My CV',
+    title: locale.startsWith('de') ? 'Mein Lebenslauf' : 'My CV',
     presetId,
     locale,
     createdAt: now,
@@ -40,7 +41,7 @@ export function createDocument(
       stats: [],
       photo: '',
     },
-    sections: preset.sections.map((s) => emptySection(s.kind, s.title)),
+    sections: preset.sections.map((s) => emptySection(s.kind, cvWords(locale)(s.title))),
     design: designSpec.parse({ ...preset.design, pageSize: defaultPageSize(locale) }),
   };
 }

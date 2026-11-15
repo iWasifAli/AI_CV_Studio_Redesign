@@ -124,7 +124,7 @@ export function KitSection({
               <Link
                 href={`/cv/${cv.id}`}
                 className="bg-surface shadow-page ring-primary block overflow-hidden rounded-[4px] hover:ring-2"
-                aria-label={`Open the tailored CV: ${cv.title}`}
+                aria-label={t('Open the tailored CV: {title}', { title: cv.title })}
               >
                 <div className="pointer-events-none">
                   <DocumentPreview
@@ -184,7 +184,7 @@ export function KitSection({
           loading={loading}
           onClick={onCreate}
         >
-          {job.kit ? 'Make a new kit' : 'Create the kit'}
+          {job.kit ? t('Make a new kit') : t('Create the kit')}
         </Button>
         {job.kit && letter && (
           <>

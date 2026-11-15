@@ -34,7 +34,7 @@ export function PortfolioPreview() {
       <main id="main" className="mx-auto max-w-[640px] px-5 py-16">
         <h1 className="font-display text-3xl font-semibold">{t('Nothing to preview yet')}</h1>
         <p className="text-ink-muted mt-2">
-          {t('Open{v}', { v: ' ' })}
+          {t('Open')}{' '}
           <Link href="/portfolio" className="text-primary font-semibold underline">
             {t('your portfolio settings')}
           </Link>{' '}
@@ -51,7 +51,7 @@ export function PortfolioPreview() {
       doc={doc}
       portfolio={draft}
       theme={theme}
-      imageSrc={(id) => `/api/portfolio/images/${encodeURIComponent(id)}`}
+      imageBase="/api/portfolio/images/"
       contactOpen={draft.contact}
       preview
       banner={

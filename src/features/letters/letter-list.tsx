@@ -102,7 +102,7 @@ export function LetterList({ jobId }: { jobId?: string }) {
         </ul>
       ) : (
         <p className="text-ink-muted">
-          {jobId ? 'No letters for this job yet.' : 'No letters yet. Pick one to start:'}
+          {jobId ? tx('No letters for this job yet.') : tx('No letters yet. Pick one to start:')}
         </p>
       )}
       {!jobId && ent?.features.letters !== false && (
@@ -113,7 +113,7 @@ export function LetterList({ jobId }: { jobId?: string }) {
                 href={`/letters/new?type=${t.id}`}
                 className="border-line-strong bg-surface hover:bg-sunken inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3.5 text-sm font-semibold"
               >
-                <Plus aria-hidden size={14} /> {t.title}
+                <Plus aria-hidden size={14} /> {tx(t.title)}
               </Link>
             </li>
           ))}

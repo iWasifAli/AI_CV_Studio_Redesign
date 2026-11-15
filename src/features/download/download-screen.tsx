@@ -207,7 +207,7 @@ export function DownloadScreen({ doc: initialDoc }: { doc: ResumeDocument }) {
               {failed}{' '}
               {!signedOut &&
                 !lockedDesign &&
-                'You can also use your browser’s print window and choose “Save as PDF”.'}
+                t('You can also use your browser’s print window and choose “Save as PDF”.')}
             </Banner>
           )}
 
@@ -220,8 +220,8 @@ export function DownloadScreen({ doc: initialDoc }: { doc: ResumeDocument }) {
               <h2 id="premium-h" className="flex items-center gap-2 text-lg font-semibold">
                 <Crown aria-hidden size={20} className="text-accent-ink" />{' '}
                 {designId === null
-                  ? 'Custom designs are part of Premium'
-                  : `${DESIGN_META[designId].name} is a Premium design`}
+                  ? t('Custom designs are part of Premium')
+                  : t('{name} is a Premium design', { name: DESIGN_META[designId].name })}
               </h2>
               <p className="text-ink-muted">
                 {t(
@@ -260,10 +260,10 @@ export function DownloadScreen({ doc: initialDoc }: { doc: ResumeDocument }) {
                 ) : undefined
               }
             >
-              {blocked.message}
+              {t(blocked.message)}
             </Banner>
           )}
-          {blocked?.code === 'DISABLED' && <Banner tone="warning">{blocked.message}</Banner>}
+          {blocked?.code === 'DISABLED' && <Banner tone="warning">{t(blocked.message)}</Banner>}
 
           <div className="flex flex-col gap-3">
             {signedOut || blocked?.code === 'SIGN_IN_REQUIRED' ? (

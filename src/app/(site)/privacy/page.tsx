@@ -3,7 +3,10 @@ import type { Metadata } from 'next';
 import { Container } from '@/components/ui/misc';
 import { AiPreferenceToggle } from '@/features/ai/preference-toggle';
 
-export const metadata: Metadata = { title: 'Privacy' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t('Privacy') };
+}
 
 export default async function PrivacyPage() {
   const t = await getT();

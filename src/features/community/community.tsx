@@ -78,7 +78,7 @@ export function ShareDesign({
     <>
       <button
         type="button"
-        aria-label={`Share ${design.name} with the community`}
+        aria-label={t('Share {name} with the community', { name: design.name })}
         className="text-ink-muted hover:text-primary inline-flex size-9 items-center justify-center"
         onClick={() => {
           setDone(false);
@@ -208,14 +208,14 @@ export function CommunityGallery({
                 firstPageOnly
                 decorative
                 lazy
-                title={`${d.name} on your CV`}
+                title={t('{name} on your CV', { name: d.name })}
               />
             </div>
             <p className="text-sm font-semibold">
               {d.name}
               {d.featured && <span className="text-primary"> {t('· Featured')}</span>}
             </p>
-            <p className="text-ink-muted text-xs">{d.credit ? `By ${d.credit}` : 'Community'}</p>
+            <p className="text-ink-muted text-xs">{d.credit ? `By ${d.credit}` : t('Community')}</p>
             <Button size="sm" variant="secondary" onClick={() => onUse(d)}>
               {t('Use “{name}”', { name: d.name })}
             </Button>

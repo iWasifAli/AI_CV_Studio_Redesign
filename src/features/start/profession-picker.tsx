@@ -39,8 +39,8 @@ export function ProfessionPicker({ onChoose, busy }: Props) {
                 <ProfessionIcon id={p.id} />
               </span>
               <span className="flex min-w-0 flex-1 flex-col">
-                <span className="text-ink text-[17px] font-semibold">{p.name}</span>
-                <span className="text-ink-muted text-sm">{p.example}</span>
+                <span className="text-ink text-[17px] font-semibold">{t(p.name)}</span>
+                <span className="text-ink-muted text-sm">{t(p.example)}</span>
               </span>
               <ChevronRight
                 aria-hidden

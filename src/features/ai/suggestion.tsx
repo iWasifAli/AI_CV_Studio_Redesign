@@ -64,6 +64,7 @@ export function useSuggestion<T extends TaskId>(task: T) {
 
 /** Text with `{{?…}}` markers shown as highlighted questions. */
 export function AskText({ text }: { text: string }) {
+  const tx = useT();
   return (
     <>
       {splitPlaceholders(text).map((p, i) =>
@@ -83,10 +84,11 @@ export function AskText({ text }: { text: string }) {
 }
 
 export function AiBadge({ demo }: { demo: boolean }) {
+  const tx = useT();
   return (
     <span className="text-primary inline-flex items-center gap-1 text-xs font-semibold tracking-wide uppercase">
       <Sparkles aria-hidden size={14} />
-      {demo ? 'Demo AI' : 'AI suggestion'}
+      {demo ? tx('Demo AI') : tx('AI suggestion')}
     </span>
   );
 }
@@ -124,14 +126,14 @@ export function SuggestionCard<T extends TaskId>({
     >
       <div className="flex items-center justify-between gap-2">
         <AiBadge demo={demo} />
-        <span className="text-ink-muted text-xs">{state.label}</span>
+        <span className="text-ink-muted text-xs">{tx(state.label)}</span>
       </div>
       {state.kind === 'loading' && (
         <p className="text-ink-muted flex items-center gap-2 text-[15px]">
           <Spinner size={16} /> {tx('Writing a suggestion…')}
         </p>
       )}
-      {state.kind === 'error' && <p className="text-ink text-[15px]">{state.message}</p>}
+      {state.kind === 'error' && <p className="text-ink text-[15px]">{tx(state.message)}</p>}
       {state.kind === 'error' && state.code === 'SIGN_IN_REQUIRED' && (
         <ButtonLink
           size="sm"
@@ -184,7 +186,7 @@ export function SuggestionCard<T extends TaskId>({
           </Button>
         )}
         <Button size="sm" variant="ghost" icon={<X aria-hidden size={16} />} onClick={s.dismiss}>
-          {state.kind === 'loading' ? 'Cancel' : 'Dismiss'}
+          {state.kind === 'loading' ? tx('Cancel') : tx('Dismiss')}
         </Button>
       </div>
     </section>

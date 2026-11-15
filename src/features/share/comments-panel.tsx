@@ -131,8 +131,10 @@ export function CommentsPanel({ docId, onShow }: { docId: string; onShow: (ref: 
         </h2>
         <p className="text-ink-muted text-sm">
           {open.length
-            ? `${open.length} to look at. People you shared a link with left these notes.`
-            : 'All done. People you shared a link with left these notes.'}
+            ? t('{length} to look at. People you shared a link with left these notes.', {
+                length: open.length,
+              })
+            : t('All done. People you shared a link with left these notes.')}
         </p>
       </div>
       {error && (

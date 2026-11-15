@@ -110,7 +110,9 @@ export function AdminPayments() {
         <div className="skeleton h-40 rounded-lg" aria-busy="true" />
       ) : items.length === 0 ? (
         <p className="text-ink-muted border-line bg-surface rounded-lg border p-6 text-center">
-          {view === 'pending' ? 'Nothing waiting. New payments appear here.' : 'No payments yet.'}
+          {view === 'pending'
+            ? t('Nothing waiting. New payments appear here.')
+            : t('No payments yet.')}
         </p>
       ) : (
         <ul className="flex flex-col gap-3" data-testid="payments">
@@ -132,12 +134,12 @@ export function AdminPayments() {
                     className={`ml-2 rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS_STYLE[r.status]}`}
                   >
                     {r.status === 'pending'
-                      ? 'Waiting'
+                      ? t('Waiting')
                       : r.status === 'approved'
-                        ? 'Approved'
+                        ? t('Approved')
                         : r.status === 'cancelled'
-                          ? 'Cancelled by buyer'
-                          : 'Rejected'}
+                          ? t('Cancelled by buyer')
+                          : t('Rejected')}
                   </span>
                 </p>
                 <p className="mt-1">
@@ -152,9 +154,19 @@ export function AdminPayments() {
                 {(r.couponCode || r.welcomeDays) && (
                   <p className="text-ink-muted mt-0.5" data-testid="payment-extras">
                     {r.couponCode &&
-                      `Code ${r.couponCode}${r.listPricePkr && r.listPricePkr !== r.pricePkr ? ` (list price PKR ${r.listPricePkr.toLocaleString()})` : ''}`}
+                      t('Code {couponCode}{v1}', {
+                        couponCode: r.couponCode,
+                        v1:
+                          r.listPricePkr && r.listPricePkr !== r.pricePkr
+                            ? ` (list price PKR ${r.listPricePkr.toLocaleString()})`
+                            : '',
+                      })}
                     {r.couponCode && r.welcomeDays ? ' · ' : ''}
-                    {r.welcomeDays ? `Invited by a friend: +${r.welcomeDays} days` : ''}
+                    {r.welcomeDays
+                      ? t('Invited by a friend: +{welcomeDays} days', {
+                          welcomeDays: r.welcomeDays,
+                        })
+                      : ''}
                   </p>
                 )}
                 {r.phone && (

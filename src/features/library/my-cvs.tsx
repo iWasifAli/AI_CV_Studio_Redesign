@@ -126,7 +126,9 @@ export function MyCvs({ only }: { only?: (doc: ResumeDocument) => boolean } = {}
       <Banner
         tone="info"
         title={
-          signedIn ? 'Your CVs are saved to your account' : 'Your CVs are saved in this browser'
+          signedIn
+            ? t('Your CVs are saved to your account')
+            : t('Your CVs are saved in this browser')
         }
         action={
           <div className="flex flex-wrap gap-2">
@@ -176,7 +178,7 @@ export function MyCvs({ only }: { only?: (doc: ResumeDocument) => boolean } = {}
           </>
         ) : (
           <>
-            {t('Clearing your browser data removes them.{v}', { v: ' ' })}
+            {t('Clearing your browser data removes them.')}{' '}
             <Link
               href="/signin?next=/cv"
               className="text-primary font-semibold underline underline-offset-4"
@@ -204,8 +206,12 @@ export function MyCvs({ only }: { only?: (doc: ResumeDocument) => boolean } = {}
               </h2>
               <p className="text-ink-muted text-sm">
                 {profile
-                  ? `Your master record · updated ${when(profile.updatedAt)}. New and tailored CVs start from it.`
-                  : 'Keep all your experience in one master record, then make a CV for each job from it.'}
+                  ? t('Your master record · updated {v0}. New and tailored CVs start from it.', {
+                      v0: when(profile.updatedAt),
+                    })
+                  : t(
+                      'Keep all your experience in one master record, then make a CV for each job from it.',
+                    )}
               </p>
             </div>
           </div>
@@ -254,7 +260,7 @@ export function MyCvs({ only }: { only?: (doc: ResumeDocument) => boolean } = {}
             <FileText aria-hidden size={26} />
           </span>
           <h2 className="text-xl font-semibold">
-            {account.status === 'signedIn' ? 'No CVs yet' : 'No CVs on this device yet'}
+            {account.status === 'signedIn' ? t('No CVs yet') : t('No CVs on this device yet')}
           </h2>
           <p className="text-ink-muted max-w-md">
             {t('When you create a CV, it is saved here so you can come back to it.')}
@@ -273,7 +279,7 @@ export function MyCvs({ only }: { only?: (doc: ResumeDocument) => boolean } = {}
               <Link
                 href={`/cv/${doc.id}`}
                 className="group bg-surface shadow-page ring-primary block overflow-hidden rounded-[4px] transition-shadow hover:ring-2"
-                aria-label={`Open ${doc.title}`}
+                aria-label={t('Open {title}', { title: doc.title })}
               >
                 <div className="pointer-events-none">
                   <DocumentPreview
@@ -281,7 +287,7 @@ export function MyCvs({ only }: { only?: (doc: ResumeDocument) => boolean } = {}
                     firstPageOnly
                     decorative
                     debounceMs={0}
-                    title={`Thumbnail of ${doc.title}`}
+                    title={t('Thumbnail of {title}', { title: doc.title })}
                   />
                 </div>
               </Link>
@@ -300,7 +306,7 @@ export function MyCvs({ only }: { only?: (doc: ResumeDocument) => boolean } = {}
                   </p>
                 </div>
                 <Menu
-                  label={`Options for ${doc.title}`}
+                  label={t('Options for {title}', { title: doc.title })}
                   items={[
                     {
                       label: 'Edit',

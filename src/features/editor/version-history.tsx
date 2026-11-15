@@ -213,7 +213,7 @@ function VersionHistory({ editor, onDone }: { editor: DocumentEditor; onDone: ()
       </p>
       {error && (
         <Banner tone="error" title={t('That didn’t work')} onDismiss={() => setError('')}>
-          {error}
+          {t(error)}
         </Banner>
       )}
       <form
@@ -310,20 +310,23 @@ function VersionHistory({ editor, onDone }: { editor: DocumentEditor; onDone: ()
                   variant="secondary"
                   loading={busy === v.id && !renaming}
                   onClick={() => void view(v)}
-                  aria-label={`Compare with now: ${versionLabel(v)}, ${when(v.savedAt)}`}
+                  aria-label={t('Compare with now: {v0}, {v1}', {
+                    v0: versionLabel(v),
+                    v1: when(v.savedAt),
+                  })}
                 >
                   {t('Compare')}
                 </Button>
                 {v.kind === 'named' && renaming?.id !== v.id && (
                   <IconButton
-                    label={`Rename ${versionLabel(v)}`}
+                    label={t('Rename {v0}', { v0: versionLabel(v) })}
                     icon={<Pencil aria-hidden size={18} />}
                     size="sm"
                     onClick={() => setRenaming({ id: v.id, name: v.name ?? '' })}
                   />
                 )}
                 <IconButton
-                  label={`Delete ${versionLabel(v)}, ${when(v.savedAt)}`}
+                  label={t('Delete {v0}, {v1}', { v0: versionLabel(v), v1: when(v.savedAt) })}
                   icon={<Trash2 aria-hidden size={18} />}
                   size="sm"
                   onClick={() => void remove(v)}
@@ -417,7 +420,7 @@ function Compare({
                 aria-pressed={side === s}
                 onClick={() => setSide(s)}
               >
-                {s === 'then' ? 'Then' : 'Now'}
+                {s === 'then' ? t('Then') : t('Now')}
               </Button>
             ))}
           </div>
@@ -425,12 +428,12 @@ function Compare({
             {(['then', 'now'] as const).map((s) => (
               <figure key={s} className={cn('flex flex-col gap-1', side !== s && 'hidden md:flex')}>
                 <figcaption className="text-sm font-semibold">
-                  {s === 'then' ? 'Then' : 'Now'}
+                  {s === 'then' ? t('Then') : t('Now')}
                 </figcaption>
                 <div className="bg-sunken max-h-[60vh] overflow-y-auto rounded-lg p-2">
                   <DocumentPreview
                     doc={s === 'then' ? then : now}
-                    title={s === 'then' ? 'The CV then' : 'The CV now'}
+                    title={s === 'then' ? t('The CV then') : t('The CV now')}
                   />
                 </div>
               </figure>

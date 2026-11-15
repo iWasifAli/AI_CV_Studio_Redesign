@@ -3,7 +3,10 @@ import type { Metadata } from 'next';
 import { Container } from '@/components/ui/misc';
 import { SkillsClient } from '@/features/skills/client';
 
-export const metadata: Metadata = { title: 'Skill plan', robots: { index: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t('Skill plan'), robots: { index: false } };
+}
 
 export default async function SkillsPage() {
   const t = await getT();

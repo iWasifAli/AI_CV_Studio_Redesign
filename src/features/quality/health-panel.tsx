@@ -35,10 +35,13 @@ export function HealthPanel({
       </h2>
       <p className="text-ink-muted mb-4 text-sm" aria-live="polite">
         {fixes.length
-          ? `${fixes.length} thing${fixes.length === 1 ? '' : 's'} to fix before you send it`
+          ? t('{length} thing{v1} to fix before you send it', {
+              length: fixes.length,
+              v1: fixes.length === 1 ? '' : 's',
+            })
           : improve.length
-            ? 'Ready to send. A few ideas could make it stronger.'
-            : 'Ready to send. Nothing to fix.'}
+            ? t('Ready to send. A few ideas could make it stronger.')
+            : t('Ready to send. Nothing to fix.')}
       </p>
       {fixes.length > 0 && (
         <Group title={t('Fix before sending')} items={fixes} doc={doc} tone="fix" onShow={onShow} />
@@ -60,7 +63,7 @@ export function HealthPanel({
             aria-expanded={showPassed}
             onClick={() => setShowPassed((v) => !v)}
           >
-            {showPassed ? 'Hide' : 'Show'}{' '}
+            {showPassed ? t('Hide') : t('Show')}{' '}
             {t('what’s already good ({length})', { length: report.passed.length })}
           </button>
           {showPassed && (
@@ -109,7 +112,7 @@ function Group({
             />
             <div className="min-w-0">
               <p className="font-semibold">
-                <span className="sr-only">{tone === 'fix' ? 'To fix: ' : 'Idea: '}</span>
+                <span className="sr-only">{tone === 'fix' ? t('To fix: ') : t('Idea: ')}</span>
                 {f.title}
               </p>
               <p className="text-ink-muted text-sm">{f.detail}</p>

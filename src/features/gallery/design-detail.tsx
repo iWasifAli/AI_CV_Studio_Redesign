@@ -96,9 +96,9 @@ export function DesignDetail({ id }: { id: DesignId }) {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="max-w-2xl">
           <h1 className="font-display text-[32px] leading-tight font-semibold tracking-tight">
-            {meta.name} <span className="text-ink-muted font-normal">· {meta.style}</span>
+            {t(meta.name)} <span className="text-ink-muted font-normal">· {t(meta.style)}</span>
           </h1>
-          <p className="text-ink-muted mt-2 text-lg">{meta.description}</p>
+          <p className="text-ink-muted mt-2 text-lg">{t(meta.description)}</p>
           <p className="text-ink-muted mt-1 text-sm">
             {t('{name} — {v} ·{v2} {columns} column', {
               name: FAMILY_LABEL[meta.family].name,
@@ -122,7 +122,7 @@ export function DesignDetail({ id }: { id: DesignId }) {
           )}
         </div>
         <Button onClick={use} data-testid="use-design">
-          {ownId ? 'Use this design for my CV' : 'Use this design'}
+          {ownId ? t('Use this design for my CV') : t('Use this design')}
         </Button>
       </div>
 
@@ -175,7 +175,11 @@ export function DesignDetail({ id }: { id: DesignId }) {
 
       <div className="mx-auto w-full max-w-3xl" role="tabpanel">
         {view === 'design' && (
-          <DocumentPreview doc={doc} debounceMs={0} title={`${meta.name} design, all pages`} />
+          <DocumentPreview
+            doc={doc}
+            debounceMs={0}
+            title={t('{name} design, all pages', { name: meta.name })}
+          />
         )}
         {view === 'ats' && (
           <>
@@ -184,7 +188,11 @@ export function DesignDetail({ id }: { id: DesignId }) {
                 'One plain column with standard headings, for online application forms and screening software. Turn it on or off any time in the Design Studio.',
               )}
             </p>
-            <DocumentPreview doc={ats} debounceMs={0} title={`${meta.name}, ATS-safe version`} />
+            <DocumentPreview
+              doc={ats}
+              debounceMs={0}
+              title={t('{name}, ATS-safe version', { name: meta.name })}
+            />
           </>
         )}
         {view === 'portfolio' && (
@@ -210,7 +218,9 @@ export function DesignDetail({ id }: { id: DesignId }) {
             </p>
             <section
               className="border-line h-[720px] overflow-auto rounded-lg border"
-              aria-label={`Portfolio page in the ${THEME_INFO[FAMILY_THEME[meta.family]].name} theme`}
+              aria-label={t('Portfolio page in the {name} theme', {
+                name: THEME_INFO[FAMILY_THEME[meta.family]].name,
+              })}
               tabIndex={0}
               data-testid="portfolio-theme-view"
             >
@@ -225,7 +235,7 @@ export function DesignDetail({ id }: { id: DesignId }) {
         )}
         {view === 'letter' && letter && (
           <iframe
-            title={`Cover letter in the ${meta.name} colours and fonts`}
+            title={t('Cover letter in the {name} colours and fonts', { name: meta.name })}
             sandbox="allow-scripts"
             srcDoc={letter}
             className="shadow-page aspect-[210/297] w-full rounded-[4px] bg-white"

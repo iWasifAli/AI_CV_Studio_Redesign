@@ -59,7 +59,7 @@ export function DocumentsHub() {
                   : 'border-line-strong bg-surface hover:bg-sunken border',
               )}
             >
-              {t.label}
+              {tx(t.label)}
             </Link>
           ))}
         </nav>

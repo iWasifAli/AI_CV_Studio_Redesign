@@ -129,7 +129,7 @@ export function RemindersCard({ job, onJobChange }: { job: Job; onJobChange: (j:
                 <button
                   type="button"
                   className="text-ink-muted hover:text-danger ml-auto rounded-sm p-1.5"
-                  aria-label={`Delete reminder “${r.note}”`}
+                  aria-label={t('Delete reminder “{note}”', { note: r.note })}
                   disabled={busy === r.id}
                   onClick={() => act(r.id, () => jobsApi.removeReminder(job.id, r.id))}
                 >
@@ -159,7 +159,7 @@ export function RemindersCard({ job, onJobChange }: { job: Job; onJobChange: (j:
               disabled={busy === 'add'}
               onClick={() => add(addDays(today, p.days))}
             >
-              {p.label}
+              {t(p.label)}
             </Button>
           ))}
           <TextField
@@ -187,7 +187,7 @@ export function RemindersCard({ job, onJobChange }: { job: Job; onJobChange: (j:
 
       {error && (
         <p role="alert" className="text-danger text-sm">
-          {error}
+          {t(error)}
         </p>
       )}
 

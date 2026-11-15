@@ -1,12 +1,16 @@
+import { getT } from '@/i18n/server';
 import type { Metadata } from 'next';
 import { Container } from '@/components/ui/misc';
 import { PremiumScreen } from '@/features/premium/premium-screen';
 
-export const metadata: Metadata = {
-  title: 'Premium',
-  description:
-    'Every CV design, more downloads and honest AI writing help — a one-time pass, no subscription.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return {
+    title: t('Premium'),
+    description:
+      'Every CV design, more downloads and honest AI writing help — a one-time pass, no subscription.',
+  };
+}
 
 export default function PremiumPage() {
   return (

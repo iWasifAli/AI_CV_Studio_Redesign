@@ -38,7 +38,7 @@ export default async function PortfolioRoute({ params }: Props) {
       doc={r.doc}
       portfolio={p}
       theme={resolveTheme(p.theme, r.doc)}
-      imageSrc={(id) => `/p/${encodeURIComponent(p.slug)}/img/${encodeURIComponent(id)}`}
+      imageBase={`/p/${encodeURIComponent(p.slug)}/img/`}
       contactOpen={await contactOpen(p)}
     />
   );

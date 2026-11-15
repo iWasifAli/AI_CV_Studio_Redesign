@@ -38,7 +38,7 @@ function Feedback({ f }: { f: MockFeedback }) {
       data-testid="mock-feedback"
     >
       <p className={cn('flex items-center gap-1.5 font-semibold', v.cls)}>
-        <v.Icon aria-hidden size={16} /> {v.label}
+        <v.Icon aria-hidden size={16} /> {tx(v.label)}
       </p>
       <ul className="flex flex-wrap gap-1.5" aria-label={tx('STAR structure')}>
         {(['situation', 'task', 'action', 'result'] as const).map((k) => (
@@ -157,7 +157,12 @@ export function MockInterview({
         </h3>
         {m && (
           <span className="text-ink-muted text-sm" data-testid="mock-progress">
-            {m.current ? `Question ${asked} of ${MOCK_QUESTIONS}` : 'Finished'}
+            {m.current
+              ? tx('Question {asked} of {MOCK_QUESTIONS}', {
+                  asked: asked,
+                  MOCK_QUESTIONS: MOCK_QUESTIONS,
+                })
+              : tx('Finished')}
           </span>
         )}
       </div>
@@ -189,7 +194,7 @@ export function MockInterview({
           {m.turns.map((t, i) => (
             <li key={i} className="flex flex-col gap-2">
               <p className="bg-primary-soft max-w-[85%] self-start rounded-lg rounded-tl-sm px-3 py-2 font-semibold">
-                {t.question}
+                {tx(t.question)}
               </p>
               <p className="bg-surface border-line max-w-[85%] self-end rounded-lg rounded-tr-sm border px-3 py-2 text-sm whitespace-pre-line">
                 {t.answer}
@@ -199,7 +204,7 @@ export function MockInterview({
                 <div className="flex flex-wrap items-center gap-2 text-sm">
                   {saved[i] === 'saved' ? (
                     <span className="text-success font-semibold">
-                      {tx('Saved to your{v}', { v: ' ' })}
+                      {tx('Saved to your')}{' '}
                       <Link href="/stories" className="underline">
                         {tx('story bank')}
                       </Link>
@@ -243,7 +248,7 @@ export function MockInterview({
               <ul className="flex flex-col gap-2">
                 {fits.map((st) => (
                   <li key={st.id} className="flex flex-wrap items-center justify-between gap-2">
-                    <span>{st.title}</span>
+                    <span>{tx(st.title)}</span>
                     <Button
                       size="sm"
                       variant="secondary"
@@ -296,7 +301,7 @@ export function MockInterview({
           disabled={disabled || busy}
           onClick={() => turn({ restart: true })}
         >
-          {m ? 'Practise again' : 'Start the mock interview'}
+          {m ? tx('Practise again') : tx('Start the mock interview')}
         </Button>
       )}
       {m?.current && m.turns.length > 0 && (

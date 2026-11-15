@@ -116,8 +116,8 @@ export default async function HomePage() {
                     {t('Step {v}', { v: i + 1 })}
                   </span>
                 </div>
-                <h3 className="text-lg font-semibold">{s.title}</h3>
-                <p className="text-ink-muted">{s.body}</p>
+                <h3 className="text-lg font-semibold">{t(s.title)}</h3>
+                <p className="text-ink-muted">{t(s.body)}</p>
               </li>
             ))}
           </ol>
@@ -135,7 +135,7 @@ export default async function HomePage() {
             </h2>
             <p className="text-ink-muted text-lg">
               {t(
-                'Choose yours and we&apos;ll ask the right questions — licences for drivers, registration for nurses, projects for students.',
+                'Choose yours and we’ll ask the right questions — licences for drivers, registration for nurses, projects for students.',
               )}
             </p>
           </div>
@@ -146,7 +146,7 @@ export default async function HomePage() {
                   href={`/start?work=${p.id}`}
                   className="border-line-strong bg-surface text-ink hover:border-primary hover:bg-primary-soft hover:text-primary inline-flex min-h-11 items-center rounded-full border px-4 text-[15px] font-semibold transition-colors"
                 >
-                  {p.name}
+                  {t(p.name)}
                 </Link>
               </li>
             ))}
@@ -166,8 +166,8 @@ export default async function HomePage() {
             {PROMISES.map((p) => (
               <li key={p.title} className="flex flex-col gap-3">
                 <p.icon aria-hidden size={26} className="text-accent" />
-                <h3 className="text-lg font-semibold">{p.title}</h3>
-                <p className="text-white/75">{p.body}</p>
+                <h3 className="text-lg font-semibold">{t(p.title)}</h3>
+                <p className="text-white/75">{t(p.body)}</p>
               </li>
             ))}
           </ul>

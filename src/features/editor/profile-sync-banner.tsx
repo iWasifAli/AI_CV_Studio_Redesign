@@ -41,7 +41,7 @@ export function ProfileSyncBanner({ doc }: { doc: ResumeDocument }) {
   return (
     <Banner
       tone="info"
-      title={`Update your career profile too?`}
+      title={tx('Update your career profile too?')}
       className="mb-4"
       action={
         <div className="flex flex-wrap gap-2">
@@ -62,8 +62,12 @@ export function ProfileSyncBanner({ doc }: { doc: ResumeDocument }) {
       }
     >
       {changes.every((c) => c.kind === 'item')
-        ? `You added ${n === 1 ? 'an entry' : `${n} entries`} that your career profile doesn’t have`
-        : `You changed ${n === 1 ? 'something' : `${n} things`} that your career profile also has`}
+        ? tx('You added {v0} that your career profile doesn’t have', {
+            v0: n === 1 ? 'an entry' : `${n} entries`,
+          })
+        : tx('You changed {v0} that your career profile also has', {
+            v0: n === 1 ? 'something' : `${n} things`,
+          })}
       {changes[0] ? ` (${describeChange(changes[0])})` : ''}
       {tx('. Every new CV starts from the profile.')}
     </Banner>

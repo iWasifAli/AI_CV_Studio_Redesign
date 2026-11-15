@@ -72,7 +72,12 @@ export async function noticeComments(share: Share, cvTitle: string, now = new Da
     if (!open) return;
     const cfg = (await getBusinessConfig()).value;
     const r = await sendMail(
-      commentEmail(share.ownerEmail, { cvTitle, open, docId: share.docId }),
+      commentEmail(share.ownerEmail, {
+        cvTitle,
+        open,
+        docId: share.docId,
+        lang: await store.userLang(share.uid).catch(() => 'en' as const),
+      }),
       cfg.support.email,
     );
     await track(r.ok ? 'comment_notice' : 'comment_notice_fail');

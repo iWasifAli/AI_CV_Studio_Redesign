@@ -56,9 +56,7 @@ export function Showcase() {
     <main id="main">
       <Container className="flex flex-col gap-10 py-12">
         <header className="flex flex-col gap-2">
-          <h1 className="font-display text-4xl font-semibold">
-            {tx('Paper &amp; Ink — components')}
-          </h1>
+          <h1 className="font-display text-4xl font-semibold">{tx('Paper & Ink — components')}</h1>
           <p className="text-ink-muted">
             {tx('Internal reference. Tokens mirror docs/ux/design-system.md.')}
           </p>
@@ -206,7 +204,7 @@ export function Showcase() {
               aria-labelledby={tabId('ds-tabs', tab)}
               className="text-ink-muted py-4"
             >
-              {tab === 'content' ? 'Content panel' : 'Design panel'}
+              {tab === 'content' ? tx('Content panel') : tx('Design panel')}
             </div>
           </div>
           <div className="max-w-md">

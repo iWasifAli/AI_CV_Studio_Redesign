@@ -4,11 +4,14 @@ import { Suspense } from 'react';
 import { Container } from '@/components/ui/misc';
 import { MakeoverScreen } from '@/features/makeover/makeover-screen';
 
-export const metadata: Metadata = {
-  title: 'Instant CV makeover',
-  description:
-    'Upload the CV you have — PDF, Word or a photo — and see it in a professional design in under a minute. Nothing is added that isn’t in your CV.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return {
+    title: t('Instant CV makeover'),
+    description:
+      'Upload the CV you have — PDF, Word or a photo — and see it in a professional design in under a minute. Nothing is added that isn’t in your CV.',
+  };
+}
 
 export default async function MakeoverPage() {
   const t = await getT();

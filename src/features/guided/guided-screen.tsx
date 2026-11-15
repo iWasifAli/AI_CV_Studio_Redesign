@@ -70,7 +70,7 @@ function SectionStep({
             </p>
             <IconButton
               size="sm"
-              label={`Remove ${info.noun} ${i + 1}`}
+              label={t('Remove {noun} {v1}', { noun: info.noun, v1: i + 1 })}
               icon={<Trash2 aria-hidden size={16} />}
               onClick={() => update((d) => ops.removeItem(d, section.id, item.id))}
             />
@@ -266,7 +266,7 @@ export function GuidedScreen({ initial }: { initial: ResumeDocument }) {
               onClick={next}
               iconAfter={<ArrowRight aria-hidden size={18} />}
             >
-              {index >= steps.length - 1 ? 'Finish' : 'Continue'}
+              {index >= steps.length - 1 ? t('Finish') : t('Continue')}
             </Button>
           </div>
         </div>

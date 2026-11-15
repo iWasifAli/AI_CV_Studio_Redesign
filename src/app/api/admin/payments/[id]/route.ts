@@ -107,6 +107,9 @@ export function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
       reason: why,
       supportEmail: cfgNow.support.email,
       wording: cfgNow.emails,
+      lang: await getUserStore()
+        .userLang(decided.uid)
+        .catch(() => 'en' as const),
     });
     const emailed = mail
       ? await sendMail(mail, cfgNow.support.email)

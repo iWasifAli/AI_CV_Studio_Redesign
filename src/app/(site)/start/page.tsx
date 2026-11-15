@@ -6,7 +6,10 @@ import { FileUp } from 'lucide-react';
 import { Container } from '@/components/ui/misc';
 import { StartFlow } from '@/features/start/start-flow';
 
-export const metadata: Metadata = { title: 'Create your CV' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t('Create your CV') };
+}
 
 export default async function StartPage() {
   const t = await getT();

@@ -133,8 +133,8 @@ export function QuantifyPanel({
       {points.length === 0 ? (
         <p className="text-sm" data-testid="quantify-none">
           {doneKeys.length
-            ? 'Every point now has a number. Well done.'
-            : 'Every point on your CV already has a number.'}
+            ? t('Every point now has a number. Well done.')
+            : t('Every point on your CV already has a number.')}
         </p>
       ) : !signedIn ? (
         <p className="text-ink-muted text-sm">
@@ -149,7 +149,7 @@ export function QuantifyPanel({
       ) : premiumOnly ? (
         <p className="text-ink-muted text-sm" data-testid="quantify-premium">
           {points.length} {points.length === 1 ? 'point has' : 'points have'}{' '}
-          {t('no number. Questions that help are part of{v}', { v: ' ' })}
+          {t('no number. Questions that help are part of')}{' '}
           <Link href="/premium" className="text-primary font-semibold">
             {t('Premium')}
           </Link>
@@ -205,7 +205,7 @@ export function QuantifyPanel({
                     >
                       {st.questions.map((q, i) => (
                         <label key={i} className="flex flex-col gap-1">
-                          <span className="font-semibold">{q.question}</span>
+                          <span className="font-semibold">{t(q.question)}</span>
                           <input
                             className="border-line-strong bg-surface h-10 rounded-md border px-3"
                             value={st.answers[i] ?? ''}
@@ -217,7 +217,7 @@ export function QuantifyPanel({
                               })
                             }
                           />
-                          {q.hint && <span className="text-ink-muted text-xs">{q.hint}</span>}
+                          {q.hint && <span className="text-ink-muted text-xs">{t(q.hint)}</span>}
                         </label>
                       ))}
                       <p className="text-ink-muted text-xs">

@@ -184,7 +184,9 @@ function Settings() {
                   {url(saved.slug).replace(/^https?:\/\//, '')}
                 </a>
                 <p className="text-ink-muted text-sm" data-testid="portfolio-views">
-                  {saved.views === 1 ? 'Visited once' : `Visited ${saved.views} times`}
+                  {saved.views === 1
+                    ? tx('Visited once')
+                    : tx('Visited {views} times', { views: saved.views })}
                 </p>
               </div>
               <ButtonLink
@@ -210,7 +212,9 @@ function Settings() {
               >
                 {cvs.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.role === 'profile' ? 'Career profile' : c.title || c.name || 'Untitled CV'}
+                    {c.role === 'profile'
+                      ? tx('Career profile')
+                      : c.title || c.name || tx('Untitled CV')}
                   </option>
                 ))}
               </select>
@@ -284,12 +288,12 @@ function Settings() {
             />
             {error && (
               <Banner tone="error" title={tx('That didn’t work')} onDismiss={() => setError(null)}>
-                {error}
+                {tx(error)}
               </Banner>
             )}
             <div className="flex flex-wrap gap-2">
               <Button disabled={!dirty || !!problem} loading={busy} onClick={save}>
-                {saved ? 'Save changes' : 'Create my page'}
+                {saved ? tx('Save changes') : tx('Create my page')}
               </Button>
               <Button
                 variant="secondary"

@@ -3,7 +3,10 @@ import type { Metadata } from 'next';
 import { Container } from '@/components/ui/misc';
 import { CardStudio } from '@/features/presence/card-studio';
 
-export const metadata: Metadata = { title: 'Email signature and business card' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t('Email signature and business card') };
+}
 
 export default async function Page() {
   const t = await getT();

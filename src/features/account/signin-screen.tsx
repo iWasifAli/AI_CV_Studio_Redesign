@@ -140,7 +140,7 @@ export function SignInScreen() {
 
       {error && (
         <p role="alert" className="text-danger bg-danger-soft rounded-md px-3 py-2 text-[15px]">
-          {error}
+          {t(error)}
         </p>
       )}
       {notice && <Banner tone="success">{notice}</Banner>}
@@ -159,7 +159,7 @@ export function SignInScreen() {
             {t('Continue with Google')}
           </Button>
           <div className="text-ink-subtle flex items-center gap-3 text-sm">
-            <span className="bg-line h-px flex-1" /> {t('or with email{v}', { v: ' ' })}
+            <span className="bg-line h-px flex-1" /> {t('or with email')}{' '}
             <span className="bg-line h-px flex-1" />
           </div>
         </>
@@ -202,8 +202,8 @@ export function SignInScreen() {
                     ) : (
                       <Circle aria-hidden size={10} className="mx-0.5" />
                     )}
-                    {r.label}
-                    <span className="sr-only">{ok ? '(done)' : '(not yet)'}</span>
+                    {t(r.label)}
+                    <span className="sr-only">{ok ? t('(done)') : t('(not yet)')}</span>
                   </li>
                 );
               })}
@@ -225,7 +225,11 @@ export function SignInScreen() {
           </>
         )}
         <Button type="submit" size="lg" loading={busy === 'email'} disabled={busy !== null}>
-          {mode === 'signin' ? 'Sign in' : mode === 'signup' ? 'Create account' : 'Send reset link'}
+          {mode === 'signin'
+            ? t('Sign in')
+            : mode === 'signup'
+              ? t('Create account')
+              : t('Send reset link')}
         </Button>
       </form>
 
@@ -240,7 +244,7 @@ export function SignInScreen() {
               {t('Forgot your password?')}
             </button>
             <p>
-              {t('New here?{v}', { v: ' ' })}
+              {t('New here?')}{' '}
               <button
                 type="button"
                 className="text-primary font-semibold"
@@ -253,22 +257,22 @@ export function SignInScreen() {
         )}
         {mode !== 'signin' && (
           <p>
-            {mode === 'signup' ? 'Already have an account? ' : ''}
+            {mode === 'signup' ? t('Already have an account? ') : ''}
             <button
               type="button"
               className="text-primary font-semibold"
               onClick={() => setMode('signin')}
             >
-              {mode === 'signup' ? 'Sign in' : 'Back to sign in'}
+              {mode === 'signup' ? t('Sign in') : t('Back to sign in')}
             </button>
           </p>
         )}
         <p className="text-sm">
-          {t('By continuing you confirm you are 18 or older and agree to our{v}', { v: ' ' })}
+          {t('By continuing you confirm you are 18 or older and agree to our')}{' '}
           <Link href="/terms" className="text-primary underline underline-offset-4">
             {t('terms')}
           </Link>
-          {t('. Read our{v}', { v: ' ' })}
+          {t('. Read our')}{' '}
           <Link href="/privacy" className="text-primary underline underline-offset-4">
             {t('privacy notice')}
           </Link>

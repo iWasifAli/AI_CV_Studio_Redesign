@@ -215,7 +215,7 @@ export function SignatureField({
       )}
       {error && (
         <p role="alert" className="text-danger text-sm">
-          {error}
+          {t(error)}
         </p>
       )}
     </div>

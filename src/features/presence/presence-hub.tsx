@@ -167,7 +167,7 @@ export function PresenceHub() {
             </p>
           )}
           <ButtonLink href="/portfolio" variant="secondary" className="mt-auto self-start">
-            {portfolio?.published ? 'Change settings' : 'Set up my page'}
+            {portfolio?.published ? t('Change settings') : t('Set up my page')}
           </ButtonLink>
         </section>
 
@@ -257,7 +257,7 @@ export function PresenceHub() {
                     <p className="flex items-center gap-2 font-semibold">
                       <span className="truncate">{title}</span>
                       <Badge tone={s.enabled ? 'success' : 'neutral'}>
-                        {s.enabled ? 'On' : 'Off'}
+                        {s.enabled ? t('On') : t('Off')}
                       </Badge>
                     </p>
                     <p className="text-ink-muted text-sm">
@@ -272,13 +272,16 @@ export function PresenceHub() {
                         className="text-primary text-sm font-semibold underline underline-offset-4"
                       >
                         {s.openComments === 1
-                          ? '1 comment to read'
-                          : `${s.openComments} comments to read`}
+                          ? t('1 comment to read')
+                          : t('{openComments} comments to read', { openComments: s.openComments })}
                         <span className="sr-only"> {t('on {title}', { title: title })}</span>
                       </Link>
                     )}
                   </div>
-                  <Opens recent={s.recent} label={`Opens of the link to ${title}`} />
+                  <Opens
+                    recent={s.recent}
+                    label={t('Opens of the link to {title}', { title: title })}
+                  />
                   <div className="flex flex-wrap gap-2">
                     <Button
                       size="sm"
@@ -286,7 +289,7 @@ export function PresenceHub() {
                       icon={<Copy aria-hidden size={14} />}
                       disabled={!s.enabled}
                       onClick={() => copy(url)}
-                      aria-label={`Copy the link to ${title}`}
+                      aria-label={t('Copy the link to {title}', { title: title })}
                     >
                       {t('Copy')}
                     </Button>
@@ -294,9 +297,12 @@ export function PresenceHub() {
                       size="sm"
                       variant="ghost"
                       onClick={() => toggle(s)}
-                      aria-label={`${s.enabled ? 'Switch off' : 'Switch on'} the link to ${title}`}
+                      aria-label={t('{v0} the link to {title}', {
+                        v0: s.enabled ? 'Switch off' : 'Switch on',
+                        title: title,
+                      })}
                     >
-                      {s.enabled ? 'Switch off' : 'Switch on'}
+                      {s.enabled ? t('Switch off') : t('Switch on')}
                     </Button>
                   </div>
                 </li>

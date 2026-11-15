@@ -3,6 +3,7 @@ import { z } from 'zod';
 import type { Finding } from './guard';
 import { placeholderQuestions } from './placeholders';
 import { AiProviderError, type AiFile, type AiProvider } from './provider';
+import { languageRule, outputLanguage, type OutLang } from './language';
 import { taskInputs, taskOutputs, type TaskId, type TaskOutput } from './schemas';
 import { TASKS, type TaskDef } from './tasks';
 
@@ -30,7 +31,19 @@ export type RunDeps = {
   files?: AiFile[];
   /** Injected for tests. */
   sleep?: (ms: number) => Promise<void>;
+  /** Interface language; read from the request's language cookie when not given. */
+  lang?: OutLang;
 };
+
+/** The interface language of the current request ('en' outside a request). */
+async function requestLang(): Promise<OutLang> {
+  try {
+    const { cookies } = await import('next/headers');
+    return (await cookies()).get('lang')?.value === 'de' ? 'de' : 'en';
+  } catch {
+    return 'en';
+  }
+}
 
 const jsonSchemaCache = new Map<TaskId, Record<string, unknown>>();
 function jsonSchema(id: TaskId) {
@@ -134,13 +147,16 @@ async function runInner<T extends TaskId>(
       ? `\n\nAttempt ${attempt}: the person asked for a different version. Offer different wording from before; the rules still apply.`
       : '');
   const temperature = Math.min(1, task.temperature + attempt * 0.15);
+  const system =
+    task.system(input) +
+    languageRule(outputLanguage(id, input, deps.lang ?? (await requestLang())));
 
   async function call(user: string) {
     for (let tryNo = 0; ; tryNo++) {
       try {
         const res = await deps.provider.generate({
           model,
-          system: task.system(input),
+          system,
           user,
           schema: jsonSchema(id),
           maxTokens: task.maxTokens,

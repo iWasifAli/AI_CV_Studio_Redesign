@@ -145,7 +145,9 @@ export function CompanyBrief({ job, onJobChange }: { job: Job; onJobChange: (j: 
         </p>
       )}
       <TextArea
-        label={b ? 'Add more from their website (optional)' : 'Text from their website (optional)'}
+        label={
+          b ? t('Add more from their website (optional)') : t('Text from their website (optional)')
+        }
         hint={t('Paste their About or Careers page to give the brief more to work with.')}
         rows={3}
         maxLength={12_000}
@@ -167,7 +169,7 @@ export function CompanyBrief({ job, onJobChange }: { job: Job; onJobChange: (j: 
       )}
       {locked ? (
         <p className="text-sm">
-          {t('Company briefs are part of{v}', { v: ' ' })}
+          {t('Company briefs are part of')}{' '}
           <Link href="/premium" className="text-primary font-semibold">
             {t('Premium')}
           </Link>
@@ -178,10 +180,10 @@ export function CompanyBrief({ job, onJobChange }: { job: Job; onJobChange: (j: 
           className="self-start"
           disabled={!source || short}
           loading={busy}
-          title={short ? 'Add the job advert first' : undefined}
+          title={short ? t('Add the job advert first') : undefined}
           onClick={make}
         >
-          {b ? 'Make it again' : 'Make the brief'}
+          {b ? t('Make it again') : t('Make the brief')}
         </Button>
       )}
       {short && (

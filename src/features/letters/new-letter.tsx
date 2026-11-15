@@ -1,6 +1,7 @@
 'use client';
 
-import { useT } from '@/i18n/client';
+import { useLang, useT } from '@/i18n/client';
+import { cvWords } from '@/modules/resume/cv-words';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useMemo, useState, type FormEvent } from 'react';
@@ -66,15 +67,18 @@ export function NewLetter() {
         .map(([title, list]) => (
           <section key={title} aria-label={title} className="flex flex-col gap-3">
             <h2 className="text-lg font-semibold">{title}</h2>
-            <ul className="grid gap-3 sm:grid-cols-2" aria-label={`${title}: types`}>
+            <ul
+              className="grid gap-3 sm:grid-cols-2"
+              aria-label={tx('{title}: types', { title: title })}
+            >
               {list.map((t) => (
                 <li key={t.id}>
                   <Link
                     href={`/letters/new?type=${t.id}`}
                     className="border-line bg-surface hover:border-primary flex h-full flex-col gap-1 rounded-xl border p-5"
                   >
-                    <span className="font-semibold">{t.title}</span>
-                    <span className="text-ink-muted text-sm">{t.description}</span>
+                    <span className="font-semibold">{tx(t.title)}</span>
+                    <span className="text-ink-muted text-sm">{tx(t.description)}</span>
                   </Link>
                 </li>
               ))}
@@ -87,6 +91,7 @@ export function NewLetter() {
 
 function LetterForm({ type }: { type: LetterType }) {
   const tx = useT();
+  const lang = useLang();
   const router = useRouter();
   const { ent } = useEntitlements();
   const repo = typeof window === 'undefined' ? null : getRepository();
@@ -109,11 +114,18 @@ function LetterForm({ type }: { type: LetterType }) {
     setBusy(withAi ? 'ai' : 'self');
     setProblem(null);
     try {
-      const start = starterLetter(type, answers, {
-        name: source?.basics.name ?? '',
-        headline: source?.basics.headline ?? '',
-        location: source?.basics.location ?? '',
-      });
+      const letterLocale = source?.locale ?? (lang === 'de' ? 'de-DE' : 'en-GB');
+      const w = cvWords(letterLocale);
+      const start = starterLetter(
+        type,
+        answers,
+        {
+          name: source?.basics.name ?? '',
+          headline: source?.basics.headline ?? '',
+          location: source?.basics.location ?? '',
+        },
+        letterLocale,
+      );
       const statement = type.form === 'statement';
       const letter = await lettersApi.create({
         type: type.id,
@@ -126,8 +138,8 @@ function LetterForm({ type }: { type: LetterType }) {
         subject: start.subject,
         answers: withDefaults(type, answers),
         paragraphs: start.paragraphs,
-        greeting: statement ? '' : 'Dear Hiring Manager,',
-        closing: statement ? '' : tone === 'formal' ? 'Yours sincerely,' : 'Kind regards,',
+        greeting: statement ? '' : w('Dear Hiring Manager,'),
+        closing: statement ? '' : w(tone === 'formal' ? 'Yours sincerely,' : 'Kind regards,'),
         tone,
         documentId: source?.id ?? '',
       });
@@ -155,7 +167,7 @@ function LetterForm({ type }: { type: LetterType }) {
     <form
       className="flex max-w-2xl flex-col gap-5"
       onSubmit={(e) => create(!aiLocked && cvs.length > 0, e)}
-      aria-label={type.title}
+      aria-label={tx(type.title)}
     >
       <Link
         href="/letters/new"
@@ -164,12 +176,12 @@ function LetterForm({ type }: { type: LetterType }) {
         <ArrowLeft aria-hidden size={16} /> {tx('All letter types')}
       </Link>
       <div>
-        <h2 className="font-display text-2xl font-semibold">{type.title}</h2>
-        <p className="text-ink-muted">{type.description}</p>
+        <h2 className="font-display text-2xl font-semibold">{tx(type.title)}</h2>
+        <p className="text-ink-muted">{tx(type.description)}</p>
       </div>
       {type.id === 'cover' && (
         <Banner tone="info" title={tx('Applying for a specific advert?')}>
-          {tx('Save the job in{v}', { v: ' ' })}
+          {tx('Save the job in')}{' '}
           <Link href="/jobs?new=1" className="text-primary font-semibold">
             {tx('Jobs')}
           </Link>{' '}
@@ -179,7 +191,7 @@ function LetterForm({ type }: { type: LetterType }) {
       {type.questions.map((q) =>
         q.options ? (
           <label key={q.id} className="flex flex-col gap-1.5 text-sm font-semibold">
-            {q.label}
+            {tx(q.label)}
             <select
               className="border-line-strong bg-surface min-h-11 rounded-md border px-3 text-[15px] font-normal"
               value={answers[q.id] || q.options[0]}
@@ -193,8 +205,8 @@ function LetterForm({ type }: { type: LetterType }) {
         ) : q.long ? (
           <TextArea
             key={q.id}
-            label={q.label}
-            hint={q.hint}
+            label={tx(q.label)}
+            hint={tx(q.hint)}
             optional={!q.required}
             rows={3}
             maxLength={1500}
@@ -209,8 +221,8 @@ function LetterForm({ type }: { type: LetterType }) {
         ) : (
           <TextField
             key={q.id}
-            label={q.label}
-            hint={q.hint}
+            label={tx(q.label)}
+            hint={tx(q.hint)}
             optional={!q.required}
             maxLength={300}
             value={answers[q.id] ?? ''}
@@ -226,7 +238,7 @@ function LetterForm({ type }: { type: LetterType }) {
       {type.form !== 'statement' && (
         <TextArea
           label={tx('Who it’s to')}
-          hint={`One line each: name, organisation, address. Usually: ${type.to}.`}
+          hint={tx('One line each: name, organisation, address. Usually: {to}.', { to: type.to })}
           optional
           rows={2}
           value={to}
@@ -243,7 +255,9 @@ function LetterForm({ type }: { type: LetterType }) {
           >
             {cvs.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.role === 'profile' ? 'Career profile' : c.title || c.name || 'Untitled CV'}
+                {c.role === 'profile'
+                  ? tx('Career profile')
+                  : c.title || c.name || tx('Untitled CV')}
               </option>
             ))}
           </select>
@@ -263,7 +277,7 @@ function LetterForm({ type }: { type: LetterType }) {
                 : 'border-line-strong bg-surface hover:bg-sunken min-h-10 rounded-full border px-3.5 text-sm font-semibold'
             }
           >
-            {t === 'warm' ? 'Warm' : 'Formal'}
+            {t === 'warm' ? tx('Warm') : tx('Formal')}
           </button>
         ))}
       </div>
@@ -293,7 +307,7 @@ function LetterForm({ type }: { type: LetterType }) {
             disabled={busy !== null || aiLocked}
             loading={busy === 'ai'}
             onClick={() => create(true)}
-            title={aiLocked ? 'AI drafts are part of Premium' : undefined}
+            title={aiLocked ? tx('AI drafts are part of Premium') : undefined}
           >
             {tx('Write it with AI')}
           </Button>
@@ -312,9 +326,8 @@ function LetterForm({ type }: { type: LetterType }) {
       {aiLocked && cvs.length > 0 && (
         <p className="text-ink-muted text-sm">
           {tx(
-            '“Write it myself” starts you with a draft made from your answers. AI drafts are part of{v}',
-            { v: ' ' },
-          )}
+            '“Write it myself” starts you with a draft made from your answers. AI drafts are part of',
+          )}{' '}
           <Link href="/premium" className="text-primary font-semibold">
             {tx('Premium')}
           </Link>
@@ -323,7 +336,7 @@ function LetterForm({ type }: { type: LetterType }) {
       )}
       {cvs.length === 0 && (
         <p className="text-ink-muted text-sm">
-          {tx('Tip:{v}', { v: ' ' })}
+          {tx('Tip:')}{' '}
           <Link href="/start" className="text-primary font-semibold">
             {tx('create a CV')}
           </Link>{' '}

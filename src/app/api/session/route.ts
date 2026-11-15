@@ -1,3 +1,5 @@
+import { LANG_COOKIE, isLang } from '@/i18n/core';
+import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { apiError, clientKey, createRateLimiter, readJson, requestId } from '@/lib/http';
 import {
@@ -55,6 +57,12 @@ export async function POST(req: Request) {
           JSON.stringify({ level: 'error', route: '/api/session', rid, message: e.message }),
         ),
       );
+    // The language chosen before signing in carries over to the account (for emails).
+    const lang = (await cookies()).get(LANG_COOKIE)?.value;
+    if (isLang(lang))
+      await getUserStore()
+        .setUserLang(session.uid, lang)
+        .catch(() => {});
     await noteUse(session.uid, null);
     return NextResponse.json({ ok: true }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (err) {

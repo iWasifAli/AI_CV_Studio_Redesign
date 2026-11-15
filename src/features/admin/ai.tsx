@@ -130,12 +130,18 @@ export function AdminAi() {
           tone={residual === 0 && failed === 0 && problems === 0 ? 'success' : 'warning'}
           title={
             residual === 0 && failed === 0 && problems === 0
-              ? 'Passed: no invented facts reached the text.'
+              ? t('Passed: no invented facts reached the text.')
               : residual
-                ? `${residual} unmarked new fact(s) — review the samples marked below.`
+                ? t('{residual} unmarked new fact(s) — review the samples marked below.', {
+                    residual: residual,
+                  })
                 : problems
-                  ? `${problems} quality check(s) failed — review the samples marked below.`
-                  : `${failed} call(s) failed — run again or check the provider.`
+                  ? t('{problems} quality check(s) failed — review the samples marked below.', {
+                      problems: problems,
+                    })
+                  : t('{failed} call(s) failed — run again or check the provider.', {
+                      failed: failed,
+                    })
           }
           className="mb-6"
         />

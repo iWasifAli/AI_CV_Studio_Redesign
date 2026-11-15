@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { MoreHorizontal } from 'lucide-react';
 import { cn } from '@/lib/cn';
@@ -24,6 +25,7 @@ export function Menu({
   /** Open upwards (for triggers near the bottom of the screen). */
   above?: boolean;
 }) {
+  const tr = useT();
   const [open, setOpen] = useState(false);
   const id = useId();
   const wrap = useRef<HTMLDivElement>(null);
@@ -67,7 +69,7 @@ export function Menu({
         <div
           id={id}
           role="menu"
-          aria-label={label}
+          aria-label={tr(label)}
           className={cn(
             'border-line bg-surface shadow-2 absolute z-30 min-w-48 rounded-md border p-1',
             above ? 'bottom-full mb-1' : 'top-full mt-1',
@@ -108,7 +110,7 @@ export function Menu({
               )}
             >
               {it.icon}
-              {it.label}
+              {tr(it.label)}
             </button>
           ))}
         </div>

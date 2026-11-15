@@ -3,7 +3,10 @@ import type { Metadata } from 'next';
 import { Container } from '@/components/ui/misc';
 import { PresenceHubClient } from '@/features/presence/client';
 
-export const metadata: Metadata = { title: 'Presence', robots: { index: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t('Presence'), robots: { index: false } };
+}
 
 /** Presence hub (complete-studio-spec §11.1): everything people see of you online. */
 export default async function PresencePage() {

@@ -1,6 +1,6 @@
-'use client';
-
-import { useT } from '@/i18n/client';
+import { makeT, type T } from '@/i18n/core';
+import { DICTS } from '@/i18n/dicts';
+import { cvLang } from '@/modules/resume/cv-words';
 import Link from 'next/link';
 import type { CSSProperties, ReactNode } from 'react';
 import { ExternalLink, Mail, MapPin, Phone } from 'lucide-react';
@@ -31,7 +31,8 @@ type Props = {
   portfolio: PortfolioPageData;
   theme: Theme;
   /** Where a project picture is served from. */
-  imageSrc?: (id: string) => string;
+  /** Where project pictures are served: the picture's id is added to this path. */
+  imageBase?: string;
   /** Show the contact form (the page takes messages). */
   contactOpen?: boolean;
   /** The owner's preview or a sample: the form can't send. */
@@ -51,13 +52,14 @@ export function PortfolioPage({
   doc,
   portfolio,
   theme,
-  imageSrc,
+  imageBase,
   contactOpen = false,
   preview = false,
   banner,
   embedded = false,
 }: Props) {
-  const tx = useT();
+  // The page speaks the CV's language (visitors see the person's page as the person wrote it).
+  const tx = pageT(doc.locale);
   const Main = embedded ? 'div' : 'main';
   const m = toRenderModel(doc);
   const pair = FONT_PAIRS[doc.design.fontPair];
@@ -105,7 +107,7 @@ export function PortfolioPage({
   if (projects.length)
     blocks.push(
       <Block key="projects" id="projects" title={galleryTitle} theme={theme} n={next()}>
-        <Projects projects={projects} theme={theme} imageSrc={imageSrc} />
+        <Projects projects={projects} theme={theme} imageBase={imageBase} tx={tx} />
       </Block>,
     );
   for (const s of main)
@@ -178,7 +180,7 @@ export function PortfolioPage({
       )}
       {!embedded && (
         <footer className="text-ink-muted border-line border-t px-5 py-8 text-center text-sm">
-          {tx('Made with{v}', { v: ' ' })}
+          {tx('Made with')}{' '}
           <Link href="/" className="text-primary font-semibold">
             {tx('AI CV Studio')}
           </Link>
@@ -441,20 +443,26 @@ function CustomBody({ c }: { c: PortfolioSection }) {
   );
 }
 
+/** Words on the page in the CV's language. Not a hook: this page also renders on the server. */
+function pageT(locale: string) {
+  return makeT(cvLang(locale) === 'de' ? DICTS.de : null);
+}
+
 function Projects({
   projects,
   theme,
-  imageSrc,
+  imageBase,
+  tx,
 }: {
   projects: PortfolioProject[];
   theme: Theme;
-  imageSrc?: (id: string) => string;
+  imageBase?: string;
+  tx: T;
 }) {
-  const tx = useT();
   return (
     <ul className="grid gap-6 sm:grid-cols-2" data-testid="portfolio-projects">
       {projects.map((p) => {
-        const imgs = imageSrc ? p.images : [];
+        const imgs = imageBase ? p.images : [];
         return (
           <li
             key={p.id}
@@ -471,7 +479,7 @@ function Projects({
                   // eslint-disable-next-line @next/next/no-img-element -- the owner's own pictures
                   <img
                     key={im.id}
-                    src={imageSrc!(im.id)}
+                    src={`${imageBase}${encodeURIComponent(im.id)}`}
                     alt={im.alt}
                     loading="lazy"
                     className={classes(

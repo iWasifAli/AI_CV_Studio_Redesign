@@ -59,8 +59,12 @@ export function LinkedinScreen() {
         </h1>
         <p className="text-ink-muted mt-1">
           {tab === 'write'
-            ? 'A headline, About section and job descriptions written from your CV, ready to paste into LinkedIn. Nothing is invented.'
-            : 'Upload the PDF LinkedIn makes of your profile and get a review of each section, with better text to paste back.'}
+            ? tx(
+                'A headline, About section and job descriptions written from your CV, ready to paste into LinkedIn. Nothing is invented.',
+              )
+            : tx(
+                'Upload the PDF LinkedIn makes of your profile and get a review of each section, with better text to paste back.',
+              )}
         </p>
       </div>
       <Tabs
@@ -206,7 +210,9 @@ function LinkedinWriter() {
             >
               {cvs.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.role === 'profile' ? 'Career profile' : c.title || c.name || 'Untitled CV'}
+                  {c.role === 'profile'
+                    ? tx('Career profile')
+                    : c.title || c.name || tx('Untitled CV')}
                 </option>
               ))}
             </select>
@@ -229,7 +235,7 @@ function LinkedinWriter() {
             onClick={write}
             className="self-start"
           >
-            {result ? 'Write again' : 'Write my LinkedIn profile'}
+            {result ? tx('Write again') : tx('Write my LinkedIn profile')}
           </Button>
           {error && (
             <Banner
@@ -257,7 +263,10 @@ function LinkedinWriter() {
           data-testid="linkedin-result"
         >
           {asks > 0 && (
-            <Banner tone="warning" title={`${asks} detail${asks > 1 ? 's' : ''} to check`}>
+            <Banner
+              tone="warning"
+              title={tx('{asks} detail{v1} to check', { asks: asks, v1: asks > 1 ? 's' : '' })}
+            >
               {tx(
                 'Replace or remove the parts in [brackets] before you paste. They mark facts that aren’t in your CV.',
               )}

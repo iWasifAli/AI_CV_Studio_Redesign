@@ -3,7 +3,10 @@ import type { Metadata } from 'next';
 import { Container } from '@/components/ui/misc';
 import { BackToJobs, JobInsights } from '@/features/jobs/job-insights';
 
-export const metadata: Metadata = { title: 'Your application results', robots: { index: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t('Your application results'), robots: { index: false } };
+}
 
 export default async function JobInsightsPage() {
   const t = await getT();
