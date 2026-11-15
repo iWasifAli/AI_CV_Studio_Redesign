@@ -291,7 +291,9 @@ test('Help questions and Premium wording are edited in the Console', async ({ br
   await admin.getByRole('button', { name: 'Add a question' }).click();
   const n = await faq.getByRole('listitem').count();
   await faq.getByLabel(`Question ${n}`, { exact: true }).fill('Can I pay with JazzCash?');
-  await faq.getByLabel(`Answer ${n}`, { exact: true }).fill('Yes — see the Premium page for the account details.');
+  await faq
+    .getByLabel(`Answer ${n}`, { exact: true })
+    .fill('Yes — see the Premium page for the account details.');
   await admin.getByRole('button', { name: `Move question ${n} up` }).click();
   await admin.getByLabel('Headline', { exact: true }).fill('Land the job with every design');
   await admin.getByRole('button', { name: 'Save changes' }).click();

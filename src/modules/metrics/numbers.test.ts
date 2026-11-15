@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { aiCost, numberStatus, productNumbers, revealBucket, withUse, type Activity } from './numbers';
+import {
+  aiCost,
+  numberStatus,
+  productNumbers,
+  revealBucket,
+  withUse,
+  type Activity,
+} from './numbers';
 
 const NOW = new Date('2026-11-15T12:00:00Z');
 const daysAgo = (n: number) => new Date(NOW.getTime() - n * 86_400_000).toISOString();
