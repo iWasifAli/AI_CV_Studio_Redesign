@@ -27,6 +27,7 @@
     "ai:eval": "tsx --conditions=react-server scripts/ai-eval.ts",
     "emulators": "firebase emulators:start --only auth --project demo-aicv",
     "gates:catalogue": "tsx scripts/catalogue-gates.tsx",
+    "gates:composition": "tsx scripts/composition-gates.tsx",
     "extension:zip": "mkdir -p dist && rm -f dist/ai-cv-studio-extension.zip && cd extension && zip -qr ../dist/ai-cv-studio-extension.zip manifest.json background.js icons"
   },
   "dependencies": {

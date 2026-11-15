@@ -1,4 +1,5 @@
 import type { ExperienceItem, ResumeDocument } from '@/modules/resume/schema';
+import { findGaps, gapLength } from './gaps';
 
 /**
  * CV health check (Release 2). Deterministic, explainable findings — no invented score. Each
@@ -310,31 +311,23 @@ export function healthCheck(
       ref: jobs[0]!.ref,
     });
 
-  // Gaps over a year between jobs (neutral: many have good reasons).
-  const spans = jobs
-    .map(({ item, ref }) => ({
-      s: monthIndex(item.start),
-      e: item.current ? nowIdx : monthIndex(item.end),
-      ref,
-      role: item.role,
-    }))
-    .filter(
-      (x): x is { s: number; e: number; ref: string; role: string } => x.s !== null && x.e !== null,
-    )
-    .sort((a, b) => b.s - a.s);
-  for (let i = 1; i < spans.length; i++) {
-    const gap = spans[i - 1]!.s - spans[i]!.e;
-    if (gap > 12) {
-      f.push({
-        id: 'gap',
-        severity: 'improve',
-        title: `There’s a gap of about ${Math.round(gap / 12)} year${gap >= 24 ? 's' : ''} between jobs`,
-        detail:
-          'Gaps are common. If it fits, a short line (study, caring, travel, a course) answers the question before it’s asked.',
-        ref: spans[i]!.ref,
-      });
-      break;
-    }
+  // Gaps over a year between jobs (neutral: many have good reasons). Measured once, by the same
+  // rule as the gap cards (quality/gaps.ts), so the summary and the detail agree (audit F-12).
+  const gap = findGaps(doc, opts.now).find((g) => g.to && g.months > 12);
+  if (gap) {
+    const to = monthIndex(gap.to) ?? 0;
+    const next = jobs
+      .map(({ item, ref }) => ({ s: monthIndex(item.start), ref }))
+      .filter((x): x is { s: number; ref: string } => x.s !== null && x.s > to)
+      .sort((a, b) => a.s - b.s)[0];
+    f.push({
+      id: 'gap',
+      severity: 'improve',
+      title: `There’s a gap of ${gapLength(gap.months)} between jobs`,
+      detail:
+        'Gaps are common. If it fits, a short line (study, caring, travel, a course) answers the question before it’s asked.',
+      ref: next?.ref ?? jobs[0]?.ref,
+    });
   }
 
   // --- Skills ---

@@ -28,6 +28,16 @@ export function ItemForm({ kind, item, preset, onChange }: Props) {
   const tx = useT();
   const values = item as unknown as Record<string, unknown>;
   const current = Boolean(values.current);
+  // An end before the start is flagged where it's entered, in the editor and the guided steps
+  // alike (audit F-15). Year-only dates compare by year.
+  const start = String(values.start ?? '');
+  const end = String(values.end ?? '');
+  const reversed =
+    !current &&
+    !!start &&
+    !!end &&
+    end.slice(0, start.length < end.length ? 4 : 7) <
+      start.slice(0, start.length < end.length ? 4 : 7);
   return (
     <div className="grid grid-cols-2 gap-x-3 gap-y-4">
       {KIND_INFO[kind].fields.map((f) => {
@@ -54,6 +64,11 @@ export function ItemForm({ kind, item, preset, onChange }: Props) {
                 label={tx(f.label)}
                 value={String(values[f.key] ?? '')}
                 disabled={f.key === 'end' && current}
+                error={
+                  f.key === 'end' && reversed
+                    ? tx('The end date is before the start date.')
+                    : undefined
+                }
                 onChange={(v) => onChange({ [f.key]: v }, key)}
               />
             );

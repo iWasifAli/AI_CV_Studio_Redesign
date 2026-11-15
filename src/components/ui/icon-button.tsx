@@ -25,7 +25,8 @@ export function IconButton({
       title={label}
       className={cn(
         'text-ink inline-flex shrink-0 items-center justify-center rounded-md transition-colors duration-150 disabled:pointer-events-none disabled:opacity-45',
-        size === 'md' ? 'size-11' : 'size-9',
+        // Small buttons still give a 44 px target on touch-sized screens (audit F-19).
+        size === 'md' ? 'size-11' : 'size-11 md:size-9',
         variant === 'ghost'
           ? 'hover:bg-sunken'
           : 'border-line-strong bg-surface hover:bg-sunken border',

@@ -31,12 +31,15 @@ export function DateField({
   onChange,
   disabled,
   className,
+  error,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   disabled?: boolean;
   className?: string;
+  /** Shown under the date, e.g. an end before the start. */
+  error?: string;
 }) {
   const t = useT();
   const id = useId();
@@ -83,6 +86,11 @@ export function DateField({
           ))}
         </select>
       </div>
+      {error && (
+        <p className="text-danger text-sm" role="alert">
+          {error}
+        </p>
+      )}
     </fieldset>
   );
 }

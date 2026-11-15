@@ -35,6 +35,8 @@ export type ProofLine = {
   where: string;
   /** For "Show me": basics/... or sectionId/itemId. */
   ref: string;
+  /** The line belongs to a job the person still does (its points are in the present tense). */
+  current?: boolean;
 };
 
 const TEXT_KEYS = [
@@ -78,6 +80,7 @@ export function proofLines(doc: ResumeDocument): ProofLine[] {
       const item = raw as unknown as Record<string, unknown> & { id: string };
       const where = `${s.title} › ${itemName(item)}`;
       const ref = `${s.id}/${item.id}`;
+      const from = out.length;
       for (const key of TEXT_KEYS) {
         const v = item[key];
         if (typeof v === 'string')
@@ -90,13 +93,38 @@ export function proofLines(doc: ResumeDocument): ProofLine[] {
             add(x, { kind: 'item', sectionId: s.id, itemId: item.id, key, index }, where, ref),
           );
       }
+      if (item.current === true) for (let k = from; k < out.length; k++) out[k]!.current = true;
     }
   }
   return out;
 }
 
-/** The lines as the AI sees them: "L3: text". */
-export const proofText = (lines: ProofLine[]) => lines.map((l) => `${l.id}: ${l.text}`).join('\n');
+/**
+ * The lines as the AI sees them: "L3: text"; a line of a job the person still does is marked
+ * "(current job)", so its points are kept in the present tense (audit F-21).
+ */
+export const proofText = (lines: ProofLine[]) =>
+  lines.map((l) => `${l.id}${l.current ? ' (current job)' : ''}: ${l.text}`).join('\n');
+
+/**
+ * The CV in parts of about `size` lines for checking side by side (much faster than one long
+ * call, audit F-11). A job's lines always stay in one part, so tense checks see the whole job.
+ */
+export function proofChunks(lines: ProofLine[], size = 24): ProofLine[][] {
+  const groups: ProofLine[][] = [];
+  for (const l of lines) {
+    const last = groups[groups.length - 1];
+    if (last && last[0]!.ref === l.ref) last.push(l);
+    else groups.push([l]);
+  }
+  const out: ProofLine[][] = [];
+  for (const g of groups) {
+    const last = out[out.length - 1];
+    if (last && last.length + g.length <= size) last.push(...g);
+    else out.push([...g]);
+  }
+  return out;
+}
 
 export type RawIssue = { line: string; kind: IssueKind; quote: string; fix: string; why: string };
 export type Issue = RawIssue & { where: string; ref: string; text: string };
@@ -113,7 +141,7 @@ export function checkIssues(raw: RawIssue[], lines: ProofLine[]): Issue[] {
   const seen = new Set<string>();
   const out: Issue[] = [];
   for (const r of raw) {
-    const l = byId.get(r.line.trim());
+    const l = byId.get(/L\d+/.exec(r.line)?.[0] ?? r.line.trim());
     const quote = norm(r.quote).trim();
     const fix = norm(r.fix).trim();
     if (!l || !quote || !l.text.includes(quote)) continue;

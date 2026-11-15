@@ -29,6 +29,8 @@ export function WithDocument({
 
 export function MissingDocument() {
   const t = useT();
+  const account = useAccount();
+  const signedIn = account.status === 'signedIn';
   return (
     <main
       id="main"
@@ -39,9 +41,14 @@ export function MissingDocument() {
       </span>
       <h1 className="font-display text-3xl font-semibold">{t('We can’t find this CV')}</h1>
       <p className="text-ink-muted max-w-md">
-        {t(
-          'It may have been deleted, or made on another device while you were signed out. Sign in to see the CVs saved to your account.',
-        )}
+        {/* Worded for who is looking (audit F-28). */}
+        {signedIn
+          ? t(
+              'It may have been deleted, or it belongs to another account. Your saved CVs are in Documents.',
+            )
+          : t(
+              'It may have been deleted, or made on another device while you were signed out. Sign in to see the CVs saved to your account.',
+            )}
       </p>
       <div className="flex gap-3">
         <ButtonLink href="/documents">{t('Documents')}</ButtonLink>

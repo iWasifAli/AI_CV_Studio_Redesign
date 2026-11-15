@@ -47,13 +47,25 @@ type Props = {
   backHref: string;
   backLabel: string;
   action?: ReactNode;
+  /** The view has no other h1 (the editor). */
+  pageHeading?: boolean;
 };
 
-export function StudioBar({ editor, backHref, backLabel, action }: Props) {
+export function StudioBar({ editor, backHref, backLabel, action, pageHeading }: Props) {
   const t = useT();
   const { doc, update } = editor;
   return (
     <header className="border-line bg-surface z-20 flex h-16 shrink-0 items-center gap-2 border-b px-2 sm:gap-3 sm:px-4">
+      {/* Keyboard and screen-reader structure (audit F-19): a skip link and one h1 per view. */}
+      <a
+        href="#main"
+        className="bg-primary text-on-primary sr-only rounded-md px-4 py-2 focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50"
+      >
+        {t('Skip to content')}
+      </a>
+      {pageHeading && (
+        <h1 className="sr-only">{t('Editing: {title}', { title: doc.title || t('My CV') })}</h1>
+      )}
       <Link
         href={backHref}
         // Save now: the next page reads this CV from storage before this one unmounts.

@@ -47,6 +47,11 @@ const norm = (s: string) =>
     .replace(/[^a-z0-9@.+]+/g, ' ')
     .trim();
 
+const CORE_ORDER = new Set<string>(['experience', 'education', 'projects']);
+
+/** Without spaces: a tightly set name extracts as "Dr.Alexandra". */
+const squash = (s: string) => s.replace(/\s+/g, '');
+
 const visible = (doc: ResumeDocument) => doc.sections.filter((s) => !s.hidden && s.items.length);
 const jobsOf = (doc: ResumeDocument) =>
   doc.sections
@@ -57,10 +62,11 @@ const jobsOf = (doc: ResumeDocument) =>
 export function assessReadBack(
   src: ResumeDocument,
   lines: string[],
-  opts: { pages: number },
+  /** columnOf: which page column a section kind is printed in (sections are read column by column). */
+  opts: { pages: number; pageStarts?: number[]; columnOf?: (kind: string) => string },
 ): AtsCheck[] {
   const checks: AtsCheck[] = [];
-  const { doc: back, report } = parseCv(lines);
+  const { doc: back, report } = parseCv(lines, { pageStarts: opts.pageStarts });
   const joined = norm(lines.join('\n'));
   const spec = src.design.v2 ?? migrateV1(src.design);
   const columns = spec.layout.type !== 'single' && spec.layout.type !== 'timeline';
@@ -70,7 +76,8 @@ export function assessReadBack(
     : 'Turn on “ATS-safe version” in the Design tab before downloading for online applications. Your other choices come back when you turn it off.';
 
   // 1. Readable: the person's words come back out of the PDF as text (whatever the structure).
-  const have = new Set(contentWords(lines.join('\n')));
+  // A compound wrapped at its hyphen ("under-" / "performing") is one word again.
+  const have = new Set(contentWords(lines.join('\n').replace(/(\p{L})-\n(?=\p{L})/gu, '$1-')));
   const srcLines = documentText(src).split('\n');
   const want = new Set(srcLines.flatMap(contentWords));
   let found = 0;
@@ -100,8 +107,10 @@ export function assessReadBack(
 
   // 2. Contact details are found as text.
   const missingContact = [
-    src.basics.name && !joined.includes(norm(src.basics.name)) ? 'your name' : '',
-    src.basics.email && !(report.email && joined.includes(norm(src.basics.email))) ? 'email' : '',
+    src.basics.name && !squash(joined).includes(squash(norm(src.basics.name))) ? 'your name' : '',
+    src.basics.email && !(report.email && squash(joined).includes(squash(norm(src.basics.email))))
+      ? 'email'
+      : '',
     src.basics.phone && !report.phone ? 'phone number' : '',
   ].filter(Boolean);
   const noContact = !src.basics.email && !src.basics.phone;
@@ -163,7 +172,12 @@ export function assessReadBack(
 
   // 4. Reading order: sections and jobs come back in the order you wrote them.
   // Each section's first distinctive line (at least 8 characters, so common words don't match).
-  const firsts = visible(src)
+  // Searched forward from the section before, so a title repeated earlier (a publication named in a
+  // thesis line) doesn't look out of order.
+  // Only the sections a screening system orders a career by (work, education, projects): the others
+  // may sit in a side column, or move into its free space on a later page, and read in that order.
+  const probes = visible(src)
+    .filter((s) => CORE_ORDER.has(s.kind))
     .map((s) => {
       const first = s.items[0] as unknown as Record<string, unknown>;
       const list = (k: string) => (Array.isArray(first[k]) ? (first[k] as string[])[0] : '');
@@ -181,10 +195,17 @@ export function assessReadBack(
             '',
         ),
       ).slice(0, 40);
-      return { title: s.title, at: probe.length >= 8 ? joined.indexOf(probe) : -1 };
+      return { title: s.title, probe, column: opts.columnOf?.(s.kind) ?? 'main' };
     })
-    .filter((x) => x.at >= 0);
-  const outOfOrder = firsts.find((x, i) => i > 0 && x.at < firsts[i - 1]!.at);
+    .filter((x) => x.probe.length >= 8 && joined.includes(x.probe));
+  // Each column is read in its own order; a side column read before the main one is fine.
+  const cursors = new Map<string, number>();
+  const outOfOrder = probes.find((x) => {
+    const at = joined.indexOf(x.probe, cursors.get(x.column) ?? 0);
+    if (at < 0) return true;
+    cursors.set(x.column, at);
+    return false;
+  });
   const bulletProblem = (() => {
     if (jobs.length < 2) return null;
     const a = jobs[0]!.it;
@@ -215,8 +236,16 @@ export function assessReadBack(
         },
   );
 
-  // 5. Section headings software recognises (the same rule as the CV health check).
+  // 5. Section headings software recognises (the same rule as the CV health check) and that
+  // really come back out of the PDF as text — one verdict, never "pass" beside a heading the
+  // read-back lost (audit F-14).
   const odd = visible(src).filter((s) => !isStandardHeading(s.kind, s.title));
+  const unread = visible(src).filter(
+    (s) =>
+      isStandardHeading(s.kind, s.title) &&
+      norm(s.title).length >= 3 &&
+      !joined.includes(norm(s.title)),
+  );
   checks.push(
     odd.length
       ? {
@@ -231,12 +260,22 @@ export function assessReadBack(
           where: `${odd[0]!.id}`,
           examples: odd.map((s) => s.title),
         }
-      : {
-          id: 'headings',
-          title: 'Section headings are recognised',
-          status: 'pass',
-          detail: 'Each section is found under the name software expects.',
-        },
+      : unread.length
+        ? {
+            id: 'headings',
+            title: 'Some headings can’t be read',
+            status: 'needs-work',
+            detail: 'The names are right, but they didn’t come back out of the PDF as plain words.',
+            fix: switchFix ?? 'Use plain section names without symbols.',
+            where: 'design',
+            examples: unread.map((s) => s.title),
+          }
+        : {
+            id: 'headings',
+            title: 'Section headings are recognised',
+            status: 'pass',
+            detail: 'Each section is found under the name software expects.',
+          },
   );
 
   // 6. Layout: columns, photo and icons are fine for people, riskier for older systems.

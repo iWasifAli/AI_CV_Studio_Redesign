@@ -2,14 +2,21 @@ import { getT } from '@/i18n/server';
 import type { Metadata } from 'next';
 import { Container } from '@/components/ui/misc';
 import { AiPreferenceToggle } from '@/features/ai/preference-toggle';
+import { getBusinessConfig } from '@/modules/billing/server';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
   return { title: t('Privacy') };
 }
 
+// Reads the support email from settings (cached 60 s on the server); not baked in at build time.
+export const dynamic = 'force-dynamic';
+
 export default async function PrivacyPage() {
   const t = await getT();
+  const support = await getBusinessConfig()
+    .then((c) => c.value.support.email)
+    .catch(() => '');
   return (
     <Container className="max-w-[720px] py-10 md:py-14">
       <h1 className="font-display text-[32px] leading-tight font-semibold tracking-tight sm:text-4xl">
@@ -137,6 +144,27 @@ export default async function PrivacyPage() {
         <h2>{t('Your choices')}</h2>
         <p>{t('You can turn AI help off on this device:')}</p>
         <AiPreferenceToggle />
+        {/* Rights and contact (audit, section 10). */}
+        <h2>{t('Your rights')}</h2>
+        <p>
+          {t(
+            'You can see, correct, copy and delete your information yourself: every CV opens in the editor, “Download a backup” in Documents saves a copy of all your CVs, and the Account page deletes your account.',
+          )}
+        </p>
+        <h2>{t('Contact')}</h2>
+        <p>
+          {support ? (
+            <>
+              {t('For anything about your information, write to')}{' '}
+              <a href={`mailto:${support}`} className="text-primary font-semibold">
+                {support}
+              </a>
+              .
+            </>
+          ) : (
+            t('For anything about your information, use the help page while signed in.')
+          )}
+        </p>
       </div>
     </Container>
   );

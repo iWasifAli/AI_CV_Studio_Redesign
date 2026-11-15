@@ -181,12 +181,21 @@ function makeHooks(s: DesignSpecV2): TemplateHooks {
     drawsLevels: s.lists.skills.style === 'bars' || s.lists.skills.style === 'dots',
     heading: (sec) => (
       <h2 className="g-h">
+        {s.headings.style === 'numbered' && (
+          <span className="g-num" aria-hidden="true" data-num="" />
+        )}
         {(s.headings.style === 'icon' || s.icons.sections) && <Icon kind={sec.kind} />}
         <span className="g-h-text">{sec.title}</span>
       </h2>
     ),
     ...(s.layout.type === 'label-column'
-      ? { label: (sec: RSection) => <p className="g-label">{sec.title}</p> }
+      ? {
+          label: (sec: RSection) => (
+            <p className="g-label" data-fit="">
+              {sec.title}
+            </p>
+          ),
+        }
       : {}),
     summary: (t) => <p className="g-summary">{t}</p>,
     entryHead: (e, sec) => {
@@ -452,7 +461,9 @@ function css(s: DesignSpecV2, d: ResolvedDesign): string {
 .b-content{flex:1;min-width:0}
 .cv-main [data-block]:not(.b-heading){padding-left:calc(23% + var(--gap))}
 .cv-main [data-block]:has(> .b-labelled){padding-left:0}
-.cv-main .b-heading{height:0;padding:0;overflow:hidden;position:absolute}
+.cv-main .b-heading{height:var(--section-gap);padding:0;position:relative}
+.cv-main .b-heading .g-h{position:absolute;width:1px;height:1px;margin:0;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.b-label .g-label{overflow-wrap:normal;hyphens:auto}
 .g-label{font-size:${(H_EM[s.headings.size] * 0.92 * capK(s.headings.case)).toFixed(3)}em;font-weight:${s.headings.weight};color:${hColor};${caseCss(s.headings.case)};padding-top:.15em}`);
 
   // Header
@@ -471,7 +482,7 @@ html[data-fit-compact] .g-header--band,html[data-fit-compact] .g-header--in-side
   out.push(`.g-header{position:relative;padding-bottom:4pt}
 .g-hrow{display:flex;align-items:center;gap:6mm}
 .g-id{flex:1;min-width:0}
-.g-name{font-family:var(--font-heading);font-weight:${H.name.weight};font-size:${(NAME_EM[H.name.size] * capK(H.name.case)).toFixed(3)}em;line-height:1.08;letter-spacing:${H.name.trackingEm}em;color:var(--ink);${nameCase}}
+.g-name{font-family:var(--font-heading);font-weight:${H.name.weight};font-size:${(NAME_EM[H.name.size] * capK(H.name.case)).toFixed(3)}em;line-height:1.08;letter-spacing:${Math.min(0.1, H.name.trackingEm)}em;color:var(--ink);${nameCase}}
 .g-name-2{color:var(--accent)}
 .g-headline{margin-top:.3em;font-size:1.15em;font-weight:600;color:var(--accent)}
 .g-contacts{margin-top:.75em;font-size:.93em;color:var(--ink-2)}
@@ -544,7 +555,7 @@ html[data-fit-compact] .g-header--band,html[data-fit-compact] .g-header--in-side
     );
   if (hs === 'numbered')
     out.push(
-      '[data-cv-pages]{counter-reset:sec}.cv-main .g-h{counter-increment:sec}.cv-main .g-h::before{content:counter(sec,decimal-leading-zero);color:var(--accent);font-variant-numeric:tabular-nums;margin-right:.2em}',
+      '.g-num{display:none}.cv-main .g-num{display:inline;color:var(--accent);font-variant-numeric:tabular-nums;margin-right:.2em}',
     );
   // Duo colour: the second colour is the heading text, or the fill behind white heading text.
   if (s.color.mode === 'duo')
@@ -584,8 +595,7 @@ html[data-fit-compact] .g-header--band,html[data-fit-compact] .g-header--in-side
 .b-entry.b-first,.b-summary.b-first,.b-skills.b-first,.b-compact.b-first{padding-top:1pt}
 .b-bullet{padding-top:1.5pt}
 .b-compact{padding-top:3pt}
-.cv-compact-grid{display:grid;grid-template-columns:repeat(var(--cols,2),minmax(0,1fr));column-gap:6mm}
-.cv-aside .cv-compact-grid,.cv-third .cv-compact-grid{grid-template-columns:minmax(0,1fr);row-gap:3pt}
+
 .b-skills{padding-top:4pt}
 .g-row{display:flex;justify-content:space-between;align-items:baseline;gap:1em}
 .g-title{font-size:1.05em;font-weight:700;color:var(--ink);font-family:var(--font-body)}
@@ -625,6 +635,8 @@ ${s.entries.layout === 'dates-left' || s.entries.layout === 'timeline-dots' ? '.
 .g-list li::before{content:'';position:absolute;left:.1em;top:calc(var(--lh) * .5em - .1em);width:.26em;height:.26em;border-radius:50%;background:var(--bullet)}
 .g-skills--grouped-list .g-list li{padding-left:0}
 .g-skills--grouped-list .g-list li::before{content:none}
+.cv-main .g-skills--grouped-list .g-list{columns:3;column-gap:6mm}
+.cv-page--wide .g-skills--grouped-list .g-list{columns:3;column-gap:6mm}
 .g-levels li{display:flex;align-items:center;justify-content:space-between;gap:.6em;break-inside:avoid}
 .g-levels li+li{margin-top:2pt}
 .g-meter{display:inline-flex;gap:2pt;flex:none;align-items:center}
@@ -654,15 +666,16 @@ ${s.entries.layout === 'dates-left' || s.entries.layout === 'timeline-dots' ? '.
       `.g-decor-stripe{position:absolute;top:0;bottom:0;${sideLeft ? 'right' : 'left'}:0;width:2.2mm;background:var(--accent)}`,
     );
   if (k === 'corner-shapes')
-    out.push(`.g-decor-c1{position:absolute;right:-18mm;top:-18mm;width:55mm;height:55mm;border-radius:50%;background:var(--accent);opacity:${a * 2}}
-.g-decor-c2{position:absolute;left:-14mm;bottom:-14mm;width:40mm;height:40mm;background:var(--accent);opacity:${a * 1.5};transform:rotate(20deg)}`);
+    // Corner shapes stay inside the page margins, so they never sit under text (audit F-09).
+    out.push(`.g-decor-c1{position:absolute;right:calc(var(--margin) * -1.25);top:calc(var(--margin) * -1.25);width:calc(var(--margin) * 2.2);height:calc(var(--margin) * 2.2);border-radius:50%;background:var(--accent);opacity:${a * 2}}
+.g-decor-c2{position:absolute;left:calc(var(--margin) * -1.1);bottom:calc(var(--margin) * -1.1);width:calc(var(--margin) * 1.6);height:calc(var(--margin) * 1.6);background:var(--accent);opacity:${a * 1.5};transform:rotate(20deg)}`);
   if (k === 'frame')
     out.push(
       '.g-decor-frame{position:absolute;inset:5mm;border:.8pt solid var(--accent-line);border-radius:3pt}',
     );
   if (k === 'dot-grid')
     out.push(
-      `.g-decor-dots{position:absolute;right:6mm;top:6mm;width:34mm;height:24mm;opacity:${a * 3};background-image:radial-gradient(var(--accent) 1pt,transparent 1.2pt);background-size:4mm 4mm}`,
+      `.g-decor-dots{position:absolute;right:6mm;top:6mm;width:34mm;height:24mm;opacity:${a * 3};background-image:radial-gradient(var(--accent) 1pt,transparent 1.2pt);background-size:4mm 4mm}.cv-page--rest .g-decor-dots{display:none}`,
     );
   if (k === 'watermark-initials')
     out.push(

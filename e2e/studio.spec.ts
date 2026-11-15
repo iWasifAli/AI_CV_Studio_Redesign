@@ -110,6 +110,13 @@ test('ATS-safe, saved designs, and Fit to one page', async ({ page, request }) =
       }),
     },
   };
+  // Two more points, so the page itself can't squeeze it onto one (it shrinks a CV that only
+  // just spills over); Fit to one page then does it with the design's own settings.
+  const job = doc.sections.find((s) => s.kind === 'experience')!.items[0] as { bullets: string[] };
+  job.bullets.push(
+    'Led weekly safety huddles and shared learning from incidents across the ward team',
+    'Coached newly qualified nurses through their first six months on the ward',
+  );
   await openDesign(page, doc);
   const studio = page.getByTestId('design-studio');
 

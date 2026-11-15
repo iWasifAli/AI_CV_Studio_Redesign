@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import * as F from '@/modules/resume/fixtures';
 import type { ExperienceItem, ResumeDocument } from '@/modules/resume/schema';
 import { healthCheck } from './health';
+import { findGaps, gapLength } from './gaps';
 
 const NOW = new Date('2026-11-12T00:00:00Z');
 const ids = (d: ResumeDocument, pages?: number) =>
@@ -160,5 +161,17 @@ describe('country-specific advice (doc.market)', () => {
     const ids = withDetails(undefined);
     expect(ids).toContain('personal-details');
     expect(ids).not.toContain('photo-country');
+  });
+});
+
+describe('gap wording (audit F-12)', () => {
+  it('states the same length as the gap card, even with a reversed date range', () => {
+    const d = withJobs([
+      { start: '2019-03', end: '2016-07', current: false },
+      { start: '2012-01', end: '2013-01' },
+    ]);
+    const g = findGaps(d, NOW).find((x) => x.to)!;
+    const f = healthCheck(d, { now: NOW }).findings.find((x) => x.id === 'gap')!;
+    expect(f.title).toContain(gapLength(g.months));
   });
 });

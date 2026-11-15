@@ -1,4 +1,5 @@
 'use client';
+import { browserRegion } from '@/modules/resume/region';
 
 import { useT } from '@/i18n/client';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -107,8 +108,7 @@ export function MakeoverScreen() {
       try {
         const form = new FormData();
         form.append('file', f);
-        const region = (navigator.language || '').split('-')[1]?.toUpperCase();
-        form.append('locale', `en-${region && /^[A-Z]{2}$/.test(region) ? region : 'GB'}`);
+        form.append('locale', `en-${browserRegion()}`);
         const r = await fetch('/api/makeover', {
           method: 'POST',
           body: form,

@@ -5,6 +5,14 @@ const securityHeaders = [
   { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
   { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
   { key: 'X-Frame-Options', value: 'DENY' },
+  // HTTPS only from now on (browsers ignore this on plain-http localhost).
+  { key: 'Strict-Transport-Security', value: 'max-age=31536000' },
+  // The parts of a Content-Security-Policy that can't break the app's own scripts: no plugins, no
+  // <base> hijacking, no framing by other sites.
+  {
+    key: 'Content-Security-Policy',
+    value: "object-src 'none'; base-uri 'self'; frame-ancestors 'none'",
+  },
 ];
 
 const nextConfig: NextConfig = {

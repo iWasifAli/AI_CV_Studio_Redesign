@@ -5,7 +5,7 @@ import { PRESET_IDS } from '@/modules/resume/professions';
 import { parseResumeDocument, TEMPLATE_IDS } from '@/modules/resume/schema';
 import { formatRange } from '@/modules/resume/dates';
 import { contrast } from './color';
-import { buildDocumentHtml } from './build-document';
+import { buildDocumentHtml, runningHeadline } from './build-document';
 import { ACCENT_PALETTE, resolveDesign } from './design';
 import { listKeep } from './blocks';
 import { TEMPLATES } from './registry';
@@ -207,19 +207,66 @@ describe('entry keep rules', () => {
   const bulletKeeps = (html: string) =>
     [...html.matchAll(/data-keep="([a-z-]+)" class="b-bullet[ "]/g)].map((m) => m[1]);
 
-  it('keeps an entry of six short bullets whole', () => {
+  // Audit F-05: an entry may split after its first bullet, so pages fill instead of leaving a gap.
+  it('keeps an entry of two short bullets whole', () => {
     const keeps = bulletKeeps(
-      buildDocumentHtml(withBullets(Array(6).fill('Short line.')), { fonts }),
+      buildDocumentHtml(withBullets(['Short line.', 'Short line.']), { fonts }),
     );
-    expect(keeps).toHaveLength(4);
     expect(keeps.slice(0, -1).every((k) => k === 'with-next')).toBe(true);
   });
 
-  it('lets an entry of six long bullets break between bullets (real CV: half-empty page)', () => {
-    const long = 'Designed and scaled mission-critical backend services for telecom data, '.repeat(
-      2,
+  it('lets a longer entry break between bullets, never stranding the last one', () => {
+    const keeps = bulletKeeps(
+      buildDocumentHtml(withBullets(Array(6).fill('Short line.')), { fonts }),
     );
-    const keeps = bulletKeeps(buildDocumentHtml(withBullets(Array(6).fill(long)), { fonts }));
-    expect(keeps).toEqual(['none', 'none', 'with-next', 'none']);
+    expect(keeps).toEqual(['none', 'none', 'none', 'with-next', 'none']);
+  });
+});
+
+describe('runningHeadline (audit F-29)', () => {
+  it('keeps short headlines and shortens long ones at a word', () => {
+    expect(runningHeadline('Senior Data Engineer')).toBe('Senior Data Engineer');
+    expect(
+      runningHeadline(
+        'Chief Operating Officer and Group Transformation Director, Europe, Middle East and Africa',
+      ),
+    ).toBe('Chief Operating Officer and Group Transformation…');
+    const long = runningHeadline('A'.repeat(30) + ' ' + 'B'.repeat(40));
+    expect(long.length).toBeLessThanOrEqual(53);
+    expect(long.endsWith('…')).toBe(true);
+  });
+});
+
+describe('credential dates (audit F-24)', () => {
+  it('prints the date once when the detail already says it', () => {
+    const doc = structuredClone(FIXTURES.nurse);
+    doc.sections.push({
+      id: 'lic',
+      kind: 'licences',
+      title: 'Registration',
+      hidden: false,
+      items: [
+        {
+          id: 'l1',
+          name: 'NMC registration',
+          issuer: 'NMC',
+          date: '2018-09',
+          detail: 'Registered since Sep 2018',
+          link: '',
+        },
+        {
+          id: 'l2',
+          name: 'Driving licence',
+          issuer: 'DVLA',
+          date: '2015',
+          detail: 'Clean',
+          link: '',
+        },
+      ],
+    } as never);
+    const s = toRenderModel(doc).sections.find((x) => x.title === 'Registration')!;
+    expect(s.entries[0]!.dates).toBe('');
+    expect(s.entries[0]!.meta).toBe('Registered since Sep 2018');
+    expect(s.entries[1]!.dates).toBe('2015');
   });
 });

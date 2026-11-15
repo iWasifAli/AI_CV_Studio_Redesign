@@ -64,10 +64,10 @@ export function DocumentsHub() {
           ))}
         </nav>
         {jobs.length > 0 && (
-          <label className="text-ink-muted ml-auto flex items-center gap-2 text-sm font-semibold">
+          <label className="text-ink-muted ml-auto flex max-w-full min-w-0 items-center gap-2 text-sm font-semibold">
             {tx('For job')}
             <select
-              className="border-line-strong bg-surface text-ink min-h-10 rounded-md border px-3 font-normal"
+              className="border-line-strong bg-surface text-ink min-h-10 max-w-[min(20rem,100%)] min-w-0 truncate rounded-md border px-3 font-normal"
               value={jobId}
               onChange={(e) => router.replace(href(type, e.target.value))}
             >

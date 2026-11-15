@@ -912,6 +912,7 @@ export const de: Dict = {
   'CV Studio': 'CV Studio',
   'CV with certificates (one PDF or ZIP)': 'Lebenslauf mit Zeugnissen (eine PDF oder ZIP)',
   CVs: 'Lebensläufe',
+  'CVs for this job': 'Lebensläufe für diese Stelle',
   'CVs used for this job': 'Für diese Stelle verwendete Lebensläufe',
   'Data entry': 'Datenerfassung',
   Date: 'Datum',
@@ -1138,6 +1139,7 @@ export const de: Dict = {
   'Edit story': 'Geschichte bearbeiten',
   'Edit the cover letter': 'Anschreiben bearbeiten',
   'Edit your CV': 'Ihren Lebenslauf bearbeiten',
+  'Editing: {title}': 'Bearbeiten: {title}',
   Editor: 'Editor',
   'Editor views': 'Editor-Ansichten',
   Editorial: 'Redaktionell',
@@ -1270,6 +1272,9 @@ export const de: Dict = {
   'For advice that fits the country (photo, date of birth). Optional.':
     'Für Ratschläge, die zum Land passen (Foto, Geburtsdatum). Optional.',
   'for AI wording.': 'für KI-Formulierungen.',
+  'For anything about your information, use the help page while signed in.':
+    'Bei Fragen zu Ihren Daten nutzen Sie die Hilfeseite, während Sie angemeldet sind.',
+  'For anything about your information, write to': 'Bei Fragen zu Ihren Daten schreiben Sie an',
   'For example “Transport planner” or “Junior data analyst”.':
     'Zum Beispiel „Verkehrsplaner“ oder „Junior-Datenanalyst“.',
   'For example “transport planning” or “team leader”. Leave empty to describe your current work.':
@@ -1515,6 +1520,8 @@ export const de: Dict = {
   'Issued by': 'Ausgestellt von',
   'It helps your results: a “no” counts as a reply, silence doesn’t.':
     'Das hilft Ihren Ergebnissen: Ein „Nein“ zählt als Antwort, Schweigen nicht.',
+  'It may have been deleted, or it belongs to another account. Your saved CVs are in Documents.':
+    'Er wurde möglicherweise gelöscht oder gehört zu einem anderen Konto. Ihre gespeicherten Lebensläufe finden Sie unter Dokumente.',
   'It may have been deleted, or made on another device while you were signed out. Sign in to see the CVs saved to your account.':
     'Er wurde möglicherweise gelöscht oder auf einem anderen Gerät erstellt, während Sie abgemeldet waren. Melden Sie sich an, um die in Ihrem Konto gespeicherten Lebensläufe zu sehen.',
   'It suggests clearer, more professional wording for what you have already written. It never adds jobs, dates, qualifications or numbers you did not give us. When a sentence would be stronger with a detail only you know, it asks you instead of guessing — those parts are highlighted until you fill them in. You can turn AI help off on the privacy page.':
@@ -2261,6 +2268,8 @@ export const de: Dict = {
   'Readable by hiring systems': 'Lesbar für Bewerbermanagementsysteme',
   'Reading a scanned page': 'Eine gescannte Seite wird gelesen',
   'Reading drawings': 'Zeichnungen lesen',
+  'Reading every line of your CV… this usually takes 10 to 30 seconds.':
+    'Jede Zeile Ihres Lebenslaufs wird gelesen … das dauert meist 10 bis 30 Sekunden.',
   'Reading jobs from links is switched off right now.':
     'Das Einlesen von Stellen über Links ist gerade abgeschaltet.',
   'Reading your CV': 'Ihr Lebenslauf wird gelesen',
@@ -2631,6 +2640,7 @@ export const de: Dict = {
   'Some countries expect a photo, others prefer none. It’s saved with this CV.':
     'Manche Länder erwarten ein Foto, andere eher keines. Es wird mit diesem Lebenslauf gespeichert.',
   'Some details could not be read.': 'Einige Angaben konnten nicht gelesen werden.',
+  'Some headings can’t be read': 'Einige Überschriften sind nicht lesbar',
   'Some settings are not valid.': 'Einige Einstellungen sind ungültig.',
   'Someone used the contact form on your portfolio page. We don’t check who sends messages, so be careful with links and requests for money or personal details.':
     'Jemand hat das Kontaktformular auf Ihrer Portfolio-Seite genutzt. Wir prüfen nicht, wer Nachrichten sendet – seien Sie daher vorsichtig bei Links und Bitten um Geld oder persönliche Daten.',
@@ -2855,6 +2865,7 @@ export const de: Dict = {
   'The documents are too large together (15 MB at most).':
     'Die Dokumente sind zusammen zu groß (höchstens 15 MB).',
   'The documents are too large together (15 MB).': 'Die Dokumente sind zusammen zu groß (15 MB).',
+  'The end date is before the start date.': 'Das Enddatum liegt vor dem Startdatum.',
   'The evaluation stopped': 'Die Auswertung wurde angehalten',
   'the file is read on our server and not kept. Its text may be sent to Google’s Gemini service to sort it into sections; we then check that nothing was added that isn’t in your file. A scanned PDF or a photo of a CV is sent to Gemini as a picture so its text can be read. The “before” view of your original is drawn in your own browser. If you use the polish suggestions, the lines concerned are sent to Gemini to suggest fixes.':
     'Die Datei wird auf unserem Server gelesen und nicht gespeichert. Ihr Text kann an den Gemini-Dienst von Google gesendet werden, um ihn in Abschnitte zu ordnen; anschließend prüfen wir, dass nichts hinzugefügt wurde, was nicht in Ihrer Datei steht. Eine gescannte PDF oder ein Foto eines Lebenslaufs wird als Bild an Gemini gesendet, damit der Text gelesen werden kann. Die Ansicht „Vorher“ Ihres Originals wird in Ihrem eigenen Browser erstellt. Wenn Sie die Feinschliff-Vorschläge nutzen, werden die betroffenen Zeilen an Gemini gesendet, um Korrekturen vorzuschlagen.',
@@ -2881,6 +2892,8 @@ export const de: Dict = {
   'The LinkedIn review is part of Premium': 'Die LinkedIn-Prüfung ist Teil von Premium',
   'The LinkedIn review is switched off right now.':
     'Die LinkedIn-Prüfung ist gerade ausgeschaltet.',
+  'The names are right, but they didn’t come back out of the PDF as plain words.':
+    'Die Namen stimmen, aber sie kamen nicht als normale Wörter aus dem PDF zurück.',
   'The owner': 'Der Inhaber',
   'The passwords don’t match': 'Die Passwörter stimmen nicht überein',
   'The person who interviewed you': 'Die Person, die das Gespräch geführt hat',
@@ -3000,6 +3013,8 @@ export const de: Dict = {
   'Three-column banner': 'Dreispaltiges Banner',
   'Three-column grid': 'Dreispaltiges Raster',
   'Thumbnail of {title}': 'Vorschaubild von {title}',
+  'Tick the CVs you used or plan to use. Only ticked CVs are linked to this job.':
+    'Haken Sie die Lebensläufe an, die Sie verwendet haben oder verwenden möchten. Nur angehakte Lebensläufe sind mit dieser Stelle verknüpft.',
   tier: 'Stufe',
   'Tighter spacing and thin lines between sections, for a lot of detail on one page.':
     'Engere Abstände und dünne Linien zwischen Abschnitten, für viele Details auf einer Seite.',
@@ -3178,6 +3193,8 @@ export const de: Dict = {
     'automatisierte Werkzeuge für große Mengen an Anfragen nutzen.',
   'Use it in the new design? You can frame it, hide it or remove it later.':
     'Im neuen Design verwenden? Sie können es später zuschneiden, ausblenden oder entfernen.',
+  'Use plain section names without symbols.':
+    'Verwenden Sie einfache Abschnittsnamen ohne Symbole.',
   'Use the {name} design': 'Design {name} verwenden',
   'use the studio to create false documents or to impersonate someone else;':
     'das Studio nutzen, um falsche Dokumente zu erstellen oder sich als jemand anderes auszugeben;',
@@ -3510,6 +3527,8 @@ export const de: Dict = {
     'Sie können bis zu {max} Pläne behalten. Löschen Sie einen, um einen weiteren zu erstellen.',
   'You can make and preview a CV without one, and see your uploaded CV made over. To download a PDF or save an uploaded CV, create a free account — your CVs are then saved in your account and appear on every device you sign in on.':
     'Sie können ohne Konto einen Lebenslauf erstellen, ansehen und Ihren hochgeladenen Lebenslauf neu gestaltet sehen. Um eine PDF herunterzuladen oder einen hochgeladenen Lebenslauf zu speichern, legen Sie ein kostenloses Konto an – Ihre Lebensläufe werden dann in Ihrem Konto gespeichert und erscheinen auf jedem Gerät, auf dem Sie sich anmelden.',
+  'You can see, correct, copy and delete your information yourself: every CV opens in the editor, “Download a backup” in Documents saves a copy of all your CVs, and the Account page deletes your account.':
+    'Sie können Ihre Daten selbst einsehen, korrigieren, kopieren und löschen: Jeder Lebenslauf öffnet sich im Editor, „Sicherung herunterladen“ unter Dokumente speichert eine Kopie aller Lebensläufe, und auf der Kontoseite löschen Sie Ihr Konto.',
   'You can still look at every design. Saving needs Premium or next month’s allowance.':
     'Sie können sich weiterhin jedes Design ansehen. Zum Speichern brauchen Sie Premium oder das Kontingent des nächsten Monats.',
   'You can try this Premium design freely. Downloading it needs Premium — or pick a free design.':
@@ -3691,6 +3710,7 @@ export const de: Dict = {
   'Your reminders for today': 'Ihre Erinnerungen für heute',
   'Your results': 'Ihre Ergebnisse',
   'Your review': 'Ihre Prüfung',
+  'Your rights': 'Ihre Rechte',
   'Your role': 'Ihre Funktion',
   'Your share links': 'Ihre Freigabelinks',
   'Your signature': 'Ihre Signatur',

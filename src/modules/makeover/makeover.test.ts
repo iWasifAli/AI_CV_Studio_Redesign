@@ -5,6 +5,7 @@ import { TEMPLATE_IDS, type ResumeDocument } from '@/modules/resume/schema';
 import { applySuggestions, chipCounts, polishLines, weakBullet, wordingIssue } from './polish';
 import { detectProfile } from './profile';
 import { contentStats, DESIGN_TRAITS, rankDesigns, scoreDesign } from './rank';
+import { DESIGNS } from '@/modules/design/designs';
 
 const now = new Date('2026-11-12');
 const generic = (d: ResumeDocument): ResumeDocument => ({ ...d, presetId: 'general' });
@@ -128,5 +129,21 @@ describe('coverage', () => {
 
   it('ignores month names and numbers, which are rewritten as dates', () => {
     expect(coverage(['January 2021 – Present'], FIXTURES.driver).ratio).toBe(1);
+  });
+});
+
+describe('design strip (audit R-03, R-05)', () => {
+  const all = DESIGNS.map((d) => d.id);
+  const family = new Map(DESIGNS.map((d) => [d.id, d.family]));
+  it('always shows a design from the Bold family, for every kind of CV', () => {
+    for (const fx of Object.values(FIXTURES)) {
+      const r = rankDesigns(contentStats(fx, 'executive', false), all);
+      expect(r.some((x) => family.get(x.id) === 'bold')).toBe(true);
+    }
+  });
+  it('never suggests a compact grid for a short CV', () => {
+    const short = contentStats(FIXTURES.graduate, 'student', false);
+    expect(short.pages).toBeLessThan(1.5);
+    expect(rankDesigns(short, all).some((x) => family.get(x.id) === 'compact')).toBe(false);
   });
 });

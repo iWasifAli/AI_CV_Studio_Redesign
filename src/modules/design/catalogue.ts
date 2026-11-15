@@ -222,7 +222,11 @@ export function applyV1Change(
  */
 export function designSpec(id: DesignId, current: DesignSpec): DesignSpecV2 {
   const meta = DESIGN_META[id];
-  const v1: DesignSpec = { ...current, fontPair: meta.fontPair ?? current.fontPair };
+  const mine = current.chosen ?? [];
+  const v1: DesignSpec = {
+    ...current,
+    fontPair: mine.includes('fontPair') ? current.fontPair : (meta.fontPair ?? current.fontPair),
+  };
   if (!isSpecDesign(id)) return migrateV1({ ...v1, templateId: id });
   const base = parseSpec({ ...SPEC_DESIGNS[id], designId: id });
   const withChoices = applyV1Change(base, v1, {

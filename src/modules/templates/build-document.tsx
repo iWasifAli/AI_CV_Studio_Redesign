@@ -25,6 +25,20 @@ const escapeHtml = (s: string) =>
     (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!,
   );
 
+/**
+ * The headline as a continuation page's running header shows it: one short line (audit F-29).
+ * Cut at a word, at most 52 characters; the full headline stays on page 1.
+ */
+export function runningHeadline(h: string, max = 52): string {
+  const t = h.replace(/\s+/g, ' ').trim();
+  if (t.length <= max) return t;
+  const firstPart = t.split(/,\s*/)[0]!;
+  if (firstPart.length <= max && firstPart.length >= 16) return firstPart;
+  const cut = t.slice(0, max + 1);
+  const at = cut.lastIndexOf(' ');
+  return `${(at > 20 ? cut.slice(0, at) : t.slice(0, max)).replace(/[\s,;:–-]+$/, '')}…`;
+}
+
 export function resolveDocumentDesign(doc: ResumeDocument): ResolvedDesign {
   return documentDesign(doc).design;
 }
@@ -87,7 +101,10 @@ export function buildDocumentHtml(input: ResumeDocument, opts: BuildOptions): st
           </div>
           {Running && (
             <div data-slot="running">
-              <Running model={model} design={design} />
+              <Running
+                model={{ ...model, headline: runningHeadline(model.headline) }}
+                design={design}
+              />
             </div>
           )}
           <div data-flow="main">{mainBlocks}</div>

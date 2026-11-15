@@ -260,7 +260,7 @@ test.describe('layout invariants across all designs (desktop only)', () => {
     );
   }
 
-  test('no page starts with stray bullets from an ordinary-length job (A4 and Letter)', async ({
+  test('a page never starts with a single stray bullet (A4 and Letter)', async ({
     page,
     baseURL,
   }) => {
@@ -273,9 +273,18 @@ test.describe('layout invariants across all designs (desktop only)', () => {
           await load(page, baseURL!, doc);
           const stray = await page.evaluate(
             () =>
-              Array.from(document.querySelectorAll('.cv-page--rest .cv-main')).filter((m) =>
-                m.firstElementChild?.classList.contains('b-bullet'),
-              ).length,
+              // A job may continue on the next page, but with at least two of its points there.
+              Array.from(document.querySelectorAll('.cv-page--rest .cv-main')).filter((m) => {
+                const a = m.firstElementChild;
+                const b = a?.nextElementSibling;
+                return (
+                  a?.classList.contains('b-bullet') &&
+                  !(
+                    b?.classList.contains('b-bullet') &&
+                    b.getAttribute('data-ref') === a.getAttribute('data-ref')
+                  )
+                );
+              }).length,
           );
           expect(stray, `${templateId} × ${fixture} (${pageSize})`).toBe(0);
         }

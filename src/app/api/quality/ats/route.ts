@@ -9,7 +9,9 @@ import { currentUser } from '@/modules/identity/session';
 import { extractLines } from '@/modules/import/extract';
 import { profileDigest } from '@/modules/jobs/digest';
 import { aiBudgetSpent, track } from '@/modules/metrics/server';
+import { documentDesign } from '@/modules/design/render';
 import { assessReadBack, checkKeywords, type AtsReport } from '@/modules/quality/ats';
+import type { ResumeDocument } from '@/modules/resume/schema';
 import { safeParseResumeDocument } from '@/modules/resume/schema';
 import { getUserStore } from '@/modules/store';
 import { noteUse } from '@/modules/metrics/activity';
@@ -41,10 +43,10 @@ export async function POST(req: Request) {
   let report: AtsReport;
   try {
     const { pdf, pages } = await renderResumePdf(doc);
-    const { lines } = await extractLines(new Uint8Array(pdf));
+    const { lines, pageStarts } = await extractLines(new Uint8Array(pdf));
     report = {
       at: new Date().toISOString(),
-      checks: assessReadBack(doc, lines, { pages }),
+      checks: assessReadBack(doc, lines, { pages, pageStarts, columnOf: columnOf(doc) }),
       sample: lines.slice(0, 12),
     };
   } catch (e) {
@@ -80,4 +82,12 @@ export async function POST(req: Request) {
     }
   }
   return NextResponse.json({ report }, { headers: { 'Cache-Control': 'no-store' } });
+}
+
+/** Which page column each section kind is printed in, for the reading-order check. */
+function columnOf(doc: ResumeDocument): (kind: string) => string {
+  const { template } = documentDesign(doc);
+  const aside = new Set<string>(template.asideKinds);
+  const third = new Set<string>(template.thirdKinds ?? []);
+  return (kind) => (aside.has(kind) ? 'aside' : third.has(kind) ? 'third' : 'main');
 }

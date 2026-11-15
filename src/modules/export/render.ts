@@ -27,6 +27,8 @@ export async function renderPdfFromHtml(
     await page.setContent(html, { waitUntil: 'load', timeout: timeoutMs });
     await page.waitForFunction('window.__CV_READY__ !== undefined', { timeout: timeoutMs });
     const ready = (await page.evaluate('window.__CV_READY__')) as CvReady;
+    // Page numbers, running headers, monograms and section numbers become pictures (audit F-14).
+    await page.evaluate('window.__CV_FLATTEN__ && window.__CV_FLATTEN__()');
     const pdf = await page.pdf({
       preferCSSPageSize: true,
       printBackground: true,

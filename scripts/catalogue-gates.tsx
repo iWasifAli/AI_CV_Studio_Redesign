@@ -173,8 +173,8 @@ for (const meta of DESIGNS) {
     }
 
     // Round trip through our own import (rules parser, as in CI)
-    const { lines } = await extractLines(r.pdf);
-    const { doc: back } = parseCv(lines);
+    const { lines, pageStarts } = await extractLines(r.pdf);
+    const { doc: back } = parseCv(lines, { pageStarts });
     const cov = coverage(documentText(src).split('\n'), back);
     if (cov.ratio < COVERAGE_TARGET)
       fail(

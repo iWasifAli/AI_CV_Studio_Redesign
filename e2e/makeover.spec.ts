@@ -2,6 +2,8 @@ import AxeBuilder from '@axe-core/playwright';
 import type { APIRequestContext, Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { DESIGNS } from '../src/modules/design/designs';
+import { DESIGN_TRAITS } from '../src/modules/makeover/rank';
 import { PASSWORD, uniqueEmail } from './support/auth';
 import { expect, test } from './support/test';
 
@@ -20,9 +22,14 @@ const fixture = (name: string) => ({
   buffer: readFileSync(join(FIX, name)),
 });
 
-const SINGLE = ['clarity', 'chronicle', 'heritage', 'ledger'];
-const SIDEBAR = ['meridian', 'atelier', 'folio', 'halo', 'sprout', 'vivid'];
-const BOLD = ['meridian', 'atelier', 'ledger', 'vivid', 'sprout'];
+// From the catalogue itself (all 32 designs), as the ranking uses them.
+const SINGLE = DESIGNS.filter((d) => DESIGN_TRAITS[d.id].family === 'single').map(
+  (d) => d.id as string,
+);
+const SIDEBAR = DESIGNS.filter((d) => DESIGN_TRAITS[d.id].family === 'sidebar').map(
+  (d) => d.id as string,
+);
+const BOLD = DESIGNS.filter((d) => d.family === 'bold').map((d) => d.id as string);
 
 type MakeoverJson = {
   makeoverId: string;

@@ -194,8 +194,13 @@ export function scoreDesign(id: DesignId, s: ContentStats): Ranked {
   if (density === 15)
     reasons.push(s.words < 260 ? 'a strong header for a short CV' : 'fits a lot of detail');
 
-  return { id, score: profession + length + photo + density, reasons };
+  // Compact grids are for long CVs: on a short one they leave most of the page empty (audit R-05).
+  const compact = FAMILY_OF.get(id) === 'compact' && s.pages < 1.5 ? -30 : 0;
+
+  return { id, score: profession + length + photo + density + compact, reasons };
 }
+
+const FAMILY_OF = new Map(DESIGNS.map((d) => [d.id, d.family]));
 
 /**
  * Top `count` designs, best first. The strip always includes a single-column, a side-column and a
@@ -209,20 +214,21 @@ export function rankDesigns(s: ContentStats, enabled: DesignId[], count = 6): Ra
   const isGraphic = (id: DesignId) => id in GRAPHIC_META;
   const firstGraphic = all.find((r) => isGraphic(r.id));
   const pick = all.filter((r) => !isGraphic(r.id) || r === firstGraphic).slice(0, count);
-  const rules: ((t: DesignTraits) => boolean)[] = [
-    (t) => t.family === 'single',
-    (t) => t.family === 'sidebar',
-    (t) => t.bold,
+  // "Bold" is the gallery's Bold family (what the person sees labelled bold), audit R-03.
+  const rules: ((id: DesignId) => boolean)[] = [
+    (id) => DESIGN_TRAITS[id].family === 'single',
+    (id) => DESIGN_TRAITS[id].family === 'sidebar',
+    (id) => FAMILY_OF.get(id) === 'bold',
   ];
   for (const rule of rules) {
-    if (pick.some((r) => rule(DESIGN_TRAITS[r.id]))) continue;
-    const add = all.find((r) => !pick.includes(r) && !isGraphic(r.id) && rule(DESIGN_TRAITS[r.id]));
+    if (pick.some((r) => rule(r.id))) continue;
+    const add = all.find((r) => !pick.includes(r) && !isGraphic(r.id) && rule(r.id));
     if (!add) continue;
     // Replace the lowest-ranked pick that isn't needed for another rule.
     for (let i = pick.length - 1; i > 0; i--) {
-      const t = DESIGN_TRAITS[pick[i]!.id];
+      const id = pick[i]!.id;
       const needed = rules.some(
-        (r) => r !== rule && r(t) && pick.filter((p) => r(DESIGN_TRAITS[p.id])).length === 1,
+        (r) => r !== rule && r(id) && pick.filter((p) => r(p.id)).length === 1,
       );
       if (!needed) {
         pick[i] = add;

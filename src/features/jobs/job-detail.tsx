@@ -220,7 +220,13 @@ export function JobDetail({ id }: { id: string }) {
           {ent?.features.reminders !== false && <RemindersCard job={job} onJobChange={setJob} />}
 
           <Card className="flex flex-col gap-3 p-5">
-            <h2 className="text-lg font-semibold">{t('CVs used for this job')}</h2>
+            <h2 className="text-lg font-semibold">{t('CVs for this job')}</h2>
+            {/* A picker, not a record: only ticked CVs are linked (audit F-13). */}
+            {cvs.length > 0 && (
+              <p className="text-ink-muted text-sm">
+                {t('Tick the CVs you used or plan to use. Only ticked CVs are linked to this job.')}
+              </p>
+            )}
             {job.sent && (
               <p className="text-ink-muted text-sm" data-testid="job-sent">
                 {t('Sent with “{title}”{v}', { title: job.sent.title, v: ' ' })}

@@ -6,7 +6,7 @@ import { runTask } from '@/modules/ai/run';
 import { denialCode, getBusinessConfig, reserve } from '@/modules/billing/server';
 import { currentUser } from '@/modules/identity/session';
 import { aiBudgetSpent, track } from '@/modules/metrics/server';
-import { checkIssues, proofLines, proofText } from '@/modules/quality/proofread';
+import { checkIssues, proofChunks, proofLines, proofText } from '@/modules/quality/proofread';
 import { safeParseResumeDocument } from '@/modules/resume/schema';
 import { noteUse } from '@/modules/metrics/activity';
 
@@ -58,12 +58,25 @@ export async function POST(req: Request) {
     await gate.release();
     return apiError('RATE_LIMITED', 'Too many requests. Please wait a little.', rid);
   }
-  const r = await runTask('quality.proofread', { lines: proofText(lines).slice(0, 40_000) }, 0, {
-    provider,
-    models: aiModels(),
-    timeoutMs: 50_000,
-  });
-  await track(r.ok ? 'ai_ok' : 'ai_fail');
+  // The CV is checked in parts side by side: one long call took 75–105 s (audit F-11).
+  const parts = proofChunks(lines).slice(0, 12);
+  const runs = await Promise.all(
+    parts.map((part) =>
+      runTask('quality.proofread', { lines: proofText(part).slice(0, 12_000) }, 0, {
+        provider,
+        models: aiModels(),
+        timeoutMs: 40_000,
+      }),
+    ),
+  );
+  const okRuns = runs.filter((x) => x.ok);
+  for (const x of runs) await track(x.ok ? 'ai_ok' : 'ai_fail');
+  const r = okRuns.length
+    ? {
+        ok: true as const,
+        result: { issues: okRuns.flatMap((x) => (x.ok ? x.result.issues : [])) },
+      }
+    : { ok: false as const };
   if (!r.ok) {
     await gate.release();
     await track('proofread_fail');

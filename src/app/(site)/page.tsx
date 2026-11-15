@@ -60,11 +60,20 @@ export default async function HomePage() {
     <>
       <section className="relative overflow-hidden">
         <Container className="grid items-center gap-12 pt-10 pb-16 md:pt-16 lg:grid-cols-[1.05fr_1fr] lg:gap-8 lg:pt-20 lg:pb-24">
-          <div className="flex flex-col items-start gap-6">
+          <div className="flex min-w-0 flex-col items-start gap-6">
             <Suspense>
               <InvitedNote />
             </Suspense>
-            <ContinueCardClient />
+            {/* The "Continue" card loads after the page; its space is kept before the first paint
+                when this browser has a saved CV, so the hero doesn't jump (audit F-17). */}
+            <div className="hidden w-full has-[a]:block" suppressHydrationWarning>
+              <script
+                dangerouslySetInnerHTML={{
+                  __html: `try{for(var i=0;i<localStorage.length;i++)if((localStorage.key(i)||'').indexOf('cvstudio:v1:doc:')===0){var s=document.currentScript.parentNode.style;s.display='block';s.minHeight='66px';break}}catch(e){}`,
+                }}
+              />
+              <ContinueCardClient />
+            </div>
             <h1 className="font-display text-ink text-[40px] leading-[1.08] font-semibold tracking-tight sm:text-5xl lg:text-[58px]">
               {t('Upload your CV,')}{' '}
               <span className="text-primary italic">{t('see it transformed.')}</span>

@@ -112,6 +112,54 @@ export const RUNTIME_JS = String.raw`(function (planPages) {
     page.appendChild(el('div', 'cv-foot'));
     return { page: page, main: main, aside: aside, third: third, top: top };
   }
+  // Names and contact details never break inside a word: a hyphenated part that doesn't fit its
+  // line makes the text smaller, step by step (to 55% for a name, 80% for contact details), and only
+  // then may the browser break it. Breaks after a hyphen, @, dot or slash are fine.
+  var FIT_SELECTOR = '.cv-top h1, [data-fit-name], [data-fit], .cv-contact-text';
+  function brokenPart(el) {
+    var right = el.getBoundingClientRect().right + 1;
+    var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    var n;
+    while ((n = walker.nextNode())) {
+      var t = n.textContent || '';
+      var re = /[^\s\-@./]+[\-@./]?/g, m;
+      while ((m = re.exec(t))) {
+        if (m[0].length < 3) continue;
+        var r = document.createRange();
+        r.setStart(n, m.index);
+        r.setEnd(n, m.index + m[0].length);
+        var rects = r.getClientRects();
+        var top = null;
+        for (var i = 0; i < rects.length; i++) {
+          if (rects[i].width < 0.5) continue;
+          if (top !== null && Math.abs(rects[i].top - top) > 2) return true;
+          if (rects[i].right > right) return true;
+          top = rects[i].top;
+        }
+      }
+    }
+    return false;
+  }
+  function fitWords(scope) {
+    var els = scope.querySelectorAll(FIT_SELECTOR);
+    for (var i = 0; i < els.length; i++) {
+      var e = els[i];
+      e.style.fontSize = '';
+      if (!brokenPart(e)) continue;
+      var base = parseFloat(getComputedStyle(e).fontSize);
+      var floor = e.classList.contains('cv-contact-text') ? 0.8 : e.hasAttribute('data-fit') ? 0.72 : 0.55;
+      for (var k = 0.94; k >= floor; k -= 0.05) {
+        e.style.fontSize = (base * k).toFixed(2) + 'px';
+        if (!brokenPart(e)) break;
+      }
+    }
+  }
+  // The header is copied into a measuring page; its fitted sizes are copied back by position.
+  var FIT_COPY = 'h1, [data-fit-name], [data-fit], .cv-contact-text';
+  function copyFit(from, to) {
+    var a = from.querySelectorAll(FIT_COPY), b = to.querySelectorAll(FIT_COPY);
+    for (var i = 0; i < a.length && i < b.length; i++) b[i].style.fontSize = a[i].style.fontSize;
+  }
   function blocksOf(flow) {
     return flow ? Array.prototype.slice.call(flow.querySelectorAll(':scope > [data-block]')) : [];
   }
@@ -120,6 +168,7 @@ export const RUNTIME_JS = String.raw`(function (planPages) {
     if (!slot) return out;
     var i;
     for (i = 0; i < blocks.length; i++) slot.appendChild(blocks[i]);
+    fitWords(slot);
     for (i = 0; i < blocks.length; i++) {
       var k = blocks[i].getAttribute('data-keep');
       out.push({
@@ -198,6 +247,8 @@ export const RUNTIME_JS = String.raw`(function (planPages) {
     if (running) p2.top.appendChild(running.cloneNode(true));
     measure.appendChild(p1.page);
     measure.appendChild(p2.page);
+    fitWords(p1.top);
+    if (header) copyFit(p1.top, header);
     var capMain1 = p1.main.clientHeight - R;
     var capMainN = p2.main.clientHeight - R;
     var capAside1 = p1.aside ? p1.aside.clientHeight - R : 0;
@@ -273,7 +324,11 @@ export const RUNTIME_JS = String.raw`(function (planPages) {
     { gap: 0.8, margin: 0.92, lh: 0.03 },
     { gap: 0.62, margin: 0.84, lh: 0.06 },
     // Only for designs that declare --can-compact: a compact header (smaller banner, no key numbers).
-    { gap: 0.5, margin: 0.8, lh: 0.07, compact: true }
+    { gap: 0.5, margin: 0.8, lh: 0.07, compact: true },
+    // Last: text 5% smaller, never below 9.5 pt (the floor is in the CSS), so a short last page
+    // folds back instead of holding one or two items (audit F-05).
+    { gap: 0.62, margin: 0.84, lh: 0.06, fs: 0.95 },
+    { gap: 0.5, margin: 0.8, lh: 0.07, fs: 0.95, compact: true }
   ];
   var LAST_PAGE_MAX_FILL = 0.3;
   // A tighter fit is only accepted with about one line to spare on every page (see layout()).
@@ -283,12 +338,157 @@ export const RUNTIME_JS = String.raw`(function (planPages) {
     st.setProperty('--fit-gap', f ? String(f.gap) : '1');
     st.setProperty('--fit-margin', f ? String(f.margin) : '1');
     st.setProperty('--fit-lh', f ? String(f.lh) : '0');
+    st.setProperty('--fit-fs', f && f.fs ? String(f.fs) : '1');
     if (f && f.compact) document.documentElement.setAttribute('data-fit-compact', '');
     else document.documentElement.removeAttribute('data-fit-compact');
   }
   function canCompact() {
     return getComputedStyle(document.documentElement).getPropertyValue('--can-compact').trim() === '1';
   }
+
+  // Page art never sits under body text (audit F-09): a painted shape that a line of text crosses is
+  // hidden on that page. Header art is designed with its text, so it is left alone.
+  function clearArt() {
+    var pages = document.querySelectorAll('[data-cv-pages] .cv-page');
+    for (var p = 0; p < pages.length; p++) {
+      var pg = pages[p];
+      var arts = pg.querySelectorAll('.cv-decor *, [data-deco], .cv-body [aria-hidden="true"], .cv-aside [aria-hidden="true"]');
+      if (!arts.length) continue;
+      var lines = [];
+      var walker = document.createTreeWalker(pg.querySelector('.cv-body') || pg, NodeFilter.SHOW_TEXT);
+      var n;
+      while ((n = walker.nextNode())) {
+        if (!(n.textContent || '').trim()) continue;
+        var r = document.createRange();
+        r.selectNodeContents(n);
+        var rs = r.getClientRects();
+        for (var i = 0; i < rs.length; i++) if (rs[i].width > 1) lines.push({ b: rs[i], node: n });
+      }
+      for (var a = 0; a < arts.length; a++) {
+        var el = arts[a];
+        if (el.querySelector('*') && !(el instanceof SVGElement)) continue;
+        var cs = getComputedStyle(el);
+        if (cs.position !== 'absolute' && !(el instanceof SVGElement)) continue;
+        var d = el.getBoundingClientRect();
+        if (d.width < 12 || d.height < 12) continue;
+        var round = cs.borderRadius.indexOf('50%') === 0;
+        for (var j = 0; j < lines.length; j++) {
+          var b = lines[j].b;
+          if (el.contains(lines[j].node)) continue;
+          var y = b.top + b.height / 2, hit = false;
+          var xs = [b.left + 2, b.left + b.width / 2, b.right - 2];
+          for (var q = 0; q < 3 && !hit; q++) {
+            if (round) {
+              var rx = d.width / 2, ry = d.height / 2, dx = (xs[q] - d.left - rx) / rx, dy = (y - d.top - ry) / ry;
+              hit = dx * dx + dy * dy < 1;
+            } else hit = xs[q] > d.left && xs[q] < d.right && y > d.top && y < d.bottom;
+          }
+          if (hit) { (el.closest('svg') || el).style.visibility = 'hidden'; break; }
+        }
+      }
+    }
+  }
+
+  // Section numbers ("01", "02"…) are real text, counted in reading order over the laid-out pages
+  // (a CSS counter would be invisible to the PDF furniture pass below).
+  function numberSections() {
+    // Each column counts on its own (main column 01, 02…; side column 01, 02…).
+    var nums = document.querySelectorAll('[data-cv-pages] [data-num]');
+    var count = { main: 0, aside: 0, third: 0 };
+    for (var i = 0; i < nums.length; i++) {
+      if (getComputedStyle(nums[i]).display === 'none') continue;
+      var col = nums[i].closest('.cv-aside') ? 'aside' : nums[i].closest('.cv-third') ? 'third' : 'main';
+      var k = ++count[col];
+      nums[i].textContent = k < 10 ? '0' + k : String(k);
+    }
+  }
+
+  // PDF only (called by the exporter, audit F-14): page numbers, running headers, monograms and
+  // section numbers are drawn as pictures and their text hidden, so they look the same but never
+  // enter the PDF text an ATS reads. Layout is untouched: the text stays, invisible, in place.
+  var FURNITURE = '.cv-foot, .cv-top--running, [data-num], .g-mono, .h-monogram, .cv-portrait--initials';
+  function flattenFurniture() {
+    var SCALE = 4;
+    var roots = document.querySelectorAll('[data-cv-pages] .cv-page');
+    var hide = [];
+    for (var p = 0; p < roots.length; p++) {
+      var pg = roots[p];
+      var pr = pg.getBoundingClientRect();
+      var items = pg.querySelectorAll(FURNITURE);
+      for (var f = 0; f < items.length; f++) {
+        var root = items[f];
+        if (root.parentElement && root.parentElement.closest(FURNITURE)) continue;
+        var rr = root.getBoundingClientRect();
+        if (rr.width < 1 || rr.height < 1) continue;
+        var pad = 6;
+        var ox = rr.left - pad, oy = rr.top - pad, w = rr.width + pad * 2, h = rr.height + pad * 2;
+        var cv = document.createElement('canvas');
+        cv.width = Math.ceil(w * SCALE);
+        cv.height = Math.ceil(h * SCALE);
+        cv.setAttribute('aria-hidden', 'true');
+        cv.style.cssText = 'position:absolute;pointer-events:none;z-index:5;left:' + (ox - pr.left) + 'px;top:' + (oy - pr.top) + 'px;width:' + w + 'px;height:' + h + 'px';
+        var ctx = cv.getContext('2d');
+        if (!ctx) continue;
+        ctx.scale(SCALE, SCALE);
+        ctx.translate(-ox, -oy);
+        ctx.textBaseline = 'alphabetic';
+        var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+        var n, drew = false;
+        while ((n = walker.nextNode())) {
+          var text = n.textContent || '';
+          if (!text.trim()) continue;
+          var host = n.parentElement;
+          var cs = getComputedStyle(host);
+          if (cs.visibility === 'hidden' || cs.display === 'none') continue;
+          var alpha = 1;
+          for (var a = host; a && a !== pg; a = a.parentElement) alpha *= parseFloat(getComputedStyle(a).opacity) || 0;
+          if (alpha <= 0) continue;
+          ctx.globalAlpha = alpha;
+          ctx.font = cs.fontStyle + ' ' + cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily;
+          try { ctx.letterSpacing = cs.letterSpacing === 'normal' ? '0px' : cs.letterSpacing; } catch (e) {}
+          ctx.fillStyle = cs.webkitTextFillColor && cs.webkitTextFillColor !== cs.color && cs.webkitTextFillColor !== 'rgba(0, 0, 0, 0)' ? cs.webkitTextFillColor : cs.color;
+          var tt = cs.textTransform;
+          var re = /\S+/g, m;
+          while ((m = re.exec(text))) {
+            var range = document.createRange();
+            range.setStart(n, m.index);
+            range.setEnd(n, m.index + m[0].length);
+            var rects = range.getClientRects();
+            var parts = rects.length === 1 ? [{ s: m.index, e: m.index + m[0].length, r: rects[0] }] : [];
+            if (rects.length > 1)
+              for (var c = m.index; c < m.index + m[0].length; c++) {
+                var cr = document.createRange();
+                cr.setStart(n, c);
+                cr.setEnd(n, c + 1);
+                var one = cr.getClientRects()[0];
+                if (one) parts.push({ s: c, e: c + 1, r: one });
+              }
+            for (var q = 0; q < parts.length; q++) {
+              var word = text.slice(parts[q].s, parts[q].e);
+              if (tt === 'uppercase') word = word.toUpperCase();
+              else if (tt === 'lowercase') word = word.toLowerCase();
+              else if (tt === 'capitalize' && parts[q].s === m.index) word = word.charAt(0).toUpperCase() + word.slice(1);
+              var mt = ctx.measureText(word);
+              var asc = mt.fontBoundingBoxAscent, desc = mt.fontBoundingBoxDescent;
+              var r = parts[q].r;
+              ctx.fillText(word, r.left, r.top + (r.height - asc - desc) / 2 + asc);
+              drew = true;
+            }
+          }
+          hide.push(n);
+        }
+        if (drew) pg.appendChild(cv);
+      }
+    }
+    for (var k = 0; k < hide.length; k++) {
+      var span = document.createElement('span');
+      span.style.visibility = 'hidden';
+      hide[k].parentNode.insertBefore(span, hide[k]);
+      span.appendChild(hide[k]);
+    }
+    return hide.length;
+  }
+  window.__CV_FLATTEN__ = flattenFurniture;
 
   function paginate() {
     var st = capture();
@@ -313,6 +513,8 @@ export const RUNTIME_JS = String.raw`(function (planPages) {
         r = layout(st);
       }
     }
+    numberSections();
+    clearArt();
     var result = {
       pages: r.pages,
       overflow: r.overflow,

@@ -14,7 +14,7 @@ export function ContinueCard() {
   return (
     <Link
       href={`/cv/${latest.id}`}
-      className="border-primary/30 bg-surface shadow-1 hover:border-primary flex w-full max-w-md items-center gap-3 rounded-lg border p-3 pr-4"
+      className="border-primary/30 bg-surface shadow-1 hover:border-primary flex w-full max-w-md min-w-0 items-center gap-3 rounded-lg border p-3 pr-4"
     >
       <span className="bg-primary-soft text-primary inline-flex size-10 shrink-0 items-center justify-center rounded-md">
         <FileText aria-hidden size={20} />

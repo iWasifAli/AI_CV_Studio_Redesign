@@ -74,7 +74,7 @@ const css = `
 .h-monogram{width:13mm;height:13mm;margin:0 auto 3.5mm;border-radius:50%;border:.8pt solid var(--accent);box-shadow:0 0 0 2pt #fff,0 0 0 2.6pt var(--accent-line);color:var(--accent);font-family:var(--font-heading);font-weight:var(--heading-weight);font-size:13pt;letter-spacing:.06em}
 .h-header{text-align:center;padding-bottom:6pt;border-bottom:.75pt solid var(--accent-line);margin-bottom:2pt}
 .h-name{font-family:var(--font-heading);font-weight:var(--heading-weight);font-size:3.1em;line-height:1.05;letter-spacing:.015em;color:var(--ink)}
-.h-headline{margin-top:.45em;font-size:.88em;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.h-headline{margin-top:.45em;font-size:.88em;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);font-weight:600}
 .h-header .cv-contact:first-child{padding-left:0}
 .h-header .cv-contact:first-child .cv-sep{display:none}
 .h-header .cv-contacts{justify-content:center;margin-left:0;margin-top:.9em;font-size:.97em;color:var(--ink-2)}

@@ -90,14 +90,15 @@ function Bullets({ items, plain }: { items: string[]; plain?: boolean }) {
   );
 }
 
-const BULLETS_IN_HEAD = 2;
-/** Entries with up to this many bullets are never split across pages… */
-export const KEEP_WHOLE_ENTRY_MAX_BULLETS = 6;
+const BULLETS_IN_HEAD = 1;
 /**
- * …unless their bullets are long: six two-line bullets are a third of a page, and keeping that
- * whole can push a whole section to the next page and leave half a page empty.
+ * Entries with up to this many bullets are never split across pages. Longer entries may split
+ * between bullets: the job's title always carries its first bullet and the last two bullets stay
+ * together, so neither page gets a lone line, and pages fill instead of leaving holes (audit F-05).
  */
-export const KEEP_WHOLE_ENTRY_MAX_CHARS = 600;
+export const KEEP_WHOLE_ENTRY_MAX_BULLETS = 2;
+/** …and only while their bullets are short. */
+export const KEEP_WHOLE_ENTRY_MAX_CHARS = 420;
 /** Skills per chunk when a large group is split across pages. */
 const SKILL_CHUNK = 6;
 
@@ -204,7 +205,14 @@ function sectionBlocksRaw(
           });
       } else items.push({ e, cont: false });
     }
-    const cols = !isSkills ? (hooks.compactColumns ?? 1) : 1;
+    // Three or more languages sit two to a row (one per line wastes half the page, audit D-04);
+    // in a narrow side column the row falls back to one column.
+    const cols = !isSkills
+      ? Math.max(
+          hooks.compactColumns ?? 1,
+          section.kind === 'languages' && items.length >= 3 ? 2 : 1,
+        )
+      : 1;
     if (cols > 1 && items.length > 1) {
       const rows: REntry[][] = [];
       for (let k = 0; k < items.length; k += cols)
@@ -384,9 +392,12 @@ export function ContactList({
   );
 }
 
-/** Adds soft break opportunities after @ and / so addresses wrap at natural points, never mid-word or mid-domain. */
+/**
+ * Adds soft break opportunities after @, /, dots and hyphens, so a long address wraps at a
+ * natural point instead of mid-word (the page also shrinks it slightly when a part still doesn't fit).
+ */
 export function breakable(text: string): ReactNode {
-  const parts = text.split(/(?<=[@/])/);
+  const parts = text.split(/(?<=[@/.\-_])(?=[^\s])/);
   if (parts.length < 2) return text;
   return parts.map((p, i) => (
     <span key={i}>

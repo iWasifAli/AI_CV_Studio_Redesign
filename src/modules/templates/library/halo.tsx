@@ -83,7 +83,7 @@ const css = `
 .ha-portrait{width:25mm;height:25mm;border-radius:50%;margin-bottom:3.5mm;box-shadow:0 0 0 2.6pt #fff,0 0 0 3.5pt var(--accent),0 0 0 6pt #fff,0 0 0 6.6pt var(--accent-line)}
 .cv-portrait--initials.ha-portrait{background:var(--accent-soft);color:var(--accent);font-family:var(--font-heading);font-weight:var(--heading-weight);font-size:24pt;letter-spacing:.04em}
 .ha-name{font-family:var(--font-heading);font-weight:var(--heading-weight);font-size:2.7em;line-height:1.08;letter-spacing:.005em;color:var(--ink)}
-.ha-headline{margin-top:.5em;font-size:.86em;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--accent)}
+.ha-headline{margin-top:.5em;font-size:.86em;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
 .ha-header .cv-contacts-wrap{margin-top:3mm}
 .ha-header .cv-contacts{justify-content:center;margin-left:0;column-gap:1.4em;row-gap:.3em;font-size:.96em;color:var(--ink-2)}
 .ha-header .cv-contact{padding-left:0}
@@ -96,7 +96,7 @@ const css = `
 .cv-has-aside .cv-main{padding-left:var(--gutter)}
 .cv-has-aside .cv-aside{width:var(--aside-w);padding-right:var(--gutter);border-right:.6pt solid var(--accent-line);font-size:.95em}
 .b-heading{padding-top:var(--section-gap);padding-bottom:6pt}
-.ha-h{font-family:var(--font-body);font-size:.82em;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);padding-bottom:3pt;border-bottom:.6pt solid var(--accent-line)}
+.ha-h{font-family:var(--font-body);font-size:.82em;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);padding-bottom:3pt;border-bottom:.6pt solid var(--accent-line)}
 .b-entry{padding-top:var(--item-gap)}
 .b-first{padding-top:1pt}
 .b-bullet{padding-top:1.5pt}

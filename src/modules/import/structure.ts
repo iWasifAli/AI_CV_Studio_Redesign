@@ -7,7 +7,7 @@ import {
   type ResumeDocument,
   type Section,
 } from '@/modules/resume/schema';
-import { headingOf, type ImportReport } from './parse';
+import { headingOf, linkLabel, type ImportReport } from './parse';
 
 /**
  * Converts between the AI's generic import shape and the CV schema, and checks that the AI only
@@ -345,7 +345,14 @@ export function structureToDoc(
       links: s.links
         .filter((l) => l.url.trim())
         .slice(0, 10)
-        .map((l) => ({ id: newId(), label: cut(l.label, 60) || 'Website', url: cut(l.url, 300) })),
+        .map((l) => ({
+          id: newId(),
+          // A label that is just the address again ("linkedin.com/in/x") becomes its site's name.
+          label: looksLikeAddress(l.label)
+            ? linkLabel(l.url)
+            : cut(l.label, 60) || linkLabel(l.url),
+          url: cut(l.url, 300),
+        })),
       summary: cut(s.summary, 1500),
       photo: '',
     },
@@ -455,3 +462,5 @@ export function docToStructure(d: ResumeDocument): Structure {
       })),
   };
 }
+
+const looksLikeAddress = (s: string) => /^(https?:\/\/|www\.)|\.[a-z]{2,}(\/|$)/i.test(s.trim());

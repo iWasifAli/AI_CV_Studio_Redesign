@@ -715,20 +715,21 @@ RULES — follow all of them:
 
 const proofread: TaskDef<'quality.proofread'> = {
   id: 'quality.proofread',
-  version: 'proofread@1',
-  tier: 'smart',
+  version: 'proofread@2',
+  // Fast model, one part of the CV per call, side by side (audit F-11).
+  tier: 'fast',
   temperature: 0.1,
   maxTokens: 6144,
   system: () =>
     `You proofread a CV the way a careful human editor would, and list each mistake for the person to fix one by one.
-The CV is in <cv>, one line per field, each starting with its id ("L3: text").
+The CV (or one part of it) is in <cv>, one line per field, each starting with its id ("L3: text"; "L3 (current job): text" for a job the person still does).
 RULES — follow all of them:
 1. Report real mistakes only:
    - spelling: misspelt words (not names of people, employers, places, products or tools, unless a common word is plainly misspelt);
    - grammar: wrong verb forms, agreement, missing or extra words;
    - punctuation: doubled or missing punctuation, stray spaces before commas or full stops;
    - capitals: a sentence or bullet starting with a small letter, "i" for "I", random capitals in ordinary words;
-   - consistency: mixed tenses within one job's points (past jobs in the past tense, a current job in the present), or bullets in one list mixing full stops and none;
+   - consistency: mixed tenses within one job's points (past jobs in the past tense; lines marked "(current job)" in the present tense — never move a current job's points into the past), or bullets in one list mixing full stops and none;
    - repetition: the same word twice in a row, or the same opening verb in most points of one job.
 2. Keep the CV's own spelling variety: if it uses British spelling ("organised", "colour"), never change it to American, and the other way round. Never "fix" style the person chose (for example short phrases without "I").
 3. quote: the exact words from that line that are wrong, copied character for character, as short as possible (a word or a short phrase, never the whole line unless the line is very short). fix: what replaces exactly those words. Change nothing else.

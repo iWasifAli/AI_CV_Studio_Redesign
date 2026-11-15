@@ -532,7 +532,7 @@ function takeContacts(line: string, c: Contacts): string {
 }
 
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&');
-function linkLabel(url: string) {
+export function linkLabel(url: string) {
   if (/linkedin/i.test(url)) return 'LinkedIn';
   if (/github/i.test(url)) return 'GitHub';
   if (/behance/i.test(url)) return 'Behance';
@@ -895,10 +895,68 @@ export type ImportReport = {
   unplaced: number;
 };
 
+/**
+ * A long email, link or double-barrelled name wrapped in a narrow column comes out as single-word
+ * lines ending in "-", ".", "@", "_" or "/" ("alexandra.konstantinopoulou-" / "featherstonehaugh@
+ * example-" / "holdings.co.uk"): such lines are joined back into one.
+ */
+export function joinBrokenAddresses(lines: string[]): string[] {
+  const out: string[] = [];
+  const piece = /^[\p{L}\p{N}.@+_/:~%#=?&-]+$/u;
+  for (const raw of lines) {
+    const line = raw.trim();
+    const last = out[out.length - 1]?.trim();
+    // The line above is itself one fragment (never a sentence); after a full stop only a lower-case
+    // continuation joins, so "Skills" after "…budgets." stays a heading.
+    if (
+      last !== undefined &&
+      piece.test(last) &&
+      last.length >= 3 &&
+      piece.test(line) &&
+      (/[-@_/]$/.test(last) || (/\.$/.test(last) && /^[\p{Ll}\p{N}]/u.test(line)))
+    ) {
+      out[out.length - 1] = last + line;
+      continue;
+    }
+    out.push(raw);
+  }
+  return out;
+}
+
+/**
+ * A heading wrapped in a narrow label column ("WORK" / "HISTORY"): two short capitalised lines that
+ * together, but not alone, name a usual section become one line.
+ */
+export function joinSplitHeadings(lines: string[]): string[] {
+  const out: string[] = [];
+  const caps = (l: string) => l.length <= 24 && /\p{Lu}/u.test(l) && l === l.toUpperCase();
+  for (let i = 0; i < lines.length; i++) {
+    const a = lines[i]!;
+    const b = lines[i + 1];
+    if (b !== undefined && caps(a) && caps(b)) {
+      const both = headingOf(`${a} ${b}`);
+      const one = headingOf(a);
+      if (both && both.kind !== 'custom' && (!one || one.kind === 'custom')) {
+        out.push(`${a} ${b}`);
+        i++;
+        continue;
+      }
+    }
+    out.push(a);
+  }
+  return out;
+}
+
 export function parseCv(
   input: string[],
-  opts: { now?: Date; locale?: string; title?: string } = {},
+  opts: { now?: Date; locale?: string; title?: string; pageStarts?: number[] } = {},
 ): { doc: ResumeDocument; report: ImportReport } {
+  // Page breaks (from the PDF reader) stand where a running header would: they mark where the main
+  // column continues after a side column (running headers are pictures since audit F-14).
+  if (opts.pageStarts?.length) {
+    const starts = new Set(opts.pageStarts);
+    input = input.flatMap((l, i) => (starts.has(i) ? [PAGE_BREAK, l] : [l]));
+  }
   const now = (opts.now ?? new Date()).toISOString();
   const c: Contacts = { email: '', phone: '', links: [], location: '' };
 
@@ -906,7 +964,7 @@ export function parseCv(
   const blocks: { heading: { kind: Kind; title: string; raw: string } | null; lines: string[] }[] =
     [{ heading: null, lines: [] }];
   let prevLine = '';
-  for (const line of joinSpacedHeadings(input)) {
+  for (const line of joinSplitHeadings(joinSpacedHeadings(joinBrokenAddresses(input)))) {
     const last = blocks[blocks.length - 1]!;
     // "…Department for" / "Education": a heading word that finishes the line above is not a heading.
     const dangling = /(?:\b(?:for|of|and|in|the|to|with|at)|[,&/(-])$/i.test(prevLine);
@@ -923,6 +981,7 @@ export function parseCv(
   // 2. Header: name, headline, contacts; anything long is the summary.
   const head: { text: string; contact: boolean }[] = [];
   for (const raw of blocks[0]!.lines) {
+    if (raw === PAGE_BREAK) continue;
     const contact = EMAIL.test(raw) || PHONE.test(raw) || URL.test(raw);
     let rest = takeContacts(raw, c);
     // Monogram printed in front of the name ("AR Ali Raza").
@@ -987,11 +1046,12 @@ export function parseCv(
     const t = l.toLowerCase().replace(/[.*_+]$/, '');
     return !!name && (t === lowName || t.startsWith(`${lowName} `)) && l.length < name.length + 100;
   };
-  const running = isName;
+  const running = (l: string) => l === PAGE_BREAK || isName(l);
   // The running header on later pages: the name, sometimes followed by the headline on its own line.
   const dropRunning = (ls: string[]) =>
     ls.filter(
       (l, i) =>
+        l !== PAGE_BREAK &&
         !isName(l) &&
         !(i > 0 && isName(ls[i - 1]!) && !!headline && l.toLowerCase() === headline.toLowerCase()),
     );
@@ -1003,7 +1063,9 @@ export function parseCv(
     const at = b.lines.findIndex(running);
     if (at < 0 || LISTS.includes(b.heading!.kind)) continue;
     const tail = dropRunning(b.lines.slice(at));
-    if (!tail.slice(0, 3).some((l) => findDates(l)?.start)) continue;
+    // The page may start with the last points of a job that began on the page before, then the
+    // next dated entry (entries split between points since the audit, F-05).
+    if (!tail.slice(0, 14).some((l) => findDates(l)?.start)) continue;
     const target = blocks
       .slice(1, bi)
       .reverse()
@@ -1241,6 +1303,9 @@ function pickName(lines: { text: string; contact: boolean }[]): number {
 
 /** "WO R K" + "H I S TO RY" (a letter-spaced heading wrapped over lines) → one line. */
 const SPACED = /^(?:\S{1,2}\s)+\S{1,2}$/;
+/** A page break inside parseCv's input (see opts.pageStarts). */
+const PAGE_BREAK = '\u2063page-break\u2063';
+
 /** Marks a letter-spaced heading line; such lines are headings even when the words are new. */
 export const SPACED_MARK = '\u0001';
 

@@ -18,6 +18,8 @@ ul{list-style:none}
   display:flex;flex-direction:column;padding:var(--margin) var(--margin) calc(var(--margin) + 2.5mm)}
 .cv-top{flex:none;position:relative;z-index:1}
 .cv-body{position:relative;z-index:1}
+.cv-compact-grid{display:grid;grid-template-columns:repeat(var(--cols,2),minmax(0,1fr));column-gap:6mm}
+.cv-aside .cv-compact-grid,.cv-third .cv-compact-grid{grid-template-columns:minmax(0,1fr);row-gap:3pt}
 .cv-decor{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
 .cv-icon{width:1em;height:1em;flex:none;display:inline-block;vertical-align:-.13em}
 .cv-contacts--icons .cv-contact{display:flex;align-items:center;gap:.45em}
@@ -44,6 +46,10 @@ a{color:inherit;text-decoration:none}
 .b-skills.b-cont{padding-top:3.5pt}
 /* Continuation headers: keep name and role apart; stack them when they don't fit side by side. */
 .cv-top--running [data-slot="running"] > *{column-gap:2.5em;row-gap:1pt;flex-wrap:wrap}
+/* Kerning pairs inside letter-spaced capitals make PDF readers split words ("L ANGUAGES", audit
+   F-14); the name keeps its kerning. */
+.cv-page{font-kerning:none}
+.cv-page h1{font-kerning:normal}
 p,li{text-wrap:pretty}
 h1,h2,h3{text-wrap:balance}
 .cv-foot{position:absolute;right:var(--margin);bottom:calc(var(--margin) * 0.45);font-size:7.5pt;

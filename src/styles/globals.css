@@ -53,6 +53,11 @@
 }
 
 @layer base {
+  /* A long CV or job title in a list never makes a page wider than the phone (audit F-04). */
+  select {
+    max-width: 100%;
+    text-overflow: ellipsis;
+  }
   html {
     color-scheme: light;
     -webkit-text-size-adjust: 100%;

@@ -16,7 +16,12 @@ export type Extracted = {
   lines: string[];
   /** A scanned PDF or a photo: the text has to be read from the image. */
   scanned: boolean;
+  /** PDF: the index in `lines` where each page after the first begins (for parseCv). */
+  pageStarts?: number[];
 };
+
+/** Internal page-break line between PDF pages; removed before lines are returned. */
+const PAGE_MARK = '\u2063page\u2063';
 
 export class ImportError extends Error {
   constructor(
@@ -88,11 +93,19 @@ export async function extractLines(bytes: Uint8Array): Promise<Extracted> {
       'We couldn’t open that file. It may be damaged or password-protected.',
     );
   }
-  lines = tidyLines(lines.map(clean).filter((l) => l.length > 0));
+  const marked = tidyLines(lines.map(clean).filter((l) => l.length > 0));
+  const pageStarts: number[] = [];
+  lines = [];
+  for (const l of marked) {
+    if (l === PAGE_MARK) {
+      if (lines.length && pageStarts[pageStarts.length - 1] !== lines.length)
+        pageStarts.push(lines.length);
+    } else lines.push(l);
+  }
   const chars = lines.join('').length;
   if (kind === 'pdf' && chars < SCAN_CHARS) return { kind, mime, lines, scanned: true };
   if (chars < 20) throw new ImportError('NO_TEXT', 'This document looks empty.');
-  return { kind, mime, lines, scanned: false };
+  return { kind, mime, lines, scanned: false, ...(pageStarts.length ? { pageStarts } : {}) };
 }
 
 /** The message when a scan cannot be read (vision unavailable or it found nothing). */
@@ -106,7 +119,8 @@ export function tidyLines(lines: string[]): string[] {
     // Page counters ("1 / 2", "Page 1 of 2") and section numbers ("01", "02").
     if (/^(?:page\s*)?\d{1,2}\s*(?:\/|of)\s*\d{1,2}$/i.test(line) || /^0\d$/.test(line)) continue;
     const prev = out[out.length - 1];
-    if (prev && (/[\w.+-]@$/.test(prev) || /^@/.test(line))) out[out.length - 1] = prev + line;
+    if (line === PAGE_MARK || prev === PAGE_MARK) out.push(line);
+    else if (prev && (/[\w.+-]@$/.test(prev) || /^@/.test(line))) out[out.length - 1] = prev + line;
     else if (
       prev &&
       /(?:\d{4}|present)\s*[–—-]$/i.test(prev) &&
@@ -141,6 +155,7 @@ async function pdfLines(bytes: Uint8Array): Promise<string[]> {
     );
   const out: string[] = [];
   for (let p = 1; p <= pdf.numPages; p++) {
+    if (p > 1) out.push(PAGE_MARK);
     const page = await pdf.getPage(p);
     const content = await page.getTextContent();
     const items: Item[] = [];

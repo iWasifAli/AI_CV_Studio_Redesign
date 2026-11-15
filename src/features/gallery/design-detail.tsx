@@ -122,12 +122,12 @@ export function DesignDetail({ id }: { id: DesignId }) {
       </div>
 
       <div className="flex flex-wrap items-end gap-4">
-        <label className="flex flex-col gap-1.5 text-sm font-semibold">
+        <label className="flex max-w-full min-w-0 flex-col gap-1.5 text-sm font-semibold">
           {t('Show it with')}
           <select
             value={show}
             onChange={(e) => setChoice(e.target.value)}
-            className="border-line-strong bg-surface min-h-11 rounded-md border px-3 text-[15px] font-normal"
+            className="border-line-strong bg-surface min-h-11 w-full max-w-full truncate rounded-md border px-3 text-[15px] font-normal sm:w-auto sm:max-w-md"
           >
             {own.map((c) => (
               <option key={c.id} value={`own:${c.id}`}>

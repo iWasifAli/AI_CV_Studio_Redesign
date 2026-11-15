@@ -2,6 +2,7 @@ import { applyV1Change, designSpec, migrateV1, toV1 } from '@/modules/design/cat
 import { DESIGN_META, isSpecDesign } from '@/modules/design/designs';
 import type { DesignSpecV2 } from '@/modules/design/spec';
 import { newId } from './create';
+import { getPreset } from './presets';
 import type { Basics, DesignId, DesignSpec, ResumeDocument, Section, SectionKind } from './schema';
 import { GRAPHIC_META } from '@/modules/templates/graphic/meta';
 
@@ -219,9 +220,15 @@ export const ops = {
     });
   },
 
-  setDesign(doc: ResumeDocument, patch: Partial<DesignSpec>) {
+  setDesign(doc: ResumeDocument, patch: Partial<DesignSpec>, by: 'person' | 'design' = 'person') {
     const { v2, ...v1 } = doc.design;
     const next = { ...v1, ...patch, options: { ...v1.options, ...(patch.options ?? {}) } };
+    // Remember what the person chose themselves, so a later design switch keeps only that.
+    if (by === 'person' && !patch.templateId) {
+      const mine = new Set(v1.chosen ?? []);
+      for (const k of ['density', 'fontPair', 'accent'] as const) if (patch[k]) mine.add(k);
+      if (mine.size) next.chosen = [...mine];
+    }
     if (!v2) return touch(doc, { design: next });
     // A design with a v2 spec stays in step: picking a catalogue design re-attaches to it.
     // Picking a catalogue design re-attaches, also when the v1 id is unchanged (a spec-only or
@@ -233,19 +240,40 @@ export const ops = {
   },
   /** Switch to a catalogue design (any of the 32); the words and the person's colour stay. */
   useDesign(doc: ResumeDocument, id: DesignId) {
+    // A new design starts from its own spacing and typeface; only what the person chose
+    // themselves (spacing, font, colour) carries over, so the result never depends on the
+    // design picked before (audit F-03). Paper size and photo on/off are always the person's.
+    const mine = new Set(doc.design.chosen ?? []);
+    const graphic = (x: string) => x in GRAPHIC_META;
+    // Leaving a graphic design (which starts in its own colour) goes back to the person's colour.
+    const from = doc.design.v2?.designId ?? doc.design.templateId;
+    const backToOwn =
+      !mine.has('accent') && graphic(from) && !graphic(id)
+        ? { accent: getPreset(doc.presetId).design.accent }
+        : {};
+    const fresh: Partial<DesignSpec> = {
+      ...backToOwn,
+      ...(mine.has('density') ? {} : { density: 'balanced' as const }),
+      ...(mine.has('fontPair') || !DESIGN_META[id].fontPair
+        ? {}
+        : { fontPair: DESIGN_META[id].fontPair }),
+    };
     if (!isSpecDesign(id)) {
-      const font = DESIGN_META[id].fontPair;
-      // Graphic designs start in their signature colour (the person can change it).
+      // Graphic designs start in their signature colour (unless the person chose a colour).
       const g = (GRAPHIC_META as Record<string, { accent: string }>)[id];
-      return ops.setDesign(doc, {
-        templateId: id,
-        ...(font ? { fontPair: font } : {}),
-        ...(g ? { accent: g.accent } : {}),
-      });
+      return ops.setDesign(
+        doc,
+        {
+          templateId: id,
+          ...fresh,
+          ...(g && !mine.has('accent') ? { accent: g.accent } : {}),
+        },
+        'design',
+      );
     }
     const { v2: _old, ...v1 } = doc.design;
     void _old;
-    return ops.setSpec(doc, designSpec(id, v1));
+    return ops.setSpec(doc, designSpec(id, { ...v1, ...fresh }));
   },
   /** Set the Design Spec v2 (Design Studio); the v1 fields follow it. */
   setSpec(doc: ResumeDocument, spec: DesignSpecV2) {

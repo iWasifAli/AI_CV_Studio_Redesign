@@ -140,7 +140,7 @@ export function heading(marker: Marker) {
     return (
       <h2 className={`g-h g-h--${marker}`}>
         {marker === 'number' ? (
-          <span className="g-h-n" aria-hidden="true" />
+          <span className="g-h-n" aria-hidden="true" data-num="" />
         ) : (
           <span className="g-h-m" aria-hidden="true" />
         )}
@@ -318,11 +318,6 @@ html[data-fit-compact] .g-stats{display:none}
 .g-h--line{gap:0;flex-direction:row-reverse;justify-content:flex-end}
 .g-h--line .g-h-m{flex:1;height:.3mm;margin-left:3mm;background:var(--g-rule)}
 .g-h-n{font-family:var(--g-display);font-weight:800;color:var(--g-hot-text);letter-spacing:0;font-size:1.1em}
-[data-cv-pages]{counter-reset:gmain gside}
-.cv-main .g-h--number{counter-increment:gmain}
-.cv-aside .g-h--number,.cv-aside .rl-ah{counter-increment:gside}
-.cv-main .g-h-n::before{content:counter(gmain,decimal-leading-zero)}
-.cv-aside .g-h-n::before,.rl-ah .rl-n::before{content:counter(gside,decimal-leading-zero)}
 .g-summary{color:var(--ink-2);line-height:1.72}
 .g-entry{position:relative}
 .g-when{font-size:.78em;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--g-hot-text);margin-bottom:1.2mm;font-variant-numeric:tabular-nums}

@@ -95,7 +95,7 @@ const css = `
 .f-name span{display:block}
 .f-first{font-weight:400}
 .f-last{font-weight:700;color:var(--accent)}
-.f-headline{display:flex;align-items:center;gap:.8em;margin-top:.8em;font-size:.86em;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-2)}
+.f-headline{display:flex;align-items:center;gap:.8em;margin-top:.8em;font-size:.86em;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2)}
 .f-headline::after{content:'';flex:1;height:.6pt;background:var(--ink-3)}
 .f-frame{position:relative;flex:none;margin:0 3mm 3mm 0}
 .f-frame::before{content:'';position:absolute;left:3mm;top:3mm;right:-3mm;bottom:-3mm;background:var(--accent)}

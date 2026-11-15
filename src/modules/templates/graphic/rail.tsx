@@ -105,7 +105,7 @@ export function railTemplate(c: RailConfig): CatalogueTemplate {
     heading: (s: Parameters<typeof base.heading>[0]) =>
       ASIDE.has(s.kind) ? (
         <h2 className="rl-ah">
-          <span className="rl-n" aria-hidden="true" />
+          <span className="rl-n" aria-hidden="true" data-num="" />
           <span aria-hidden="true"> — </span>
           {s.title}
         </h2>
@@ -192,7 +192,7 @@ html[data-fit-compact] .rl-name{margin-top:4mm;font-size:calc(40pt * var(--ns,1)
     AsideContact: (p) => (
       <>
         <h2 className="rl-ah">
-          <span className="rl-n" aria-hidden="true" />
+          <span className="rl-n" aria-hidden="true" data-num="" />
           <span aria-hidden="true"> — </span>
           Contact
         </h2>

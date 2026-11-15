@@ -90,7 +90,18 @@ export function BasicsForm({
         <select
           className="border-line-strong bg-surface min-h-11 rounded-md border px-3 text-[15px] font-normal"
           value={doc.market ?? ''}
-          onChange={(e) => update((d) => ({ ...d, market: e.target.value || undefined }), 'market')}
+          onChange={(e) =>
+            update((d) => {
+              const market = e.target.value || undefined;
+              // Applying in the US or Canada means Letter paper; anywhere else, A4.
+              const pageSize = market
+                ? market === 'US' || market === 'CA'
+                  ? 'Letter'
+                  : 'A4'
+                : d.design.pageSize;
+              return { ...ops.setDesign(d, { pageSize }), market };
+            }, 'market')
+          }
           data-testid="market"
         >
           <option value="">{t('Not saying / several countries')}</option>

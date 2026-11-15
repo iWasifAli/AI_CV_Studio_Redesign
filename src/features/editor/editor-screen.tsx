@@ -142,6 +142,7 @@ export function EditorScreen({ initial }: { initial: ResumeDocument }) {
           editor={editor}
           backHref="/documents"
           backLabel={tx('Back to Documents')}
+          pageHeading
           action={
             <>
               {signedIn && <TranslateButton doc={editor.doc} />}
@@ -177,6 +178,13 @@ export function EditorScreen({ initial }: { initial: ResumeDocument }) {
               aria-labelledby={tabId('editor', panelTab)}
               className="px-4 pt-4 sm:px-5"
             >
+              <h2 className="sr-only">
+                {panelTab === 'content'
+                  ? tx('Content')
+                  : panelTab === 'design'
+                    ? tx('Design')
+                    : tx('Check')}
+              </h2>
               {doc.role === 'profile' && (
                 <Banner
                   tone="info"

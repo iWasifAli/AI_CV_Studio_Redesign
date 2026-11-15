@@ -106,7 +106,7 @@ const css = `
 .cv-has-aside .cv-main{padding-right:var(--gutter)}
 .cv-main,.cv-aside{position:relative}
 .b-heading{padding-top:var(--section-gap);padding-bottom:5pt}
-.m-h{font-family:var(--font-body);font-size:.86em;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--accent)}
+.m-h{font-family:var(--font-body);font-size:.86em;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
 .m-h::after{content:'';display:block;width:16pt;height:2pt;margin-top:3pt;background:var(--accent);border-radius:1pt}
 .cv-aside .m-h{font-size:.8em}
 .b-entry{padding-top:var(--item-gap)}

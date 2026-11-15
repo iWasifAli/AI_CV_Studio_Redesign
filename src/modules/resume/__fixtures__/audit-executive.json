@@ -1,0 +1,361 @@
+{
+  "schemaVersion": 1,
+  "id": "fixture-audit-executive",
+  "title": "Audit executive (long CV, long name)",
+  "presetId": "executive",
+  "locale": "en-GB",
+  "createdAt": "2026-11-15T09:00:00.000Z",
+  "updatedAt": "2026-11-15T09:00:00.000Z",
+  "basics": {
+    "name": "Dr. Alexandra Konstantinopoulou-Featherstonehaugh",
+    "headline": "Chief Operating Officer and Group Transformation Director, Europe, Middle East and Africa",
+    "email": "alexandra.konstantinopoulou-featherstonehaugh@example-holdings.co.uk",
+    "phone": "+44 20 7946 0958",
+    "location": "London, United Kingdom",
+    "links": [
+      {
+        "id": "extNW-2fZ1",
+        "label": "linkedin.com/in/alexandra-kf-example",
+        "url": "linkedin.com/in/alexandra-kf-example"
+      }
+    ],
+    "summary": "Operations executive with 24 years of experience leading logistics, manufacturing and shared-service organisations across 14 countries. Has run profit-and-loss accounts of up to £410 million and teams of 3,200 people. Known for turning around under-performing sites, integrating acquisitions and building leadership benches. Seeking a group COO or divisional CEO role.",
+    "stats": [],
+    "photo": ""
+  },
+  "sections": [
+    {
+      "id": "eUsIIN3DBy",
+      "title": "Experience",
+      "hidden": false,
+      "kind": "experience",
+      "items": [
+        {
+          "id": "qyD4k4SG-E",
+          "role": "Chief Operating Officer, EMEA",
+          "organization": "Halcyon Freight Group plc",
+          "location": "London",
+          "start": "2019-01",
+          "end": "",
+          "current": true,
+          "bullets": [
+            "Lead operations for 46 depots and 3,200 staff across 14 countries with a £410 million cost base",
+            "Raised on-time delivery from 87% to 96% in two years by redesigning the hub network and introducing daily performance reviews",
+            "Integrated three acquisitions (Nordvik Transport, Delta Cargo Iberia and Müller Spedition) within 18 months each",
+            "Chaired the group safety board; lost-time injuries fell by 41% between 2019 and 2023",
+            "Sponsored the warehouse management system replacement, delivered on budget at £18.5 million"
+          ]
+        },
+        {
+          "id": "8x9PhzcbC9",
+          "role": "Group Operations Director",
+          "organization": "Castellan Manufacturing Holdings Ltd",
+          "location": "Birmingham",
+          "start": "2013-03",
+          "end": "2018-12",
+          "current": false,
+          "bullets": [
+            "Ran 9 plants in the UK, Poland and Türkiye producing precision components for the automotive and aerospace sectors",
+            "Reduced scrap from 6.2% to 2.9% through a plant-by-plant lean programme",
+            "Negotiated a five-year collective agreement covering 1,100 employees without industrial action",
+            "Closed and consolidated two loss-making sites, saving £7.4 million a year"
+          ]
+        },
+        {
+          "id": "ePm6h5pLO7",
+          "role": "Regional General Manager, Central Europe",
+          "organization": "Brightline Distribution GmbH",
+          "location": "Vienna",
+          "start": "2008-06",
+          "end": "2013-02",
+          "current": false,
+          "bullets": [
+            "Full profit-and-loss responsibility for Austria, Czechia, Slovakia and Hungary (€95 million revenue)",
+            "Opened the Bratislava cross-dock, the company's first automated facility",
+            "Grew contract-logistics revenue by 38% in four years"
+          ]
+        },
+        {
+          "id": "dmSAk7OHN-",
+          "role": "Senior Operations Manager",
+          "organization": "Brightline Distribution GmbH",
+          "location": "Munich",
+          "start": "2004-09",
+          "end": "2008-05",
+          "current": false,
+          "bullets": [
+            "Managed a 24-hour distribution centre with 420 staff and 1.1 million pallets a year",
+            "Introduced voice picking, raising pick accuracy to 99.7%"
+          ]
+        },
+        {
+          "id": "rb0bpHGVVu",
+          "role": "Operations Manager",
+          "organization": "Pennine Parcel Services Ltd",
+          "location": "Leeds",
+          "start": "2001-08",
+          "end": "2004-08",
+          "current": false,
+          "bullets": [
+            "Ran the Leeds sortation hub handling 60,000 parcels a night",
+            "Cut agency labour spend by 22%"
+          ]
+        },
+        {
+          "id": "4ggS7B_T69",
+          "role": "Graduate Management Trainee",
+          "organization": "Pennine Parcel Services Ltd",
+          "location": "Leeds",
+          "start": "1999-09",
+          "end": "2001-07",
+          "current": false,
+          "bullets": ["Rotations through depot operations, planning, finance and customer service"]
+        }
+      ]
+    },
+    {
+      "id": "sIbBpQTJfH",
+      "title": "Board roles",
+      "hidden": false,
+      "kind": "experience",
+      "items": [
+        {
+          "id": "W12KKH7vGA",
+          "role": "Non-Executive Director",
+          "organization": "Thames Valley Community Housing Association",
+          "location": "Reading",
+          "start": "2020-04",
+          "end": "",
+          "current": true,
+          "bullets": ["Chair of the audit and risk committee"]
+        },
+        {
+          "id": "VC0tiRtkTg",
+          "role": "Trustee",
+          "organization": "The Logistics Education Trust",
+          "location": "London",
+          "start": "2016-01",
+          "end": "2022-03",
+          "current": false,
+          "bullets": ["Oversaw a bursary fund supporting 120 apprentices a year"]
+        }
+      ]
+    },
+    {
+      "id": "32G1PCfl84",
+      "title": "Education",
+      "hidden": false,
+      "kind": "education",
+      "items": [
+        {
+          "id": "hW8ywTQMI7",
+          "qualification": "Doctor of Business Administration (DBA)",
+          "institution": "Cranfield School of Management",
+          "location": "",
+          "start": "2010",
+          "end": "2014",
+          "details": ["Thesis: Network redesign under demand uncertainty in European road freight"]
+        },
+        {
+          "id": "gLTH5hEI6j",
+          "qualification": "MBA with Distinction",
+          "institution": "Warwick Business School",
+          "location": "",
+          "start": "2005",
+          "end": "2007",
+          "details": []
+        },
+        {
+          "id": "rvEgn43V-H",
+          "qualification": "BEng (Hons) Mechanical Engineering, 2:1",
+          "institution": "University of Leeds",
+          "location": "",
+          "start": "1996",
+          "end": "1999",
+          "details": []
+        }
+      ]
+    },
+    {
+      "id": "MIygASwLww",
+      "title": "Skills",
+      "hidden": false,
+      "kind": "skills",
+      "items": [
+        {
+          "id": "ct-O16MQym",
+          "label": "",
+          "keywords": [
+            "Profit-and-loss management",
+            "Network design",
+            "Lean manufacturing",
+            "Mergers and acquisitions integration",
+            "Change leadership",
+            "Collective bargaining",
+            "Health and safety governance",
+            "Capital programme sponsorship",
+            "Supplier negotiation",
+            "Board reporting",
+            "SAP S/4HANA",
+            "Power BI",
+            "Six Sigma",
+            "Budgeting and forecasting",
+            "Succession planning"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "wr0itwjAih",
+      "title": "Certifications",
+      "hidden": false,
+      "kind": "certifications",
+      "items": [
+        {
+          "id": "0fLFG4t9PJ",
+          "name": "Chartered Fellow, Chartered Institute of Logistics and Transport (FCILT)",
+          "issuer": "",
+          "date": "2017",
+          "detail": ""
+        },
+        {
+          "id": "IQU5MLeeGS",
+          "name": "Lean Six Sigma Black Belt",
+          "issuer": "British Quality Foundation",
+          "date": "2011",
+          "detail": ""
+        },
+        {
+          "id": "XChVQc5QSi",
+          "name": "NEBOSH National General Certificate in Occupational Health and Safety",
+          "issuer": "",
+          "date": "2009",
+          "detail": ""
+        },
+        {
+          "id": "1NWUGMp-gO",
+          "name": "Institute of Directors Certificate in Company Direction",
+          "issuer": "",
+          "date": "2020",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "id": "QnxlAoYNCc",
+      "title": "Languages",
+      "hidden": false,
+      "kind": "languages",
+      "items": [
+        {
+          "id": "-VMOjxrIbd",
+          "language": "English",
+          "fluency": "native"
+        },
+        {
+          "id": "w-7x62IEMD",
+          "language": "Greek",
+          "fluency": "native"
+        },
+        {
+          "id": "5h5LDf_5yz",
+          "language": "German",
+          "fluency": "fluent"
+        },
+        {
+          "id": "5gx2xhSIkr",
+          "language": "French",
+          "fluency": "conversational"
+        },
+        {
+          "id": "n4B3GlkU_6",
+          "language": "Polish",
+          "fluency": "basic"
+        }
+      ]
+    },
+    {
+      "id": "dTSWvzf2hD",
+      "title": "Awards",
+      "hidden": false,
+      "kind": "awards",
+      "items": [
+        {
+          "id": "EwUXDhlyfD",
+          "name": "Operations Leader of the Year",
+          "issuer": "European Supply Chain Excellence Awards",
+          "date": "2022",
+          "detail": ""
+        },
+        {
+          "id": "yOSMbIy-8K",
+          "name": "Chairman's Award for Safety Leadership",
+          "issuer": "Halcyon Freight Group",
+          "date": "2021",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "id": "4mN6YFdq81",
+      "title": "Publications",
+      "hidden": false,
+      "kind": "publications",
+      "items": [
+        {
+          "id": "h7UZIEBe7O",
+          "name": "Network redesign under demand uncertainty",
+          "issuer": "International Journal of Logistics Management",
+          "date": "2015",
+          "detail": ""
+        },
+        {
+          "id": "Dlw29D82jb",
+          "name": "Why integrations fail in the first hundred days",
+          "issuer": "Supply Chain Quarterly",
+          "date": "2021",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "id": "KfXpBga8gq",
+      "title": "Volunteering",
+      "hidden": false,
+      "kind": "volunteering",
+      "items": [
+        {
+          "id": "VWv9_6iDOc",
+          "role": "Mentor",
+          "organization": "Women in Logistics UK",
+          "location": "",
+          "start": "2015",
+          "end": "",
+          "current": true,
+          "bullets": []
+        }
+      ]
+    },
+    {
+      "id": "8PUZFb6ktl",
+      "title": "Interests",
+      "hidden": false,
+      "kind": "interests",
+      "items": [
+        {
+          "id": "3OOBQjI6d3",
+          "label": "",
+          "keywords": ["Long-distance cycling", "choral singing", "Byzantine history"]
+        }
+      ]
+    }
+  ],
+  "design": {
+    "templateId": "heritage",
+    "accent": "#1f4e8c",
+    "fontPair": "executive",
+    "density": "balanced",
+    "pageSize": "Letter",
+    "options": {}
+  }
+}

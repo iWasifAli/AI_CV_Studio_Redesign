@@ -241,6 +241,14 @@ export const designSpec = z.object({
     })
     .default({}),
   /**
+   * Choices the person made themselves (spacing, font, colour). Switching design keeps these and
+   * gives everything else the new design's own defaults (audit F-03).
+   */
+  chosen: z
+    .array(z.enum(['density', 'fontPair', 'accent']))
+    .max(3)
+    .optional(),
+  /**
    * Design Spec v2 (R6). When present it is the source of truth for the look; the fields above
    * are kept in sync (design/catalogue.ts toV1) for readers that only know v1.
    */

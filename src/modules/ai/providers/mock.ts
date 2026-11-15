@@ -344,7 +344,7 @@ function answer(task: TaskId, input: unknown, attempt: number, files: AiFile[] =
       };
       const issues: TaskOutput<'quality.proofread'>['issues'] = [];
       for (const raw of i.lines.split('\n')) {
-        const m = /^(L\d+): (.*)$/.exec(raw);
+        const m = /^(L\d+)(?: \(current job\))?: (.*)$/.exec(raw);
         if (!m) continue;
         const [, line, text] = m as unknown as [string, string, string];
         for (const w of text.match(/[A-Za-z]+/g) ?? []) {

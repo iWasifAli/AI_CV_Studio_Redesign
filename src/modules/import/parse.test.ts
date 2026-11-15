@@ -3,7 +3,15 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { resumeDocument, type ResumeDocument } from '@/modules/resume/schema';
 import { extractLines, htmlToLines, ImportError, sniff } from './extract';
-import { findDates, headingOf, mergeWrapped, parseCv, toPartial } from './parse';
+import {
+  findDates,
+  headingOf,
+  mergeWrapped,
+  parseCv,
+  toPartial,
+  joinBrokenAddresses,
+  joinSplitHeadings,
+} from './parse';
 
 const fixture = (f: string) => new Uint8Array(readFileSync(join(__dirname, '__fixtures__', f)));
 const items = (d: ResumeDocument, kind: string) =>
@@ -332,5 +340,38 @@ describe('newer section types', () => {
       keywords: string[];
     };
     expect(interests.keywords).toEqual(['Chess', 'hiking', 'Urdu poetry']);
+  });
+});
+
+describe('joinBrokenAddresses (audit F-14)', () => {
+  it('joins an email wrapped over narrow-column lines', () => {
+    expect(
+      joinBrokenAddresses([
+        'alexandra.konstantinopoulou-',
+        'featherstonehaugh@example-',
+        'holdings.co.uk',
+      ]),
+    ).toEqual(['alexandra.konstantinopoulou-featherstonehaugh@example-holdings.co.uk']);
+  });
+  it('never joins a heading to the sentence above it', () => {
+    expect(joinBrokenAddresses(['Managed budgets.', 'Skills'])).toEqual([
+      'Managed budgets.',
+      'Skills',
+    ]);
+    expect(joinBrokenAddresses(['Cut costs by 10%', 'Education'])).toEqual([
+      'Cut costs by 10%',
+      'Education',
+    ]);
+    expect(joinBrokenAddresses(['e.g.', 'Python'])).toEqual(['e.g.', 'Python']);
+  });
+});
+
+describe('joinSplitHeadings (label columns)', () => {
+  it('joins a heading wrapped over two lines', () => {
+    expect(joinSplitHeadings(['WORK', 'HISTORY', 'Driver'])).toEqual(['WORK HISTORY', 'Driver']);
+  });
+  it('leaves two real headings and ordinary lines alone', () => {
+    expect(joinSplitHeadings(['SKILLS', 'EDUCATION'])).toEqual(['SKILLS', 'EDUCATION']);
+    expect(joinSplitHeadings(['NHS', 'UK'])).toEqual(['NHS', 'UK']);
   });
 });

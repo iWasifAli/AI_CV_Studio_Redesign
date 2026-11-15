@@ -18,8 +18,10 @@ const hooks: TemplateHooks = {
   heading: () => <span className="l-rule" aria-hidden="true" />,
   label: (s) => (
     <h2 className="l-h">
-      <span className="l-num" aria-hidden="true" />
-      <span className="l-label">{s.title}</span>
+      <span className="l-num" aria-hidden="true" data-num="" />
+      <span className="l-label" data-fit="">
+        {s.title}
+      </span>
     </h2>
   ),
   summary: (t) => <p className="l-summary">{t}</p>,
@@ -56,10 +58,10 @@ const hooks: TemplateHooks = {
   skills: (e) => (
     <p className="l-skills">
       {e.label && <strong>{e.label}</strong>}
-      {e.label && <span className="l-slash"> / </span>}
+      {e.label && <span className="l-slash"> · </span>}
       {e.tags.map((t, i) => (
         <span key={i}>
-          {i > 0 && <span className="l-slash"> / </span>}
+          {i > 0 && <span className="l-slash"> · </span>}
           {t}
         </span>
       ))}
@@ -105,8 +107,8 @@ body{counter-reset:sec}
 .b-heading{position:relative;padding-top:var(--section-gap);counter-increment:sec}
 .b-heading::before{content:'';position:absolute;left:0;right:0;top:calc(var(--section-gap) * 0.45);height:.6pt;background:var(--rule)}
 .l-h{padding-top:1pt}
-.l-num::before{content:counter(sec, decimal-leading-zero);display:block;font-family:var(--font-heading);font-weight:800;font-size:1.25em;letter-spacing:-.02em;color:var(--accent);line-height:1;margin-bottom:3pt;font-variant-numeric:tabular-nums}
-.l-label{display:block;overflow-wrap:normal;hyphens:auto;font-family:var(--font-body);font-size:.76em;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--ink);line-height:1.35}
+.l-num{display:block;font-family:var(--font-heading);font-weight:800;font-size:1.25em;letter-spacing:-.02em;color:var(--accent);line-height:1;margin-bottom:3pt;font-variant-numeric:tabular-nums}
+.l-label{display:block;overflow-wrap:normal;hyphens:auto;font-family:var(--font-body);font-size:.76em;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink);line-height:1.35}
 .b-first{padding-top:2pt}
 .b-entry{padding-top:var(--item-gap)}
 .b-entry.b-first,.b-summary.b-first,.b-skills.b-first,.b-compact.b-first{padding-top:2pt}

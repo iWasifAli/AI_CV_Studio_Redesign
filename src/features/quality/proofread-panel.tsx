@@ -150,6 +150,11 @@ export function ProofreadPanel({
           {result ? t('Proofread again') : t('Proofread my CV')}
         </Button>
       )}
+      {busy && (
+        <p className="text-ink-muted text-sm" role="status" data-testid="proofread-progress">
+          {t('Reading every line of your CV… this usually takes 10 to 30 seconds.')}
+        </p>
+      )}
       {problem && (
         <Banner
           tone="error"

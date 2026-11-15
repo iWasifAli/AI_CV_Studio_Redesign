@@ -78,6 +78,9 @@ export type RenderModel = {
 };
 
 const clean = (s: string) => s.replace(/\s+/g, ' ').trim();
+const TITLE_WORD =
+  /^(dr|mr|mrs|ms|miss|mx|prof|professor|eng|engr|sir|dame|rev|hon|capt|col|maj|lt|sgt|herr|frau|mag|dipl|ing)\.?$/i;
+const SUFFIX_WORD = /^(jr|sr|ii|iii|iv|phd|md|mba|msc|bsc|ba|ma|cpa|pmp|frcs|fcilt)\.?,?$/i;
 const nonEmpty = (xs: string[]) => xs.map(clean).filter(Boolean);
 const displayUrl = (u: string) =>
   clean(u)
@@ -131,15 +134,20 @@ function entriesOf(section: Section, locale: string): REntry[] {
     case 'memberships':
     case 'conferences':
     case 'patents':
-      return section.items.map((i) => ({
-        ...blank,
-        ref: ref(i.id),
-        title: clean(i.name),
-        subtitle: clean(i.issuer),
-        meta: clean(i.detail) || (i.link ? displayUrl(i.link) : ''),
-        metaHref: !clean(i.detail) && i.link ? toHref(i.link) : undefined,
-        dates: formatPartialDate(i.date, locale),
-      }));
+      return section.items.map((i) => {
+        const detail = clean(i.detail);
+        const date = formatPartialDate(i.date, locale);
+        return {
+          ...blank,
+          ref: ref(i.id),
+          title: clean(i.name),
+          subtitle: clean(i.issuer),
+          meta: detail || (i.link ? displayUrl(i.link) : ''),
+          metaHref: !detail && i.link ? toHref(i.link) : undefined,
+          // "Registered since Sep 2018" already says when: the date is printed once (audit F-24).
+          dates: date && detail.toLowerCase().includes(date.toLowerCase()) ? '' : date,
+        };
+      });
     case 'skills':
     case 'interests':
       return section.items.map((i) => {
@@ -267,7 +275,8 @@ export function toRenderModel(doc: ResumeDocument): RenderModel {
       contacts.push({
         kind: 'link',
         text: displayUrl(l.url),
-        label: clean(l.label),
+        // A label that only repeats the address (common after import) is not printed twice.
+        label: sameAddress(l.label, l.url) ? '' : clean(l.label),
         href: toHref(l.url),
       });
 
@@ -297,10 +306,16 @@ export function toRenderModel(doc: ResumeDocument): RenderModel {
   const words = name.split(' ').filter(Boolean);
   const firstName = words.length > 1 ? words.slice(0, -1).join(' ') : name;
   const lastName = words.length > 1 ? words[words.length - 1]! : '';
+  // Titles and letters after the name are not initials ("Dr. Alexandra K…" is AK, not DK).
+  const given = words.filter(
+    (w, i) =>
+      !(i === 0 && words.length > 1 && TITLE_WORD.test(w)) &&
+      !(i === words.length - 1 && words.length > 2 && SUFFIX_WORD.test(w)),
+  );
   const initials = (
-    words.length > 1
-      ? (words[0]![0] ?? '') + (words[words.length - 1]![0] ?? '')
-      : (words[0] ?? '').slice(0, 2)
+    given.length > 1
+      ? (given[0]![0] ?? '') + (given[given.length - 1]![0] ?? '')
+      : (given[0] ?? '').slice(0, 2)
   ).toUpperCase();
   return {
     name,
@@ -383,4 +398,15 @@ export function keyNumbers(
     if (out.length < 3 && !out.some((o) => o.label === w(c.label)))
       out.push({ ...c, label: w(c.label) });
   return out;
+}
+
+/** "linkedin.com/in/x" and "https://www.linkedin.com/in/x/" are the same address. */
+export function sameAddress(label: string, url: string): boolean {
+  const n = (x: string) =>
+    clean(x)
+      .toLowerCase()
+      .replace(/^[a-z]+:\/\//, '')
+      .replace(/^www\./, '')
+      .replace(/\/+$/, '');
+  return !!clean(label) && n(label) === n(url);
 }

@@ -1,4 +1,5 @@
 'use client';
+import { browserRegion } from '@/modules/resume/region';
 import { useLang } from '@/i18n/client';
 
 import { isSpecDesign } from '@/modules/design/designs';
@@ -32,12 +33,12 @@ export function CreateDocument() {
     const work = params.get('work');
     const design = params.get('design');
     const preset: PresetId = PRESET_IDS.includes(work as PresetId) ? (work as PresetId) : 'general';
-    // The CV starts in the interface language; the browser's region sets paper size and dates.
-    const region = (navigator.language || '').split('-')[1]?.toUpperCase();
+    // The CV starts in the interface language; the region (from the time zone) sets the paper size.
+    const region = browserRegion();
     const locale =
       lang === 'de'
-        ? `de-${region && ['DE', 'AT', 'CH', 'LU', 'LI'].includes(region) ? region : 'DE'}`
-        : `en-${region && /^[A-Z]{2}$/.test(region) ? region : 'GB'}`;
+        ? `de-${['DE', 'AT', 'CH', 'LU', 'LI'].includes(region) ? region : 'DE'}`
+        : `en-${region}`;
     const doc = createDocument(preset, { locale });
     if (TEMPLATE_IDS.includes(design as TemplateId)) doc.design.templateId = design as TemplateId;
     // From "Describe what you need" (validated; anything unexpected is ignored).

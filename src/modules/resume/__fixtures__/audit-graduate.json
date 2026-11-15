@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 1,
+  "id": "fixture-audit-graduate",
+  "title": "Audit graduate (short CV)",
+  "presetId": "student",
+  "locale": "en-GB",
+  "createdAt": "2026-11-15T09:00:00.000Z",
+  "updatedAt": "2026-11-15T09:00:00.000Z",
+  "basics": {
+    "name": "Zoë Nguyen-O'Brien",
+    "headline": "Graduate Marketing Assistant",
+    "email": "zoe.nguyen@example.org",
+    "phone": "07700 900123",
+    "location": "Bristol",
+    "links": [],
+    "summary": "",
+    "stats": [],
+    "photo": ""
+  },
+  "sections": [
+    {
+      "id": "wkv2OUlS96",
+      "title": "EDUCATION",
+      "hidden": false,
+      "kind": "education",
+      "items": [
+        {
+          "id": "6DrkTojbV_",
+          "qualification": "BA (Hons) Marketing, 2:1",
+          "institution": "University of the West of England",
+          "location": "Bristol",
+          "start": "2023-09",
+          "end": "2026-06",
+          "details": ["Final-year project: social media campaign for a local food bank"]
+        },
+        {
+          "id": "mEnZk6s249",
+          "qualification": "A-levels: Business (A), English Language (B), Psychology (B)",
+          "institution": "St Brendan's Sixth Form College",
+          "location": "",
+          "start": "2021",
+          "end": "2023",
+          "details": []
+        }
+      ]
+    },
+    {
+      "id": "RJIWdcZ1DR",
+      "title": "WORK EXPERIENCE",
+      "hidden": false,
+      "kind": "experience",
+      "items": [
+        {
+          "id": "Stjm9pS-Td",
+          "role": "Barista (part-time)",
+          "organization": "Harbourside Coffee Co.",
+          "location": "Bristol",
+          "start": "2024-10",
+          "end": "",
+          "current": true,
+          "bullets": [
+            "Serve up to 200 customers a shift and handle the till",
+            "Trained 3 new starters",
+            "Received and processed deliveries every morning",
+            "Helped with stock"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "9z8uQ36xHg",
+      "title": "SKILLS",
+      "hidden": false,
+      "kind": "skills",
+      "items": [
+        {
+          "id": "KTsQZdl3SJ",
+          "label": "",
+          "keywords": [
+            "Canva",
+            "Instagram and TikTok content",
+            "Microsoft Excel",
+            "Copywriting",
+            "Customer service"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mGkerX_E5r",
+      "title": "LANGUAGES",
+      "hidden": false,
+      "kind": "languages",
+      "items": [
+        {
+          "id": "z6i7rB1j_F",
+          "language": "English",
+          "fluency": "native"
+        },
+        {
+          "id": "8pfDfE6WYk",
+          "language": "Vietnamese",
+          "fluency": "conversational"
+        }
+      ]
+    }
+  ],
+  "design": {
+    "templateId": "vivid",
+    "accent": "#1f4e8c",
+    "fontPair": "modern",
+    "density": "balanced",
+    "pageSize": "Letter",
+    "options": {}
+  }
+}

@@ -132,7 +132,7 @@ html[data-photo="0"] .v-portrait:not(.cv-portrait--initials){display:none}
 .cv-has-aside .cv-main{padding-right:var(--gutter)}
 .cv-has-aside .cv-aside{width:var(--aside-w);padding-left:var(--gutter);border-left:.6pt solid var(--rule)}
 .b-heading{padding-top:var(--section-gap);padding-bottom:6.5pt}
-.v-h span{display:inline-block;padding:2.2pt 9pt 2pt;border-radius:20pt;background:var(--accent-soft);color:var(--accent-deep);font-family:var(--font-body);font-size:.8em;font-weight:800;letter-spacing:.13em;text-transform:uppercase}
+.v-h span{display:inline-block;padding:2.2pt 9pt 2pt;border-radius:20pt;background:var(--accent-soft);color:var(--accent-deep);font-family:var(--font-body);font-size:.8em;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
 .b-entry{padding-top:var(--item-gap)}
 .b-first{padding-top:1pt}
 .b-bullet{padding-top:1.5pt}
