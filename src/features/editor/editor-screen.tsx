@@ -141,7 +141,7 @@ export function EditorScreen({ initial }: { initial: ResumeDocument }) {
         <StudioBar
           editor={editor}
           backHref="/documents"
-          backLabel="Back to Documents"
+          backLabel={tx('Back to Documents')}
           action={
             <>
               {signedIn && <TranslateButton doc={editor.doc} />}
@@ -272,7 +272,7 @@ export function EditorScreen({ initial }: { initial: ResumeDocument }) {
               )}
             >
               <Icon aria-hidden size={22} />
-              {label}
+              {tx(label)}
             </button>
           ))}
         </nav>

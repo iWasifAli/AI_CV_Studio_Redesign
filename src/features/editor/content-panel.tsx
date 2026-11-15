@@ -29,6 +29,7 @@ function Collapsible({
   children: React.ReactNode;
   id: string;
 }) {
+  const tx = useT();
   const [open, setOpen] = useState(defaultOpen);
   return (
     <section className="border-line bg-surface shadow-1 rounded-lg border" id={id}>
@@ -39,7 +40,7 @@ function Collapsible({
           onClick={() => setOpen((v) => !v)}
           className="flex min-h-14 w-full items-center justify-between px-4 text-left text-[17px] font-semibold"
         >
-          {title}
+          {tx(title)}
           <ChevronDown
             aria-hidden
             size={18}
@@ -120,7 +121,7 @@ export const ContentPanel = forwardRef<ContentPanelHandle, { editor: DocumentEdi
             hint={t(
               'Two or three sentences about you and the work you want. Optional, but recommended.',
             )}
-            placeholder={preset.hints.summary}
+            placeholder={t(preset.hints.summary)}
             rows={4}
             value={doc.basics.summary}
             onChange={(e) =>
@@ -192,7 +193,7 @@ export const ContentPanel = forwardRef<ContentPanelHandle, { editor: DocumentEdi
                     >
                       <span className="font-semibold">{t(opt.title)}</span>
                       <span className="text-ink-muted text-sm">
-                        {KIND_INFO[opt.kind].description}
+                        {t(KIND_INFO[opt.kind].description)}
                       </span>
                     </button>
                   </li>

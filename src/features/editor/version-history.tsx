@@ -477,6 +477,7 @@ function Compare({
 }
 
 function ChangeLine({ c }: { c: Change }) {
+  const tx = useT();
   const verb = c.kind === 'added' ? 'Added' : c.kind === 'removed' ? 'Removed' : 'Changed';
   return (
     <li className="flex flex-col gap-0.5">
@@ -488,7 +489,7 @@ function ChangeLine({ c }: { c: Change }) {
             c.kind === 'removed' && 'text-danger',
           )}
         >
-          {verb}
+          {tx(verb)}
         </span>{' '}
         {c.what ? `${c.what.charAt(0).toLowerCase()}${c.what.slice(1)} · ` : ''}
         <span className="text-ink-muted">{c.where}</span>

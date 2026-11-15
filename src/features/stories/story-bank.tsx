@@ -280,7 +280,9 @@ export function StoryBank() {
               <dl className="text-ink-muted flex flex-col gap-1 text-sm">
                 {STORY_PARTS.filter((p) => s[p].trim()).map((p) => (
                   <div key={p}>
-                    <dt className="text-ink inline font-semibold">{STORY_PART_LABEL[p].title}: </dt>
+                    <dt className="text-ink inline font-semibold">
+                      {t(STORY_PART_LABEL[p].title)}:{' '}
+                    </dt>
                     <dd className="inline">{s[p]}</dd>
                   </div>
                 ))}
@@ -408,8 +410,8 @@ function StoryEditor({
       {STORY_PARTS.map((p) => (
         <TextArea
           key={p}
-          label={STORY_PART_LABEL[p].title}
-          hint={STORY_PART_LABEL[p].hint}
+          label={t(STORY_PART_LABEL[p].title)}
+          hint={t(STORY_PART_LABEL[p].hint)}
           optional={p !== 'action'}
           rows={p === 'action' ? 4 : 2}
           maxLength={1200}

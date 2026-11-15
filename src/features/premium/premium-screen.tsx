@@ -1,6 +1,7 @@
 'use client';
 
 import { useT } from '@/i18n/client';
+import type { T } from '@/i18n/core';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Check, Clock, Copy, MessageCircle, Minus, ShieldCheck, Sparkles } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
@@ -16,10 +17,16 @@ const fmtDate = (iso: string) => new Date(iso).toLocaleDateString(undefined, { d
 const pkr = (n: number) => `PKR ${n.toLocaleString()}`;
 const perMonth = (price: number, days: number) => Math.round((price / days) * 30);
 
-function limitText(n: number, unit: string) {
-  if (n === -1) return 'Unlimited';
+function limitText(t: T, n: number, unit: 'downloads' | 'actions' | 'imports') {
+  if (n === -1) return t('Unlimited');
   if (n === 0) return null;
-  return `${n.toLocaleString()} ${unit} a month`;
+  // Whole phrases, so each can be translated.
+  const key = {
+    downloads: '{n} downloads a month',
+    actions: '{n} actions a month',
+    imports: '{n} imports a month',
+  }[unit];
+  return t(key, { n: n.toLocaleString() });
 }
 
 export function PremiumScreen() {
@@ -141,27 +148,30 @@ export function PremiumScreen() {
   const rows: { label: string; free: string | null; premium: string | null }[] = [
     {
       label: 'CV designs',
-      free: designs.free === designs.total ? `All ${designs.total}` : `${designs.free} designs`,
-      premium: `All ${designs.total} designs`,
+      free:
+        designs.free === designs.total
+          ? t('All {n}', { n: designs.total })
+          : t('{n} designs', { n: designs.free }),
+      premium: t('All {n} designs', { n: designs.total }),
     },
     {
       label: 'PDF downloads',
-      free: limitText(plans.free.limits['pdf.download'], 'downloads'),
-      premium: limitText(plans.premium.limits['pdf.download'], 'downloads'),
+      free: limitText(t, plans.free.limits['pdf.download'], 'downloads'),
+      premium: limitText(t, plans.premium.limits['pdf.download'], 'downloads'),
     },
     {
       label: 'AI writing help',
-      free: limitText(plans.free.limits['ai.action'], 'actions'),
+      free: limitText(t, plans.free.limits['ai.action'], 'actions'),
       premium: offer.aiAvailable
-        ? limitText(plans.premium.limits['ai.action'], 'actions')
-        : 'Coming soon',
+        ? limitText(t, plans.premium.limits['ai.action'], 'actions')
+        : t('Coming soon'),
     },
     {
       label: 'Import an existing CV',
-      free: limitText(plans.free.limits['import.cv'], 'imports'),
-      premium: limitText(plans.premium.limits['import.cv'], 'imports'),
+      free: limitText(t, plans.free.limits['import.cv'], 'imports'),
+      premium: limitText(t, plans.premium.limits['import.cv'], 'imports'),
     },
-    { label: 'Saved in your account, on every device', free: 'Yes', premium: 'Yes' },
+    { label: 'Saved in your account, on every device', free: t('Yes'), premium: t('Yes') },
   ];
 
   return (
@@ -483,17 +493,17 @@ export function PremiumScreen() {
           <ShieldCheck aria-hidden size={20} className="text-primary" /> {t('Good to know')}
         </h2>
         <dl className="grid gap-5 sm:grid-cols-2">
-          <Faq q="Is this a subscription?">
+          <Faq q={t('Is this a subscription?')}>
             {t(
               'No. A pass lasts for its number of days and then simply ends. Nothing is charged automatically.',
             )}
           </Faq>
-          <Faq q="What happens when it ends?">
+          <Faq q={t('What happens when it ends?')}>
             {t(
               'Your CVs stay in your account. CVs in a Premium design can be switched to a free design in one click, with all your words kept.',
             )}
           </Faq>
-          <Faq q="How long does checking take?">
+          <Faq q={t('How long does checking take?')}>
             {t(
               'We check payments by hand, usually within a day. You’ll see Premium on your account as soon as it’s approved.',
             )}
@@ -507,7 +517,7 @@ export function PremiumScreen() {
               </>
             )}
           </Faq>
-          <Faq q="Does the AI make things up?">
+          <Faq q={t('Does the AI make things up?')}>
             {t(
               'No. It only rewords what you wrote. Where a number or fact is missing, it asks you instead of inventing one.',
             )}

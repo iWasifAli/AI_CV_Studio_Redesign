@@ -351,7 +351,7 @@ function ReminderEmails() {
         />
         <span>
           {t('Email me my job reminders at 8:00 on the day')}
-          {state.email ? ` (to ${state.email})` : ''}
+          {state.email ? ` ${t('(to {email})', { email: state.email })}` : ''}
           {t('. Reminders always show in your job tracker.')}
         </span>
       </label>

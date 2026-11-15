@@ -218,8 +218,8 @@ export function StudioHome() {
           <h2 id="next" className="text-primary text-sm font-semibold tracking-wide uppercase">
             {tx('Next best step')}
           </h2>
-          <p className="font-display text-2xl font-semibold">{tx(action.title)}</p>
-          <p className="text-ink-muted">{tx(action.body)}</p>
+          <p className="font-display text-2xl font-semibold">{tx(action.title, action.vars)}</p>
+          <p className="text-ink-muted">{tx(action.body, action.vars)}</p>
           <ButtonLink href={action.href} className="self-start">
             {tx(action.cta)}
           </ButtonLink>

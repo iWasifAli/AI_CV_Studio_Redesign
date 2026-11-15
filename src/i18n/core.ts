@@ -23,7 +23,10 @@ export const keyOf = (s: string) => s.replace(/\s+/g, ' ').trim();
 
 export function translate(dict: Dict | null, text: string, vars?: Vars): string {
   const k = keyOf(text);
-  const out = (dict && dict[k]) || k;
+  // Keep a space the text starts or ends with ("Due: " before a date), which the key drops.
+  const lead = /^\s/.test(text) ? ' ' : '';
+  const trail = /\s$/.test(text) ? ' ' : '';
+  const out = lead + ((dict && dict[k]) || k) + trail;
   if (!vars) return out;
   return out.replace(/\{(\w+)\}/g, (m, name: string, at: number, all: string) => {
     if (!(name in vars)) return m;

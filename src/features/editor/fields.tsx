@@ -61,7 +61,7 @@ export function DateField({
         >
           <option value="">{t('Month')}</option>
           {MONTHS.map((name, i) => (
-            <option key={name} value={String(i + 1).padStart(2, '0')} aria-label={name}>
+            <option key={name} value={String(i + 1).padStart(2, '0')} aria-label={t(name)}>
               {name.slice(0, 3)}
             </option>
           ))}
@@ -103,6 +103,7 @@ export function LinesField({
   placeholder?: string;
   id?: string;
 }) {
+  const tx = useT();
   const auto = useId();
   const id = givenId ?? auto;
   const rows = Math.min(10, Math.max(3, value.length + 1));
@@ -110,7 +111,7 @@ export function LinesField({
   return (
     <div className="flex flex-col gap-1.5">
       <label htmlFor={id} className="text-ink text-sm font-semibold">
-        {label}
+        {tx(label)}
       </label>
       <textarea
         id={id}
@@ -126,7 +127,7 @@ export function LinesField({
       />
       {assist.toolbar}
       <p id={`${id}-hint`} className="text-ink-muted text-sm">
-        {hint}
+        {tx(hint)}
       </p>
     </div>
   );
@@ -173,7 +174,7 @@ export function TagsField({
   return (
     <div className="flex flex-col gap-2">
       <label htmlFor={id} className="text-ink text-sm font-semibold">
-        {label}
+        {t(label)}
       </label>
       {value.length > 0 && (
         <ul className="flex flex-wrap gap-2" aria-label={t('Added skills')}>
@@ -211,7 +212,7 @@ export function TagsField({
         </button>
       </div>
       <p id={`${id}-hint`} className="text-ink-muted text-sm">
-        {hint}
+        {t(hint)}
       </p>
       {remaining.length > 0 && (
         <div className="flex flex-col gap-2">
@@ -238,6 +239,7 @@ export function CheckboxField({
   checked: boolean;
   onChange: (v: boolean) => void;
 }) {
+  const tx = useT();
   const id = useId();
   return (
     <div className="flex min-h-11 items-center gap-3">
@@ -249,7 +251,7 @@ export function CheckboxField({
         className="size-5 shrink-0 accent-[var(--color-primary)]"
       />
       <label htmlFor={id} className="text-ink text-[15px]">
-        {label}
+        {tx(label)}
       </label>
     </div>
   );

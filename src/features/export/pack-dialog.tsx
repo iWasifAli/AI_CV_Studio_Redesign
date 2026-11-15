@@ -34,13 +34,14 @@ export function PackButton({
   label?: string;
   variant?: 'primary' | 'secondary' | 'ghost';
 }) {
+  const tx = useT();
   const { ent } = useEntitlements();
   const [open, setOpen] = useState(false);
   if (!cv || (ent && ent.features.pack === false)) return null;
   return (
     <>
       <Button variant={variant} size="sm" onClick={() => setOpen(true)} data-testid="pack-open">
-        {label}
+        {tx(label)}
       </Button>
       {open && <PackDialog cv={cv} letter={letter ?? null} onClose={() => setOpen(false)} />}
     </>

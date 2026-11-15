@@ -279,7 +279,7 @@ export function CoachChat({ jobs }: { jobs: Job[] }) {
                     onClick={() => send(s)}
                     className="border-line-strong hover:bg-sunken min-h-10 rounded-full border px-3.5 text-sm font-semibold"
                   >
-                    {s}
+                    {t(s)}
                   </button>
                 </li>
               ))}

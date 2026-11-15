@@ -85,7 +85,7 @@ export function SiteHeader() {
               className="text-ink-muted hover:bg-sunken hover:text-ink hidden items-center gap-1.5 rounded-md px-3 py-2 text-[15px] font-semibold md:inline-flex"
             >
               {signedIn && <CircleUserRound aria-hidden size={18} />}
-              {accountLabel}
+              {t(accountLabel)}
             </Link>
           )}
           <ButtonLink
@@ -133,7 +133,7 @@ export function SiteHeader() {
               href={accountHref}
               className="text-ink hover:bg-sunken rounded-md px-3 py-3 text-base font-semibold"
             >
-              {accountLabel}
+              {t(accountLabel)}
             </Link>
             <Link
               href="/start"

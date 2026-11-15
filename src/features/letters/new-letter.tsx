@@ -65,11 +65,11 @@ export function NewLetter() {
       {groups
         .filter(([, list]) => list.length)
         .map(([title, list]) => (
-          <section key={title} aria-label={title} className="flex flex-col gap-3">
-            <h2 className="text-lg font-semibold">{title}</h2>
+          <section key={title} aria-label={tx(title)} className="flex flex-col gap-3">
+            <h2 className="text-lg font-semibold">{tx(title)}</h2>
             <ul
               className="grid gap-3 sm:grid-cols-2"
-              aria-label={tx('{title}: types', { title: title })}
+              aria-label={tx('{title}: types', { title: tx(title) })}
             >
               {list.map((t) => (
                 <li key={t.id}>

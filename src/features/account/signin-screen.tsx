@@ -133,9 +133,9 @@ export function SignInScreen() {
     <div className="mx-auto flex w-full max-w-[440px] flex-col gap-6">
       <div className="flex flex-col gap-2">
         <h1 className="font-display text-[32px] leading-tight font-semibold tracking-tight">
-          {title}
+          {t(title)}
         </h1>
-        <p className="text-ink-muted">{intro}</p>
+        <p className="text-ink-muted">{t(intro)}</p>
       </div>
 
       {error && (

@@ -83,7 +83,13 @@ export function JobInsights() {
         <p className="text-ink-muted max-w-md">
           {t('When you send an application, move the job to')} <strong>{t('Applied')}</strong>{' '}
           {t('and tick the CV you sent. Your replies and interviews will add up here')}
-          {s.saved ? ` — you have ${plural(s.saved, 'saved job')} waiting` : ''}.
+          {s.saved ? ' ' : ''}
+          {s.saved
+            ? s.saved === 1
+              ? t('— you have 1 saved job waiting')
+              : t('— you have {n} saved jobs waiting', { n: s.saved })
+            : ''}
+          .
         </p>
         <ButtonLink href="/jobs" variant="secondary">
           {t('Go to your jobs')}

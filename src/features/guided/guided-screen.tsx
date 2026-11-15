@@ -167,23 +167,27 @@ export function GuidedScreen({ initial }: { initial: ResumeDocument }) {
   return (
     <AiDocProvider value={doc}>
       <div className="bg-paper flex min-h-dvh flex-col">
-        <StudioBar editor={editor} backHref="/documents" backLabel="Save and go to Documents" />
+        <StudioBar
+          editor={editor}
+          backHref="/documents"
+          backLabel={t('Save and go to Documents')}
+        />
         <div className="flex flex-1">
           <main
             id="main"
             className="mx-auto w-full max-w-[640px] px-4 pt-6 pb-32 sm:px-6 lg:mx-0 lg:max-w-none lg:flex-1 lg:px-12 xl:px-20"
           >
             <div className="mx-auto flex max-w-[600px] flex-col gap-6">
-              <Stepper current={index + 1} total={steps.length} label={label} />
+              <Stepper current={index + 1} total={steps.length} label={t(label)} />
               <div className="flex flex-col gap-2">
                 <h1
                   ref={heading}
                   tabIndex={-1}
                   className="font-display text-[28px] leading-tight font-semibold tracking-tight focus:outline-none sm:text-[32px]"
                 >
-                  {title}
+                  {t(title)}
                 </h1>
-                <p className="text-ink-muted">{intro}</p>
+                <p className="text-ink-muted">{t(intro)}</p>
               </div>
 
               {step.kind === 'about' && (
@@ -207,7 +211,7 @@ export function GuidedScreen({ initial }: { initial: ResumeDocument }) {
                   <TextArea
                     label={t('Your introduction')}
                     rows={5}
-                    placeholder={preset.hints.summary}
+                    placeholder={t(preset.hints.summary)}
                     hint={t(
                       'Say what you do, how long you have done it, and what you are looking for.',
                     )}

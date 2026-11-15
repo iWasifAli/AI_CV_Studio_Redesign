@@ -112,7 +112,8 @@ export function StyleAssist({
                       </span>
                       <span className="text-ink-muted text-sm">{c.explanation}</span>
                       <span className="text-ink-subtle text-xs">
-                        {tx(t.name)} · {FONT_PAIRS[c.design.fontPair].label} · {c.design.density}
+                        {tx(t.name)} · {tx(FONT_PAIRS[c.design.fontPair].label)} ·{' '}
+                        {c.design.density}
                       </span>
                     </span>
                     <span className="text-primary ml-auto shrink-0 pr-1 text-sm font-semibold">

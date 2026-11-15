@@ -41,7 +41,7 @@ export function ItemForm({ kind, item, preset, onChange }: Props) {
                 containerClassName={span}
                 label={tx(f.label)}
                 hint={tx(f.hint)}
-                placeholder={f.placeholder?.(preset)}
+                placeholder={tx(f.placeholder?.(preset))}
                 value={String(values[f.key] ?? '')}
                 onChange={(e) => onChange({ [f.key]: e.target.value }, key)}
               />
@@ -82,7 +82,7 @@ export function ItemForm({ kind, item, preset, onChange }: Props) {
                 <LinesField
                   label={tx(f.label)}
                   hint={tx(f.hint)}
-                  placeholder={f.placeholder?.(preset)}
+                  placeholder={tx(f.placeholder?.(preset))}
                   value={lines}
                   onChange={(v) => onChange({ [f.key]: v }, key)}
                 />

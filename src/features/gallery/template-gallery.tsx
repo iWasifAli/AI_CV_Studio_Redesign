@@ -129,7 +129,7 @@ export function TemplateGallery() {
               key={f}
               type="button"
               aria-pressed={family === f}
-              title={f === 'all' ? undefined : FAMILY_LABEL[f].hint}
+              title={f === 'all' ? undefined : tx(FAMILY_LABEL[f].hint)}
               onClick={() => setFamily(f)}
               className={cn(
                 'rounded-full border px-3 py-1.5 text-sm font-semibold transition-colors',

@@ -211,7 +211,7 @@ export function SkillPlans() {
                     {jobs.map((j) => (
                       <option key={j.id} value={j.id}>
                         {j.title}
-                        {j.company ? ` at ${j.company}` : ''}
+                        {j.company ? ` · ${j.company}` : ''}
                       </option>
                     ))}
                   </select>

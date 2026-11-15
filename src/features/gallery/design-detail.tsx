@@ -100,19 +100,14 @@ export function DesignDetail({ id }: { id: DesignId }) {
           </h1>
           <p className="text-ink-muted mt-2 text-lg">{t(meta.description)}</p>
           <p className="text-ink-muted mt-1 text-sm">
-            {t('{name} — {v} ·{v2} {columns} column', {
-              name: FAMILY_LABEL[meta.family].name,
-              v: FAMILY_LABEL[meta.family].hint.toLowerCase(),
-              v2: ' ',
-              columns: meta.columns,
-            })}
-            {meta.columns > 1 ? 's' : ''}
-            {meta.photo ? ' · photo' : ''}
+            {t(FAMILY_LABEL[meta.family].name)} – {t(FAMILY_LABEL[meta.family].hint)} ·{' '}
+            {meta.columns > 1 ? t('{n} columns', { n: meta.columns }) : t('1 column')}
+            {meta.photo ? ` · ${t('photo')}` : ''} ·{' '}
             {onlineSafe(meta)
-              ? ' · best for online applications'
+              ? t('best for online applications')
               : meta.family === 'graphic'
-                ? ' · creative: made to be seen by people; download its ATS PDF for online forms'
-                : ' · has an ATS-safe version for online forms'}
+                ? t('creative: made to be seen by people; download its ATS PDF for online forms')
+                : t('has an ATS-safe version for online forms')}
           </p>
           {premium && (
             <p className="bg-accent-soft mt-3 inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm">
@@ -167,7 +162,7 @@ export function DesignDetail({ id }: { id: DesignId }) {
                   : 'border-line-strong text-ink-muted hover:bg-sunken rounded-full border px-3 py-1.5 text-sm font-semibold'
               }
             >
-              {l}
+              {t(l)}
             </button>
           ))}
         </div>

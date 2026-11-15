@@ -20,7 +20,7 @@ export default async function TermsPage() {
   const contact = support.email ? (
     <a href={`mailto:${support.email}`}>{support.email}</a>
   ) : (
-    'the contact details on our Help page'
+    t('the contact details on our Help page')
   );
   return (
     <Container className="max-w-[760px] py-10 md:py-14">

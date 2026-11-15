@@ -203,7 +203,7 @@ export function GapPanel({
                         checked={d.reason === k}
                         onChange={() => setDraft(g.key, { ...d, reason: k })}
                       />
-                      {label}
+                      {t(label)}
                     </label>
                   ))}
                 </div>

@@ -12,6 +12,8 @@ export type NextAction = {
   id: 'upload' | 'interview' | 'kit' | 'follow-up' | 'add-job' | 'profile' | 'fix' | 'design';
   title: string;
   body: string;
+  /** Values for {placeholders} in title and body (the text is translated by the screen). */
+  vars?: Record<string, string | number>;
   href: string;
   cta: string;
 };
@@ -19,7 +21,7 @@ export type NextAction = {
 const DAY = 86_400_000;
 const days = (from: string, now: Date) => (now.getTime() - new Date(from).getTime()) / DAY;
 const at = (j: Pick<Job, 'company' | 'title'>) =>
-  j.company ? `${j.title} at ${j.company}` : j.title;
+  j.company ? `${j.title} · ${j.company}` : j.title;
 
 export function nextAction(
   documents: DocumentSummary[],
@@ -43,7 +45,8 @@ export function nextAction(
   if (interview)
     return {
       id: 'interview',
-      title: `Practise for your interview: ${at(interview)}`,
+      title: 'Practise for your interview: {job}',
+      vars: { job: at(interview) },
       body: 'Likely questions for this job, with answer notes from your own CV.',
       href: `/jobs/${interview.id}#interview`,
       cta: 'Practise now',
@@ -54,7 +57,8 @@ export function nextAction(
   if (needsKit)
     return {
       id: 'kit',
-      title: `Create your application kit: ${at(needsKit)}`,
+      title: 'Create your application kit: {job}',
+      vars: { job: at(needsKit) },
       body: 'A CV tailored to this job, a cover letter and a short email — reviewed together.',
       href: `/jobs/${needsKit.id}#kit`,
       cta: 'Create the kit',
@@ -65,8 +69,9 @@ export function nextAction(
   if (followUp)
     return {
       id: 'follow-up',
-      title: `Follow up: ${at(followUp)}`,
-      body: `You applied ${Math.floor(days(followUp.appliedOn, now))} days ago. A short, polite follow-up often gets a reply.`,
+      title: 'Follow up: {job}',
+      body: 'You applied {days} days ago. A short, polite follow-up often gets a reply.',
+      vars: { job: at(followUp), days: Math.floor(days(followUp.appliedOn, now)) },
       href: `/jobs/${followUp.id}`,
       cta: 'Open the job',
     };

@@ -131,8 +131,15 @@ export function dueNow(
 }
 
 /** The default note for a job: "Follow up with Acme". */
-export const defaultNote = (j: Pick<Job, 'company' | 'title'>) =>
-  `Follow up${j.company ? ` with ${j.company}` : ` on ${j.title}`}`;
+export const defaultNote = (
+  j: Pick<Job, 'company' | 'title'>,
+  /** The screen's translator, so the note is written in the person's language. */
+  t: (text: string, vars: Record<string, string>) => string = (text, vars) =>
+    text.replace(/\{(\w+)\}/g, (_, k: string) => vars[k] ?? ''),
+) =>
+  j.company
+    ? t('Follow up with {company}', { company: j.company })
+    : t('Follow up on {title}', { title: j.title });
 
 /** The soonest open reminder across jobs (for Home and the board), done ones excluded. */
 export function soonest(

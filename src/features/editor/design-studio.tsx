@@ -83,7 +83,7 @@ function Choice<T extends string | number>({
     return (
       <div className="flex flex-col gap-1.5">
         <p id={id} className="text-sm font-semibold">
-          {label}
+          {tx(label)}
         </p>
         <div
           role="radiogroup"
@@ -115,7 +115,7 @@ function Choice<T extends string | number>({
   return (
     <div className="flex flex-col gap-1.5">
       <p id={id} className="text-sm font-semibold">
-        {label}
+        {tx(label)}
       </p>
       <div role="radiogroup" aria-labelledby={id} className="flex flex-wrap gap-1.5">
         {options.map((o) => (
@@ -149,6 +149,7 @@ function Toggle({
   checked: boolean;
   onChange: (v: boolean) => void;
 }) {
+  const tx = useT();
   return (
     <label className="flex min-h-9 items-center gap-2 text-sm">
       <input
@@ -157,7 +158,7 @@ function Toggle({
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
       />
-      {label}
+      {tx(label)}
     </label>
   );
 }
@@ -179,10 +180,11 @@ function Slider({
   unit: string;
   onChange: (v: number) => void;
 }) {
+  const tx = useT();
   return (
     <label className="flex flex-col gap-1 text-sm font-semibold">
       <span className="flex justify-between">
-        {label}
+        {tx(label)}
         <span className="text-ink-muted font-normal tabular-nums">
           {value}
           {unit}

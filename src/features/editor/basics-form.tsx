@@ -54,7 +54,7 @@ export function BasicsForm({
         label={t('Job title you want')}
         hint={t('Shown under your name.')}
         value={b.headline}
-        placeholder={`e.g. ${preset.headlineExample}`}
+        placeholder={t('e.g. {example}', { example: t(preset.headlineExample) })}
         onChange={(e) => set({ headline: e.target.value }, 'headline')}
       />
       <TextField

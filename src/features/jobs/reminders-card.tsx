@@ -69,7 +69,11 @@ export function RemindersCard({ job, onJobChange }: { job: Job; onJobChange: (j:
   };
   const add = (day: string, text = note) =>
     act('add', async () => {
-      const j = await jobsApi.addReminder(job.id, { on: day, note: text.trim(), tz });
+      const j = await jobsApi.addReminder(job.id, {
+        on: day,
+        note: text.trim() || defaultNote(job, t),
+        tz,
+      });
       setNote('');
       return j;
     });
@@ -92,7 +96,7 @@ export function RemindersCard({ job, onJobChange }: { job: Job; onJobChange: (j:
             size="sm"
             variant="secondary"
             loading={busy === 'add'}
-            onClick={() => add(addDays(today, 7), defaultNote(job))}
+            onClick={() => add(addDays(today, 7), defaultNote(job, t))}
           >
             {t('Remind me to follow up in a week')}
           </Button>
@@ -145,7 +149,7 @@ export function RemindersCard({ job, onJobChange }: { job: Job; onJobChange: (j:
         <TextField
           label={t('Remind me to…')}
           optional
-          placeholder={defaultNote(job)}
+          placeholder={defaultNote(job, t)}
           maxLength={200}
           value={note}
           onChange={(e) => setNote(e.target.value)}

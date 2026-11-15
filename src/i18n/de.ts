@@ -8,6 +8,8 @@ export const de: Dict = {
   '— too long for LinkedIn': '– zu lang für LinkedIn',
   '— we couldn’t pick out the advert, so the whole page text is below. Trim it to the advert.':
     '– wir konnten die Anzeige nicht herauslösen, daher steht unten der ganze Seitentext. Kürzen Sie ihn auf die Anzeige.',
+  '— you have {n} saved jobs waiting': '– {n} gespeicherte Stellen warten auf Sie',
+  '— you have 1 saved job waiting': '– 1 gespeicherte Stelle wartet auf Sie',
   ', and Premium starts as soon as we’ve checked it.':
     ', und Premium beginnt, sobald wir sie geprüft haben.',
   ', or get Premium to keep more': ', oder holen Sie sich Premium, um mehr zu behalten',
@@ -63,6 +65,7 @@ export const de: Dict = {
   '(not yet)': '(noch nicht)',
   '(optional)': '(optional)',
   '(or': '(oder',
+  '(to {email})': '(an {email})',
   '(verified)': '(bestätigt)',
   '), then': '), dann',
   '{asks} detail{v1} to check': 'Zu prüfende Angaben: {asks}',
@@ -96,6 +99,11 @@ export const de: Dict = {
   '{length} to look at. People you shared a link with left these notes.':
     '{length} zum Ansehen. Personen, mit denen Sie einen Link geteilt haben, haben diese Notizen hinterlassen.',
   '{met} of {length} requirements clearly shown': '{met} von {length} Anforderungen klar gezeigt',
+  '{n} actions a month': '{n} Aktionen pro Monat',
+  '{n} columns': '{n} Spalten',
+  '{n} designs': '{n} Designs',
+  '{n} downloads a month': '{n} Downloads pro Monat',
+  '{n} imports a month': '{n} Importe pro Monat',
   '{n} reminders for today': '{n} Erinnerungen für heute',
   '{name} — {v} ·{v2} {columns} column': '{name} – {v} ·{v2} {columns} Spalte',
   '{name} — CV. Click a line to comment on it.':
@@ -112,6 +120,7 @@ export const de: Dict = {
   '{name} on a sample CV': '{name} auf einem Beispiel-Lebenslauf',
   '{name} on your CV': '{name} auf Ihrem Lebenslauf',
   '{name}, ATS-safe version': '{name}, ATS-sichere Version',
+  '{name}, from your CV’s design': '{name}, aus dem Design Ihres Lebenslaufs',
   '{name}: see this design': '{name}: dieses Design ansehen',
   '{open} thing{v1} to look at': 'Zum Ansehen: {open}',
   '{openComments} comments to read': '{openComments} Kommentare zu lesen',
@@ -141,6 +150,7 @@ export const de: Dict = {
   '↑ Up': '↑ Nach oben',
   '↓ Down': '↓ Nach unten',
   '1 — Beginner': '1 – Anfänger',
+  '1 column': '1 Spalte',
   '1 comment to read': '1 Kommentar zu lesen',
   '1 friend has joined with your link.': '1 Person hat sich über Ihren Link angemeldet.',
   '1 page': '1 Seite',
@@ -163,6 +173,7 @@ export const de: Dict = {
     'Ein zentrierter Name mit umrandetem Foto und einer sanften Seitenspalte. Warm und persönlich.',
   'A colour band across the top and a deep colour side column on the right.':
     'Ein Farbband oben und eine kräftige Farbspalte rechts.',
+  'A colour band and cards, made to stand out': 'Ein Farbband und Karten, gemacht, um aufzufallen',
   'A colour banner and a timeline of years. Long careers read in seconds.':
     'Ein Farbbanner und eine Zeitleiste der Jahre. Lange Laufbahnen in Sekunden erfasst.',
   'A colour banner over three columns of cards. A lot fits on one page.':
@@ -218,6 +229,8 @@ export const de: Dict = {
     'Ein großer Name in Kapitälchen, Daten unter jeder Stelle und ein feiner Seitenrahmen. Passt zu Recht und Finanzen.',
   'A last look before you download. Your PDF will look exactly like the preview.':
     'Ein letzter Blick vor dem Herunterladen. Ihre PDF sieht genau wie die Vorschau aus.',
+  'A light side column on the left with contact, skills and languages; headings with a colour bar.':
+    'Eine helle Seitenspalte links mit Kontakt, Kenntnissen und Sprachen; Überschriften mit Farbbalken.',
   'A list': 'Eine Liste',
   'A lowercase letter (a–z)': 'Ein Kleinbuchstabe (a–z)',
   'A magazine-cover header with fine diagonal hatching and a tilted, framed portrait; a bright strip carries your contact line above your key numbers.':
@@ -254,12 +267,14 @@ export const de: Dict = {
   'A professional CV in your own words': 'Ein professioneller Lebenslauf in Ihren eigenen Worten',
   'A professional CV in your own words. Honest by design, and kept safe in your account.':
     'Ein professioneller Lebenslauf in Ihren eigenen Worten. Ehrlich von Grund auf und sicher in Ihrem Konto aufbewahrt.',
+  'a project description': 'eine Projektbeschreibung',
   'A role I’d like': 'Eine Stelle, die mich interessiert',
   'A round portrait on dark brown, an apricot panel with a dot field and a heavy name; orange meters and a footer band. Friendly and bold.':
     'Ein rundes Porträt auf Dunkelbraun, eine Aprikosenfläche mit Punktfeld und ein kräftiger Name; orange Anzeigen und ein Fußband. Freundlich und kräftig.',
   'A sample page in the {name} theme.{v}': 'Eine Beispielseite im Stil {name}.{v}',
   'A sea-green header with flowing lines and a round portrait; the side column sits on the left with your contact details and skills.':
     'Ein meergrüner Kopf mit fließenden Linien und rundem Porträt; die Seitenspalte links trägt Kontaktdaten und Kenntnisse.',
+  'a section': 'einen Abschnitt',
   'A sentence or two in your own words.': 'Ein oder zwei Sätze in Ihren eigenen Worten.',
   'A short description of the style.': 'Eine kurze Beschreibung des Stils.',
   'A short guide to incident response that cut the time to first response in half.':
@@ -302,6 +317,7 @@ export const de: Dict = {
   'Account title: … IBAN: …': 'Kontoinhaber: … IBAN: …',
   Accounts: 'Konten',
   Achievement: 'Erfolg',
+  Action: 'Handlung',
   Active: 'Aktiv',
   Add: 'Hinzufügen',
   'Add a code': 'Code hinzufügen',
@@ -326,6 +342,8 @@ export const de: Dict = {
   'Add a question': 'Frage hinzufügen',
   'Add a section': 'Abschnitt hinzufügen',
   'Add a skill': 'Kenntnis hinzufügen',
+  'Add an email address they can reply to.':
+    'Geben Sie eine E-Mail-Adresse an, an die geantwortet werden kann.',
   'Add an Experience section first, then try again.':
     'Fügen Sie zuerst einen Abschnitt „Berufserfahrung“ hinzu und versuchen Sie es dann erneut.',
   'Add as a career break': 'Als berufliche Auszeit hinzufügen',
@@ -352,6 +370,7 @@ export const de: Dict = {
   'Add to my point': 'Zu meinem Punkt hinzufügen',
   'Add what you did': 'Ergänzen Sie, was Sie getan haben',
   'Add your experience step by step.': 'Fügen Sie Ihre Erfahrung Schritt für Schritt hinzu.',
+  'Add your name.': 'Geben Sie Ihren Namen an.',
   'Added {v0}': 'Hinzugefügt {v0}',
   'Added as a career break in Experience. Undo takes it out.':
     'Als berufliche Auszeit unter „Berufserfahrung“ hinzugefügt. Rückgängig entfernt sie wieder.',
@@ -422,6 +441,8 @@ export const de: Dict = {
   Airy: 'Luftig',
   'Airy & modern': 'Luftig & modern',
   All: 'Alle',
+  'All {n}': 'Alle {n}',
+  'All {n} designs': 'Alle {n} Designs',
   'All changes saved': 'Alle Änderungen gespeichert',
   'All designs': 'Alle Designs',
   'All done': 'Alles erledigt',
@@ -563,6 +584,7 @@ export const de: Dict = {
   'Before your edits': 'Vor Ihren Änderungen',
   'Below target': 'Unter dem Ziel',
   'Beside the side column': 'Neben der Seitenspalte',
+  'best for online applications': 'am besten für Online-Bewerbungen',
   'Best for online applications': 'Am besten für Online-Bewerbungen',
   'Best match': 'Beste Übereinstimmung',
   'Best value': 'Bestes Angebot',
@@ -611,6 +633,7 @@ export const de: Dict = {
   'C2 (proficient)': 'C2 (verhandlungssicher)',
   'Calm & classic': 'Ruhig und klassisch',
   'Calm and classic, green': 'Ruhig und klassisch, grün',
+  'Calm and simple, one column': 'Ruhig und schlicht, eine Spalte',
   'Can I bring in the CV I already have?': 'Kann ich meinen vorhandenen Lebenslauf verwenden?',
   'Can I use it on my phone?': 'Kann ich es auf dem Handy nutzen?',
   'can’t be compared:': 'nicht vergleichbar:',
@@ -637,6 +660,7 @@ export const de: Dict = {
   Centre: 'Mitte',
   'Centred letter-spaced name, black ink and small-capital headings. For formal applications.':
     'Zentrierter, gesperrter Name, schwarze Schrift und Überschriften in Kapitälchen. Für förmliche Bewerbungen.',
+  'Centred, serif headings, warm paper': 'Zentriert, Serifen-Überschriften, warmes Papier',
   'Certificate or registration': 'Zertifikat oder Zulassung',
   'Certificates, registrations and training': 'Zertifikate, Zulassungen und Weiterbildungen',
   Certifications: 'Zertifikate',
@@ -706,7 +730,7 @@ export const de: Dict = {
   'Classroom management': 'Klassenführung',
   Clean: 'Klar',
   'Clean and calm, teal': 'Klar und ruhig, Petrol',
-  'Clean and contemporary': 'Klar und modern',
+  'Clean and contemporary': 'Klar und zeitgemäß',
   'Clean, one column, navy': 'Klar, einspaltig, Marineblau',
   'Clean, two columns, navy': 'Klar, zweispaltig, Marineblau',
   Clear: 'Leeren',
@@ -867,10 +891,13 @@ export const de: Dict = {
     'Erstellen oder laden Sie zuerst einen Lebenslauf hoch, damit der Coach ihn lesen kann.',
   'Create the kit': 'Paket erstellen',
   'Create your account': 'Ihr Konto erstellen',
+  'Create your application kit: {job}': 'Bewerbungspaket erstellen: {job}',
   'Create your CV': 'Ihren Lebenslauf erstellen',
   Creative: 'Kreativ',
   'Creative sidebar': 'Kreative Seitenleiste',
   'Creative, marketing and customer-facing roles': 'Kreative, Marketing- und Kundenrollen',
+  'creative: made to be seen by people; download its ATS PDF for online forms':
+    'kreativ: gemacht für Menschen; für Online-Formulare die ATS-PDF herunterladen',
   'Ctrl K': 'Strg K',
   Current: 'Aktuell',
   'Custom designs are part of Premium': 'Eigene Designs sind Teil von Premium',
@@ -890,6 +917,7 @@ export const de: Dict = {
   Date: 'Datum',
   'Date style': 'Datumsformat',
   Dates: 'Daten',
+  'Dates down the side, your career at a glance': 'Daten am Rand, Ihre Laufbahn auf einen Blick',
   Days: 'Tage',
   'Days for the inviter': 'Tage für die einladende Person',
   'Days must be between 1 and 3660.': 'Die Tage müssen zwischen 1 und 3660 liegen.',
@@ -1009,6 +1037,7 @@ export const de: Dict = {
     'Legen Sie Ihren Lebenslauf ab und sehen Sie ihn in weniger als einer Minute in einem professionellen Design – in Ihren eigenen Worten, ohne Zusätze.',
   'Drop your CV here': 'Legen Sie Ihren Lebenslauf hier ab',
   'Due:': 'Fällig:',
+  'e.g. {example}': 'z. B. {example}',
   'e.g. 13 November 2026': 'z. B. 13. November 2026',
   'e.g. A simple CV for a delivery driver':
     'z. B. Ein einfacher Lebenslauf für einen Auslieferungsfahrer',
@@ -1131,6 +1160,7 @@ export const de: Dict = {
   Employer: 'Arbeitgeber',
   'Employers will use this to reply.': 'Arbeitgeber antworten über diese Adresse.',
   Ended: 'Beendet',
+  Energetic: 'Energiegeladen',
   Engineer: 'Ingenieur',
   'Enter the email you use for AI CV Studio and we will send you a reset link.':
     'Geben Sie die E-Mail-Adresse ein, die Sie für AI CV Studio verwenden, und wir senden Ihnen einen Link zum Zurücksetzen.',
@@ -1226,6 +1256,9 @@ export const de: Dict = {
   'Fix it': 'Korrigieren',
   'Fixed. Undo puts it back.': 'Korrigiert. Rückgängig stellt es wieder her.',
   Fluent: 'Fließend',
+  'Follow up on {title}': 'Zu {title} nachfassen',
+  'Follow up with {company}': 'Bei {company} nachfassen',
+  'Follow up: {job}': 'Nachfassen: {job}',
   Font: 'Schrift',
   'Food hygiene': 'Lebensmittelhygiene',
   Footer: 'Fußzeile',
@@ -1306,7 +1339,10 @@ export const de: Dict = {
   'Get your own address, like aicvstudio.app/p/your-name, with your CV as a web page.':
     'Erhalten Sie Ihre eigene Adresse, z. B. aicvstudio.app/p/ihr-name, mit Ihrem Lebenslauf als Webseite.',
   Ghost: 'Dezent',
+  'Give each project a name.': 'Geben Sie jedem Projekt einen Namen.',
+  'Give each section a title.': 'Geben Sie jedem Abschnitt einen Titel.',
   'Give the design a name.': 'Geben Sie dem Design einen Namen.',
+  'Give the story a short title.': 'Geben Sie der Geschichte einen kurzen Titel.',
   'Give this version a name.': 'Geben Sie dieser Version einen Namen.',
   'Given by': 'Ausgestellt von',
   'Gmail: Settings → See all settings → Signature → paste. Outlook: Settings → Mail → Compose and reply → Email signature → paste.':
@@ -1336,6 +1372,7 @@ export const de: Dict = {
   Greeting: 'Anrede',
   'Group name': 'Gruppenname',
   'Guard replaced: {v}': 'Vom Schutz ersetzt: {v}',
+  'has an ATS-safe version for online forms': 'hat eine ATS-sichere Version für Online-Formulare',
   'Has questions to answer': 'Hat offene Fragen',
   'Have you received any awards?': 'Haben Sie Auszeichnungen erhalten?',
   'Have you volunteered anywhere?': 'Haben Sie sich ehrenamtlich engagiert?',
@@ -1527,6 +1564,8 @@ export const de: Dict = {
   Languages: 'Sprachen',
   'Languages you speak': 'Sprachen, die Sie sprechen',
   Large: 'Groß',
+  'Large type and numbered sections, like a magazine':
+    'Große Schrift und nummerierte Abschnitte, wie ein Magazin',
   'Last 30 days': 'Letzte 30 Tage',
   'Last day': 'Letzter Tag',
   'Last sign-in': 'Letzte Anmeldung',
@@ -2007,6 +2046,7 @@ export const de: Dict = {
   'Personal statement': 'Motivationsschreiben',
   Phone: 'Telefon',
   'Phone & email communication': 'Telefon- & E-Mail-Kommunikation',
+  photo: 'Foto',
   Photo: 'Foto',
   'Photo first': 'Foto zuerst',
   'Photo position': 'Position des Fotos',
@@ -2017,6 +2057,7 @@ export const de: Dict = {
     'Wählen Sie eine verfolgte Stelle oder geben Sie eine Stelle ein. Sie sehen die Kenntnisse, die Ihr Lebenslauf schon zeigt – mit den Zeilen, die sie belegen –, was fehlt und die wenigen Dinge, die Sie zuerst lernen sollten.',
   'Pick one': 'Wählen Sie eins',
   'Pick the ones you have': 'Wählen Sie die aus, die Sie haben',
+  'picture descriptions': 'Bildbeschreibungen',
   'Picture not added': 'Bild nicht hinzugefügt',
   'Picture not found.': 'Bild nicht gefunden.',
   'Pictures for {v0}': 'Bilder für {v0}',
@@ -2104,6 +2145,7 @@ export const de: Dict = {
   'Portrait banner': 'Porträt-Banner',
   'Power tools': 'Elektrowerkzeuge',
   'Practise again': 'Erneut üben',
+  'Practise for your interview: {job}': 'Für Ihr Vorstellungsgespräch üben: {job}',
   'Practise for your jobs': 'Für Ihre Stellen üben',
   'Practise now': 'Jetzt üben',
   'Practise out loud or in writing: {MOCK_QUESTIONS} questions for this job, one at a time, with feedback after each answer.':
@@ -2308,6 +2350,7 @@ export const de: Dict = {
   Restore: 'Wiederherstellen',
   'Restore from a backup': 'Aus einer Sicherung wiederherstellen',
   'Restored settings': 'Einstellungen wiederhergestellt',
+  Result: 'Ergebnis',
   Results: 'Ergebnisse',
   'Results you are proud of — e.g. “Cut delivery complaints by half”':
     'Ergebnisse, auf die Sie stolz sind – z. B. „Lieferbeschwerden halbiert“',
@@ -2412,6 +2455,7 @@ export const de: Dict = {
   'See your CV as a website': 'Ihren Lebenslauf als Website ansehen',
   'See your results': 'Ihre Ergebnisse ansehen',
   'See yours in new designs': 'Ihren in neuen Designs ansehen',
+  'Selection:': 'Auswahl:',
   Send: 'Senden',
   'Send {first} a message. They’ll reply by email.':
     'Senden Sie {first} eine Nachricht. Die Antwort kommt per E-Mail.',
@@ -2549,6 +2593,7 @@ export const de: Dict = {
   'since {day}': 'seit {day}',
   'Single column with a clean accent line. Calm, clear and easy for anyone to read.':
     'Eine Spalte mit klarer Akzentlinie. Ruhig, klar und für alle gut lesbar.',
+  Situation: 'Situation',
   'Skill gap and learning plan': 'Kompetenzlücken und Lernplan',
   'Skill gap plan': 'Plan für Kompetenzlücken',
   'skill group': 'Kenntnisgruppe',
@@ -2631,7 +2676,7 @@ export const de: Dict = {
   'Start: reading what the person wants': 'Start: verstehen, was die Person möchte',
   Started: 'Begonnen',
   Statement: 'Erklärung',
-  'Statements and bios': 'Profiltexte und Kurzbiografien',
+  'Statements and bios': 'Motivationsschreiben und Kurzbiografien',
   'Static card': 'Statische Karte',
   'Step {current} of {total}': 'Schritt {current} von {total}',
   'Step {v}': 'Schritt {v}',
@@ -2696,6 +2741,7 @@ export const de: Dict = {
   'Target {showTarget} · based on {v}': 'Ziel {showTarget} · basierend auf {v}',
   'Targets from the plan. Shown once at least {MIN_BASE} accounts or makeovers count.':
     'Ziele aus dem Plan. Angezeigt, sobald mindestens {MIN_BASE} Konten oder Makeovers zählen.',
+  Task: 'Aufgabe',
   Teacher: 'Lehrkraft',
   'Teacher, tutor, teaching assistant': 'Lehrkraft, Nachhilfe, Unterrichtsassistenz',
   'Teaching & education': 'Lehre & Bildung',
@@ -2773,6 +2819,7 @@ export const de: Dict = {
   'That picture is too large. Try a smaller one.':
     'Dieses Bild ist zu groß. Versuchen Sie ein kleineres.',
   'That version was not found.': 'Diese Version wurde nicht gefunden.',
+  'That web address is too long.': 'Diese Webadresse ist zu lang.',
   'That’s a lot of comments in a short time. Please wait a few minutes.':
     'Das sind viele Kommentare in kurzer Zeit. Bitte warten Sie ein paar Minuten.',
   'That’s a lot of pictures at once. Please wait a minute.':
@@ -2793,7 +2840,7 @@ export const de: Dict = {
   'The coach is switched off right now.': 'Der Coach ist gerade abgeschaltet.',
   'the comment from {author}': 'den Kommentar von {author}',
   'The company': 'Das Unternehmen',
-  'the contact details on our Help page': 'die Kontaktdaten auf unserer Hilfeseite',
+  'the contact details on our Help page': 'die Kontaktangaben auf unserer Hilfeseite',
   'The course, scholarship or programme': 'Studiengang, Stipendium oder Programm',
   'The CV now': 'Der Lebenslauf jetzt',
   'the CV text needed for the task (and the job advert you pasted) is sent to Gemini to create a draft. It is checked against your CV so nothing is added that you didn’t write.':
@@ -2828,6 +2875,7 @@ export const de: Dict = {
     'Die Briefe, die Sie schreiben, werden in Ihrem Konto aufbewahrt und mit ihm gelöscht. Wenn Sie einen KI-Entwurf anfordern, werden Ihre Antworten auf die Fragen des Briefs und der Lebenslauftext an Gemini gesendet; der Entwurf darf nur Fakten aus diesen beiden verwenden, alles andere wird zum Ausfüllen markiert.',
   'The link may be old or mistyped. Your saved CVs are safe.':
     'Der Link ist vielleicht veraltet oder falsch geschrieben. Ihre gespeicherten Lebensläufe sind sicher.',
+  'the link text': 'den Linktext',
   'The LinkedIn profile writer is part of Premium':
     'Der LinkedIn-Profiltexter ist Teil von Premium',
   'The LinkedIn review is part of Premium': 'Die LinkedIn-Prüfung ist Teil von Premium',
@@ -2841,6 +2889,7 @@ export const de: Dict = {
   'The picture didn’t upload.': 'Das Bild wurde nicht hochgeladen.',
   'The plan couldn’t be made just now. Please try again.':
     'Der Plan konnte gerade nicht erstellt werden. Bitte versuchen Sie es erneut.',
+  'the project name': 'den Projektnamen',
   'The review couldn’t be made just now. Please try again.':
     'Die Prüfung konnte gerade nicht erstellt werden. Bitte versuchen Sie es erneut.',
   'The review couldn’t be made. Please try again.':
@@ -2866,6 +2915,7 @@ export const de: Dict = {
     'Der zugeschnittene Lebenslauf ist noch nicht auf diesem Gerät. Er erscheint, sobald Ihr Konto synchronisiert ist.',
   'the text of the LinkedIn PDF you upload (and, if you choose, the CV you compare it with) is sent to Gemini to write the review. The file is read in memory and not stored; the review is kept only in your browser.':
     'Der Text der hochgeladenen LinkedIn-PDF (und, falls gewählt, des Lebenslaufs zum Vergleich) wird an Gemini gesendet, um die Prüfung zu schreiben. Die Datei wird im Arbeitsspeicher gelesen und nicht gespeichert; die Prüfung bleibt nur in Ihrem Browser.',
+  'the title': 'den Titel',
   'The translation didn’t work just now. Please try again.':
     'Die Übersetzung hat gerade nicht geklappt. Bitte versuchen Sie es erneut.',
   'The two passwords don’t match.': 'Die beiden Passwörter stimmen nicht überein.',
@@ -3074,6 +3124,7 @@ export const de: Dict = {
   'Unknown AI task.': 'Unbekannte KI-Aufgabe.',
   'Unknown event.': 'Unbekanntes Ereignis.',
   'Unknown language.': 'Unbekannte Sprache.',
+  Unlimited: 'Unbegrenzt',
   'Unmarked new facts (must be 0)': 'Unmarkierte neue Fakten (müssen 0 sein)',
   'Unmarked new facts: {v}': 'Unmarkierte neue Fakten: {v}',
   'Unmet: {v}': 'Nicht erfüllt: {v}',
@@ -3086,6 +3137,7 @@ export const de: Dict = {
   'until {when}': 'bis {when}',
   Untitled: 'Ohne Titel',
   'Untitled CV': 'Unbenannter Lebenslauf',
+  'Up to 4 pictures per project.': 'Bis zu 4 Bilder pro Projekt.',
   'Up to three figures you can stand behind, shown large by the graphic designs — for example “12+” and “Years teaching”. Without them, designs show counts from your CV.':
     'Bis zu drei Zahlen, hinter denen Sie stehen, groß dargestellt in den grafischen Designs – zum Beispiel „12+“ und „Jahre im Lehramt“. Ohne sie zeigen die Designs Zählungen aus Ihrem Lebenslauf.',
   'Up–down': 'Oben–unten',
@@ -3120,6 +3172,8 @@ export const de: Dict = {
     'Verwenden Sie einen vollständigen Link, der mit https:// beginnt.',
   'Use a photo or picture (JPG, PNG or WebP).':
     'Verwenden Sie ein Foto oder Bild (JPG, PNG oder WebP).',
+  'Use a web address, like example.com/my-work.':
+    'Verwenden Sie eine Webadresse, z. B. example.com/meine-arbeit.',
   'use automated tools to make large numbers of requests.':
     'automatisierte Werkzeuge für große Mengen an Anfragen nutzen.',
   'Use it in the new design? You can frame it, hide it or remove it later.':
@@ -3272,9 +3326,14 @@ export const de: Dict = {
   'What are you good at?': 'Worin sind Sie gut?',
   'What are you most proud of?': 'Worauf sind Sie am meisten stolz?',
   'What are your strengths?': 'Was sind Ihre Stärken?',
+  'What changed because of it? Numbers help, if they are true.':
+    'Was hat sich dadurch verändert? Zahlen helfen, wenn sie stimmen.',
   'What changed since then': 'Was sich seitdem geändert hat',
   'What did you do there?': 'Was haben Sie dort gemacht?',
+  'What did you do yourself? Use “I”.': 'Was haben Sie selbst getan? Schreiben Sie „ich“.',
   'What did you do?': 'Was haben Sie gemacht?',
+  'What did you need to do, or what was the problem?':
+    'Was mussten Sie tun, oder was war das Problem?',
   'What do you enjoy outside work?': 'Was machen Sie gern außerhalb der Arbeit?',
   'What does a free account include, and what is Premium?':
     'Was enthält ein kostenloses Konto, und was ist Premium?',
@@ -3341,6 +3400,7 @@ export const de: Dict = {
   'Where is my CV saved?': 'Wo wird mein Lebenslauf gespeichert?',
   'Where it will appear (optional)': 'Wo sie erscheinen wird (optional)',
   'Where sections go': 'Wo die Abschnitte stehen',
+  'Where were you, and what was going on?': 'Wo waren Sie, und was war los?',
   'Where you are': 'Wo Sie stehen',
   'Where you’re applying': 'Wo Sie sich bewerben',
   'Where you’re applying (optional)': 'Wo Sie sich bewerben (optional)',
@@ -3394,6 +3454,7 @@ export const de: Dict = {
   'Write a cover letter': 'Anschreiben verfassen',
   'Write a letter': 'Brief schreiben',
   'Write a little more of your answer first.': 'Schreiben Sie zuerst etwas mehr von Ihrer Antwort.',
+  'Write a message.': 'Schreiben Sie eine Nachricht.',
   'Write a new AI draft': 'Neuen KI-Entwurf schreiben',
   'Write a new draft': 'Neuen Entwurf schreiben',
   'Write a new one for me': 'Einen neuen für mich schreiben',
@@ -3422,6 +3483,7 @@ export const de: Dict = {
   'Writing… this takes about 20 seconds': 'Wird geschrieben … das dauert etwa 20 Sekunden',
   'Written as': 'Geschrieben in',
   Year: 'Jahr',
+  Yes: 'Ja',
   'Yes, go back': 'Ja, zurück',
   'Yes. Drop it on the home page (or choose “Import a CV”): a PDF, a Word file (.docx or .doc) or a clear photo of a paper CV, up to 10 MB. We read the text into editable sections without adding anything and show it in designs chosen for your kind of work. Text read from a photo or a scan may contain a misread word, so check names and numbers.':
     'Ja. Legen Sie ihn auf der Startseite ab (oder wählen Sie „Lebenslauf importieren“): eine PDF, eine Word-Datei (.docx oder .doc) oder ein deutliches Foto eines Lebenslaufs auf Papier, bis zu 10 MB. Wir übernehmen den Text in bearbeitbare Abschnitte, ohne etwas hinzuzufügen, und zeigen ihn in Designs, die zu Ihrer Art von Arbeit passen. Text aus einem Foto oder Scan kann falsch gelesene Wörter enthalten – prüfen Sie daher Namen und Zahlen.',
@@ -3430,6 +3492,8 @@ export const de: Dict = {
   'You added {v0} that your career profile doesn’t have':
     'Sie haben {v0} hinzugefügt, was Ihr Karriereprofil nicht enthält',
   'You already show': 'Das zeigen Sie bereits',
+  'You applied {days} days ago. A short, polite follow-up often gets a reply.':
+    'Sie haben sich vor {days} Tagen beworben. Eine kurze, höfliche Nachfrage bringt oft eine Antwort.',
   'You are responsible for what your CV says. Only include true information about yourself. Our AI help is designed not to add facts, and it asks you when a detail is missing — but always read suggestions before you use them, and check your CV before you send it.':
     'Sie sind für den Inhalt Ihres Lebenslaufs verantwortlich. Geben Sie nur wahre Informationen über sich an. Unsere KI-Hilfe ist so gebaut, dass sie keine Fakten hinzufügt, und sie fragt Sie, wenn eine Angabe fehlt – lesen Sie Vorschläge aber immer, bevor Sie sie übernehmen, und prüfen Sie Ihren Lebenslauf vor dem Versenden.',
   'You asked us to remind you about {n} things:': 'Sie wollten an {n} Dinge erinnert werden:',
@@ -3545,6 +3609,7 @@ export const de: Dict = {
     'Ihre Daten auf einer Linie die Seite hinab. Ihr Weg auf einen Blick.',
   'your description and counts of your CV’s length and sections are sent to Gemini — not the words of your CV. If you add a picture of a CV you like, the picture is sent to Gemini to read its layout and colours, then discarded; we don’t store it.':
     'Ihre Beschreibung sowie Angaben zu Länge und Abschnitten Ihres Lebenslaufs werden an Gemini gesendet – nicht die Worte Ihres Lebenslaufs. Wenn Sie ein Bild eines Lebenslaufs hinzufügen, der Ihnen gefällt, wird das Bild an Gemini gesendet, um Aufbau und Farben zu lesen, und dann verworfen; wir speichern es nicht.',
+  'Your details and skills in a side column': 'Ihre Angaben und Kenntnisse in einer Seitenspalte',
   'Your documents': 'Ihre Dokumente',
   'Your email': 'Ihre E-Mail-Adresse',
   'Your experience': 'Ihre Erfahrung',
@@ -3572,11 +3637,13 @@ export const de: Dict = {
   'Your manager': 'Ihre Vorgesetzte / Ihr Vorgesetzter',
   'Your master record · updated {v0}. New and tailored CVs start from it.':
     'Ihre Gesamtübersicht · aktualisiert {v0}. Neue und zugeschnittene Lebensläufe beginnen damit.',
+  'your message': 'Ihre Nachricht',
   'Your message couldn’t be sent. Please try again later.':
     'Ihre Nachricht konnte nicht gesendet werden. Bitte versuchen Sie es später erneut.',
   'Your message wasn’t sent. Please try again.':
     'Ihre Nachricht wurde nicht gesendet. Bitte versuchen Sie es erneut.',
   'Your mobile number': 'Ihre Mobilnummer',
+  'your name': 'Ihren Namen',
   'Your name': 'Ihr Name',
   'Your new CV in the {name} design': 'Ihr neuer Lebenslauf im Design {name}',
   'Your new CV is kept while you sign in or create an account.':

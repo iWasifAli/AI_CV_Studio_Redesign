@@ -45,12 +45,13 @@ function Group({
   hint?: string;
   children: React.ReactNode;
 }) {
+  const tx = useT();
   const id = useId();
   return (
     <section aria-labelledby={id} className="flex flex-col gap-3">
       <div>
         <h3 id={id} className="text-[17px] font-semibold">
-          {title}
+          {tx(title)}
         </h3>
         {hint && <p className="text-ink-muted text-sm">{hint}</p>}
       </div>
@@ -146,7 +147,7 @@ export function DesignPanel({
                 type="button"
                 role="radio"
                 aria-checked={selected}
-                aria-label={`${t.style} · ${t.name}${showPremium(t.id) ? ' · Premium' : ''}`}
+                aria-label={`${tx(t.style)} · ${tx(t.name)}${showPremium(t.id) ? ' · Premium' : ''}`}
                 onClick={() => update((x) => ops.useDesign(x, t.id))}
                 className={cn(
                   'group flex flex-col gap-2 rounded-lg p-1.5 text-left transition-colors',
@@ -185,10 +186,10 @@ export function DesignPanel({
                   )}
                 </span>
                 <span className="px-1 pb-1">
-                  <span className="text-ink block text-sm font-semibold">{t.style}</span>
+                  <span className="text-ink block text-sm font-semibold">{tx(t.style)}</span>
                   <span className="text-ink-muted block text-xs">
                     {tx(t.name)}
-                    {t.photo ? ' · Photo' : ''}
+                    {t.photo ? ` · ${tx('Photo')}` : ''}
                   </span>
                 </span>
               </button>
@@ -196,7 +197,7 @@ export function DesignPanel({
           })}
         </div>
         <p className="text-ink-muted text-sm">
-          {meta ? meta.description : tx('Your own design, made in the Design Studio below.')}
+          {meta ? tx(meta.description) : tx('Your own design, made in the Design Studio below.')}
         </p>
         {meta && showPremium(meta.id) && (
           <p
@@ -282,8 +283,8 @@ export function DesignPanel({
               onClick={() => set({ fontPair: id })}
               className="p-3"
             >
-              <span className="font-semibold">{FONT_PAIRS[id].label}</span>
-              <span className="text-ink-muted pr-6 text-sm">{FONT_DESCRIPTIONS[id]}</span>
+              <span className="font-semibold">{tx(FONT_PAIRS[id].label)}</span>
+              <span className="text-ink-muted pr-6 text-sm">{tx(FONT_DESCRIPTIONS[id])}</span>
             </SelectableCard>
           ))}
         </div>

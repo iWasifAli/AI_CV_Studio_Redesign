@@ -23,3 +23,11 @@ describe('i18n core', () => {
     expect(fromAcceptLanguage('fr-FR')).toBeNull();
   });
 });
+
+describe('edge spaces', () => {
+  it('keeps a leading or trailing space of the source text', () => {
+    const t = makeT({ 'Due:': 'Fällig:' });
+    expect(t('Due: ')).toBe('Fällig: ');
+    expect(makeT(null)(' Part of Premium.')).toBe(' Part of Premium.');
+  });
+});

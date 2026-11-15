@@ -51,7 +51,7 @@ describe('nextAction', () => {
   it('applied over a week ago → follow up', () => {
     const a = nextAction([doc()], [job({ stage: 'applied', appliedOn: '2026-11-02' })], { now });
     expect(a.id).toBe('follow-up');
-    expect(a.body).toContain('11 days');
+    expect(a.vars?.days).toBe(11);
   });
   it('a CV and no job → add a job; then a profile; then fixes; then design', () => {
     expect(nextAction([doc()], [], { now }).id).toBe('add-job');

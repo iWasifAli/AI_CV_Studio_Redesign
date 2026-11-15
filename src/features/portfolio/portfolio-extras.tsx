@@ -144,7 +144,7 @@ export function ThemePicker({
     {
       id: 'auto',
       name: 'Match my CV',
-      hint: `${THEME_INFO[auto].name}, from your CV’s design`,
+      hint: tx('{name}, from your CV’s design', { name: tx(THEME_INFO[auto].name) }),
       sketch: auto,
     },
     ...THEMES.map((t) => ({ id: t, ...THEME_INFO[t], sketch: t })),
