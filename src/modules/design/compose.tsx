@@ -438,7 +438,12 @@ function css(s: DesignSpecV2, d: ResolvedDesign): string {
     out.push(`.cv-main{padding-left:5mm;border-left:.8pt solid var(--accent-line)}
 .cv-main .b-heading .g-h{margin-left:-5mm}
 .cv-main .b-entry .g-what{position:relative}
-.cv-main .b-entry .g-what::before{content:'';position:absolute;left:calc(-5mm - 3pt);top:.45em;width:5.2pt;height:5.2pt;border-radius:50%;background:var(--accent);box-shadow:0 0 0 2pt ${bg}}`);
+.cv-main .b-entry .g-what::before{content:'';position:absolute;left:calc(-5mm - 3pt);top:.45em;width:5.2pt;height:5.2pt;border-radius:50%;background:var(--accent);box-shadow:0 0 0 2pt ${bg}}
+.cv-main:has(.g-entry--dates-left,.g-entry--timeline-dots){padding-left:0;border-left:0}
+.cv-main:has(.g-entry--dates-left,.g-entry--timeline-dots) .b-heading .g-h{margin-left:0}
+.cv-main .g-entry--dates-left .g-what::before,.cv-main .g-entry--timeline-dots .g-what::before{display:none}
+.cv-main .g-entry--dates-left .g-what{padding-left:4mm;border-left:.8pt solid var(--accent-line)}
+.cv-main .g-entry--dates-left .g-what::after{content:'';position:absolute;left:-3pt;top:.4em;width:5pt;height:5pt;border-radius:50%;background:var(--accent)}`);
   if (L.type === 'label-column')
     out.push(`.b-labelled{display:flex;gap:var(--gap)}
 .b-label{flex:none;width:23%}
@@ -456,6 +461,11 @@ function css(s: DesignSpecV2, d: ResolvedDesign): string {
       : H.name.case === 'small-caps'
         ? 'text-transform:uppercase'
         : '';
+  // Last-resort fit step (paginator): a slightly smaller header instead of a near-empty last page.
+  out.push(`:root{--can-compact:1}
+html[data-fit-compact] .g-name{zoom:.86}
+html[data-fit-compact] .g-photo{zoom:.8}
+html[data-fit-compact] .g-header--band,html[data-fit-compact] .g-header--in-sidebar{padding-top:calc(var(--margin) * .7)}`);
   out.push(`.g-header{position:relative;padding-bottom:4pt}
 .g-hrow{display:flex;align-items:center;gap:6mm}
 .g-id{flex:1;min-width:0}

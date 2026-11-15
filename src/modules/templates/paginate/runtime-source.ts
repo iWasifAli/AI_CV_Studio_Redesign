@@ -273,7 +273,7 @@ export const RUNTIME_JS = String.raw`(function (planPages) {
     { gap: 0.8, margin: 0.92, lh: 0.03 },
     { gap: 0.62, margin: 0.84, lh: 0.06 },
     // Only for designs that declare --can-compact: a compact header (smaller banner, no key numbers).
-    { gap: 0.62, margin: 0.84, lh: 0.06, compact: true }
+    { gap: 0.5, margin: 0.8, lh: 0.07, compact: true }
   ];
   var LAST_PAGE_MAX_FILL = 0.3;
   // A tighter fit is only accepted with about one line to spare on every page (see layout()).
