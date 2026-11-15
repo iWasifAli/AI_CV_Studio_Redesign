@@ -1297,6 +1297,44 @@ Everything below is built with unit and browser tests; each was deployed only af
 - **Career paths (§10.3)** — Skill plan page: near and stretch roles with what you have, what you'd need and a first step; "Plan the skills for this role" fills the skill plan.
 - **Bug fixed:** a settings save reached pages only after up to a minute (pages and API routes are separate module copies; the config cache now lives on `globalThis`).
 
+## R13 — closing the remaining gaps (2026-11-15)
+
+- **Photo framing after a reload:** the original photo is kept on the device (IndexedDB) so zoom and position work later; without it, the saved photo itself can be zoomed in and moved.
+- **Import reads the newer section types:**
+  - The rules parser and the AI path now recognise publications, courses, memberships, conferences and talks, patents, military service, internships, interests, key achievements, references and declarations.
+  - Personal details become a structured "Personal details" section (label: value).
+- **Makeover:**
+  - **Photo from the CV:** the person's photo is taken from a text PDF's images, a Word file's pictures, or the box the vision step reports on scans and phone photos, then offered with "Use this photo" / "Leave it out". Soft shadows and gradients that Chrome stores as images are ignored. Nothing is kept on the server. Uses `sharp`, now a direct dependency.
+  - **Real progress:** the upload streams a line as each stage finishes (read → scan → structure → designs).
+  - **Before view:** the original file is kept in the browser through sign-in, so the before/after view still works afterwards.
+- **Design Studio:**
+  - Picture tiles for layout, header style and heading style.
+  - **Short items per row** (compact grid, 1–3) for languages, certificates, licences and awards. Each row is one block, so pagination stays exact.
+- **Letters:** a letter can use one of "My designs" instead of the CV's own design.
+- **Country-aware advice:**
+  - New "Where you're applying" choice (`doc.market`, optional).
+  - Germany, Austria and Switzerland: a date of birth, nationality and photo are normal; only religion, marital status and ID numbers are flagged.
+  - UK, Ireland, US, Canada, Australia and New Zealand: personal details and a photo are flagged.
+  - Not chosen: general advice, with no photo warning.
+- **Declaration signature:** draw with a finger, pen or mouse, or upload a photo of a signature; it is stored as a small transparent PNG and printed under the declaration.
+- **Dragging:**
+  - Reorder with a finger on phones and tablets.
+  - Drag sections and entries on the page itself.
+  - Both are one undo step.
+- **Career profile:** entries added in a CV are offered to the profile. Removals are not offered, because leaving things out is how a CV is tailored.
+- **Console:**
+  - AI model per tier.
+  - The AI Designer's example prompts.
+- **Bug fixed:** skill levels were silently left out by the 10 hand-crafted designs. They are now written as words ("TypeScript (expert)") wherever a design doesn't draw bars or dots.
+- **Graphic designs:**
+  - The photo-rail designs' compact fit step now shrinks the header properly.
+  - Long executive CVs in Terra, Graphite and Copper still end with a short second page. The editor's "Fit on one page" prompt covers this; text is never shrunk.
+- **Still recorded as deviations (deliberate):**
+  - Strengths print as lines, not cards.
+  - Comments are listed in the Check tab, not drawn on the page.
+  - Mock-interview turns are not streamed word by word.
+  - Salary guidance is deferred by the spec.
+
 ## R12 — graphic designs and Dual CV Export (2026-11-15)
 
 - **20 graphic designs** from the owner's reference collection (Neon, Coral, Ocean, Emerald, Magenta, Citrus, Cyber, Ruby, Blueprint, Cobalt, Violet, Terra, Graphite, Tangerine, Copper, Electric, Solar, Ultraviolet, Aurora, Chromatic) in four structures: spotlight header, full-height band, photo rail and cover. Portraits in five frames, key numbers, timelines, skill bars/rings/dots. Skill visuals use only the person's own 1–5 levels (no level: plain tags); key numbers are the person's own (Basics → Key numbers, optional) or honest counts from the CV. The demo portraits in the collection are not used or shipped. Compared page by page with the references (evidence page: "AI CV Studio — Template QA evidence" in the owner's artifacts).
