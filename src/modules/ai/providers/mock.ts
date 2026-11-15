@@ -830,6 +830,8 @@ function transcribe(files: AiFile[]) {
     // PDF fixtures carry the text as "% " comment lines.
     lines: lines.map((l) => l.replace(/^%\s?/, '').trim()).filter(Boolean),
     photo: /CVPHOTO/.test(raw),
+    // Test hook: "CVPHOTOBOX=ymin,xmin,ymax,xmax" gives the photo's place on the page.
+    photoBox: (/CVPHOTOBOX=(\d+),(\d+),(\d+),(\d+)/.exec(raw)?.slice(1) ?? []).map(Number),
   };
 }
 

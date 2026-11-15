@@ -5,7 +5,7 @@ import { runTask } from '@/modules/ai/run';
 import { aiBudgetSpent } from '@/modules/metrics/server';
 
 export type Transcribed =
-  { ok: true; lines: string[]; photo: boolean } | { ok: false; reason: string };
+  { ok: true; lines: string[]; photo: boolean; photoBox: number[] } | { ok: false; reason: string };
 
 /**
  * Vision fallback (spec §6.2 step 3): a scanned PDF or a photo of a CV is sent to the multimodal
@@ -35,5 +35,12 @@ export async function transcribeFile(
   if (!r.ok) return { ok: false, reason: `${r.code}:${r.reason}` };
   const lines = r.result.lines.map((l) => l.slice(0, 600)).slice(0, 400);
   if (lines.join('').length < 20) return { ok: false, reason: 'empty' };
-  return { ok: true, lines, photo: r.result.photo };
+  const box = r.result.photoBox;
+  return {
+    ok: true,
+    lines,
+    photo: r.result.photo,
+    photoBox:
+      r.result.photo && box.length === 4 && box[2]! > box[0]! && box[3]! > box[1]! ? box : [],
+  };
 }

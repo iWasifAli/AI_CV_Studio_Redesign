@@ -481,6 +481,11 @@ export const taskOutputs = {
     lines: z.array(z.string().max(600)).max(600),
     /** True when the page shows a photo of the person. */
     photo: z.boolean(),
+    /**
+     * Where that photo is on the first page: [ymin, xmin, ymax, xmax], each 0–1000 of the page
+     * height/width. Empty when there is no photo.
+     */
+    photoBox: z.array(z.number().int().min(0).max(1000)).max(4).default([]),
   }),
   'makeover.diagnose': z.object({
     items: z

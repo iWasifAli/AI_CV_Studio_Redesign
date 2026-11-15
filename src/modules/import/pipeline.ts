@@ -5,6 +5,7 @@ import { importWithAi } from './ai';
 import { coverage, type Coverage } from './coverage';
 import { extractLines, ImportError, SCAN_UNREADABLE, type ImportKind } from './extract';
 import { parseCv, type ImportReport } from './parse';
+import { findPortrait } from './portrait';
 import { tidyImport } from './tidy';
 import { transcribeFile } from './vision';
 
@@ -17,6 +18,8 @@ export type ReadCv = {
   scanned: boolean;
   /** The vision model saw a photo of the person on the page. */
   photo: boolean;
+  /** The person's photo cut from the original (square JPEG data URL), or ''. Offered, never forced. */
+  portrait: string;
   /** The original's text lines (for the "before" view of Word files and the coverage panel). */
   lines: string[];
   coverage: Coverage;
@@ -29,13 +32,21 @@ export type ReadCv = {
  */
 export async function readCv(
   bytes: Uint8Array,
-  opts: { key: string; locale: string; ai: boolean },
+  opts: {
+    key: string;
+    locale: string;
+    ai: boolean;
+    /** Real progress for the person waiting: text read, scan typed out, CV structured. */
+    onStep?: (step: 'read' | 'scan' | 'structure') => void;
+  },
 ): Promise<ReadCv> {
   // Requests end after about a minute on the host, so the AI steps share one time budget.
   const started = Date.now();
   const ex = await extractLines(bytes);
+  opts.onStep?.('read');
   let { lines } = ex;
   let photo = false;
+  let photoBox: number[] = [];
   if (ex.scanned) {
     if (!opts.ai) throw new ImportError('NO_TEXT', SCAN_UNREADABLE);
     const t = await transcribeFile(bytes, ex.mime, opts.key);
@@ -48,13 +59,25 @@ export async function readCv(
     }
     lines = t.lines;
     photo = t.photo;
+    photoBox = t.photoBox;
+    opts.onStep?.('scan');
   }
+  // Runs beside the AI structuring step (at most 6 s; '' on any problem).
+  const portraitP = findPortrait({
+    bytes,
+    kind: ex.kind,
+    mime: ex.mime,
+    scanned: ex.scanned,
+    box: photoBox,
+  });
   const left = 55_000 - (Date.now() - started);
   const ai =
     opts.ai && left > 12_000
       ? await importWithAi(lines, opts.key, { locale: opts.locale, timeoutMs: left })
       : ({ ok: false, reason: opts.ai ? 'no_time' : 'switched_off' } as const);
   const parsed = ai.ok ? ai : parseCv(lines, { locale: opts.locale });
+  const portrait = await portraitP;
+  opts.onStep?.('structure');
   const doc = tidyImport(parsed.doc);
   const report = parsed.report;
   if (/-(US|CA)$/.test(opts.locale)) doc.design.pageSize = 'Letter';
@@ -64,7 +87,8 @@ export async function readCv(
     method: ai.ok ? 'ai' : 'rules',
     kind: ex.kind,
     scanned: ex.scanned,
-    photo,
+    photo: photo || !!portrait,
+    portrait,
     lines,
     coverage: coverage(lines, doc),
   };

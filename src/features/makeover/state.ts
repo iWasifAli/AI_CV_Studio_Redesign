@@ -19,6 +19,8 @@ export type MakeoverResult = {
   kind: ImportKind;
   scanned: boolean;
   photo: boolean;
+  /** The person's photo cut from the original ('' when none was found). */
+  portrait?: string;
   lines: string[];
   coverage: Coverage;
   profile: Profile;
@@ -86,9 +88,56 @@ export function loadPending(): Pending | null {
   }
 }
 export function clearPending() {
+  void savePendingFile(null);
   try {
     localStorage.removeItem(KEY);
   } catch {
     // ignore
   }
+}
+
+/**
+ * The original file, kept in this browser (IndexedDB) beside the pending makeover so the
+ * before/after view still works after sign-in. Fails soft; removed with the pending makeover.
+ */
+const FILE_DB = 'cvs_makeover_file';
+function fileDb(): Promise<IDBDatabase | null> {
+  return new Promise((resolve) => {
+    try {
+      const req = indexedDB.open(FILE_DB, 1);
+      req.onupgradeneeded = () => req.result.createObjectStore('f');
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => resolve(null);
+    } catch {
+      resolve(null);
+    }
+  });
+}
+export async function savePendingFile(file: File | null): Promise<void> {
+  const db = await fileDb();
+  if (!db) return;
+  await new Promise<void>((resolve) => {
+    try {
+      const tx = db.transaction('f', 'readwrite');
+      if (file) tx.objectStore('f').put(file, 'file');
+      else tx.objectStore('f').delete('file');
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => resolve();
+    } catch {
+      resolve();
+    }
+  });
+}
+export async function loadPendingFile(): Promise<File | null> {
+  const db = await fileDb();
+  if (!db) return null;
+  return new Promise((resolve) => {
+    try {
+      const req = db.transaction('f').objectStore('f').get('file');
+      req.onsuccess = () => resolve(req.result instanceof File ? req.result : null);
+      req.onerror = () => resolve(null);
+    } catch {
+      resolve(null);
+    }
+  });
 }

@@ -23,7 +23,15 @@ import { DESIGN_META } from '@/modules/design/designs';
 import { BeforeView } from './before-view';
 import { DropZone } from './drop-zone';
 import { PolishChips } from './polish-panel';
-import { clearPending, loadPending, savePending, takeHandOff, type MakeoverResult } from './state';
+import {
+  clearPending,
+  loadPending,
+  loadPendingFile,
+  savePending,
+  savePendingFile,
+  takeHandOff,
+  type MakeoverResult,
+} from './state';
 
 type Failure = { message: string; reason?: string };
 
@@ -53,6 +61,7 @@ export function MakeoverScreen() {
   const [failure, setFailure] = useState<Failure | null>(null);
   const [result, setResult] = useState<MakeoverResult | null>(null);
   const [doc, setDoc] = useState<ResumeDocument | null>(null);
+  const [portraitChoice, setPortraitChoice] = useState<'used' | 'left' | null>(null);
   const [templateId, setDesignId] = useState<DesignId>('clarity');
   const [saving, setSaving] = useState<'download' | 'edit' | null>(null);
   const [saveFailure, setSaveFailure] = useState<Failure | null>(null);
@@ -88,21 +97,48 @@ export function MakeoverScreen() {
       setSteps(list);
       setStep(0);
       setPhase('working');
-      // The server does the steps in one request; the list moves on while it works and is
-      // completed when the answer arrives.
-      const timer = window.setInterval(
-        () => setStep((s) => Math.min(s + 1, list.length - 2)),
-        image ? 4000 : 2500,
-      );
+      // Real progress: the server streams a line as each stage finishes (read → scan → structure
+      // → designs); the last step ("Laying out your pages") completes with the answer.
+      const at: Record<string, number> = image
+        ? { read: 1, scan: 2, structure: 3, design: 4 }
+        : { read: 1, structure: 2, design: 3 };
       try {
         const form = new FormData();
         form.append('file', f);
         const region = (navigator.language || '').split('-')[1]?.toUpperCase();
         form.append('locale', `en-${region && /^[A-Z]{2}$/.test(region) ? region : 'GB'}`);
-        const r = await fetch('/api/makeover', { method: 'POST', body: form });
-        const j = (await r.json().catch(() => null)) as
+        const r = await fetch('/api/makeover', {
+          method: 'POST',
+          body: form,
+          headers: { accept: 'application/x-ndjson' },
+        });
+        type Answer =
           MakeoverResult | { error: { message: string; details?: { reason?: string } } } | null;
-        if (!r.ok || !j || 'error' in j) {
+        let j: Answer = null;
+        let ok = r.ok;
+        if (r.ok && r.body && (r.headers.get('content-type') ?? '').includes('ndjson')) {
+          const reader = r.body.getReader();
+          const dec = new TextDecoder();
+          let buf = '';
+          for (;;) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            buf += dec.decode(value, { stream: true });
+            let nl: number;
+            while ((nl = buf.indexOf('\n')) >= 0) {
+              const line = buf.slice(0, nl);
+              buf = buf.slice(nl + 1);
+              if (!line.trim()) continue;
+              const m = JSON.parse(line) as { step?: string; status?: number; body?: Answer };
+              if (m.step && at[m.step] !== undefined) setStep(at[m.step]!);
+              if (m.status !== undefined) {
+                ok = m.status >= 200 && m.status < 300;
+                j = m.body ?? null;
+              }
+            }
+          }
+        } else j = (await r.json().catch(() => null)) as Answer;
+        if (!ok || !j || 'error' in j) {
           setFailure({
             message:
               (j && 'error' in j && j.error.message) ||
@@ -116,6 +152,7 @@ export function MakeoverScreen() {
         const first = j.ranking.find((x) => !locked(x.id)) ?? j.ranking[0];
         setResult(j);
         setDoc(j.document);
+        setPortraitChoice(null);
         setDesignId(first?.id ?? 'clarity');
         setPhase('result');
         refresh();
@@ -124,8 +161,6 @@ export function MakeoverScreen() {
           message: 'We couldn’t reach the server. Check your connection and try again.',
         });
         setPhase('idle');
-      } finally {
-        window.clearInterval(timer);
       }
     },
     [locked, refresh],
@@ -148,6 +183,7 @@ export function MakeoverScreen() {
       setDesignId(p.templateId);
       setPhase('result');
       autoAction.current = p.action;
+      void loadPendingFile().then((f) => f && setFile(f));
     }, 0);
     return () => window.clearTimeout(t);
     // Only on arrival.
@@ -160,6 +196,7 @@ export function MakeoverScreen() {
       setSaveFailure(null);
       if (account.status !== 'signedIn') {
         savePending({ result, doc, templateId, action });
+        await savePendingFile(file);
         router.push(`/signin?mode=signup&next=${encodeURIComponent('/makeover?resume=1')}`);
         return;
       }
@@ -194,7 +231,7 @@ export function MakeoverScreen() {
         setSaving(null);
       }
     },
-    [account.status, asProfile, doc, result, router, templateId],
+    [account.status, asProfile, doc, file, result, router, templateId],
   );
 
   // Back from sign-in: carry on with what the person clicked.
@@ -421,6 +458,48 @@ export function MakeoverScreen() {
                 setDoc((d) => (d ? { ...d, basics: { ...d.basics, ...patch } } : d))
               }
             />
+          )}
+
+          {result.portrait && portraitChoice === null && (
+            <Card className="flex flex-wrap items-center gap-4 p-4" data-testid="found-photo">
+              {/* eslint-disable-next-line @next/next/no-img-element -- data URL from the reply */}
+              <img
+                src={result.portrait}
+                alt="The photo from your CV"
+                className="border-line size-20 rounded-full border object-cover"
+              />
+              <div className="flex min-w-0 flex-1 flex-col gap-2">
+                <h3 className="font-semibold">We found your photo in the CV</h3>
+                <p className="text-ink-muted text-sm">
+                  Use it in the new design? You can frame it, hide it or remove it later.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      setPortraitChoice('used');
+                      setDoc((d) =>
+                        d
+                          ? {
+                              ...d,
+                              basics: { ...d.basics, photo: result.portrait! },
+                              design: {
+                                ...d.design,
+                                options: { ...d.design.options, showPhoto: true },
+                              },
+                            }
+                          : d,
+                      );
+                    }}
+                  >
+                    Use this photo
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => setPortraitChoice('left')}>
+                    Leave it out
+                  </Button>
+                </div>
+              </div>
+            </Card>
           )}
 
           {openMissing.length > 0 && (

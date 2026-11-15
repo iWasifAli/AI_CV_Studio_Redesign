@@ -30,7 +30,40 @@ const limiter = createRateLimiter({ capacity: PER_MINUTE * 2, refillPerMinute: P
  *   which counts the import then.
  * The file is read in memory and discarded.
  */
+type Step = 'read' | 'scan' | 'structure' | 'design';
+
+/**
+ * With `Accept: application/x-ndjson` the answer streams: one `{"step":…}` line as each stage
+ * really finishes, then `{"status":…,"body":…}` with what the plain JSON request returns.
+ */
 export async function POST(req: Request) {
+  if (!(req.headers.get('accept') ?? '').includes('application/x-ndjson')) return handle(req);
+  const enc = new TextEncoder();
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      const send = (o: unknown) => controller.enqueue(enc.encode(`${JSON.stringify(o)}\n`));
+      try {
+        const res = await handle(req, (step) => send({ step }));
+        send({ status: res.status, body: await res.json() });
+      } catch {
+        send({
+          status: 500,
+          body: { error: { code: 'INTERNAL', message: 'Something went wrong.' } },
+        });
+      }
+      controller.close();
+    },
+  });
+  return new Response(stream, {
+    headers: {
+      'content-type': 'application/x-ndjson; charset=utf-8',
+      'cache-control': 'no-store',
+      'x-accel-buffering': 'no',
+    },
+  });
+}
+
+async function handle(req: Request, onStep?: (s: Step) => void): Promise<Response> {
   const rid = requestId();
   const ip = clientKey(req);
   if (!limiter(ip).ok)
@@ -84,7 +117,12 @@ export async function POST(req: Request) {
     const locale = /^[a-z]{2}-[A-Z]{2}$/.test(localeRaw) ? localeRaw : 'en-GB';
     const bytes = new Uint8Array(await file.arrayBuffer());
     const t0 = Date.now();
-    const read = await readCv(bytes, { key: user?.uid ?? ip, locale, ai: cfg.features.ai });
+    const read = await readCv(bytes, {
+      key: user?.uid ?? ip,
+      locale,
+      ai: cfg.features.ai,
+      onStep,
+    });
     const profile = detectProfile(read.doc);
     const doc = {
       ...read.doc,
@@ -95,6 +133,7 @@ export async function POST(req: Request) {
     );
     const stats = contentStats(doc, profile.presetId, read.photo);
     const ranking = rankDesigns(stats, enabled.length ? enabled : [...TEMPLATE_IDS]);
+    onStep?.('design');
     const makeoverId = await issueMakeover(mode === 'full', !user);
 
     await track('makeover_reveal');
@@ -130,6 +169,7 @@ export async function POST(req: Request) {
         kind: read.kind,
         scanned: read.scanned,
         photo: read.photo,
+        portrait: read.portrait,
         // The original text: the "before" view of Word files and the unplaced-lines panel.
         lines: read.lines,
         coverage: read.coverage,

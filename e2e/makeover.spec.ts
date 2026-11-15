@@ -164,6 +164,35 @@ test.describe('visitor', () => {
     await expect(page.getByTestId('drop-zone')).toBeVisible();
   });
 
+  test('progress is streamed as each stage really finishes', async ({ request }) => {
+    const r = await request.post('/api/makeover', {
+      headers: { accept: 'application/x-ndjson' },
+      multipart: {
+        file: {
+          name: 'scan-photo.png',
+          mimeType: 'image/png',
+          buffer: readFileSync(join(FIX, 'scan-photo.png')),
+        },
+      },
+    });
+    expect(r.headers()['content-type']).toContain('ndjson');
+    const lines = (await r.text())
+      .trim()
+      .split('\n')
+      .map(
+        (l) => JSON.parse(l) as { step?: string; status?: number; body?: { document?: unknown } },
+      );
+    expect(lines.filter((l) => l.step).map((l) => l.step)).toEqual([
+      'read',
+      'scan',
+      'structure',
+      'design',
+    ]);
+    const last = lines.at(-1)!;
+    expect(last.status).toBe(200);
+    expect(last.body?.document).toBeTruthy();
+  });
+
   test('crafted requests cannot claim, polish or reach internal AI tasks', async ({ request }) => {
     const fake = '00000000-0000-4000-8000-000000000000';
     expect(
@@ -200,6 +229,39 @@ test.describe('free account', () => {
     await expect(page.getByTestId('makeover-done')).toBeVisible({ timeout: 30_000 });
     await expect(page.getByText('Please check names and numbers')).toBeVisible();
     await expect(page.getByTestId('before-layer')).toBeVisible();
+  });
+
+  test('a photo in the CV is offered, and used only when chosen', async ({ page }) => {
+    await page.goto('/makeover');
+    await page.getByTestId('makeover-file').setInputFiles(join(FIX, 'cv-with-photo.pdf'));
+    await expect(page.getByTestId('makeover-done')).toBeVisible({ timeout: 30_000 });
+    const card = page.getByTestId('found-photo');
+    await expect(card).toBeVisible();
+    await expect(card.getByRole('img', { name: 'The photo from your CV' })).toHaveAttribute(
+      'src',
+      /^data:image\/jpeg;base64,/,
+    );
+    await noSeriousA11y(page);
+    await card.getByRole('button', { name: 'Use this photo' }).click();
+    await expect(card).toHaveCount(0);
+    // Saved with the CV: open it in the editor and the photo is there.
+    await page.getByTestId('makeover-edit').click();
+    await expect(page).toHaveURL(/\/cv\/[\w-]+$/, { timeout: 20_000 });
+    await expect(page.getByRole('img', { name: 'Your photo' })).toHaveAttribute(
+      'src',
+      /^data:image\/jpeg;base64,/,
+    );
+  });
+
+  test('a Word CV with a photo offers it too; leaving it out keeps the CV without one', async ({
+    page,
+  }) => {
+    await page.goto('/makeover');
+    await page.getByTestId('makeover-file').setInputFiles(join(FIX, 'cv-with-photo.docx'));
+    await expect(page.getByTestId('makeover-done')).toBeVisible({ timeout: 30_000 });
+    const card = page.getByTestId('found-photo');
+    await card.getByRole('button', { name: 'Leave it out' }).click();
+    await expect(card).toHaveCount(0);
   });
 
   test('saving counts one import; over the allowance it is a watermarked preview', async ({
