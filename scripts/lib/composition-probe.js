@@ -142,5 +142,23 @@
     }
     fill.push(cols);
   });
-  return { pages: pages.length, broken, overlaps, deco, fill };
+  // Entries split across pages: points on each page. A job heading must keep at least two of its
+  // points on the page it starts on, and the next page at least two (audit F-05 verification).
+  const parts = new Map();
+  pages.forEach((pg, i) => {
+    for (const b of pg.querySelectorAll('[data-block][data-ref]')) {
+      if (!b.classList.contains('b-entry') && !b.classList.contains('b-bullet')) continue;
+      const ref = b.getAttribute('data-ref');
+      const n = b.querySelectorAll('li').length;
+      const list = parts.get(ref) || [];
+      const last = list[list.length - 1];
+      if (last && last.page === i + 1) last.points += n;
+      else list.push({ page: i + 1, points: n });
+      parts.set(ref, list);
+    }
+  });
+  const splits = [];
+  for (const [ref, list] of parts)
+    if (list.length > 1 && list.some((x) => x.points < 2)) splits.push({ ref, parts: list });
+  return { pages: pages.length, broken, overlaps, deco, fill, splits };
 })();

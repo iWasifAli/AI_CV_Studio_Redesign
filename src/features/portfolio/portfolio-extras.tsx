@@ -306,7 +306,7 @@ export function SectionsEditor({
             hint={tx('Leave an empty line between paragraphs.')}
             onChange={(e) => set(i, { text: e.target.value })}
           />
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <TextField
               label={tx('Link (optional)')}
               value={s.link}
@@ -491,7 +491,7 @@ export function ProjectsEditor({
           />
           {p.images.length > 0 && (
             <ul
-              className="grid gap-3 sm:grid-cols-2"
+              className="grid grid-cols-1 gap-3 sm:grid-cols-2"
               aria-label={tx('Pictures for {v0}', { v0: p.title || 'this project' })}
             >
               {p.images.map((im, k) => (

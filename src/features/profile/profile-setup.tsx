@@ -87,7 +87,7 @@ export function ProfileSetup() {
           </ul>
         </Card>
       )}
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Card className="flex flex-col items-start gap-2 p-5">
           <FileUp aria-hidden className="text-primary" />
           <h2 className="text-lg font-semibold">{t('Import a CV you have')}</h2>

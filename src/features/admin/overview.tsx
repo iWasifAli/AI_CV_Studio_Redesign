@@ -265,7 +265,7 @@ function Numbers({ n }: { n: Overview['numbers'] }) {
           {t('Counts only — no CV content is recorded.')}
         </span>
       </div>
-      <dl className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
+      <dl className="grid grid-cols-1 gap-x-8 gap-y-3 sm:grid-cols-2">
         {rows.map(([label, value, note]) => (
           <div key={label}>
             <dt className="text-ink-muted text-sm">{label}</dt>

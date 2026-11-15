@@ -219,7 +219,8 @@ describe('entry keep rules', () => {
     const keeps = bulletKeeps(
       buildDocumentHtml(withBullets(Array(6).fill('Short line.')), { fonts }),
     );
-    expect(keeps).toEqual(['none', 'none', 'none', 'with-next', 'none']);
+    // Six points: the heading carries two, then four single points, the last two kept together.
+    expect(keeps).toEqual(['none', 'none', 'with-next', 'none']);
   });
 });
 

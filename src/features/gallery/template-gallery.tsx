@@ -196,7 +196,10 @@ export function TemplateGallery() {
         </p>
       </div>
 
-      <ul className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3" aria-describedby={`${ids}-count`}>
+      <ul
+        className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3"
+        aria-describedby={`${ids}-count`}
+      >
         {shown.map((t, index) => (
           <li key={t.id} className="flex flex-col gap-3" data-design={t.id}>
             <Link

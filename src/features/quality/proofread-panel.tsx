@@ -19,7 +19,7 @@ import { ops } from '@/modules/resume/ops';
 import type { ResumeDocument } from '@/modules/resume/schema';
 
 type State = 'open' | 'fixed' | 'left' | 'stale';
-type Result = { issues: Issue[]; lines: ProofLine[]; checked: number };
+type Result = { issues: Issue[]; lines: ProofLine[]; checked: number; unchecked?: number };
 
 /**
  * The last result per CV for this visit to the editor: "Show me" switches to the Content tab
@@ -68,6 +68,7 @@ export function ProofreadPanel({
       const j = (await r.json().catch(() => null)) as {
         issues?: Issue[];
         checked?: number;
+        unchecked?: number;
         error?: { message: string };
       } | null;
       if (!r.ok || !j?.issues) {
@@ -77,7 +78,12 @@ export function ProofreadPanel({
         });
         return;
       }
-      setResult({ issues: j.issues, lines, checked: j.checked ?? lines.length });
+      setResult({
+        issues: j.issues,
+        lines,
+        checked: j.checked ?? lines.length,
+        unchecked: j.unchecked ?? 0,
+      });
       setState({});
       refresh();
     } catch {
@@ -172,11 +178,21 @@ export function ProofreadPanel({
         <div className="flex flex-col gap-3" aria-live="polite" data-testid="proofread-result">
           <p className="font-semibold">
             {result.issues.length === 0
-              ? t('No mistakes found in {checked} lines.', { checked: result.checked })
+              ? t('No mistakes found in {checked} lines.', {
+                  checked: result.checked - (result.unchecked ?? 0),
+                })
               : open === 0
                 ? t('All done.')
                 : t('{open} thing{v1} to look at', { open: open, v1: open === 1 ? '' : 's' })}
           </p>
+          {!!result.unchecked && (
+            <p className="text-ink-muted text-sm" data-testid="proofread-partial">
+              {t(
+                'Part of your CV ({n} lines) couldn’t be checked just now. Run “Proofread again” to check it.',
+                { n: result.unchecked },
+              )}
+            </p>
+          )}
           <ul className="flex flex-col gap-3">
             {result.issues.map((issue, n) => {
               const st = state[n] ?? 'open';

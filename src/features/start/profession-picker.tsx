@@ -19,7 +19,7 @@ export function ProfessionPicker({ onChoose, busy }: Props) {
   const highlighted = params.get('work');
 
   return (
-    <ul className="grid gap-3 sm:grid-cols-2" aria-label={t('Kinds of work')}>
+    <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2" aria-label={t('Kinds of work')}>
       {PROFESSIONS.map((p) => {
         const isHighlighted = highlighted === p.id;
         return (

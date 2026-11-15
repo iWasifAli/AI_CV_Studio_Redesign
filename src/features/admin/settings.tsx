@@ -853,7 +853,7 @@ export function AdminSettings() {
             'Untick a task to switch off just that AI help; the tool says AI isn’t available and nothing is counted.',
           )}
         >
-          <div className="grid gap-x-6 sm:grid-cols-2" data-testid="ai-tasks">
+          <div className="grid grid-cols-1 gap-x-6 sm:grid-cols-2" data-testid="ai-tasks">
             {TASK_IDS.map((t) => (
               <CheckboxField
                 key={t}
@@ -878,7 +878,7 @@ export function AdminSettings() {
             "Which model each kind of task uses, by its name at your AI provider (for example gemini-flash-latest). Leave empty to keep the server's setting. Run the AI evaluation after a change.",
           )}
         >
-          <div className="grid gap-3 sm:grid-cols-2" data-testid="ai-models">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2" data-testid="ai-models">
             {(
               [
                 ['fast', 'Fast tasks (writing help, import, extraction)'],
@@ -912,7 +912,7 @@ export function AdminSettings() {
             'Prices per million tokens in US dollars (from your AI provider’s price list) and the rupee rate. Used only for the estimate on the Overview.',
           )}
         >
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {(
               [
                 ['fastIn', 'Fast model, input'],

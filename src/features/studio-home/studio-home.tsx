@@ -253,7 +253,7 @@ export function StudioHome() {
         </ul>
       </section>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <section
           aria-labelledby="jobs"
           className="border-line bg-surface flex flex-col gap-4 rounded-xl border p-5"
@@ -353,7 +353,7 @@ export function StudioHome() {
         <h2 id="explore" className="text-lg font-semibold">
           {tx('Explore')}
         </h2>
-        <ul className="grid gap-4 sm:grid-cols-3">
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {explore.map((t) => (
             <li key={t.title}>
               <Link

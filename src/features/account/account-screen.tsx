@@ -170,7 +170,7 @@ export function AccountScreen() {
               </p>
             )}
           </div>
-          <dl className="grid gap-2 sm:grid-cols-3">
+          <dl className="grid grid-cols-1 gap-2 sm:grid-cols-3">
             {(
               [
                 ['pdf.download', 'PDF downloads'],

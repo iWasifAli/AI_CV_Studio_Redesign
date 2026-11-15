@@ -129,7 +129,7 @@ export function PresenceHub() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <section
           aria-labelledby="portfolio-h"
           className="border-line bg-surface flex flex-col gap-3 rounded-xl border p-6"

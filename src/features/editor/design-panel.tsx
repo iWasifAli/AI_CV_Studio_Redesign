@@ -10,6 +10,7 @@ import { CheckboxField } from './fields';
 import { Segmented } from '@/components/ui/segmented';
 import { cn } from '@/lib/cn';
 import { ops } from '@/modules/resume/ops';
+import { browserRegion } from '@/modules/resume/region';
 import { FONT_PAIR_IDS, type DesignSpec } from '@/modules/resume/schema';
 import { contrast } from '@/modules/templates/color';
 import { ACCENT_PALETTE } from '@/modules/templates/design';
@@ -310,6 +311,24 @@ export function DesignPanel({
             { value: 'Letter', label: 'Letter (US, Canada)' },
           ]}
         />
+        {/* CVs made before paper followed the country may still be on Letter (verification round,
+            observation 5): offer A4 when the CV's country, or this browser's, uses it. */}
+        {d.pageSize === 'Letter' &&
+          (() => {
+            const where = doc.market ?? browserRegion();
+            return where && where !== 'US' && where !== 'CA' ? (
+              <p className="text-ink-muted -mt-2 text-sm" data-testid="paper-hint">
+                {tx('Letter is the US and Canadian size; most other countries use A4.')}{' '}
+                <button
+                  type="button"
+                  className="text-primary font-semibold underline-offset-2 hover:underline"
+                  onClick={() => set({ pageSize: 'A4' })}
+                >
+                  {tx('Use A4')}
+                </button>
+              </p>
+            ) : null;
+          })()}
         {template.support.headerAlign.length > 1 && (
           <Segmented
             label={tx('Name position')}

@@ -460,7 +460,7 @@ function Projects({
   tx: T;
 }) {
   return (
-    <ul className="grid gap-6 sm:grid-cols-2" data-testid="portfolio-projects">
+    <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2" data-testid="portfolio-projects">
       {projects.map((p) => {
         const imgs = imageBase ? p.images : [];
         return (

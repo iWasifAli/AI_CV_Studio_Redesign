@@ -1600,6 +1600,8 @@ export const de: Dict = {
   Letter: 'Brief',
   'Letter (US, Canada)': 'Letter (USA, Kanada)',
   'Letter deleted': 'Brief gelöscht',
+  'Letter is the US and Canadian size; most other countries use A4.':
+    'Letter ist das Format der USA und Kanadas; die meisten anderen Länder verwenden A4.',
   'Letter library (resignation, reference request, thank-you…)':
     'Briefvorlagen (Kündigung, Bitte um Referenz, Dankschreiben …)',
   'Letter library, statements and bios': 'Briefvorlagen, Profiltexte und Kurzbiografien',
@@ -2002,6 +2004,8 @@ export const de: Dict = {
   'Paragraph {v0}': 'Absatz {v0}',
   'Parent communication': 'Elternkommunikation',
   'Part of Premium.': 'Teil von Premium.',
+  'Part of your CV ({n} lines) couldn’t be checked just now. Run “Proofread again” to check it.':
+    'Ein Teil Ihres Lebenslaufs ({n} Zeilen) konnte gerade nicht geprüft werden. Wählen Sie „Erneut korrekturlesen“, um ihn zu prüfen.',
   'Partly shown': 'Teilweise gezeigt',
   'Partly there': 'Teilweise vorhanden',
   'Passed: no invented facts reached the text.':
@@ -3189,6 +3193,7 @@ export const de: Dict = {
     'Verwenden Sie ein Foto oder Bild (JPG, PNG oder WebP).',
   'Use a web address, like example.com/my-work.':
     'Verwenden Sie eine Webadresse, z. B. example.com/meine-arbeit.',
+  'Use A4': 'A4 verwenden',
   'use automated tools to make large numbers of requests.':
     'automatisierte Werkzeuge für große Mengen an Anfragen nutzen.',
   'Use it in the new design? You can frame it, hide it or remove it later.':

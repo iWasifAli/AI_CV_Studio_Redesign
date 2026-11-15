@@ -270,7 +270,7 @@ export function PremiumScreen() {
             <div
               role="radiogroup"
               aria-labelledby="step-pass"
-              className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
+              className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
             >
               {offer.passes.map((p) => (
                 <SelectableCard
@@ -492,7 +492,7 @@ export function PremiumScreen() {
         <h2 id="faq" className="flex items-center gap-2 text-xl font-semibold">
           <ShieldCheck aria-hidden size={20} className="text-primary" /> {t('Good to know')}
         </h2>
-        <dl className="grid gap-5 sm:grid-cols-2">
+        <dl className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <Faq q={t('Is this a subscription?')}>
             {t(
               'No. A pass lasts for its number of days and then simply ends. Nothing is charged automatically.',

@@ -68,7 +68,7 @@ export function NewLetter() {
           <section key={title} aria-label={tx(title)} className="flex flex-col gap-3">
             <h2 className="text-lg font-semibold">{tx(title)}</h2>
             <ul
-              className="grid gap-3 sm:grid-cols-2"
+              className="grid grid-cols-1 gap-3 sm:grid-cols-2"
               aria-label={tx('{title}: types', { title: tx(title) })}
             >
               {list.map((t) => (

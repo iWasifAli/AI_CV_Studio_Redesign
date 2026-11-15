@@ -63,6 +63,8 @@ h1,h2,h3{text-wrap:balance}
 .cv-contacts{display:flex;flex-wrap:wrap;row-gap:.15em;margin-left:-1.4em}
 .cv-contact{padding-left:1.4em;position:relative}
 .cv-sep{position:absolute;left:0;width:1.4em;text-align:center;color:var(--accent-line)}
+.cv-contact--line-start{padding-left:0}
+.cv-contact--line-start .cv-sep{display:none}
 [data-ref]{cursor:default}
 @media screen{ .cv-page{box-shadow:0 1px 3px rgba(27,31,36,.08),0 10px 30px -12px rgba(27,31,36,.25)} }
 /* Details waiting for the person's input (from AI suggestions). */

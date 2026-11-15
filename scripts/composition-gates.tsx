@@ -19,7 +19,8 @@ import type { ResumeDocument } from '../src/modules/resume/schema';
 import { auditExecutive, auditGraduate } from '../src/modules/resume/stress-fixtures';
 import { buildDocumentHtml } from '../src/modules/templates/build-document';
 
-const MIN_FILL = Number(process.env.MIN_FILL ?? 80);
+// 78, not 80: a job heading keeps two points with it, so a page may end one short entry early.
+const MIN_FILL = Number(process.env.MIN_FILL ?? 78);
 const MIN_LAST = Number(process.env.MIN_LAST ?? 20);
 const args = process.argv.slice(2);
 const only = args.find((a) => !a.startsWith('--'))?.split(',');
@@ -43,6 +44,7 @@ type Probe = {
   overlaps: { page: number; a: string; b: string }[];
   deco: { page: number; cls: string; text: string }[];
   fill: Record<string, number>[];
+  splits: { ref: string; parts: { page: number; points: number }[] }[];
 };
 
 const browser = await puppeteer.launch({
@@ -70,6 +72,10 @@ for (const meta of DESIGNS) {
       fails.push(`${label}: text over text on page ${o.page} ("${o.a}" / "${o.b}")`);
     for (const d of r.deco.slice(0, 2))
       fails.push(`${label}: decoration ${d.cls} under "${d.text}" on page ${d.page}`);
+    for (const x of r.splits.slice(0, 2))
+      fails.push(
+        `${label}: entry split with one point (${x.parts.map((p) => `p${p.page}:${p.points}`).join(' ')})`,
+      );
     const tallest = r.fill.map((c) => Math.max(0, ...Object.values(c)));
     tallest.forEach((f, i) => {
       const last = i === tallest.length - 1;

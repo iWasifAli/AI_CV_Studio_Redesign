@@ -110,7 +110,7 @@ export function CareerPaths({
         />
       )}
       {paths && (
-        <ul className="grid gap-3 md:grid-cols-2" data-testid="paths">
+        <ul className="grid grid-cols-1 gap-3 md:grid-cols-2" data-testid="paths">
           {paths.map((p) => (
             <li key={p.role} className="border-line flex flex-col gap-2 rounded-lg border p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">

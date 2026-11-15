@@ -222,7 +222,7 @@ export function AdminUsers() {
         </section>
       )}
       {list && (
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <section className="border-line bg-surface rounded-lg border p-5">
             <h2 className="mb-3 text-lg font-semibold">{t('Premium accounts')}</h2>
             {list.passes.length === 0 ? (

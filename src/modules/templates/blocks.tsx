@@ -90,7 +90,8 @@ function Bullets({ items, plain }: { items: string[]; plain?: boolean }) {
   );
 }
 
-const BULLETS_IN_HEAD = 1;
+/** A job heading always keeps its first two points on its page (audit F-05, verification round). */
+const BULLETS_IN_HEAD = 2;
 /**
  * Entries with up to this many bullets are never split across pages. Longer entries may split
  * between bullets: the job's title always carries its first bullet and the last two bullets stay

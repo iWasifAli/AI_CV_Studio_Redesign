@@ -168,7 +168,7 @@ export function ShellTop() {
       </header>
 
       <Dialog open={create} onClose={() => setCreate(false)} title={t('Create')}>
-        <ul className="grid gap-2 sm:grid-cols-2">
+        <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {CREATE.map((c) => (
             <li key={c.href}>
               <Link

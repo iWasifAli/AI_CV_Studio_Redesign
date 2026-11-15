@@ -424,7 +424,7 @@ function Compare({
               </Button>
             ))}
           </div>
-          <div className="grid gap-3 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {(['then', 'now'] as const).map((s) => (
               <figure key={s} className={cn('flex flex-col gap-1', side !== s && 'hidden md:flex')}>
                 <figcaption className="text-sm font-semibold">

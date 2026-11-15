@@ -58,19 +58,32 @@ export async function POST(req: Request) {
     await gate.release();
     return apiError('RATE_LIMITED', 'Too many requests. Please wait a little.', rid);
   }
-  // The CV is checked in parts side by side: one long call took 75–105 s (audit F-11).
-  const parts = proofChunks(lines).slice(0, 12);
-  const runs = await Promise.all(
-    parts.map((part) =>
-      runTask('quality.proofread', { lines: proofText(part).slice(0, 12_000) }, 0, {
-        provider,
-        models: aiModels(),
-        timeoutMs: 40_000,
-      }),
-    ),
+  // The CV is checked in parts, at most four at a time (more invites rate limits), each within
+  // 25 s and the whole check within 45 s (audit F-11). Parts that fail are reported, not hidden.
+  const parts = proofChunks(lines, 40).slice(0, 10);
+  const deadline = Date.now() + 45_000;
+  const runs: Awaited<ReturnType<typeof runTask<'quality.proofread'>>>[] = new Array(parts.length);
+  let next = 0;
+  await Promise.all(
+    Array.from({ length: Math.min(4, parts.length) }, async () => {
+      while (next < parts.length) {
+        const k = next++;
+        const left = deadline - Date.now();
+        if (left < 5_000) {
+          runs[k] = { ok: false, code: 'AI_UNAVAILABLE', reason: 'timeout' };
+          continue;
+        }
+        runs[k] = await runTask('quality.proofread', { lines: proofText(parts[k]!) }, 0, {
+          provider,
+          models: aiModels(),
+          timeoutMs: Math.min(25_000, left),
+        });
+      }
+    }),
   );
   const okRuns = runs.filter((x) => x.ok);
   for (const x of runs) await track(x.ok ? 'ai_ok' : 'ai_fail');
+  const unchecked = runs.filter((x) => !x.ok).length;
   const r = okRuns.length
     ? {
         ok: true as const,
@@ -88,7 +101,14 @@ export async function POST(req: Request) {
   }
   await track('proofread');
   return NextResponse.json(
-    { issues: checkIssues(r.result.issues, lines), checked: lines.length },
+    {
+      issues: checkIssues(r.result.issues, lines),
+      checked: lines.length,
+      // Lines in parts that couldn't be checked this time (the person can run it again).
+      unchecked: unchecked
+        ? parts.filter((_, i) => !runs[i]!.ok).reduce((n, p) => n + p.length, 0)
+        : 0,
+    },
     { headers: { 'Cache-Control': 'no-store' } },
   );
 }

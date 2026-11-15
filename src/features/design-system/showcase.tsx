@@ -110,7 +110,7 @@ export function Showcase() {
         </Section>
 
         <Section title={tx('Form fields')}>
-          <div className="grid max-w-2xl gap-5 sm:grid-cols-2">
+          <div className="grid max-w-2xl grid-cols-1 gap-5 sm:grid-cols-2">
             <TextField label={tx('Full name')} placeholder={tx('e.g. Imran Qureshi')} />
             <TextField
               label={tx('Email')}
@@ -170,7 +170,7 @@ export function Showcase() {
         </Section>
 
         <Section title={tx('Cards')}>
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             {['Calm & classic', 'Modern & clear', 'Bold sidebar'].map((t, i) => (
               <SelectableCard key={t} selected={selected === i} onClick={() => setSelected(i)}>
                 <span className="font-semibold">{t}</span>

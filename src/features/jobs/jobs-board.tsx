@@ -168,7 +168,7 @@ export function JobsBoard() {
           </p>
         </div>
       ) : (
-        <div className="grid gap-4 lg:grid-cols-5" data-testid="jobs-board">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-5" data-testid="jobs-board">
           {JOB_STAGES.map((stage) => {
             const jobs = data.jobs.filter((j) => j.stage === stage);
             return (
@@ -374,7 +374,7 @@ function AddJob({
             )}
           </div>
         )}
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <TextField
             label={t('Job title')}
             value={title}

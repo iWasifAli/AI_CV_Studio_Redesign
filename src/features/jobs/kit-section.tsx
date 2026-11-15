@@ -118,7 +118,7 @@ export function KitSection({
       </div>
 
       {job.kit && letter && (
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <figure className="flex flex-col gap-2">
             {cv ? (
               <Link

@@ -408,9 +408,11 @@ export const RUNTIME_JS = String.raw`(function (planPages) {
   // enter the PDF text an ATS reads. Layout is untouched: the text stays, invisible, in place.
   var FURNITURE = '.cv-foot, .cv-top--running, [data-num], .g-mono, .h-monogram, .cv-portrait--initials';
   function flattenFurniture() {
-    var SCALE = 4;
+    // 3× (about 290 dpi) is sharp in print; 4× doubled the file size (verification round).
+    var SCALE = 3;
     var roots = document.querySelectorAll('[data-cv-pages] .cv-page');
     var hide = [];
+    var pending = [];
     for (var p = 0; p < roots.length; p++) {
       var pg = roots[p];
       var pr = pg.getBoundingClientRect();
@@ -433,7 +435,7 @@ export const RUNTIME_JS = String.raw`(function (planPages) {
         ctx.translate(-ox, -oy);
         ctx.textBaseline = 'alphabetic';
         var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-        var n, drew = false;
+        var n, drew = false, bx0 = 1e9, by0 = 1e9, bx1 = -1e9, by1 = -1e9;
         while ((n = walker.nextNode())) {
           var text = n.textContent || '';
           if (!text.trim()) continue;
@@ -473,11 +475,30 @@ export const RUNTIME_JS = String.raw`(function (planPages) {
               var r = parts[q].r;
               ctx.fillText(word, r.left, r.top + (r.height - asc - desc) / 2 + asc);
               drew = true;
+              bx0 = Math.min(bx0, r.left - 1); by0 = Math.min(by0, r.top - 1);
+              bx1 = Math.max(bx1, r.left + mt.width + 2); by1 = Math.max(by1, r.bottom + 1);
             }
           }
           hide.push(n);
         }
-        if (drew) pg.appendChild(cv);
+        if (!drew) continue;
+        // Only the inked part, as an <img>: a running header that is the same on every page then
+        // has the same source, and the PDF stores it once.
+        var cx0 = Math.max(0, Math.floor((bx0 - ox) * SCALE)), cy0 = Math.max(0, Math.floor((by0 - oy) * SCALE));
+        var cw = Math.min(cv.width, Math.ceil((bx1 - ox) * SCALE)) - cx0, ch = Math.min(cv.height, Math.ceil((by1 - oy) * SCALE)) - cy0;
+        if (cw < 1 || ch < 1) continue;
+        var out = document.createElement('canvas');
+        out.width = cw;
+        out.height = ch;
+        out.getContext('2d').drawImage(cv, cx0, cy0, cw, ch, 0, 0, cw, ch);
+        var img = document.createElement('img');
+        img.alt = '';
+        img.setAttribute('aria-hidden', 'true');
+        img.setAttribute('role', 'presentation');
+        img.src = out.toDataURL('image/png');
+        img.style.cssText = 'position:absolute;pointer-events:none;z-index:5;left:' + (ox + cx0 / SCALE - pr.left) + 'px;top:' + (oy + cy0 / SCALE - pr.top) + 'px;width:' + cw / SCALE + 'px;height:' + ch / SCALE + 'px';
+        pg.appendChild(img);
+        pending.push(img);
       }
     }
     for (var k = 0; k < hide.length; k++) {
@@ -486,9 +507,42 @@ export const RUNTIME_JS = String.raw`(function (planPages) {
       hide[k].parentNode.insertBefore(span, hide[k]);
       span.appendChild(hide[k]);
     }
-    return hide.length;
+    // Resolves once every picture is decoded, so the PDF never prints a blank one.
+    return Promise.all(
+      pending.map(function (im) {
+        return im.decode ? im.decode().catch(function () {}) : null;
+      })
+    ).then(function () {
+      return hide.length;
+    });
   }
   window.__CV_FLATTEN__ = flattenFurniture;
+
+  // Centred contact lines (Heritage, Halo, centred headers) can't clip the separator of a wrapped
+  // line at the left edge, so the item that starts each line drops its separator here (verification
+  // round, observation 4). Repeated until stable, since a narrower item can change the wrapping.
+  function tidyContactLines() {
+    var lists = document.querySelectorAll('[data-cv-pages] .cv-contacts');
+    for (var i = 0; i < lists.length; i++) {
+      var ul = lists[i];
+      var cs = getComputedStyle(ul);
+      if (cs.display !== 'flex' || cs.flexDirection === 'column' || parseFloat(cs.marginLeft) < 0) continue;
+      var items = ul.querySelectorAll(':scope > .cv-contact');
+      for (var pass = 0; pass < 3; pass++) {
+        var changed = false, prevTop = null;
+        for (var k = 0; k < items.length; k++) {
+          var top = items[k].offsetTop;
+          var first = prevTop === null || top > prevTop + 2;
+          prevTop = top;
+          if (first !== items[k].classList.contains('cv-contact--line-start')) {
+            items[k].classList.toggle('cv-contact--line-start', first);
+            changed = true;
+          }
+        }
+        if (!changed) break;
+      }
+    }
+  }
 
   function paginate() {
     var st = capture();
@@ -514,6 +568,7 @@ export const RUNTIME_JS = String.raw`(function (planPages) {
       }
     }
     numberSections();
+    tidyContactLines();
     clearArt();
     var result = {
       pages: r.pages,

@@ -422,7 +422,7 @@ function PlanView({
       </header>
       {plan.summary && <p className="text-lg">{plan.summary}</p>}
 
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         <SkillGroup
           title={tx('You already show')}
           skills={by('have')}

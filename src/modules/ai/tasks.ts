@@ -715,9 +715,11 @@ RULES — follow all of them:
 
 const proofread: TaskDef<'quality.proofread'> = {
   id: 'quality.proofread',
-  version: 'proofread@2',
-  // Fast model, one part of the CV per call, side by side (audit F-11).
+  version: 'proofread@3',
+  // Fast model without long thinking, one part of the CV per call, side by side (audit F-11):
+  // spelling and grammar need care, not deliberation.
   tier: 'fast',
+  thinking: 'minimal',
   temperature: 0.1,
   maxTokens: 6144,
   system: () =>
