@@ -130,6 +130,8 @@ export const businessConfig = z.object({
     pack: z.boolean().default(true),
     /** Explain a gap: neutral wording for breaks of over six months (AI, spec §9.3). */
     gapCoach: z.boolean().default(true),
+    /** Community designs: people share designs; only those approved in the Console are shown. */
+    community: z.boolean().default(false),
   }),
   /** AI actions that cost more than one (complete-studio-spec §14: weights are config data). */
   aiWeights: z
@@ -337,6 +339,7 @@ export const DEFAULT_CONFIG: BusinessConfig = {
     quantify: true,
     pack: true,
     gapCoach: true,
+    community: false,
   },
   aiWeights: {
     kit: 3,

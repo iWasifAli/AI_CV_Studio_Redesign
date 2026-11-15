@@ -24,12 +24,12 @@ export default defineConfig({
   projects: [
     {
       name: 'desktop',
-      testIgnore: /(admin|premium|studio)\.spec\.ts/,
+      testIgnore: /(admin|premium|studio|community)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } },
     },
     {
       name: 'mobile',
-      testIgnore: /(admin|premium|studio)\.spec\.ts/,
+      testIgnore: /(admin|premium|studio|community)\.spec\.ts/,
       use: { ...devices['Pixel 7'] },
     },
     {
@@ -37,7 +37,7 @@ export default defineConfig({
       // run last, one file at a time (two files in parallel would overwrite each other's config).
       name: 'admin',
       workers: 1,
-      testMatch: /(admin|premium|studio)\.spec\.ts/,
+      testMatch: /(admin|premium|studio|community)\.spec\.ts/,
       dependencies: ['desktop', 'mobile'],
       use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } },
     },

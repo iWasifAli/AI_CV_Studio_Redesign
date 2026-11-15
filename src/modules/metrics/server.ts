@@ -85,6 +85,9 @@ export const EVENTS = [
   'pack_zip',
   'pack_fail',
   'gap_explain',
+  'community_submit',
+  'community_approved',
+  'community_used',
   // AI tokens by model tier, for the cost estimate in the Console.
   'tok_fast_in',
   'tok_fast_out',

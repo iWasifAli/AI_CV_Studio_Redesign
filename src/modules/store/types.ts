@@ -1,3 +1,4 @@
+import type { CommunityDesign, CommunityStatus } from '@/modules/community/types';
 import type { Activity } from '@/modules/metrics/numbers';
 import type {
   PortfolioProject,
@@ -100,6 +101,15 @@ export interface UserStore {
   listShares(uid: string): Promise<Share[]>;
   /** Saved designs ("Save as my design", R6), newest first. Stored under the account. */
   listDesigns(uid: string): Promise<SavedDesign[]>;
+  // Community designs (R10): shared designs reviewed in the Console.
+  putCommunityDesign(d: CommunityDesign): Promise<void>;
+  getCommunityDesign(id: string): Promise<CommunityDesign | null>;
+  /** Newest first; by status and/or by account. */
+  listCommunityDesigns(q: {
+    status?: CommunityStatus;
+    uid?: string;
+    limit: number;
+  }): Promise<CommunityDesign[]>;
   putDesign(d: SavedDesign): Promise<void>;
   deleteDesign(uid: string, id: string): Promise<boolean>;
   updateShare(

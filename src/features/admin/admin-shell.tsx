@@ -7,6 +7,7 @@ import {
   Banknote,
   History,
   LayoutDashboard,
+  Palette,
   ShieldAlert,
   SlidersHorizontal,
   Sparkles,
@@ -22,6 +23,7 @@ const NAV = [
   { href: '/admin/users', label: 'Users', icon: Users },
   { href: '/admin/settings', label: 'Settings', icon: SlidersHorizontal },
   { href: '/admin/ai', label: 'AI', icon: Sparkles },
+  { href: '/admin/designs', label: 'Design review', icon: Palette },
   { href: '/admin/history', label: 'History & audit', icon: History },
 ];
 

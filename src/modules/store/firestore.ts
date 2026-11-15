@@ -1,6 +1,7 @@
 import type { ShareComment } from '@/modules/share/comments';
 import 'server-only';
 import type { Activity } from '@/modules/metrics/numbers';
+import type { CommunityDesign, CommunityStatus } from '@/modules/community/types';
 import { FieldValue, type Firestore } from 'firebase-admin/firestore';
 import type { Job } from '@/modules/jobs/schema';
 import type { SavedLetter } from '@/modules/letters/schema';
@@ -32,6 +33,7 @@ import {
 
 /**
  * Firestore layout (owned by the user, written only by the server):
+ *   communityDesigns/{id}                    shared designs and their review status (R10)
  *   activity/{uid}                           product-number activity: days, tool names, dates only
  *   users/{uid}                              email, name, lastSeenAt (merged; old app fields untouched)
  *   users/{uid}/documents/{id}               { updatedAt, deleted, title, doc, serverUpdatedAt }
@@ -181,6 +183,25 @@ export class FirestoreUserStore implements UserStore {
     await this.plansCol(uid).doc(id).delete();
   }
 
+  async putCommunityDesign(d: CommunityDesign) {
+    await this.db.collection('communityDesigns').doc(d.id).set(d);
+  }
+  async getCommunityDesign(id: string) {
+    const s = await this.db.collection('communityDesigns').doc(id).get();
+    return s.exists ? (s.data() as CommunityDesign) : null;
+  }
+  async listCommunityDesigns(q: { status?: CommunityStatus; uid?: string; limit: number }) {
+    // One equality filter at most (no composite index); the rest is done here.
+    let query: FirebaseFirestore.Query = this.db.collection('communityDesigns');
+    if (q.uid) query = query.where('uid', '==', q.uid);
+    else if (q.status) query = query.where('status', '==', q.status);
+    const snap = await query.limit(500).get();
+    return snap.docs
+      .map((d) => d.data() as CommunityDesign)
+      .filter((d) => !q.status || d.status === q.status)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      .slice(0, q.limit);
+  }
   async updateActivity(uid: string, edit: (cur: Activity | null) => Activity | null) {
     const ref = this.db.collection('activity').doc(uid);
     return this.db.runTransaction(async (tx) => {
@@ -234,6 +255,8 @@ export class FirestoreUserStore implements UserStore {
     await this.db.collection('passes').doc(uid).delete();
     await this.db.collection('reminderQueue').doc(uid).delete();
     await this.db.collection('activity').doc(uid).delete();
+    const shared = await this.db.collection('communityDesigns').where('uid', '==', uid).get();
+    await Promise.all(shared.docs.map((d) => d.ref.delete()));
     const usage = await this.db.collection('usage').where('uid', '==', uid).get();
     const shares = await this.db.collection('shares').where('uid', '==', uid).get();
     const portfolios = await this.db.collection('portfolios').where('uid', '==', uid).get();

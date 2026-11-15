@@ -771,6 +771,11 @@ export function AdminSettings() {
             checked={draft.features.gapCoach}
             onChange={(v) => edit((c) => void (c.features.gapCoach = v))}
           />
+          <CheckboxField
+            label="Community designs (shared designs, shown only after you approve them in Design review)"
+            checked={draft.features.community}
+            onChange={(v) => edit((c) => void (c.features.community = v))}
+          />
         </Section>
 
         <Section

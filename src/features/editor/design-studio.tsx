@@ -31,6 +31,12 @@ import { ops } from '@/modules/resume/ops';
 import type { DocumentEditor } from './use-document-editor';
 import { cutSuggestions, meetsTarget, type Cut, type PageTarget } from '@/modules/design/fit';
 import { Segmented } from '@/components/ui/segmented';
+import {
+  CommunityGallery,
+  MySharedDesigns,
+  ShareDesign,
+  useCommunity,
+} from '@/features/community/community';
 
 type Opt<T extends string | number> = { value: T; label: string };
 const words = (v: string) => v.charAt(0).toUpperCase() + v.slice(1).replace(/-/g, ' ');
@@ -316,6 +322,8 @@ export function DesignStudio({
   const [name, setName] = useState('');
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
   const signedIn = account.status === 'signedIn';
+  const community = useCommunity();
+  const [shareTick, setShareTick] = useState(0);
   useEffect(() => {
     if (!signedIn) return;
     let live = true;
@@ -890,6 +898,9 @@ export function DesignStudio({
                     >
                       Use “{d.name}”
                     </button>
+                    {community && (
+                      <ShareDesign design={d} onShared={() => setShareTick((t) => t + 1)} />
+                    )}
                     <button
                       type="button"
                       aria-label={`Delete ${d.name}`}
@@ -902,9 +913,19 @@ export function DesignStudio({
                 ))}
               </ul>
             )}
+            {community && <MySharedDesigns tick={shareTick} />}
           </>
         )}
       </div>
+      {community && (
+        <CommunityGallery
+          doc={doc}
+          onUse={(d) => {
+            update((x) => ops.setSpec(x, d.spec));
+            void fetch('/api/community/used', { method: 'POST' }).catch(() => {});
+          }}
+        />
+      )}
     </section>
   );
 }

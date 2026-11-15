@@ -1,3 +1,4 @@
+import type { CommunityDesign, CommunityStatus } from '@/modules/community/types';
 import type { Activity } from '@/modules/metrics/numbers';
 import type { ShareComment } from '@/modules/share/comments';
 import type { Job } from '@/modules/jobs/schema';
@@ -178,6 +179,23 @@ export class MemoryUserStore implements UserStore {
     this.planBucket(uid).delete(id);
   }
 
+  private community = new Map<string, CommunityDesign>();
+  async putCommunityDesign(d: CommunityDesign) {
+    this.community.set(d.id, structuredClone(d));
+  }
+  async getCommunityDesign(id: string) {
+    const d = this.community.get(id);
+    return d ? structuredClone(d) : null;
+  }
+  async listCommunityDesigns(q: { status?: CommunityStatus; uid?: string; limit: number }) {
+    return structuredClone(
+      [...this.community.values()]
+        .filter((d) => (!q.status || d.status === q.status) && (!q.uid || d.uid === q.uid))
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+        .slice(0, q.limit),
+    );
+  }
+
   private activity = new Map<string, Activity>();
   async updateActivity(uid: string, edit: (cur: Activity | null) => Activity | null) {
     const before = this.activity.has(uid) ? structuredClone(this.activity.get(uid)!) : null;
@@ -212,6 +230,7 @@ export class MemoryUserStore implements UserStore {
     this.users.delete(uid);
     this.seen.delete(uid);
     this.activity.delete(uid);
+    for (const [k, d] of this.community) if (d.uid === uid) this.community.delete(k);
     this.docs.delete(uid);
     for (const k of [...this.versions.keys()]) if (k.startsWith(`${uid}/`)) this.versions.delete(k);
     for (const k of [...this.comments.keys()]) if (k.startsWith(`${uid}/`)) this.comments.delete(k);
