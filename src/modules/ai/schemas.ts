@@ -40,6 +40,8 @@ export const TASK_IDS = [
   'write.quantify',
   'coach.gap',
   'translate.document',
+  'job.brief',
+  'career.paths',
   'suggest.skills',
   'import.structure',
   'job.match',
@@ -159,6 +161,19 @@ export const taskInputs = {
     tone: z.enum(['formal', 'friendly']).default('formal'),
     /** The whole field the selection is in (facts may come from it too). */
     context: z.string().max(3000).default(''),
+  }),
+  /** Company brief (spec §10.2): the advert, text the person pasted from the company, the CV. */
+  'job.brief': z.object({
+    title: z.string().max(160).default(''),
+    company: z.string().max(160).default(''),
+    advert: z.string().min(80).max(12_000),
+    pages: z.string().max(12_000).default(''),
+    profile: z.string().min(20).max(24_000),
+  }),
+  /** Career paths (spec §10.3): roles reachable from the CV. */
+  'career.paths': z.object({
+    profile: z.string().min(20).max(24_000),
+    interests: z.string().max(300).default(''),
   }),
   /** CV translation (spec §10.1): texts with names, numbers and links already locked as ⟦n⟧. */
   'translate.document': z.object({
@@ -411,6 +426,33 @@ export const taskOutputs = {
   'write.improveBullets': z.object({ bullets: z.array(z.string().min(1).max(260)).min(1).max(12) }),
   'write.fromNotes': z.object({ bullets: z.array(z.string().min(1).max(260)).min(1).max(8) }),
   'write.rewrite': z.object({ text: z.string().min(1).max(2000) }),
+  'job.brief': z.object({
+    /** What the company does, from the advert and the pasted pages only. */
+    company: z.string().min(3).max(500),
+    values: z.array(z.string().min(2).max(160)).max(5),
+    /** What the role needs most, from the advert. */
+    needs: z.array(z.string().min(2).max(200)).min(1).max(6),
+    /** How the person's CV fits: a sentence and the CV line it rests on. */
+    fit: z.array(z.object({ point: z.string().min(3).max(300), line: z.string().max(20) })).max(5),
+    /** Good questions to ask them. */
+    questions: z.array(z.string().min(5).max(200)).min(2).max(6),
+  }),
+  'career.paths': z.object({
+    paths: z
+      .array(
+        z.object({
+          role: z.string().min(2).max(80),
+          /** Why it fits: facts from the CV only. */
+          why: z.string().min(5).max(400),
+          have: z.array(z.string().min(1).max(80)).max(6),
+          need: z.array(z.string().min(1).max(80)).max(6),
+          step: z.string().min(5).max(300),
+          reach: z.enum(['near', 'stretch']),
+        }),
+      )
+      .min(1)
+      .max(5),
+  }),
   'translate.document': z.object({
     pieces: z.array(z.object({ id: z.string().max(40), text: z.string().max(2000) })).max(300),
   }),

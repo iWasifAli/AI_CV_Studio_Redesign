@@ -235,6 +235,55 @@ function answer(task: TaskId, input: unknown, attempt: number, files: AiFile[] =
       const firstBullet = digestLines(i.profile).find((l) => /\.B\d+$/.test(l.id))?.id ?? '';
       return { terms: terms.map((term, n) => ({ term, line: n === 0 ? firstBullet : '' })) };
     }
+    case 'job.brief': {
+      const i = input as ParsedInput<'job.brief'>;
+      const cv = digestLines(i.profile);
+      const best = cv.find((l) => /\.B\d+$/.test(l.id));
+      const first =
+        i.advert
+          .split(/[.!?\n]/)
+          .find((s) => s.trim().length > 10)
+          ?.trim() ?? i.advert.slice(0, 80);
+      return {
+        company: `${i.company || 'The company'}: ${first}.`,
+        values: [],
+        needs: [i.title || 'The role in the advert'],
+        fit: best
+          ? [{ point: `You have ${best.text.replace(/\.$/, '').toLowerCase()}`, line: best.id }]
+          : [],
+        questions: [
+          'What would a good first few months look like in this role?',
+          'How is success measured for this team?',
+        ],
+      };
+    }
+    case 'career.paths': {
+      const i = input as ParsedInput<'career.paths'>;
+      const cv = digestLines(i.profile);
+      const head = cv.find((l) => l.id === 'H')?.text ?? 'your current work';
+      // Test hook: interests saying ZZ-PATH make the demo AI claim a degree nobody has.
+      const extra = i.interests.includes('ZZ-PATH') ? ' and your PhD in Physics' : '';
+      return {
+        paths: [
+          {
+            role: 'Team Leader',
+            why: `Your experience as ${head}${extra} points to leading others.`,
+            have: [head],
+            need: ['Leading a small team'],
+            step: 'Ask to train a new starter this month.',
+            reach: 'near',
+          },
+          {
+            role: 'Operations Coordinator',
+            why: `Your work as ${head} shows you know how the work is done day to day.`,
+            have: [head],
+            need: ['Planning tools', 'Reporting'],
+            step: 'Offer to help plan next week’s schedule.',
+            reach: 'stretch',
+          },
+        ],
+      };
+    }
     case 'translate.document': {
       const i = input as ParsedInput<'translate.document'>;
       // Test hook: a piece saying ZZ-DROP loses its tokens (the server must keep the original).

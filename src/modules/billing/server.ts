@@ -188,6 +188,8 @@ export async function entitlementsFor(user: SessionUser | null) {
       gapCoach: cfg.features.gapCoach,
       community: cfg.features.community,
       translate: cfg.features.translate,
+      companyBrief: cfg.features.companyBrief,
+      careerPaths: cfg.features.careerPaths,
     },
     aiWeights: cfg.aiWeights,
     hiddenLetterTypes: cfg.content.hiddenLetterTypes,

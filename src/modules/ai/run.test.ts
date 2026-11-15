@@ -227,6 +227,8 @@ describe('mock provider', () => {
     'quality.atsKeywords': { advert: ADVERT, profile: profileDigest(F.driver).text },
     'quality.proofread': { lines: 'L1: Recieved parcels and and loaded vans' },
     'write.quantify': { mode: 'ask', point: 'Delivered parcels across Leicester', job: 'Driver' },
+    'job.brief': { title: 'Driver', advert: ADVERT, profile: profileDigest(F.driver).text },
+    'career.paths': { profile: profileDigest(F.driver).text },
     'translate.document': {
       language: 'German',
       pieces: [{ id: 'b.summary', text: 'Driver with ⟦1⟧ years' }],

@@ -24,6 +24,8 @@ const INTERNAL = new Set<string>([
   'write.quantify',
   'coach.gap',
   'translate.document',
+  'job.brief',
+  'career.paths',
   'interview.turn',
   'coach.chat',
   'story.draft',

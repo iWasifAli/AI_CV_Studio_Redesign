@@ -22,6 +22,7 @@ import {
 import { getRepository } from '@/modules/storage/repository';
 import { jobsApi } from './api';
 import { JobTools } from './job-tools';
+import { CompanyBrief } from './company-brief';
 import { RemindersCard } from './reminders-card';
 import { useEntitlements } from '@/features/account/entitlements';
 
@@ -261,6 +262,13 @@ export function JobDetail({ id }: { id: string }) {
           </Card>
 
           <JobTools
+            job={job}
+            onJobChange={(j) => {
+              setJob(j);
+              setDraft(pick(j));
+            }}
+          />
+          <CompanyBrief
             job={job}
             onJobChange={(j) => {
               setJob(j);

@@ -17,6 +17,7 @@ import { defaultSourceCv } from '@/modules/jobs/source-cv';
 import { progressOf, type GapSkill, type SkillPlan, type StepStatus } from '@/modules/skills/gap';
 import { getRepository } from '@/modules/storage/repository';
 import { cn } from '@/lib/cn';
+import { CareerPaths } from './career-paths';
 
 async function call<T>(path: string, init?: RequestInit): Promise<T> {
   const r = await fetch(path, {
@@ -55,10 +56,12 @@ export function SkillPlans() {
   );
   const [jobs, setJobs] = useState<Job[]>([]);
   const [error, setError] = useState<string | null>(null);
+  // ?role= comes from Career paths ("Plan the skills for this role").
+  const askedRole = (params.get('role') ?? '').slice(0, 80);
   const [target, setTarget] = useState<{ kind: 'job' | 'role'; jobId: string; role: string }>({
-    kind: 'job',
+    kind: askedRole ? 'role' : 'job',
     jobId: params.get('job') ?? '',
-    role: '',
+    role: askedRole,
   });
   const [openId, setOpenId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -86,7 +89,7 @@ export function SkillPlans() {
         setOpenId(d.plans[0]?.id ?? null);
         setTarget((t) => ({
           ...t,
-          kind: j.length ? t.kind : 'role',
+          kind: j.length && !t.role ? t.kind : 'role',
           jobId: t.jobId && j.some((x) => x.id === t.jobId) ? t.jobId : (j[0]?.id ?? ''),
         }));
       },
@@ -152,6 +155,15 @@ export function SkillPlans() {
 
   return (
     <div className="flex flex-col gap-8" data-testid="skill-plans">
+      <CareerPaths
+        source={source}
+        onPlan={(role) => {
+          setTarget((t) => ({ ...t, kind: 'role', role }));
+          document
+            .getElementById('new-plan-h')
+            ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }}
+      />
       <section
         aria-labelledby="new-plan-h"
         className="border-line bg-surface flex flex-col gap-4 rounded-xl border p-5"

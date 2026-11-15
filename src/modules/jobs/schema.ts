@@ -94,6 +94,17 @@ export const job = jobInput.extend({
   mockPast: z
     .array(z.object({ at: z.string(), verdicts: z.array(z.string()), summary: z.string() }))
     .optional(),
+  /** Company brief (spec §10.2), server only. */
+  brief: z
+    .custom<{
+      company: string;
+      values: string[];
+      needs: string[];
+      fit: { point: string; line: string }[];
+      questions: string[];
+      at: string;
+    }>()
+    .optional(),
   /** Application kit (R8.4): the tailored CV made with the letter and email (server only). */
   kit: z.object({ cvId: z.string().max(64), at: z.string() }).optional(),
   /** Reminders (R9.6), written through /api/jobs/[id]/reminders only. */

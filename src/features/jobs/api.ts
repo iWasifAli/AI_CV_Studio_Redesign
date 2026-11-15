@@ -92,6 +92,11 @@ export const jobAiApi = {
       method: 'POST',
       body: JSON.stringify({ document, tone }),
     }),
+  brief: (id: string, document: ResumeDocument, pages: string) =>
+    call<{ job: Job }>(`/api/jobs/${id}/brief`, {
+      method: 'POST',
+      body: JSON.stringify({ document, pages }),
+    }).then((r) => r.job),
   mockTurn: (
     id: string,
     document: ResumeDocument,

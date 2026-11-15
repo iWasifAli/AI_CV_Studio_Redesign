@@ -22,6 +22,8 @@ const AI_WEIGHTS = [
   ['quantify', 'Questions to add numbers to a point'],
   ['gap', 'Wording for a gap in work history'],
   ['translate', 'Translate a CV'],
+  ['brief', 'Company brief'],
+  ['paths', 'Career paths'],
 ] as const;
 import { AdminHeading } from './admin-shell';
 import { adminGet, adminSend } from './api';
@@ -49,6 +51,8 @@ const TASK_LABEL: Record<TaskId, string> = {
   'write.quantify': 'Questions to add numbers',
   'coach.gap': 'Wording for a gap in work history',
   'translate.document': 'Translate a CV',
+  'job.brief': 'Company brief',
+  'career.paths': 'Career paths',
   'suggest.skills': 'Suggest skills',
   'import.structure': 'Sort an imported CV (AI import)',
   'job.match': 'Job match',
@@ -782,6 +786,16 @@ export function AdminSettings() {
             label="Translate a CV into another language (AI)"
             checked={draft.features.translate}
             onChange={(v) => edit((c) => void (c.features.translate = v))}
+          />
+          <CheckboxField
+            label="Company brief on jobs (AI)"
+            checked={draft.features.companyBrief}
+            onChange={(v) => edit((c) => void (c.features.companyBrief = v))}
+          />
+          <CheckboxField
+            label="Career paths (AI)"
+            checked={draft.features.careerPaths}
+            onChange={(v) => edit((c) => void (c.features.careerPaths = v))}
           />
         </Section>
 

@@ -134,6 +134,10 @@ export const businessConfig = z.object({
     community: z.boolean().default(false),
     /** Translate a CV into another language (AI, spec §10.1). */
     translate: z.boolean().default(true),
+    /** One page on the employer for a job (AI, spec §10.2). */
+    companyBrief: z.boolean().default(true),
+    /** Roles the person could move into next (AI, spec §10.3). */
+    careerPaths: z.boolean().default(true),
   }),
   /** AI actions that cost more than one (complete-studio-spec §14: weights are config data). */
   aiWeights: z
@@ -148,6 +152,8 @@ export const businessConfig = z.object({
       quantify: z.number().int().min(1).max(10).default(1),
       gap: z.number().int().min(1).max(10).default(1),
       translate: z.number().int().min(1).max(10).default(2),
+      brief: z.number().int().min(1).max(10).default(1),
+      paths: z.number().int().min(1).max(10).default(1),
     })
     .default({
       kit: 3,
@@ -160,6 +166,8 @@ export const businessConfig = z.object({
       quantify: 1,
       gap: 1,
       translate: 2,
+      brief: 1,
+      paths: 1,
     }),
   /** AI controls (spec §15): tasks switched off and prices for the cost estimate. */
   ai: z
@@ -345,6 +353,8 @@ export const DEFAULT_CONFIG: BusinessConfig = {
     gapCoach: true,
     community: false,
     translate: true,
+    companyBrief: true,
+    careerPaths: true,
   },
   aiWeights: {
     kit: 3,
@@ -357,6 +367,8 @@ export const DEFAULT_CONFIG: BusinessConfig = {
     quantify: 1,
     gap: 1,
     translate: 2,
+    brief: 1,
+    paths: 1,
   },
   ai: {
     offTasks: [],
