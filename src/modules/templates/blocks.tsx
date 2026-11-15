@@ -63,7 +63,19 @@ export type TemplateHooks = {
    * narrow side column the row's grid falls back to one column (CSS).
    */
   compactColumns?: 1 | 2 | 3;
+  /** The design draws skill levels itself (bars, dots). Otherwise levels are written as words. */
+  drawsLevels?: boolean;
 };
+
+const LEVEL_WORD = ['', 'beginner', 'basic', 'good', 'very good', 'expert'];
+/** Skill levels as words for designs that don't draw them ("TypeScript (expert)"). */
+function levelsAsWords(e: REntry): REntry {
+  if (!e.levels?.some((l) => l > 0)) return e;
+  return {
+    ...e,
+    tags: e.tags.map((t, i) => (e.levels![i] ? `${t} (${LEVEL_WORD[e.levels![i]!]})` : t)),
+  };
+}
 
 function Bullets({ items, plain }: { items: string[]; plain?: boolean }) {
   return (
@@ -231,7 +243,9 @@ function sectionBlocksRaw(
           )}
           refId={e.ref}
         >
-          {isSkills ? hooks.skills(e, design) : hooks.compactItem(e, section)}
+          {isSkills
+            ? hooks.skills(hooks.drawsLevels ? e : levelsAsWords(e), design)
+            : hooks.compactItem(e, section)}
         </Block>,
       ),
     );

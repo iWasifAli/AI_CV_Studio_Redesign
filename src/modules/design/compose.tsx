@@ -178,6 +178,7 @@ function makeHooks(s: DesignSpecV2): TemplateHooks {
   return {
     splitSkills: s.lists.skills.style === 'tags' || s.lists.skills.style === 'columns',
     compactColumns: s.lists.compactColumns,
+    drawsLevels: s.lists.skills.style === 'bars' || s.lists.skills.style === 'dots',
     heading: (sec) => (
       <h2 className="g-h">
         {(s.headings.style === 'icon' || s.icons.sections) && <Icon kind={sec.kind} />}

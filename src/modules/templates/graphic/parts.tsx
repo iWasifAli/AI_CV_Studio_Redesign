@@ -243,6 +243,7 @@ function Language({ e }: { e: REntry }) {
 export function graphicHooks(o: { marker: Marker; skills: SkillLook }): TemplateHooks {
   return {
     splitSkills: true,
+    drawsLevels: true,
     heading: heading(o.marker),
     summary: (t) => <p className="g-summary">{t}</p>,
     entryHead: (e) => (
