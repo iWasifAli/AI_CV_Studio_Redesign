@@ -4,6 +4,7 @@
  * (2) the realistic fixtures, to PDF + PNG at 96 dpi (same pixel size as the reference previews).
  * Usage: npx tsx scripts/graphic-shots.tsx outDir ids [fixtures] (PORTRAIT=/path/to/jpg)
  */
+import { specOf } from '@/modules/design/designer';
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -149,6 +150,8 @@ for (const id of ids)
           ? structuredClone(FIXTURES[f as FixtureId])
           : withPhoto(structuredClone(FIXTURES[f as FixtureId]), PHOTO_FOR[f]);
     doc = ops.useDesign(doc, id);
+    // ATS=1: the plain one-column ATS version (Dual CV Export).
+    if (process.env.ATS === '1') doc = ops.setSpec(doc, { ...specOf(doc.design), atsSafe: true });
     const html = buildDocumentHtml(doc, { fonts: { kind: 'inline', read } });
     const name = `${id}-${f}`;
     const { pdf, pages, overflow, nearlyFits, fitted } = await renderPdfFromHtml(browser, html);

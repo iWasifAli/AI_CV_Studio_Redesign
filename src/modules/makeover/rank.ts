@@ -205,7 +205,10 @@ export function rankDesigns(s: ContentStats, enabled: DesignId[], count = 6): Ra
   const all = enabled
     .map((id) => scoreDesign(id, s))
     .sort((a, b) => b.score - a.score || enabled.indexOf(a.id) - enabled.indexOf(b.id));
-  const pick = all.slice(0, count);
+  // At most one graphic (creative) design, so the strip still shows the everyday layouts.
+  const isGraphic = (id: DesignId) => id in GRAPHIC_META;
+  const firstGraphic = all.find((r) => isGraphic(r.id));
+  const pick = all.filter((r) => !isGraphic(r.id) || r === firstGraphic).slice(0, count);
   const rules: ((t: DesignTraits) => boolean)[] = [
     (t) => t.family === 'single',
     (t) => t.family === 'sidebar',
@@ -213,7 +216,7 @@ export function rankDesigns(s: ContentStats, enabled: DesignId[], count = 6): Ra
   ];
   for (const rule of rules) {
     if (pick.some((r) => rule(DESIGN_TRAITS[r.id]))) continue;
-    const add = all.find((r) => !pick.includes(r) && rule(DESIGN_TRAITS[r.id]));
+    const add = all.find((r) => !pick.includes(r) && !isGraphic(r.id) && rule(DESIGN_TRAITS[r.id]));
     if (!add) continue;
     // Replace the lowest-ranked pick that isn't needed for another rule.
     for (let i = pick.length - 1; i > 0; i--) {
