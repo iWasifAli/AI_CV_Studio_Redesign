@@ -143,6 +143,12 @@ export function coverTemplate(c: CoverConfig): CatalogueTemplate {
   const css = `${base.css}
 .cv-top--header{margin-bottom:calc(6mm * var(--fit-gap))}
 .co-dark{position:relative;height:calc(89mm * (.42 + .58 * var(--fit-gap)));background:var(--g-ink);color:#fff;overflow:hidden;padding:0 var(--margin)}
+html[data-fit-compact] .co-dark{height:60mm}
+html[data-fit-compact] .co-eyebrow{display:none}
+html[data-fit-compact] .co-corner{display:none}
+html[data-fit-compact] .co-frame{zoom:.74}
+html[data-fit-compact] .co-id{top:12mm;bottom:7mm}
+html[data-fit-compact] .co-name{font-size:calc(40pt * var(--ns,1))}
 .co-art{position:absolute;inset:0;width:100%;height:100%}
 .co-head .g-mono{position:absolute;left:var(--margin);top:8mm;color:#fff}
 .co-corner{position:absolute;right:var(--margin);top:9mm;font-size:6.8pt;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.75);max-width:60mm;text-align:right}

@@ -231,6 +231,11 @@ ${GRAPHIC_BASE_CSS}
 .cv-top--header{margin:0 calc(-1 * var(--margin)) calc(5mm * var(--fit-gap))}
 .sp-head{position:relative}
 .sp-dark{position:relative;height:calc(86mm * (.42 + .58 * var(--fit-gap)));background:var(--g-ink);color:#fff;overflow:hidden;padding:0 var(--margin)}
+html[data-fit-compact] .sp-dark{height:60mm}
+html[data-fit-compact] .sp-eyebrow{display:none}
+html[data-fit-compact] .sp-photo{zoom:.76}
+html[data-fit-compact] .sp-id{top:12mm;bottom:7mm}
+html[data-fit-compact] .sp-name{font-size:calc(40pt * var(--ns,1))}
 .sp-art{position:absolute;inset:0;width:100%;height:100%}
 .g-mono{position:absolute;left:var(--margin);top:8.5mm;color:#fff}
 .sp-id{position:absolute;left:var(--margin);right:82mm;top:20mm;bottom:9mm;z-index:1;display:flex;flex-direction:column;justify-content:flex-end}

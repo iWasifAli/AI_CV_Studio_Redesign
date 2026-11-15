@@ -271,7 +271,9 @@ export const RUNTIME_JS = String.raw`(function (planPages) {
   // Bounded "fit" steps: slightly tighter spacing (never smaller text) to avoid a near-empty last page.
   var FIT_STEPS = [
     { gap: 0.8, margin: 0.92, lh: 0.03 },
-    { gap: 0.62, margin: 0.84, lh: 0.06 }
+    { gap: 0.62, margin: 0.84, lh: 0.06 },
+    // Only for designs that declare --can-compact: a compact header (smaller banner, no key numbers).
+    { gap: 0.62, margin: 0.84, lh: 0.06, compact: true }
   ];
   var LAST_PAGE_MAX_FILL = 0.3;
   // A tighter fit is only accepted with about one line to spare on every page (see layout()).
@@ -281,6 +283,11 @@ export const RUNTIME_JS = String.raw`(function (planPages) {
     st.setProperty('--fit-gap', f ? String(f.gap) : '1');
     st.setProperty('--fit-margin', f ? String(f.margin) : '1');
     st.setProperty('--fit-lh', f ? String(f.lh) : '0');
+    if (f && f.compact) document.documentElement.setAttribute('data-fit-compact', '');
+    else document.documentElement.removeAttribute('data-fit-compact');
+  }
+  function canCompact() {
+    return getComputedStyle(document.documentElement).getPropertyValue('--can-compact').trim() === '1';
   }
 
   function paginate() {
@@ -290,7 +297,9 @@ export const RUNTIME_JS = String.raw`(function (planPages) {
     var r = layout(st);
     var fitted = 0;
     if (r.pages > 1 && r.lastFill < LAST_PAGE_MAX_FILL) {
+      var compactOk = canCompact();
       for (var i = 0; i < FIT_STEPS.length; i++) {
+        if (FIT_STEPS[i].compact && !compactOk) continue;
         applyFit(FIT_STEPS[i]);
         var t = layout(st, FIT_RESERVE);
         if (t.pages < r.pages && t.overflow === 0) {

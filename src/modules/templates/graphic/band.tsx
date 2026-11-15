@@ -199,6 +199,11 @@ ${GRAPHIC_BASE_CSS}
 .bd-rail-top{flex:none;width:var(--rail);padding:8.5mm var(--rail-pad) 0;color:#fff;display:flex;flex-direction:column;gap:6.5mm}
 .g-mono{font-size:19pt;letter-spacing:.02em}
 .bd-photo{${PHOTO[c.photo]};background:var(--g-hot)}
+html[data-fit-compact] .bd-photo{zoom:.72;margin-left:auto;margin-right:auto}
+html[data-fit-compact] .bd-rail-top{gap:4.5mm}
+html[data-fit-compact] .bd-name{font-size:calc(38pt * var(--ns,1))}
+html[data-fit-compact] .bd-tag{margin-bottom:4mm}
+html[data-fit-compact] .bd-end{display:none}
 .cv-portrait--initials.bd-photo{color:var(--g-on-hot);font-family:var(--g-display);font-weight:800;font-size:34pt}
 .bd-intro{flex:1;min-width:0;padding:calc(10.5mm * var(--fit-gap)) 0 0 var(--gap)}
 .bd-tag{font-size:6.8pt;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);margin-bottom:calc(8mm * var(--fit-gap))}

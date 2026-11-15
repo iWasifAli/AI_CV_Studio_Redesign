@@ -147,6 +147,8 @@ ${GRAPHIC_BASE_CSS}
 .cv-main{padding:0 var(--margin) 0 var(--gap)}
 .cv-top--header{margin:calc(-10mm * var(--fit-margin)) calc(-1 * var(--margin)) 9mm 0}
 .rl-head{display:flex;height:var(--head-h)}
+html[data-fit-compact] .rl-head{height:54mm}
+html[data-fit-compact] .rl-name{margin-top:4mm;font-size:calc(40pt * var(--ns,1))}
 .rl-photo-wrap{position:relative;flex:none;width:var(--rail);height:100%;background:${c.photo === 'block' || c.photo === 'split' ? 'var(--g-hot)' : 'var(--g-ink)'};overflow:hidden}
 .rl-photo{${PHOTO[c.photo]}}
 .cv-portrait--initials.rl-photo{background:var(--g-hot);color:var(--g-on-hot);font-family:var(--g-display);font-weight:800;font-size:44pt}
