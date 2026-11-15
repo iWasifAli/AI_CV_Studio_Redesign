@@ -65,3 +65,18 @@ Release: commit `5bbdbd8` on `main` (CI green). Each audit ID is listed with wha
 - **Privacy page.** It names no data controller (a legal name) and no retention period for logs and backups. The owner has to supply both; they were not guessed.
 - **CSP.** A script-source policy needs per-request nonces and was not added.
 - **Not re-measured.** Lighthouse/CLS (F-17) and an axe run in CI.
+
+## Verification round (16 November 2026)
+
+This section answers the verification report. Commits `f023531` and the one after it are on `main`, with CI green.
+
+| Item from the verification | Change | Checked |
+|---|---|---|
+| F-04: Documents 723 px wide at 375 px | The cause was grid items sizing to the full, untruncated CV title. All 30 responsive grids in the app now have a shrinkable base column | Production, 375 px: Documents is 375 px wide |
+| F-05: a page ends with a job heading and one point (Heritage, Press) | A job heading always keeps its first two points on its page. The composition gate now fails any split that leaves one point on a page; before the fix it found the case in 24 design × CV combinations | Gate: 0 failures. Page-fill minimum lowered from 80% to 78%, because keeping two points can move one more short entry to the next page (Counsel × executive Letter: 79%) |
+| F-11: Proofread 503 and over 35 s | Fast model without long thinking; at most four parts in flight; 25 s per part and 45 s overall. A part that fails is reported ("Part of your CV couldn't be checked") instead of failing the whole check with 503. The tense rule no longer flags a current job written consistently in the past tense | Production, AUDIT TEST 1: 22.6 s and 10.8 s (two runs), no 503 |
+| PDF slower and larger | Furniture pictures are cropped to the ink and drawn at 3× (about 290 dpi). Identical pictures share one source, so a running header repeated on every page is stored once | Heritage × executive: 106 KB (162 KB in R15; 79 KB without pictures). Production, AUDIT TEST 2: 3.7–4.2 s warm over 3 runs, 8.4 s on the first (cold) call. Locally with the CPU throttled 8×, the picture step takes 160–300 ms of a 2–3 s render; most of the time is loading the page and its inline fonts, which R15 did not change. **The extra time compared with 2.5 s before R15 is smaller than in R15 but not gone** |
+| Pictures and accessibility | The pictures carry `alt=""`, `aria-hidden` and `role="presentation"`. They are not in the PDF structure tree, so screen readers that follow the tags skip them | Checked with `pdfinfo -struct`. Chrome does not mark them as `/Artifact`, which a strict PDF/UA checker may report |
+| Heritage contact line starts with a dot | In centred contact lines (Heritage, Halo, centred Clarity and composer headers), the item that starts each line drops its separator | Heritage PDF: both lines centred, no leading dot |
+| Existing CVs on Letter | Not changed silently. The Design tab now says "Letter is the US and Canadian size; most other countries use A4", with a one-click "Use A4", when the CV's country or the browser's country uses A4 | — |
+| Graphic designs switched on | Not changed by these releases: they are controlled by the switch in Settings | — |
