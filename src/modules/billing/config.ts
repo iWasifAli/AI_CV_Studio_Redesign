@@ -185,11 +185,30 @@ export const businessConfig = z.object({
         .default({ fastIn: 0.3, fastOut: 2.5, smartIn: 1.25, smartOut: 10 }),
       /** Rupees per US dollar, for showing the estimate in rupees. */
       usdToPkr: z.number().min(1).max(10_000).default(280),
+      /**
+       * Model per tier (spec §15), e.g. "gemini-flash-latest". Empty = the server's setting
+       * (AI_MODEL_FAST / AI_MODEL_SMART).
+       */
+      models: z
+        .object({
+          fast: z
+            .string()
+            .regex(/^$|^[a-z0-9][a-z0-9.\-]{1,60}$/)
+            .catch('')
+            .default(''),
+          smart: z
+            .string()
+            .regex(/^$|^[a-z0-9][a-z0-9.\-]{1,60}$/)
+            .catch('')
+            .default(''),
+        })
+        .default({ fast: '', smart: '' }),
     })
     .default({
       offTasks: [],
       pricing: { fastIn: 0.3, fastOut: 2.5, smartIn: 1.25, smartOut: 10 },
       usdToPkr: 280,
+      models: { fast: '', smart: '' },
     }),
   /** Payment emails (spec §15 "Email"): subject ({order} is filled in) and a short extra note. */
   emails: z
@@ -214,8 +233,24 @@ export const businessConfig = z.object({
       offer: z
         .object({ title: z.string().trim().min(3).max(120), intro: z.string().trim().max(400) })
         .default(DEFAULT_OFFER),
+      /**
+       * Example prompts under "Describe the CV you imagine". Empty = the built-in examples, which
+       * change with the kind of work.
+       */
+      designerPrompts: z
+        .preprocess(
+          (v) =>
+            Array.isArray(v) ? v.map((x) => String(x).trim()).filter((x) => x.length >= 3) : v,
+          z.array(z.string().max(120)).max(8),
+        )
+        .default([]),
     })
-    .default({ hiddenLetterTypes: [], faq: DEFAULT_FAQ, offer: DEFAULT_OFFER }),
+    .default({
+      hiddenLetterTypes: [],
+      faq: DEFAULT_FAQ,
+      offer: DEFAULT_OFFER,
+      designerPrompts: [],
+    }),
   announcement: z.object({ enabled: z.boolean(), text: z.string().max(240) }),
   /** How to pay for a pass (manual payments, R1.4). Shown on /premium when sales are on. */
   payments: z
@@ -374,9 +409,10 @@ export const DEFAULT_CONFIG: BusinessConfig = {
     offTasks: [],
     pricing: { fastIn: 0.3, fastOut: 2.5, smartIn: 1.25, smartOut: 10 },
     usdToPkr: 280,
+    models: { fast: '', smart: '' },
   },
   emails: { approved: { subject: '', note: '' }, rejected: { subject: '', note: '' } },
-  content: { hiddenLetterTypes: [], faq: DEFAULT_FAQ, offer: DEFAULT_OFFER },
+  content: { hiddenLetterTypes: [], faq: DEFAULT_FAQ, offer: DEFAULT_OFFER, designerPrompts: [] },
   announcement: { enabled: false, text: '' },
   support: { email: '' },
   coupons: [],

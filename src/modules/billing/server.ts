@@ -193,6 +193,7 @@ export async function entitlementsFor(user: SessionUser | null) {
     },
     aiWeights: cfg.aiWeights,
     hiddenLetterTypes: cfg.content.hiddenLetterTypes,
+    designerPrompts: cfg.content.designerPrompts ?? [],
     announcement: cfg.announcement.enabled ? cfg.announcement.text : null,
   };
 }

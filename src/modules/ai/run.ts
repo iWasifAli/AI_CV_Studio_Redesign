@@ -57,13 +57,19 @@ const defaultSleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
  * Inside the web server: the Console's per-task switches and the token counters for the AI cost
  * estimate. Unit tests and scripts (no NEXT_RUNTIME) skip both. Never throws.
  */
-async function taskSwitchedOff(id: TaskId): Promise<boolean> {
-  if (!process.env.NEXT_RUNTIME) return false;
+async function consoleAi(id: TaskId): Promise<{ off: boolean; fast: string; smart: string }> {
+  const none = { off: false, fast: '', smart: '' };
+  if (!process.env.NEXT_RUNTIME) return none;
   try {
     const { getBusinessConfig } = await import('@/modules/billing/server');
-    return (await getBusinessConfig()).value.ai.offTasks.includes(id);
+    const ai = (await getBusinessConfig()).value.ai;
+    return {
+      off: ai.offTasks.includes(id),
+      fast: ai.models?.fast ?? '',
+      smart: ai.models?.smart ?? '',
+    };
   } catch {
-    return false;
+    return none;
   }
 }
 async function countTokens(
@@ -92,9 +98,12 @@ export async function runTask<T extends TaskId>(
   attempt: number,
   deps: RunDeps,
 ): Promise<RunOk<T> | RunError> {
-  if (await taskSwitchedOff(id)) return { ok: false, code: 'AI_UNAVAILABLE', reason: 'task_off' };
+  const c = await consoleAi(id);
+  if (c.off) return { ok: false, code: 'AI_UNAVAILABLE', reason: 'task_off' };
+  // The Console can choose the model per tier; empty keeps the server's setting.
+  const models = { fast: c.fast || deps.models.fast, smart: c.smart || deps.models.smart };
   const usage = { inputTokens: 0, outputTokens: 0 };
-  const r = await runInner(id, rawInput, attempt, deps, usage);
+  const r = await runInner(id, rawInput, attempt, { ...deps, models }, usage);
   await countTokens((TASKS[id] as { tier: string }).tier === 'smart' ? 'smart' : 'fast', usage);
   return r;
 }

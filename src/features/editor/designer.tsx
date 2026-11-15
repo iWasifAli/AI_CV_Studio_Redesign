@@ -179,7 +179,8 @@ export function Designer({ editor }: { editor: DocumentEditor }) {
   if (!ai.show || !ent?.features.designer) return null;
   const limit = ent.limits['design.ai'];
   const left = ent.plan === 'visitor' ? 0 : remaining(ent, 'design.ai');
-  const examples = EXAMPLES[doc.presetId as PresetId] ?? EXAMPLES.general;
+  const own = ent?.designerPrompts ?? [];
+  const examples = own.length ? own : (EXAMPLES[doc.presetId as PresetId] ?? EXAMPLES.general);
 
   const fail = (code: string, message: string) =>
     setError({

@@ -311,6 +311,30 @@ test('Help questions and Premium wording are edited in the Console', async ({ br
   await context.close();
 });
 
+test('AI models per tier and the Designer example prompts are set in the Console', async ({
+  browser,
+  page,
+}) => {
+  const { context, page: admin } = await adminPage(browser);
+  await admin.goto('/admin/settings');
+  const models = admin.getByTestId('ai-models');
+  await models.getByLabel(/Fast tasks/).fill('gemini-flash-latest');
+  await admin
+    .getByTestId('designer-prompts')
+    .fill('Navy, two columns, photo\n\nOne page, very plain');
+  await admin.getByRole('button', { name: 'Save changes' }).click();
+  await expect(admin.getByText(/^Saved as version/)).toBeVisible();
+  const cfg = (await (await context.request.get('/api/admin/config')).json()) as {
+    value: { ai: { models: { fast: string; smart: string } } };
+  };
+  expect(cfg.value.ai.models).toEqual({ fast: 'gemini-flash-latest', smart: '' });
+  const ent = (await (await page.request.get('/api/me/entitlements')).json()) as {
+    designerPrompts: string[];
+  };
+  expect(ent.designerPrompts).toEqual(['Navy, two columns, photo', 'One page, very plain']);
+  await context.close();
+});
+
 test('product numbers show the nine targets and count tools used (spec §17.2)', async ({
   browser,
   page,

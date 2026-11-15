@@ -851,6 +851,38 @@ export function AdminSettings() {
         </Section>
 
         <Section
+          title="AI models"
+          hint="Which model each kind of task uses, by its name at your AI provider (for example gemini-flash-latest). Leave empty to keep the server's setting. Run the AI evaluation after a change."
+        >
+          <div className="grid gap-3 sm:grid-cols-2" data-testid="ai-models">
+            {(
+              [
+                ['fast', 'Fast tasks (writing help, import, extraction)'],
+                ['smart', 'Careful tasks (coach, match, letters, reviews)'],
+              ] as const
+            ).map(([k, label]) => (
+              <label key={k} className="flex flex-col gap-1 text-sm font-semibold">
+                {label}
+                <input
+                  className="border-line-strong bg-surface min-h-11 rounded-md border px-3 font-mono text-sm font-normal"
+                  value={draft.ai.models?.[k] ?? ''}
+                  placeholder="Server setting"
+                  spellCheck={false}
+                  onChange={(e) =>
+                    edit((c) => {
+                      c.ai.models = {
+                        ...(c.ai.models ?? { fast: '', smart: '' }),
+                        [k]: e.target.value.trim().toLowerCase().slice(0, 61),
+                      };
+                    })
+                  }
+                />
+              </label>
+            ))}
+          </div>
+        </Section>
+
+        <Section
           title="AI cost estimate"
           hint="Prices per million tokens in US dollars (from your AI provider’s price list) and the rupee rate. Used only for the estimate on the Overview."
         >
@@ -947,6 +979,26 @@ export function AdminSettings() {
             maxLength={400}
             value={draft.content.offer.intro}
             onChange={(e) => edit((c) => void (c.content.offer.intro = e.target.value))}
+          />
+        </Section>
+
+        <Section
+          title="AI Designer example prompts"
+          hint="One per line, up to 8. Shown under “Describe the CV you imagine” for everyone. Leave empty to use the built-in examples, which change with the kind of work."
+        >
+          <TextArea
+            label="Example prompts"
+            rows={4}
+            value={(draft.content.designerPrompts ?? []).join('\n')}
+            onChange={(e) =>
+              edit((c) => {
+                c.content.designerPrompts = e.target.value
+                  .split('\n')
+                  .map((l) => l.slice(0, 120))
+                  .slice(0, 8);
+              })
+            }
+            data-testid="designer-prompts"
           />
         </Section>
 
