@@ -66,7 +66,7 @@ export function Segmented<T extends string>({
               onClick={() => onChange(opt.value)}
               onKeyDown={(e) => onKeyDown(e, i)}
               className={cn(
-                'h-9 flex-1 whitespace-nowrap rounded-[7px] px-3 text-sm font-semibold transition-colors duration-150',
+                'h-9 flex-1 rounded-[7px] px-3 text-sm font-semibold whitespace-nowrap transition-colors duration-150',
                 checked ? 'bg-surface text-ink shadow-1' : 'text-ink-muted hover:text-ink',
               )}
             >
