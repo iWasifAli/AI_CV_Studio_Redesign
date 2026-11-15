@@ -19,6 +19,7 @@ import { findInlineField, inlinePatch } from '@/modules/resume/inline-edit';
 import { ProfileSyncBanner } from './profile-sync-banner';
 import { useDocumentEditor } from './use-document-editor';
 import { VersionHistoryButton } from './version-history';
+import { TranslateButton } from '@/features/translate/translate-dialog';
 import { useAccount } from '@/features/account/account-context';
 
 type View = 'content' | 'design' | 'check' | 'preview';
@@ -121,6 +122,7 @@ export function EditorScreen({ initial }: { initial: ResumeDocument }) {
           backLabel="Back to Documents"
           action={
             <>
+              {signedIn && <TranslateButton doc={editor.doc} />}
               {signedIn && <VersionHistoryButton editor={editor} />}
               {download}
             </>

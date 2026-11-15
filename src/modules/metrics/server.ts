@@ -88,6 +88,8 @@ export const EVENTS = [
   'community_submit',
   'community_approved',
   'community_used',
+  'translate_ok',
+  'translate_kept',
   // AI tokens by model tier, for the cost estimate in the Console.
   'tok_fast_in',
   'tok_fast_out',

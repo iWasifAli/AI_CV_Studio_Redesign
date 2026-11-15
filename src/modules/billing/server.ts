@@ -187,6 +187,7 @@ export async function entitlementsFor(user: SessionUser | null) {
       pack: cfg.features.pack,
       gapCoach: cfg.features.gapCoach,
       community: cfg.features.community,
+      translate: cfg.features.translate,
     },
     aiWeights: cfg.aiWeights,
     hiddenLetterTypes: cfg.content.hiddenLetterTypes,

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowRight, Copy, ExternalLink, Globe, IdCard, Link2 } from 'lucide-react';
+import { ArrowRight, Copy, ExternalLink, Globe, IdCard, Link2, Mail } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { Badge } from '@/components/ui/chip';
@@ -185,6 +185,24 @@ export function PresenceHub() {
               Review my profile
             </ButtonLink>
           </div>
+        </section>
+        <section
+          aria-labelledby="card-h"
+          className="border-line bg-surface flex flex-col gap-3 rounded-xl border p-6"
+        >
+          <div className="flex items-center gap-2">
+            <Mail aria-hidden size={22} className="text-primary" />
+            <h2 id="card-h" className="text-xl font-semibold">
+              Email signature and business card
+            </h2>
+          </div>
+          <p className="text-ink-muted">
+            From your CV, in its colour and fonts: a signature to paste into your email, and a card
+            to print with a QR code to your page.
+          </p>
+          <ButtonLink href="/presence/card" variant="secondary" className="mt-auto self-start">
+            Make them
+          </ButtonLink>
         </section>
       </div>
 

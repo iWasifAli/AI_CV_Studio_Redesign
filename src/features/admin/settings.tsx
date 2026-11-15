@@ -21,6 +21,7 @@ const AI_WEIGHTS = [
   ['proofread', 'Proofread the whole CV'],
   ['quantify', 'Questions to add numbers to a point'],
   ['gap', 'Wording for a gap in work history'],
+  ['translate', 'Translate a CV'],
 ] as const;
 import { AdminHeading } from './admin-shell';
 import { adminGet, adminSend } from './api';
@@ -47,6 +48,7 @@ const TASK_LABEL: Record<TaskId, string> = {
   'write.rewrite': 'AI on selected text',
   'write.quantify': 'Questions to add numbers',
   'coach.gap': 'Wording for a gap in work history',
+  'translate.document': 'Translate a CV',
   'suggest.skills': 'Suggest skills',
   'import.structure': 'Sort an imported CV (AI import)',
   'job.match': 'Job match',
@@ -775,6 +777,11 @@ export function AdminSettings() {
             label="Community designs (shared designs, shown only after you approve them in Design review)"
             checked={draft.features.community}
             onChange={(v) => edit((c) => void (c.features.community = v))}
+          />
+          <CheckboxField
+            label="Translate a CV into another language (AI)"
+            checked={draft.features.translate}
+            onChange={(v) => edit((c) => void (c.features.translate = v))}
           />
         </Section>
 

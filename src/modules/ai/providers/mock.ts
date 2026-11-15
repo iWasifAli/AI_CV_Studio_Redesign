@@ -235,6 +235,18 @@ function answer(task: TaskId, input: unknown, attempt: number, files: AiFile[] =
       const firstBullet = digestLines(i.profile).find((l) => /\.B\d+$/.test(l.id))?.id ?? '';
       return { terms: terms.map((term, n) => ({ term, line: n === 0 ? firstBullet : '' })) };
     }
+    case 'translate.document': {
+      const i = input as ParsedInput<'translate.document'>;
+      // Test hook: a piece saying ZZ-DROP loses its tokens (the server must keep the original).
+      return {
+        pieces: i.pieces.map((p) => ({
+          id: p.id,
+          text: p.text.includes('ZZ-DROP')
+            ? 'verloren'
+            : `[${i.language.slice(0, 2).toUpperCase()}] ${p.text}`,
+        })),
+      };
+    }
     case 'coach.gap': {
       const i = input as ParsedInput<'coach.gap'>;
       const said = i.answer.split(/[.;]/)[0]!.trim();

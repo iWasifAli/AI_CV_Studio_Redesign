@@ -704,6 +704,36 @@ export function evalSamples(): EvalSample[] {
     });
   }
 
+  // Translation keeps every locked token and translates the words.
+  {
+    const pieces = [
+      { id: 'b.headline', text: 'Multi-drop Delivery Driver' },
+      {
+        id: 'b.summary',
+        text: 'Driver with ⟦1⟧ years of experience at ⟦2⟧, delivering ⟦3⟧ parcels a day.',
+      },
+      { id: 's0.i0.bullets.0', text: 'Kept a clean driving record for ⟦4⟧ years' },
+      { id: 's1.title', text: 'Skills' },
+    ];
+    samples.push({
+      name: 'Translate: a CV into German keeps the locked tokens',
+      task: 'translate.document',
+      input: { language: 'German', pieces },
+      sourceTexts: [],
+      check: (r) => {
+        const o = r as TaskOutput<'translate.document'>;
+        if (o.pieces.length !== pieces.length) return `got ${o.pieces.length} of ${pieces.length}`;
+        for (const p of pieces) {
+          const t = o.pieces.find((x) => x.id === p.id)?.text ?? '';
+          const want = (p.text.match(/⟦\d+⟧/g) ?? []).sort().join();
+          if ((t.match(/⟦\d+⟧/g) ?? []).sort().join() !== want) return `tokens changed in ${p.id}`;
+          if (t === p.text) return `${p.id} was not translated`;
+        }
+        return null;
+      },
+    });
+  }
+
   const GAPS: [string, string][] = [
     ['Caring for family', 'I looked after my mother after her operation'],
     ['Study or training', 'Did an evening course in bookkeeping at the local college'],
@@ -735,6 +765,8 @@ export function evalSamples(): EvalSample[] {
 function outputTexts(result: unknown): string[] {
   const r = result as Record<string, unknown>;
   if (typeof r.text === 'string') return [r.text];
+  // Translation: the translated pieces (checked by the sample, not the English fact guard).
+  if (Array.isArray(r.pieces)) return [];
   // Explain a gap: both lines.
   if (typeof r.cvLine === 'string') return [r.cvLine, String(r.interviewLine ?? '')];
   // Quantify prompts: the new point (the questions carry no facts).

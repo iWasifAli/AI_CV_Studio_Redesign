@@ -29,6 +29,7 @@ export const TOOLS = [
   'versions',
   'insights',
   'pack',
+  'translate',
 ] as const;
 export type Tool = (typeof TOOLS)[number];
 

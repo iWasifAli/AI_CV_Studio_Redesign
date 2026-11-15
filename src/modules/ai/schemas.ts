@@ -39,6 +39,7 @@ export const TASK_IDS = [
   'write.rewrite',
   'write.quantify',
   'coach.gap',
+  'translate.document',
   'suggest.skills',
   'import.structure',
   'job.match',
@@ -158,6 +159,14 @@ export const taskInputs = {
     tone: z.enum(['formal', 'friendly']).default('formal'),
     /** The whole field the selection is in (facts may come from it too). */
     context: z.string().max(3000).default(''),
+  }),
+  /** CV translation (spec §10.1): texts with names, numbers and links already locked as ⟦n⟧. */
+  'translate.document': z.object({
+    language: z.string().max(40),
+    pieces: z
+      .array(z.object({ id: z.string().max(40), text: z.string().max(1600) }))
+      .min(1)
+      .max(300),
   }),
   /** Explain a gap (spec §9.3): neutral wording of the person's own answer about a break. */
   'coach.gap': z.object({
@@ -402,6 +411,9 @@ export const taskOutputs = {
   'write.improveBullets': z.object({ bullets: z.array(z.string().min(1).max(260)).min(1).max(12) }),
   'write.fromNotes': z.object({ bullets: z.array(z.string().min(1).max(260)).min(1).max(8) }),
   'write.rewrite': z.object({ text: z.string().min(1).max(2000) }),
+  'translate.document': z.object({
+    pieces: z.array(z.object({ id: z.string().max(40), text: z.string().max(2000) })).max(300),
+  }),
   'coach.gap': z.object({
     /** One neutral line for the CV's career-break entry. */
     cvLine: z.string().min(3).max(200),

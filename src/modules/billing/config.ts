@@ -132,6 +132,8 @@ export const businessConfig = z.object({
     gapCoach: z.boolean().default(true),
     /** Community designs: people share designs; only those approved in the Console are shown. */
     community: z.boolean().default(false),
+    /** Translate a CV into another language (AI, spec §10.1). */
+    translate: z.boolean().default(true),
   }),
   /** AI actions that cost more than one (complete-studio-spec §14: weights are config data). */
   aiWeights: z
@@ -145,6 +147,7 @@ export const businessConfig = z.object({
       proofread: z.number().int().min(1).max(10).default(1),
       quantify: z.number().int().min(1).max(10).default(1),
       gap: z.number().int().min(1).max(10).default(1),
+      translate: z.number().int().min(1).max(10).default(2),
     })
     .default({
       kit: 3,
@@ -156,6 +159,7 @@ export const businessConfig = z.object({
       proofread: 1,
       quantify: 1,
       gap: 1,
+      translate: 2,
     }),
   /** AI controls (spec §15): tasks switched off and prices for the cost estimate. */
   ai: z
@@ -340,6 +344,7 @@ export const DEFAULT_CONFIG: BusinessConfig = {
     pack: true,
     gapCoach: true,
     community: false,
+    translate: true,
   },
   aiWeights: {
     kit: 3,
@@ -351,6 +356,7 @@ export const DEFAULT_CONFIG: BusinessConfig = {
     proofread: 1,
     quantify: 1,
     gap: 1,
+    translate: 2,
   },
   ai: {
     offTasks: [],

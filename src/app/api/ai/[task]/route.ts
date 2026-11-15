@@ -23,6 +23,7 @@ const INTERNAL = new Set<string>([
   'quality.proofread',
   'write.quantify',
   'coach.gap',
+  'translate.document',
   'interview.turn',
   'coach.chat',
   'story.draft',
