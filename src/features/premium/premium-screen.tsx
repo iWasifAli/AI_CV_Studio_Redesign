@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Check, Clock, Copy, MessageCircle, Minus, ShieldCheck, Sparkles } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
@@ -22,6 +23,7 @@ function limitText(n: number, unit: string) {
 }
 
 export function PremiumScreen() {
+  const t = useT();
   const account = useAccount();
   const toast = useToast();
   const [offer, setOffer] = useState<PremiumOffer | null>(null);
@@ -120,7 +122,7 @@ export function PremiumScreen() {
     return error ? (
       <Banner tone="error" title={error} />
     ) : (
-      <div className="skeleton h-96 rounded-lg" aria-busy="true" aria-label="Loading" />
+      <div className="skeleton h-96 rounded-lg" aria-busy="true" aria-label={t('Loading')} />
     );
 
   const { plans, designs, me } = offer;
@@ -166,7 +168,7 @@ export function PremiumScreen() {
     <div className="flex flex-col gap-10">
       <header className="flex flex-col gap-3">
         <p className="text-primary flex items-center gap-2 text-sm font-semibold tracking-wide uppercase">
-          <Sparkles aria-hidden size={16} /> Premium
+          <Sparkles aria-hidden size={16} /> {t('Premium')}
         </p>
         <h1 className="font-display text-[34px] leading-tight font-semibold tracking-tight sm:text-5xl">
           {offer.wording.title}
@@ -178,20 +180,20 @@ export function PremiumScreen() {
 
       {isPremium && me?.passExpiresAt && (
         <Banner tone="success" title={`You have Premium until ${fmtDate(me.passExpiresAt)}.`}>
-          Buying another pass adds its days to the end of this one.
+          {t('Buying another pass adds its days to the end of this one.')}
         </Banner>
       )}
 
       <section aria-labelledby="compare">
         <h2 id="compare" className="sr-only">
-          Free and Premium compared
+          {t('Free and Premium compared')}
         </h2>
         <Card className="overflow-hidden">
           <table className="w-full text-left text-sm sm:text-[15px] [&_td]:p-3 sm:[&_td]:p-4 [&_th]:p-3 sm:[&_th]:p-4">
             <thead>
               <tr className="border-line border-b">
                 <th className="font-semibold" scope="col">
-                  <span className="sr-only">Feature</span>
+                  <span className="sr-only">{t('Feature')}</span>
                 </th>
                 <th className="w-[26%] font-semibold" scope="col">
                   {plans.free.label}
@@ -211,7 +213,7 @@ export function PremiumScreen() {
                     {r.free ?? (
                       <>
                         <Minus aria-hidden size={18} />
-                        <span className="sr-only">Not included</span>
+                        <span className="sr-only">{t('Not included')}</span>
                       </>
                     )}
                   </td>
@@ -238,16 +240,19 @@ export function PremiumScreen() {
 
       {!offer.sales ? (
         <Card className="flex flex-col items-start gap-2 p-6">
-          <h2 className="text-xl font-semibold">Premium opens soon</h2>
+          <h2 className="text-xl font-semibold">{t('Premium opens soon')}</h2>
           <p className="text-ink-muted">
-            Everything else in the studio is ready to use now. Check back soon to get Premium.
+            {t(
+              'Everything else in the studio is ready to use now. Check back soon to get Premium.',
+            )}
           </p>
         </Card>
       ) : (
         <>
           <section aria-labelledby="step-pass" className="flex flex-col gap-4">
             <h2 id="step-pass" className="text-2xl font-semibold">
-              <span className="text-ink-subtle mr-2">1</span>Choose your pass
+              <span className="text-ink-subtle mr-2">1</span>
+              {t('Choose your pass')}
             </h2>
             <div
               role="radiogroup"
@@ -264,13 +269,13 @@ export function PremiumScreen() {
                 >
                   {best?.id === p.id && (
                     <span className="bg-primary text-on-primary mb-1 rounded-full px-2.5 py-0.5 text-xs font-semibold">
-                      Best value
+                      {t('Best value')}
                     </span>
                   )}
                   <span className="text-lg font-semibold">{p.label}</span>
                   <span className="font-display text-3xl font-semibold">{pkr(p.pricePkr)}</span>
                   <span className="text-ink-muted text-sm">
-                    {p.days} days of Premium
+                    {t('{days} days of Premium', { days: p.days })}
                     {p.days >= 60 && ` · about ${pkr(perMonth(p.pricePkr, p.days))} a month`}
                   </span>
                 </SelectableCard>
@@ -280,11 +285,13 @@ export function PremiumScreen() {
 
           {!me ? (
             <Card className="flex flex-col items-start gap-3 p-6">
-              <h2 className="text-xl font-semibold">Sign in to continue</h2>
+              <h2 className="text-xl font-semibold">{t('Sign in to continue')}</h2>
               <p className="text-ink-muted">
-                Premium belongs to your account, so it works on every device you sign in on.
+                {t('Premium belongs to your account, so it works on every device you sign in on.')}
               </p>
-              <ButtonLink href="/signin?next=/premium">Sign in or create an account</ButtonLink>
+              <ButtonLink href="/signin?next=/premium">
+                {t('Sign in or create an account')}
+              </ButtonLink>
             </Card>
           ) : pending ? (
             <PendingOrder pending={pending} whatsapp={offer.whatsapp} onCancelled={load} />
@@ -292,7 +299,8 @@ export function PremiumScreen() {
             <>
               <section aria-labelledby="step-pay" className="flex flex-col gap-4">
                 <h2 id="step-pay" className="text-2xl font-semibold">
-                  <span className="text-ink-subtle mr-2">2</span>Pay {pass ? pkr(amount) : ''}
+                  <span className="text-ink-subtle mr-2">2</span>
+                  {t('Pay')} {pass ? pkr(amount) : ''}
                 </h2>
                 <div className="flex max-w-xl flex-col gap-2" data-testid="coupon">
                   {code && q?.couponCode ? (
@@ -300,7 +308,8 @@ export function PremiumScreen() {
                       className="text-success flex flex-wrap items-center gap-2 font-semibold"
                       role="status"
                     >
-                      <Check aria-hidden size={18} /> Code {q.couponCode} applied
+                      <Check aria-hidden size={18} />{' '}
+                      {t('Code {couponCode} applied', { couponCode: q.couponCode })}
                       {q.pricePkr < q.listPricePkr && ` — ${pkr(q.listPricePkr - q.pricePkr)} off`}
                       {q.days > (pass?.days ?? 0) + q.welcomeDays &&
                         ` — ${q.days - (pass?.days ?? 0) - q.welcomeDays} extra days`}
@@ -312,7 +321,7 @@ export function PremiumScreen() {
                           setCodeInput('');
                         }}
                       >
-                        Remove
+                        {t('Remove')}
                       </button>
                     </p>
                   ) : (
@@ -324,7 +333,7 @@ export function PremiumScreen() {
                       }}
                     >
                       <TextField
-                        label="Discount code"
+                        label={t('Discount code')}
                         optional
                         value={codeInput}
                         maxLength={20}
@@ -337,21 +346,23 @@ export function PremiumScreen() {
                         containerClassName="flex-1"
                       />
                       <Button type="submit" variant="secondary" disabled={!codeInput.trim()}>
-                        Apply
+                        {t('Apply')}
                       </Button>
                     </form>
                   )}
                   {q && q.welcomeDays > 0 && (
                     <p className="text-success text-sm font-semibold" role="status">
-                      A friend invited you: you get {q.welcomeDays} extra days ({q.days} days in
-                      total).
+                      {t(
+                        'A friend invited you: you get {welcomeDays} extra days ({days} days in total).',
+                        { welcomeDays: q.welcomeDays, days: q.days },
+                      )}
                     </p>
                   )}
                 </div>
                 {offer.methods.length > 1 && (
                   <div
                     role="radiogroup"
-                    aria-label="Payment method"
+                    aria-label={t('Payment method')}
                     className="flex flex-wrap gap-2"
                   >
                     {offer.methods.map((m) => (
@@ -375,7 +386,7 @@ export function PremiumScreen() {
                 {method && pass && (
                   <Card className="flex flex-col gap-1 p-5" data-testid="payment-details">
                     <p className="text-ink-muted text-sm font-semibold">{method.label}</p>
-                    <CopyLine label="Amount" value={String(amount)} shown={pkr(amount)} />
+                    <CopyLine label={t('Amount')} value={String(amount)} shown={pkr(amount)} />
                     {method.details
                       .split('\n')
                       .map((l) => l.trim())
@@ -401,22 +412,23 @@ export function PremiumScreen() {
 
               <section aria-labelledby="step-confirm" className="flex flex-col gap-4">
                 <h2 id="step-confirm" className="text-2xl font-semibold">
-                  <span className="text-ink-subtle mr-2">3</span>Place your order
+                  <span className="text-ink-subtle mr-2">3</span>
+                  {t('Place your order')}
                 </h2>
                 <p className="text-ink-muted -mt-2 max-w-xl">
-                  You’ll get an order number. Send a screenshot of your payment with it
-                  {offer.whatsapp ? ' on WhatsApp' : ''}, and Premium starts as soon as we’ve
-                  checked it.
+                  {t('You’ll get an order number. Send a screenshot of your payment with it')}
+                  {offer.whatsapp ? ' on WhatsApp' : ''}
+                  {t(', and Premium starts as soon as we’ve checked it.')}
                 </p>
                 {latest?.status === 'rejected' && (
-                  <Banner tone="error" title="Your last payment wasn’t approved">
+                  <Banner tone="error" title={t('Your last payment wasn’t approved')}>
                     {latest.reason}
                   </Banner>
                 )}
                 <form onSubmit={submit} className="flex max-w-xl flex-col gap-4">
                   <TextField
-                    label="Your mobile number"
-                    hint="So we can match your payment and reach you if needed."
+                    label={t('Your mobile number')}
+                    hint={t('So we can match your payment and reach you if needed.')}
                     type="tel"
                     inputMode="tel"
                     autoComplete="tel"
@@ -427,16 +439,16 @@ export function PremiumScreen() {
                     placeholder="0300 1234567"
                   />
                   <TextField
-                    label="Transaction ID"
+                    label={t('Transaction ID')}
                     optional
-                    hint="If it’s easy to copy from your receipt. The screenshot is enough."
+                    hint={t('If it’s easy to copy from your receipt. The screenshot is enough.')}
                     value={reference}
                     onChange={(e) => setReference(e.target.value)}
                     maxLength={60}
                     autoComplete="off"
                   />
                   <TextArea
-                    label="Anything we should know?"
+                    label={t('Anything we should know?')}
                     optional
                     rows={2}
                     maxLength={300}
@@ -454,7 +466,7 @@ export function PremiumScreen() {
                     className="self-start"
                     disabled={!pass || !method}
                   >
-                    Place order · {pass ? pkr(amount) : ''}
+                    {t('Place order ·')} {pass ? pkr(amount) : ''}
                   </Button>
                 </form>
               </section>
@@ -465,34 +477,37 @@ export function PremiumScreen() {
 
       <section aria-labelledby="faq" className="border-line flex flex-col gap-4 border-t pt-8">
         <h2 id="faq" className="flex items-center gap-2 text-xl font-semibold">
-          <ShieldCheck aria-hidden size={20} className="text-primary" /> Good to know
+          <ShieldCheck aria-hidden size={20} className="text-primary" /> {t('Good to know')}
         </h2>
         <dl className="grid gap-5 sm:grid-cols-2">
           <Faq q="Is this a subscription?">
-            No. A pass lasts for its number of days and then simply ends. Nothing is charged
-            automatically.
+            {t(
+              'No. A pass lasts for its number of days and then simply ends. Nothing is charged automatically.',
+            )}
           </Faq>
           <Faq q="What happens when it ends?">
-            Your CVs stay in your account. CVs in a Premium design can be switched to a free design
-            in one click, with all your words kept.
+            {t(
+              'Your CVs stay in your account. CVs in a Premium design can be switched to a free design in one click, with all your words kept.',
+            )}
           </Faq>
           <Faq q="How long does checking take?">
-            We check payments by hand, usually within a day. You’ll see Premium on your account as
-            soon as it’s approved.
+            {t(
+              'We check payments by hand, usually within a day. You’ll see Premium on your account as soon as it’s approved.',
+            )}
             {offer.supportEmail && (
               <>
-                {' '}
-                Questions about a payment? Email{' '}
+                {t('{v} Questions about a payment? Email{v2}', { v: ' ', v2: ' ' })}
                 <a href={`mailto:${offer.supportEmail}`} className="text-primary font-semibold">
                   {offer.supportEmail}
                 </a>{' '}
-                with your order number.
+                {t('with your order number.')}
               </>
             )}
           </Faq>
           <Faq q="Does the AI make things up?">
-            No. It only rewords what you wrote. Where a number or fact is missing, it asks you
-            instead of inventing one.
+            {t(
+              'No. It only rewords what you wrote. Where a number or fact is missing, it asks you instead of inventing one.',
+            )}
           </Faq>
         </dl>
       </section>
@@ -501,6 +516,7 @@ export function PremiumScreen() {
 }
 
 function CopyLine({ label, value, shown }: { label?: string; value: string; shown?: string }) {
+  const t = useT();
   const toast = useToast();
   return (
     <div className="border-line flex items-center justify-between gap-3 border-b py-2 last:border-0">
@@ -522,7 +538,7 @@ function CopyLine({ label, value, shown }: { label?: string; value: string; show
             )
         }
       >
-        Copy
+        {t('Copy')}
       </Button>
     </div>
   );
@@ -538,6 +554,7 @@ function PendingOrder({
   whatsapp: string;
   onCancelled: () => void;
 }) {
+  const t = useT();
   const toast = useToast();
   const [cancelling, setCancelling] = useState(false);
   const cancel = async () => {
@@ -570,12 +587,12 @@ function PendingOrder({
   return (
     <Card className="flex flex-col gap-4 p-6" data-testid="premium-pending" role="status">
       <h2 className="flex items-center gap-2 text-xl font-semibold">
-        <Clock aria-hidden size={20} className="text-primary" /> Your order is waiting for payment
-        check
+        <Clock aria-hidden size={20} className="text-primary" />{' '}
+        {t('Your order is waiting for payment check')}
       </h2>
       <div className="bg-sunken flex flex-wrap items-center justify-between gap-3 rounded-md p-4">
         <div>
-          <p className="text-ink-muted text-sm">Order number</p>
+          <p className="text-ink-muted text-sm">{t('Order number')}</p>
           <p className="font-mono text-2xl font-bold tracking-wider" data-testid="order-no">
             {order}
           </p>
@@ -587,18 +604,23 @@ function PendingOrder({
             icon={<Copy aria-hidden size={16} />}
             onClick={copy}
           >
-            Copy
+            {t('Copy')}
           </Button>
         )}
       </div>
       <p className="text-ink-muted">
-        {pending.passLabel} · {pkr(pending.pricePkr)} by {pending.methodLabel} · placed{' '}
-        {fmtDate(pending.createdAt)}.
+        {t('{passLabel} · {pkr} by {methodLabel} · placed{v} {fmtDate}.', {
+          passLabel: pending.passLabel,
+          pkr: pkr(pending.pricePkr),
+          methodLabel: pending.methodLabel,
+          v: ' ',
+          fmtDate: fmtDate(pending.createdAt),
+        })}
       </p>
       {pending.orderNo && (
         <div className="flex flex-col gap-2">
           <p className="font-semibold">
-            Now send a screenshot of your payment with this order number
+            {t('Now send a screenshot of your payment with this order number')}
             {whatsapp ? ' on WhatsApp' : ''}.
           </p>
           {wa && (
@@ -608,20 +630,22 @@ function PendingOrder({
               rel="noopener noreferrer"
               className="inline-flex min-h-11 items-center gap-2 self-start rounded-md bg-[#1f7a4d] px-4 font-semibold text-white hover:bg-[#186640]"
             >
-              <MessageCircle aria-hidden size={18} /> Send on WhatsApp
+              <MessageCircle aria-hidden size={18} /> {t('Send on WhatsApp')}
             </a>
           )}
           {whatsapp && (
             <p className="text-ink-muted text-sm">
-              Or send it to <span className="font-semibold whitespace-nowrap">{whatsapp}</span> with
-              your order number.
+              {t('Or send it to')}{' '}
+              <span className="font-semibold whitespace-nowrap">{whatsapp}</span>{' '}
+              {t('with your order number.')}
             </p>
           )}
         </div>
       )}
       <p className="text-ink-muted text-sm">
-        We check payments by hand, usually within a day. Premium starts as soon as it’s approved;
-        this page updates by itself when you come back.
+        {t(
+          'We check payments by hand, usually within a day. Premium starts as soon as it’s approved; this page updates by itself when you come back.',
+        )}
       </p>
       <Button
         variant="ghost"
@@ -630,7 +654,7 @@ function PendingOrder({
         onClick={cancel}
         className="self-start"
       >
-        Haven’t paid? Cancel this order
+        {t('Haven’t paid? Cancel this order')}
       </Button>
     </Card>
   );

@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { ArrowLeft, CircleAlert, Cloud, Redo2, Undo2 } from 'lucide-react';
@@ -11,6 +12,7 @@ import { useAccount } from '@/features/account/account-context';
 import type { DocumentEditor } from '@/features/editor/use-document-editor';
 
 export function SaveStatus({ state }: { state: DocumentEditor['saveState'] }) {
+  const t = useT();
   const signedIn = useAccount().status === 'signedIn';
   return (
     <p
@@ -19,7 +21,7 @@ export function SaveStatus({ state }: { state: DocumentEditor['saveState'] }) {
     >
       {state === 'saving' && (
         <>
-          <Spinner size={14} /> <span>Saving…</span>
+          <Spinner size={14} /> <span>{t('Saving…')}</span>
         </>
       )}
       {state === 'saved' && (
@@ -28,12 +30,12 @@ export function SaveStatus({ state }: { state: DocumentEditor['saveState'] }) {
           <span className="hidden sm:inline">
             {signedIn ? 'Saved to your account' : 'Saved on this device'}
           </span>
-          <span className="sm:hidden">Saved</span>
+          <span className="sm:hidden">{t('Saved')}</span>
         </>
       )}
       {state === 'error' && (
         <span className="text-danger flex items-center gap-1.5">
-          <CircleAlert aria-hidden size={16} /> Not saved — storage is full or blocked
+          <CircleAlert aria-hidden size={16} /> {t('Not saved — storage is full or blocked')}
         </span>
       )}
     </p>
@@ -48,6 +50,7 @@ type Props = {
 };
 
 export function StudioBar({ editor, backHref, backLabel, action }: Props) {
+  const t = useT();
   const { doc, update } = editor;
   return (
     <header className="border-line bg-surface z-20 flex h-16 shrink-0 items-center gap-2 border-b px-2 sm:gap-3 sm:px-4">
@@ -63,7 +66,7 @@ export function StudioBar({ editor, backHref, backLabel, action }: Props) {
       </Link>
       <div className="flex min-w-0 flex-1 flex-col justify-center">
         <label htmlFor="doc-title" className="sr-only">
-          CV name
+          {t('CV name')}
         </label>
         <input
           id="doc-title"
@@ -77,13 +80,13 @@ export function StudioBar({ editor, backHref, backLabel, action }: Props) {
         </div>
       </div>
       <IconButton
-        label="Undo"
+        label={t('Undo')}
         icon={<Undo2 aria-hidden size={20} />}
         disabled={!editor.canUndo}
         onClick={editor.undo}
       />
       <IconButton
-        label="Redo"
+        label={t('Redo')}
         icon={<Redo2 aria-hidden size={20} />}
         disabled={!editor.canRedo}
         onClick={editor.redo}

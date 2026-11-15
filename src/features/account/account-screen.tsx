@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { InviteCard } from '@/features/referrals/invite-card';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -19,6 +20,7 @@ import {
 import { InstallApp } from '@/features/app/install-app';
 
 export function AccountScreen() {
+  const t = useT();
   const account = useAccount();
   const router = useRouter();
   const toast = useToast();
@@ -37,7 +39,7 @@ export function AccountScreen() {
       <div
         className="skeleton h-48 rounded-lg"
         aria-busy="true"
-        aria-label="Loading your account"
+        aria-label={t('Loading your account')}
       />
     );
   }
@@ -61,49 +63,51 @@ export function AccountScreen() {
         aria-labelledby="acc-h"
       >
         <h2 id="acc-h" className="text-xl font-semibold">
-          Your account
+          {t('Your account')}
         </h2>
         <dl className="grid gap-3 sm:grid-cols-[10rem_1fr]">
           {u.name && (
             <>
-              <dt className="text-ink-muted">Name</dt>
+              <dt className="text-ink-muted">{t('Name')}</dt>
               <dd className="font-semibold">{u.name}</dd>
             </>
           )}
-          <dt className="text-ink-muted">Email</dt>
+          <dt className="text-ink-muted">{t('Email')}</dt>
           <dd className="flex flex-wrap items-center gap-2 font-semibold">
             {u.email}
             {u.emailVerified ? (
               <span className="text-success inline-flex items-center gap-1 text-sm font-semibold">
-                <CircleCheck aria-hidden size={16} /> Verified
+                <CircleCheck aria-hidden size={16} /> {t('Verified')}
               </span>
             ) : (
               <span className="text-warning inline-flex items-center gap-1 text-sm font-semibold">
-                <MailWarning aria-hidden size={16} /> Not verified yet
+                <MailWarning aria-hidden size={16} /> {t('Not verified yet')}
               </span>
             )}
           </dd>
-          <dt className="text-ink-muted">Your CVs</dt>
+          <dt className="text-ink-muted">{t('Your CVs')}</dt>
           <dd>
-            Saved to your account and available wherever you sign in.{' '}
-            {account.sync === 'syncing' && <span className="text-ink-muted">Saving…</span>}
+            {t('Saved to your account and available wherever you sign in.{v}', { v: ' ' })}
+            {account.sync === 'syncing' && <span className="text-ink-muted">{t('Saving…')}</span>}
             {account.sync === 'offline' && (
               <span className="text-warning">
-                Offline — changes will save when you are back online.
+                {t('Offline — changes will save when you are back online.')}
               </span>
             )}
             {account.sync === 'error' && (
               <span className="text-danger">
-                Some changes could not be saved yet. We will keep trying.
+                {t('Some changes could not be saved yet. We will keep trying.')}
               </span>
             )}
           </dd>
         </dl>
         {!u.emailVerified && (
-          <Banner tone="warning" title="Please verify your email">
+          <Banner tone="warning" title={t('Please verify your email')}>
             <p>
-              We sent a link to {u.email}. Verifying lets us reach you about payments and keeps your
-              account safe.
+              {t(
+                'We sent a link to {email}. Verifying lets us reach you about payments and keeps your account safe.',
+                { email: u.email },
+              )}
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               <Button
@@ -117,7 +121,7 @@ export function AccountScreen() {
                   })
                 }
               >
-                Send the link again
+                {t('Send the link again')}
               </Button>
               <Button
                 size="sm"
@@ -136,7 +140,7 @@ export function AccountScreen() {
                   })
                 }
               >
-                I have verified it
+                {t('I have verified it')}
               </Button>
             </div>
           </Banner>
@@ -151,15 +155,17 @@ export function AccountScreen() {
         >
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 id="plan-h" className="text-xl font-semibold">
-              Your plan: {ent.planLabel}
+              {t('Your plan: {planLabel}', { planLabel: ent.planLabel })}
             </h2>
             {ent.plan === 'premium' && ent.passExpiresAt && (
               <p className="text-ink-muted text-sm">
-                Premium until{' '}
-                {new Date(ent.passExpiresAt).toLocaleDateString(undefined, {
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric',
+                {t('Premium until{v} {v2}', {
+                  v: ' ',
+                  v2: new Date(ent.passExpiresAt).toLocaleDateString(undefined, {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                  }),
                 })}
               </p>
             )}
@@ -175,7 +181,9 @@ export function AccountScreen() {
               const lim = ent.limits[k];
               return (
                 <div key={k} className="bg-sunken rounded-md px-3 py-2">
-                  <dt className="text-ink-muted text-sm">{label} this month</dt>
+                  <dt className="text-ink-muted text-sm">
+                    {label} {t('this month')}
+                  </dt>
                   <dd className="font-semibold">
                     {lim === 0
                       ? 'Premium only'
@@ -189,7 +197,7 @@ export function AccountScreen() {
           </dl>
           {ent.plan !== 'premium' && ent.features.sales && ent.passes.length > 0 && (
             <ButtonLink href="/premium" className="self-start">
-              See Premium
+              {t('See Premium')}
             </ButtonLink>
           )}
         </section>
@@ -201,9 +209,9 @@ export function AccountScreen() {
 
       <InstallApp />
 
-      <section className="flex flex-wrap gap-3" aria-label="Account actions">
+      <section className="flex flex-wrap gap-3" aria-label={t('Account actions')}>
         <ButtonLink href="/documents" variant="secondary">
-          Documents
+          {t('Documents')}
         </ButtonLink>
         <Button
           variant="ghost"
@@ -217,7 +225,7 @@ export function AccountScreen() {
             })
           }
         >
-          Sign out
+          {t('Sign out')}
         </Button>
         <Button
           variant="ghost"
@@ -230,21 +238,24 @@ export function AccountScreen() {
             })
           }
         >
-          Sign out on all devices
+          {t('Sign out on all devices')}
         </Button>
       </section>
       <p className="text-ink-muted text-sm">
-        Signing out removes your account’s CVs from this device. They stay safe in your account.
+        {t(
+          'Signing out removes your account’s CVs from this device. They stay safe in your account.',
+        )}
       </p>
 
       {!u.admin && (
         <section aria-labelledby="del-h" className="border-line flex flex-col gap-3 border-t pt-6">
           <h2 id="del-h" className="text-lg font-semibold">
-            Delete your account
+            {t('Delete your account')}
           </h2>
           <p className="text-ink-muted text-sm">
-            This permanently deletes your account and every CV in it, including earlier versions. It
-            can’t be undone — download any CV you want to keep first.
+            {t(
+              'This permanently deletes your account and every CV in it, including earlier versions. It can’t be undone — download any CV you want to keep first.',
+            )}
           </p>
           <form
             className="flex flex-wrap items-end gap-3"
@@ -270,7 +281,7 @@ export function AccountScreen() {
             }}
           >
             <TextField
-              label="Type DELETE to confirm"
+              label={t('Type DELETE to confirm')}
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
               autoComplete="off"
@@ -282,7 +293,7 @@ export function AccountScreen() {
               disabled={confirm !== 'DELETE'}
               loading={busy === 'delete'}
             >
-              Delete my account
+              {t('Delete my account')}
             </Button>
           </form>
         </section>
@@ -293,6 +304,7 @@ export function AccountScreen() {
 
 /** R9.6: the daily reminder email on or off (reminders still show in the studio). */
 function ReminderEmails() {
+  const t = useT();
   const [state, setState] = useState<{ emails: boolean; email: string | null } | null>(null);
   const [busy, setBusy] = useState(false);
   useEffect(() => {
@@ -308,7 +320,7 @@ function ReminderEmails() {
       className="border-line bg-surface flex scroll-mt-20 flex-col gap-3 rounded-lg border p-5"
     >
       <h2 id="rem-h" className="text-xl font-semibold">
-        Reminder emails
+        {t('Reminder emails')}
       </h2>
       <label className="flex items-start gap-3">
         <input
@@ -338,8 +350,9 @@ function ReminderEmails() {
           }}
         />
         <span>
-          Email me my job reminders at 8:00 on the day
-          {state.email ? ` (to ${state.email})` : ''}. Reminders always show in your job tracker.
+          {t('Email me my job reminders at 8:00 on the day')}
+          {state.email ? ` (to ${state.email})` : ''}
+          {t('. Reminders always show in your job tracker.')}
         </span>
       </label>
     </section>

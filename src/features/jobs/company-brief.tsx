@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { Building2, Copy } from 'lucide-react';
@@ -19,6 +20,7 @@ import { JobsError, jobAiApi } from './api';
  * pastes from the company's own pages, with how their CV fits and questions to ask.
  */
 export function CompanyBrief({ job, onJobChange }: { job: Job; onJobChange: (j: Job) => void }) {
+  const t = useT();
   const { ent, refresh } = useEntitlements();
   const toast = useToast();
   const [pages, setPages] = useState('');
@@ -70,14 +72,14 @@ export function CompanyBrief({ job, onJobChange }: { job: Job; onJobChange: (j: 
   return (
     <Card className="flex flex-col gap-4 p-5" data-testid="company-brief">
       <h2 className="flex items-center gap-2 text-lg font-semibold">
-        <Building2 aria-hidden size={20} className="text-primary" /> Company brief
+        <Building2 aria-hidden size={20} className="text-primary" /> {t('Company brief')}
       </h2>
       {b ? (
         <div className="flex flex-col gap-4 text-[15px]" data-testid="brief-body">
           <p>{b.company}</p>
           {b.values.length > 0 && (
             <div>
-              <h3 className="font-semibold">What they value</h3>
+              <h3 className="font-semibold">{t('What they value')}</h3>
               <ul className="list-disc pl-5">
                 {b.values.map((v, i) => (
                   <li key={i}>{v}</li>
@@ -86,7 +88,7 @@ export function CompanyBrief({ job, onJobChange }: { job: Job; onJobChange: (j: 
             </div>
           )}
           <div>
-            <h3 className="font-semibold">What the role needs most</h3>
+            <h3 className="font-semibold">{t('What the role needs most')}</h3>
             <ul className="list-disc pl-5">
               {b.needs.map((v, i) => (
                 <li key={i}>{v}</li>
@@ -95,7 +97,7 @@ export function CompanyBrief({ job, onJobChange }: { job: Job; onJobChange: (j: 
           </div>
           {b.fit.length > 0 && (
             <div>
-              <h3 className="font-semibold">How you fit</h3>
+              <h3 className="font-semibold">{t('How you fit')}</h3>
               <ul className="list-disc pl-5">
                 {b.fit.map((v, i) => (
                   <li key={i}>{v.point}</li>
@@ -104,7 +106,7 @@ export function CompanyBrief({ job, onJobChange }: { job: Job; onJobChange: (j: 
             </div>
           )}
           <div>
-            <h3 className="font-semibold">Questions to ask them</h3>
+            <h3 className="font-semibold">{t('Questions to ask them')}</h3>
             <ul className="list-disc pl-5">
               {b.questions.map((v, i) => (
                 <li key={i}>{v}</li>
@@ -125,23 +127,26 @@ export function CompanyBrief({ job, onJobChange }: { job: Job; onJobChange: (j: 
                 }
               }}
             >
-              Copy the brief
+              {t('Copy the brief')}
             </Button>
           </div>
           <p className="text-ink-muted text-xs">
-            Made from the advert and what you pasted, on{' '}
-            {new Date(b.at).toLocaleDateString('en-GB')}. Check anything important on their site.
+            {t(
+              'Made from the advert and what you pasted, on{v} {v2}. Check anything important on their site.',
+              { v: ' ', v2: new Date(b.at).toLocaleDateString('en-GB') },
+            )}
           </p>
         </div>
       ) : (
         <p className="text-ink-muted text-sm">
-          One page on the employer before you apply or go to the interview: what they do, what they
-          value, what this role needs most, where your CV fits and good questions to ask.
+          {t(
+            'One page on the employer before you apply or go to the interview: what they do, what they value, what this role needs most, where your CV fits and good questions to ask.',
+          )}
         </p>
       )}
       <TextArea
         label={b ? 'Add more from their website (optional)' : 'Text from their website (optional)'}
-        hint="Paste their About or Careers page to give the brief more to work with."
+        hint={t('Paste their About or Careers page to give the brief more to work with.')}
         rows={3}
         maxLength={12_000}
         value={pages}
@@ -154,7 +159,7 @@ export function CompanyBrief({ job, onJobChange }: { job: Job; onJobChange: (j: 
           action={
             problem.premium ? (
               <ButtonLink href="/premium" size="sm">
-                See Premium
+                {t('See Premium')}
               </ButtonLink>
             ) : undefined
           }
@@ -162,9 +167,9 @@ export function CompanyBrief({ job, onJobChange }: { job: Job; onJobChange: (j: 
       )}
       {locked ? (
         <p className="text-sm">
-          Company briefs are part of{' '}
+          {t('Company briefs are part of{v}', { v: ' ' })}
           <Link href="/premium" className="text-primary font-semibold">
-            Premium
+            {t('Premium')}
           </Link>
           .
         </p>
@@ -180,7 +185,9 @@ export function CompanyBrief({ job, onJobChange }: { job: Job; onJobChange: (j: 
         </Button>
       )}
       {short && (
-        <p className="text-ink-muted text-xs">Add the job advert to this job to make a brief.</p>
+        <p className="text-ink-muted text-xs">
+          {t('Add the job advert to this job to make a brief.')}
+        </p>
       )}
     </Card>
   );

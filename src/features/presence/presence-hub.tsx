@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, Copy, ExternalLink, Globe, IdCard, Link2, Mail } from 'lucide-react';
@@ -15,6 +16,7 @@ import { getRepository } from '@/modules/storage/repository';
 
 /** Tiny bar chart of opens per day, with the total in words for screen readers. */
 function Opens({ recent, label }: { recent: { day: string; n: number }[]; label: string }) {
+  const t = useT();
   const max = Math.max(1, ...recent.map((d) => d.n));
   const total = recent.reduce((a, d) => a + d.n, 0);
   return (
@@ -39,7 +41,9 @@ function Opens({ recent, label }: { recent: { day: string; n: number }[]; label:
           </rect>
         ))}
       </svg>
-      <span className="text-ink-muted text-sm">{total} in 14 days</span>
+      <span className="text-ink-muted text-sm">
+        {total} {t('in 14 days')}
+      </span>
     </div>
   );
 }
@@ -49,6 +53,7 @@ const when = (iso: string | null) =>
 
 /** Presence (spec §11.1): portfolio, LinkedIn and share links, with how often each is opened. */
 export function PresenceHub() {
+  const t = useT();
   const account = useAccount();
   const toast = useToast();
   const [portfolio, setPortfolio] = useState<PortfolioView | null | undefined>(undefined);
@@ -108,10 +113,10 @@ export function PresenceHub() {
     return (
       <Banner
         tone="info"
-        title="Sign in to manage your portfolio page and share links"
+        title={t('Sign in to manage your portfolio page and share links')}
         action={
           <ButtonLink size="sm" href="/signin?next=/presence">
-            Sign in
+            {t('Sign in')}
           </ButtonLink>
         }
       />
@@ -132,9 +137,9 @@ export function PresenceHub() {
           <div className="flex items-center gap-2">
             <Globe aria-hidden size={22} className="text-primary" />
             <h2 id="portfolio-h" className="text-xl font-semibold">
-              Portfolio page
+              {t('Portfolio page')}
             </h2>
-            {portfolio?.published && <Badge tone="success">Live</Badge>}
+            {portfolio?.published && <Badge tone="success">{t('Live')}</Badge>}
           </div>
           {portfolio === undefined ? (
             <Skeleton className="h-16 w-full rounded-md" />
@@ -149,13 +154,16 @@ export function PresenceHub() {
                 {origin.replace(/^https?:\/\//, '')}/p/{portfolio.slug}
                 <ExternalLink aria-hidden size={14} />
               </a>
-              <p className="text-ink-muted text-sm">{portfolio.views} visits in total</p>
-              <Opens recent={portfolio.recent} label="Portfolio visits" />
+              <p className="text-ink-muted text-sm">
+                {portfolio.views} {t('visits in total')}
+              </p>
+              <Opens recent={portfolio.recent} label={t('Portfolio visits')} />
             </>
           ) : (
             <p className="text-ink-muted">
-              Your CV as a web page with its own address, to put on applications and your email
-              signature. Choose what shows, and turn it off at any time.
+              {t(
+                'Your CV as a web page with its own address, to put on applications and your email signature. Choose what shows, and turn it off at any time.',
+              )}
             </p>
           )}
           <ButtonLink href="/portfolio" variant="secondary" className="mt-auto self-start">
@@ -170,19 +178,20 @@ export function PresenceHub() {
           <div className="flex items-center gap-2">
             <IdCard aria-hidden size={22} className="text-primary" />
             <h2 id="linkedin-h" className="text-xl font-semibold">
-              LinkedIn profile
+              {t('LinkedIn profile')}
             </h2>
           </div>
           <p className="text-ink-muted">
-            A headline, About section and experience entries written from your CV, within LinkedIn’s
-            limits and ready to paste. Or upload your LinkedIn profile for a review of each section.
+            {t(
+              'A headline, About section and experience entries written from your CV, within LinkedIn’s limits and ready to paste. Or upload your LinkedIn profile for a review of each section.',
+            )}
           </p>
           <div className="mt-auto flex flex-wrap gap-2">
             <ButtonLink href="/linkedin" variant="secondary">
-              Write my LinkedIn text
+              {t('Write my LinkedIn text')}
             </ButtonLink>
             <ButtonLink href="/linkedin?tab=review" variant="ghost">
-              Review my profile
+              {t('Review my profile')}
             </ButtonLink>
           </div>
         </section>
@@ -193,15 +202,16 @@ export function PresenceHub() {
           <div className="flex items-center gap-2">
             <Mail aria-hidden size={22} className="text-primary" />
             <h2 id="card-h" className="text-xl font-semibold">
-              Email signature and business card
+              {t('Email signature and business card')}
             </h2>
           </div>
           <p className="text-ink-muted">
-            From your CV, in its colour and fonts: a signature to paste into your email, and a card
-            to print with a QR code to your page.
+            {t(
+              'From your CV, in its colour and fonts: a signature to paste into your email, and a card to print with a QR code to your page.',
+            )}
           </p>
           <ButtonLink href="/presence/card" variant="secondary" className="mt-auto self-start">
-            Make them
+            {t('Make them')}
           </ButtonLink>
         </section>
       </div>
@@ -213,7 +223,7 @@ export function PresenceHub() {
         <div className="flex items-center gap-2">
           <Link2 aria-hidden size={22} className="text-primary" />
           <h2 id="shares-h" className="text-xl font-semibold">
-            Share links
+            {t('Share links')}
           </h2>
         </div>
         {shares === null ? (
@@ -221,8 +231,9 @@ export function PresenceHub() {
         ) : shares.length === 0 ? (
           <div className="flex flex-col items-start gap-3">
             <p className="text-ink-muted">
-              A private, read-only link to the latest version of a CV — for a recruiter, a mentor or
-              a friend. You see how often it’s opened and can switch it off at any time.
+              {t(
+                'A private, read-only link to the latest version of a CV — for a recruiter, a mentor or a friend. You see how often it’s opened and can switch it off at any time.',
+              )}
             </p>
             {latest && (
               <ButtonLink
@@ -230,12 +241,13 @@ export function PresenceHub() {
                 variant="secondary"
                 iconAfter={<ArrowRight aria-hidden size={16} />}
               >
-                Create a link for “{latest.title || 'my CV'}”
+                {t('Create a link for “')}
+                {latest.title || 'my CV'}”
               </ButtonLink>
             )}
           </div>
         ) : (
-          <ul className="divide-line flex flex-col divide-y" aria-label="Your share links">
+          <ul className="divide-line flex flex-col divide-y" aria-label={t('Your share links')}>
             {shares.map((s) => {
               const url = `${origin}/s/${s.token}`;
               const title = titles.get(s.docId) ?? 'A CV';
@@ -249,7 +261,9 @@ export function PresenceHub() {
                       </Badge>
                     </p>
                     <p className="text-ink-muted text-sm">
-                      {s.views} open{s.views === 1 ? '' : 's'} · last opened {when(s.lastViewedAt)}
+                      {t('{views} open', { views: s.views })}
+                      {s.views === 1 ? '' : 's'}{' '}
+                      {t('· last opened {when}', { when: when(s.lastViewedAt) })}
                       {s.comments && ' · comments on'}
                     </p>
                     {(s.openComments ?? 0) > 0 && (
@@ -260,7 +274,7 @@ export function PresenceHub() {
                         {s.openComments === 1
                           ? '1 comment to read'
                           : `${s.openComments} comments to read`}
-                        <span className="sr-only"> on {title}</span>
+                        <span className="sr-only"> {t('on {title}', { title: title })}</span>
                       </Link>
                     )}
                   </div>
@@ -274,7 +288,7 @@ export function PresenceHub() {
                       onClick={() => copy(url)}
                       aria-label={`Copy the link to ${title}`}
                     >
-                      Copy
+                      {t('Copy')}
                     </Button>
                     <Button
                       size="sm"

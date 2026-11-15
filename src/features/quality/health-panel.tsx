@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { CircleAlert, CircleCheck, Lightbulb } from 'lucide-react';
@@ -17,6 +18,7 @@ export function HealthPanel({
   /** Inside the editor: open the field in place instead of following a link. */
   onShow?: (ref: string) => void;
 }) {
+  const t = useT();
   const report = useMemo(() => healthCheck(doc, { pages }), [doc, pages]);
   const [showPassed, setShowPassed] = useState(false);
   const fixes = report.findings.filter((f) => f.severity === 'fix');
@@ -29,7 +31,7 @@ export function HealthPanel({
       data-testid="health"
     >
       <h2 id="health-h" className="font-semibold">
-        CV check
+        {t('CV check')}
       </h2>
       <p className="text-ink-muted mb-4 text-sm" aria-live="polite">
         {fixes.length
@@ -39,10 +41,16 @@ export function HealthPanel({
             : 'Ready to send. Nothing to fix.'}
       </p>
       {fixes.length > 0 && (
-        <Group title="Fix before sending" items={fixes} doc={doc} tone="fix" onShow={onShow} />
+        <Group title={t('Fix before sending')} items={fixes} doc={doc} tone="fix" onShow={onShow} />
       )}
       {improve.length > 0 && (
-        <Group title="Could be stronger" items={improve} doc={doc} tone="improve" onShow={onShow} />
+        <Group
+          title={t('Could be stronger')}
+          items={improve}
+          doc={doc}
+          tone="improve"
+          onShow={onShow}
+        />
       )}
       {report.passed.length > 0 && (
         <div className="mt-3">
@@ -52,7 +60,8 @@ export function HealthPanel({
             aria-expanded={showPassed}
             onClick={() => setShowPassed((v) => !v)}
           >
-            {showPassed ? 'Hide' : 'Show'} what’s already good ({report.passed.length})
+            {showPassed ? 'Hide' : 'Show'}{' '}
+            {t('what’s already good ({length})', { length: report.passed.length })}
           </button>
           {showPassed && (
             <ul className="mt-2 flex flex-col gap-1.5 text-sm">
@@ -83,6 +92,7 @@ function Group({
   tone: 'fix' | 'improve';
   onShow?: (ref: string) => void;
 }) {
+  const t = useT();
   const Icon = tone === 'fix' ? CircleAlert : Lightbulb;
   return (
     <div className="mb-4">
@@ -118,14 +128,14 @@ function Group({
                   onClick={() => onShow(f.ref ?? 'basics/contact')}
                   className="text-primary mt-1 inline-block text-sm font-semibold underline underline-offset-4"
                 >
-                  Show me
+                  {t('Show me')}
                 </button>
               ) : (
                 <Link
                   href={`/cv/${doc.id}${f.ref ? `?focus=${encodeURIComponent(f.ref)}` : ''}`}
                   className="text-primary mt-1 inline-block text-sm font-semibold underline underline-offset-4"
                 >
-                  Show me
+                  {t('Show me')}
                 </Link>
               )}
             </div>

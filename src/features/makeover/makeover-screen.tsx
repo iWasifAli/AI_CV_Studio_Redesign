@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Check, Download, PencilLine, RotateCcw, Sparkles } from 'lucide-react';
@@ -50,6 +51,7 @@ function event(name: 'makeover_design_switch' | 'landing_view') {
 
 /** Instant Makeover (spec §6): drop → watch it work → reveal → optional polish → download. */
 export function MakeoverScreen() {
+  const tx = useT();
   const router = useRouter();
   const params = useSearchParams();
   const account = useAccount();
@@ -249,14 +251,17 @@ export function MakeoverScreen() {
   if (phase !== 'result' || !result || !doc || !preview) {
     if (ent && !ent.features.import)
       return (
-        <Banner tone="info" title="Importing is switched off right now. Please try again later." />
+        <Banner
+          tone="info"
+          title={tx('Importing is switched off right now. Please try again later.')}
+        />
       );
     return (
       <div className="flex max-w-2xl flex-col gap-4">
         {phase === 'working' ? (
           <Card className="flex flex-col gap-4 p-6" data-testid="makeover-progress">
             <h2 className="flex items-center gap-2 text-xl font-semibold" role="status">
-              <Spinner /> Making over your CV…
+              <Spinner /> {tx('Making over your CV…')}
             </h2>
             <ol className="flex flex-col gap-2">
               {steps.map((s, i) => (
@@ -278,7 +283,7 @@ export function MakeoverScreen() {
                 </li>
               ))}
             </ol>
-            <p className="text-ink-muted text-sm">This usually takes 10–30 seconds.</p>
+            <p className="text-ink-muted text-sm">{tx('This usually takes 10–30 seconds.')}</p>
           </Card>
         ) : (
           <DropZone onFile={(f) => void upload(f)} />
@@ -287,19 +292,23 @@ export function MakeoverScreen() {
           <Banner tone="error" title={failure.message}>
             {failure.reason === 'sign_in' && (
               <ButtonLink size="sm" href="/signin?next=/makeover" className="mt-2">
-                Sign in free
+                {tx('Sign in free')}
               </ButtonLink>
             )}
             {failure.reason === 'limit' && ent?.features.sales && (
               <ButtonLink size="sm" href="/premium" className="mt-2">
-                See Premium
+                {tx('See Premium')}
               </ButtonLink>
             )}
           </Banner>
         )}
         <ul className="text-ink-muted flex flex-col gap-1 text-sm">
-          <li>No sign-in needed to see the result. We read your file and don’t keep it.</li>
-          <li>Nothing is added that isn’t in your CV — every word is checked against your file.</li>
+          <li>{tx('No sign-in needed to see the result. We read your file and don’t keep it.')}</li>
+          <li>
+            {tx(
+              'Nothing is added that isn’t in your CV — every word is checked against your file.',
+            )}
+          </li>
         </ul>
       </div>
     );
@@ -344,7 +353,7 @@ export function MakeoverScreen() {
     <div className="flex flex-col gap-6" data-testid="makeover-result">
       <div className="flex flex-col gap-2">
         <h2 className="flex items-center gap-2 text-2xl font-semibold" data-testid="makeover-done">
-          <Check aria-hidden className="text-primary" /> Here’s your new CV
+          <Check aria-hidden className="text-primary" /> {tx('Here’s your new CV')}
         </h2>
         <p className="text-ink-muted">
           {profession
@@ -357,33 +366,35 @@ export function MakeoverScreen() {
       </div>
 
       {result.scanned && (
-        <Banner tone="warning" title="Please check names and numbers" className="max-w-3xl">
-          This was read from an image, so a word may have been misread.
+        <Banner tone="warning" title={tx('Please check names and numbers')} className="max-w-3xl">
+          {tx('This was read from an image, so a word may have been misread.')}
         </Banner>
       )}
       {result.previewFor === 'visitor' && account.status !== 'signedIn' && (
         <Banner
           tone="info"
-          title="Like it? Sign in free to save and download it."
+          title={tx('Like it? Sign in free to save and download it.')}
           className="max-w-3xl"
         >
-          Your new CV is kept while you sign in or create an account.
+          {tx('Your new CV is kept while you sign in or create an account.')}
         </Banner>
       )}
       {watermark && (
         <Banner
           tone="warning"
-          title="This is a preview — you’ve used this month’s imports."
+          title={tx('This is a preview — you’ve used this month’s imports.')}
           className="max-w-3xl"
           action={
             ent?.features.sales ? (
               <ButtonLink size="sm" href="/premium">
-                See Premium
+                {tx('See Premium')}
               </ButtonLink>
             ) : undefined
           }
         >
-          You can still look at every design. Saving needs Premium or next month’s allowance.
+          {tx(
+            'You can still look at every design. Saving needs Premium or next month’s allowance.',
+          )}
         </Banner>
       )}
 
@@ -395,7 +406,7 @@ export function MakeoverScreen() {
         <div className="flex flex-col gap-6">
           <section className="flex flex-col gap-3" aria-labelledby="mk-designs">
             <h3 id="mk-designs" className="font-semibold">
-              Designs chosen for you
+              {tx('Designs chosen for you')}
             </h3>
             <div role="radiogroup" aria-labelledby="mk-designs" className="grid grid-cols-3 gap-3">
               {result.ranking.map((r, i) => {
@@ -432,7 +443,9 @@ export function MakeoverScreen() {
                     <span className="text-sm font-semibold">
                       {t.name}
                       {locked(r.id) && (
-                        <span className="text-ink-muted ml-1 text-xs font-normal">Premium</span>
+                        <span className="text-ink-muted ml-1 text-xs font-normal">
+                          {tx('Premium')}
+                        </span>
                       )}
                     </span>
                   </button>
@@ -441,8 +454,10 @@ export function MakeoverScreen() {
             </div>
             {locked(templateId) && (
               <p className="text-ink-muted text-sm">
-                {DESIGN_META[templateId].name} is a Premium design. You can save and edit in it;
-                downloading needs Premium, or switch to a free design any time.
+                {tx(
+                  '{name} is a Premium design. You can save and edit in it; downloading needs Premium, or switch to a free design any time.',
+                  { name: DESIGN_META[templateId].name },
+                )}
               </p>
             )}
           </section>
@@ -465,13 +480,13 @@ export function MakeoverScreen() {
               {/* eslint-disable-next-line @next/next/no-img-element -- data URL from the reply */}
               <img
                 src={result.portrait}
-                alt="The photo from your CV"
+                alt={tx('The photo from your CV')}
                 className="border-line size-20 rounded-full border object-cover"
               />
               <div className="flex min-w-0 flex-1 flex-col gap-2">
-                <h3 className="font-semibold">We found your photo in the CV</h3>
+                <h3 className="font-semibold">{tx('We found your photo in the CV')}</h3>
                 <p className="text-ink-muted text-sm">
-                  Use it in the new design? You can frame it, hide it or remove it later.
+                  {tx('Use it in the new design? You can frame it, hide it or remove it later.')}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <Button
@@ -492,10 +507,10 @@ export function MakeoverScreen() {
                       );
                     }}
                   >
-                    Use this photo
+                    {tx('Use this photo')}
                   </Button>
                   <Button size="sm" variant="ghost" onClick={() => setPortraitChoice('left')}>
-                    Leave it out
+                    {tx('Leave it out')}
                   </Button>
                 </div>
               </div>
@@ -505,21 +520,22 @@ export function MakeoverScreen() {
           {openMissing.length > 0 && (
             <Card className="flex flex-col gap-3 p-4" data-testid="unplaced">
               <h3 className="font-semibold">
-                We could not place {openMissing.length} line{openMissing.length === 1 ? '' : 's'}
+                {tx('We could not place {length} line', { length: openMissing.length })}
+                {openMissing.length === 1 ? '' : 's'}
               </h3>
               <ul className="flex flex-col gap-2">
                 {openMissing.map((l) => (
                   <li key={l} className="flex flex-wrap items-center gap-2 text-[15px]">
                     <span className="min-w-0 flex-1">{l}</span>
                     <Button size="sm" variant="secondary" onClick={() => addLine(l)}>
-                      Add to my CV
+                      {tx('Add to my CV')}
                     </Button>
                     <Button
                       size="sm"
                       variant="ghost"
                       onClick={() => setPlaced((p) => ({ ...p, [l]: 'left' }))}
                     >
-                      Leave out
+                      {tx('Leave out')}
                     </Button>
                   </li>
                 ))}
@@ -532,7 +548,7 @@ export function MakeoverScreen() {
               {(saveFailure.reason === 'limit' || saveFailure.reason === 'premium') &&
                 ent?.features.sales && (
                   <ButtonLink size="sm" href="/premium" className="mt-2">
-                    See Premium
+                    {tx('See Premium')}
                   </ButtonLink>
                 )}
             </Banner>
@@ -540,7 +556,7 @@ export function MakeoverScreen() {
 
           {account.status === 'signedIn' && !hasProfile && (
             <CheckboxField
-              label="Use this as my career profile (the master record new CVs start from)"
+              label={tx('Use this as my career profile (the master record new CVs start from)')}
               checked={asProfile}
               onChange={setAsProfile}
             />
@@ -554,7 +570,7 @@ export function MakeoverScreen() {
               icon={<Download aria-hidden size={18} />}
               data-testid="makeover-download"
             >
-              Download PDF
+              {tx('Download PDF')}
             </Button>
             <Button
               size="lg"
@@ -564,7 +580,7 @@ export function MakeoverScreen() {
               icon={<PencilLine aria-hidden size={18} />}
               data-testid="makeover-edit"
             >
-              Save and edit
+              {tx('Save and edit')}
             </Button>
             <Button
               variant="ghost"
@@ -577,7 +593,7 @@ export function MakeoverScreen() {
                 setPhase('idle');
               }}
             >
-              Try another file
+              {tx('Try another file')}
             </Button>
           </div>
         </div>
@@ -598,6 +614,7 @@ function Compare({
   doc: ResumeDocument;
   watermark: boolean;
 }) {
+  const tx = useT();
   const [pos, setPos] = useState(file ? 50 : 100);
   const hasBefore = !!file;
   return (
@@ -616,7 +633,7 @@ function Compare({
               className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden"
             >
               <span className="text-ink/15 -rotate-30 text-[clamp(40px,9vw,110px)] font-black tracking-widest whitespace-nowrap select-none">
-                PREVIEW
+                {tx('PREVIEW')}
               </span>
             </div>
           )}
@@ -633,7 +650,7 @@ function Compare({
       </div>
       {hasBefore && (
         <label className="flex items-center gap-3 text-sm font-semibold">
-          <span className="w-16 shrink-0">Before</span>
+          <span className="w-16 shrink-0">{tx('Before')}</span>
           <input
             type="range"
             min={0}
@@ -641,15 +658,15 @@ function Compare({
             value={pos}
             onChange={(e) => setPos(Number(e.target.value))}
             className="accent-primary min-h-11 flex-1"
-            aria-label="Compare your original CV with the new one"
+            aria-label={tx('Compare your original CV with the new one')}
             data-testid="compare-slider"
           />
-          <span className="w-16 shrink-0 text-right">After</span>
+          <span className="w-16 shrink-0 text-right">{tx('After')}</span>
         </label>
       )}
       {!hasBefore && (
         <p className="text-ink-muted flex items-center gap-1.5 text-sm">
-          <Sparkles aria-hidden size={15} /> Your words, in a new design.
+          <Sparkles aria-hidden size={15} /> {tx('Your words, in a new design.')}
         </p>
       )}
     </div>

@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useId, useState, type KeyboardEvent } from 'react';
 import { Chip } from '@/components/ui/chip';
 import { cn } from '@/lib/cn';
@@ -37,6 +38,7 @@ export function DateField({
   disabled?: boolean;
   className?: string;
 }) {
+  const t = useT();
   const id = useId();
   const [y, m] = value ? value.split('-') : ['', ''];
   const thisYear = new Date().getFullYear();
@@ -49,7 +51,7 @@ export function DateField({
       <legend className="text-ink mb-1.5 text-sm font-semibold">{label}</legend>
       <div className="grid grid-cols-[1.2fr_1fr] gap-2">
         <label htmlFor={`${id}-m`} className="sr-only">
-          {label} month
+          {t('{label} month', { label: label })}
         </label>
         <select
           id={`${id}-m`}
@@ -57,7 +59,7 @@ export function DateField({
           value={m ?? ''}
           onChange={(e) => set(y || String(thisYear), e.target.value)}
         >
-          <option value="">Month</option>
+          <option value="">{t('Month')}</option>
           {MONTHS.map((name, i) => (
             <option key={name} value={String(i + 1).padStart(2, '0')} aria-label={name}>
               {name.slice(0, 3)}
@@ -65,7 +67,7 @@ export function DateField({
           ))}
         </select>
         <label htmlFor={`${id}-y`} className="sr-only">
-          {label} year
+          {t('{label} year', { label: label })}
         </label>
         <select
           id={`${id}-y`}
@@ -73,7 +75,7 @@ export function DateField({
           value={y ?? ''}
           onChange={(e) => set(e.target.value, e.target.value ? (m ?? '') : '')}
         >
-          <option value="">Year</option>
+          <option value="">{t('Year')}</option>
           {years.map((yr) => (
             <option key={yr} value={String(yr)}>
               {yr}
@@ -146,6 +148,7 @@ export function TagsField({
   suggestions?: string[];
   id?: string;
 }) {
+  const t = useT();
   const auto = useId();
   const id = givenId ?? auto;
   const [draft, setDraft] = useState('');
@@ -173,7 +176,7 @@ export function TagsField({
         {label}
       </label>
       {value.length > 0 && (
-        <ul className="flex flex-wrap gap-2" aria-label="Added skills">
+        <ul className="flex flex-wrap gap-2" aria-label={t('Added skills')}>
           {value.map((v, i) => (
             <li key={`${v}-${i}`}>
               <Chip
@@ -196,7 +199,7 @@ export function TagsField({
           onKeyDown={onKeyDown}
           onBlur={() => draft.trim() && add(draft)}
           aria-describedby={`${id}-hint`}
-          placeholder="e.g. Customer service"
+          placeholder={t('e.g. Customer service')}
           className={control}
         />
         <button
@@ -204,7 +207,7 @@ export function TagsField({
           onClick={() => add(draft)}
           className="border-line-strong bg-surface hover:bg-sunken h-11 shrink-0 rounded-md border px-4 text-[15px] font-semibold"
         >
-          Add
+          {t('Add')}
         </button>
       </div>
       <p id={`${id}-hint`} className="text-ink-muted text-sm">
@@ -212,7 +215,7 @@ export function TagsField({
       </p>
       {remaining.length > 0 && (
         <div className="flex flex-col gap-2">
-          <p className="text-ink-muted text-sm font-semibold">Suggestions</p>
+          <p className="text-ink-muted text-sm font-semibold">{t('Suggestions')}</p>
           <ul className="flex flex-wrap gap-2">
             {remaining.map((s) => (
               <li key={s}>

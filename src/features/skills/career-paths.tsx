@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useState } from 'react';
 import { Compass } from 'lucide-react';
@@ -34,6 +35,7 @@ export function CareerPaths({
   source: ResumeDocument | null;
   onPlan: (role: string) => void;
 }) {
+  const t = useT();
   const { ent, refresh } = useEntitlements();
   const [interests, setInterests] = useState(kept?.interests ?? '');
   const [paths, setPaths] = useState<Path[] | null>(kept?.paths ?? null);
@@ -78,16 +80,17 @@ export function CareerPaths({
       data-testid="career-paths"
     >
       <h2 id="paths-h" className="flex items-center gap-2 text-lg font-semibold">
-        <Compass aria-hidden size={20} className="text-primary" /> Where could you go next?
+        <Compass aria-hidden size={20} className="text-primary" /> {t('Where could you go next?')}
       </h2>
       <p className="text-ink-muted text-sm">
-        Roles your CV already points to, what you have for each, what you’d still need, and a first
-        step. Nothing is added to your CV.
+        {t(
+          'Roles your CV already points to, what you have for each, what you’d still need, and a first step. Nothing is added to your CV.',
+        )}
       </p>
       {!paths && (
         <TextField
-          label="Anything you’d like more of? (optional)"
-          hint="For example: “working with people”, “less driving”, “managing projects”."
+          label={t('Anything you’d like more of? (optional)')}
+          hint={t('For example: “working with people”, “less driving”, “managing projects”.')}
           maxLength={300}
           value={interests}
           onChange={(e) => setInterests(e.target.value)}
@@ -100,7 +103,7 @@ export function CareerPaths({
           action={
             problem.premium ? (
               <ButtonLink href="/premium" size="sm">
-                See Premium
+                {t('See Premium')}
               </ButtonLink>
             ) : undefined
           }
@@ -121,18 +124,18 @@ export function CareerPaths({
               </p>
               {p.have.length > 0 && (
                 <p className="text-sm">
-                  <span className="font-semibold">You have: </span>
+                  <span className="font-semibold">{t('You have:')} </span>
                   {p.have.join(' · ')}
                 </p>
               )}
               {p.need.length > 0 && (
                 <p className="text-sm">
-                  <span className="font-semibold">You’d need: </span>
+                  <span className="font-semibold">{t('You’d need:')} </span>
                   {p.need.join(' · ')}
                 </p>
               )}
               <p className="text-ink-muted text-sm">
-                <span className="font-semibold">First step: </span>
+                <span className="font-semibold">{t('First step:')} </span>
                 {p.step}
               </p>
               <Button
@@ -141,7 +144,7 @@ export function CareerPaths({
                 className="mt-auto self-start"
                 onClick={() => onPlan(p.role)}
               >
-                Plan the skills for this role
+                {t('Plan the skills for this role')}
               </Button>
             </li>
           ))}
@@ -149,9 +152,9 @@ export function CareerPaths({
       )}
       {locked ? (
         <p className="text-sm">
-          Career paths are part of{' '}
+          {t('Career paths are part of{v}', { v: ' ' })}
           <Link href="/premium" className="text-primary font-semibold">
-            Premium
+            {t('Premium')}
           </Link>
           .
         </p>

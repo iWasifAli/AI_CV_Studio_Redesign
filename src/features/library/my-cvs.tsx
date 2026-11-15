@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -45,6 +46,7 @@ function when(iso: string): string {
 
 /** `only` narrows the list (Documents hub: CVs for one job). */
 export function MyCvs({ only }: { only?: (doc: ResumeDocument) => boolean } = {}) {
+  const t = useT();
   const toast = useToast();
   const router = useRouter();
   const [docs, setDocs] = useState<ResumeDocument[]>(load);
@@ -135,7 +137,7 @@ export function MyCvs({ only }: { only?: (doc: ResumeDocument) => boolean } = {}
                 icon={<Download aria-hidden size={16} />}
                 onClick={backupAll}
               >
-                Download a backup
+                {t('Download a backup')}
               </Button>
             )}
             <Button
@@ -144,7 +146,7 @@ export function MyCvs({ only }: { only?: (doc: ResumeDocument) => boolean } = {}
               icon={<Upload aria-hidden size={16} />}
               onClick={() => fileInput.current?.click()}
             >
-              Restore from a backup
+              {t('Restore from a backup')}
             </Button>
             <input
               ref={fileInput}
@@ -164,7 +166,7 @@ export function MyCvs({ only }: { only?: (doc: ResumeDocument) => boolean } = {}
       >
         {signedIn ? (
           <>
-            They appear on every device where you sign in
+            {t('They appear on every device where you sign in')}
             {account.sync === 'syncing'
               ? ' · Saving…'
               : account.sync === 'offline'
@@ -174,14 +176,14 @@ export function MyCvs({ only }: { only?: (doc: ResumeDocument) => boolean } = {}
           </>
         ) : (
           <>
-            Clearing your browser data removes them.{' '}
+            {t('Clearing your browser data removes them.{v}', { v: ' ' })}
             <Link
               href="/signin?next=/cv"
               className="text-primary font-semibold underline underline-offset-4"
             >
-              Sign in
+              {t('Sign in')}
             </Link>{' '}
-            to keep them safe in your account and use them on other devices.
+            {t('to keep them safe in your account and use them on other devices.')}
           </>
         )}
       </Banner>
@@ -198,7 +200,7 @@ export function MyCvs({ only }: { only?: (doc: ResumeDocument) => boolean } = {}
             </span>
             <div>
               <h2 id="profile-h" className="font-semibold">
-                Career profile
+                {t('Career profile')}
               </h2>
               <p className="text-ink-muted text-sm">
                 {profile
@@ -210,15 +212,15 @@ export function MyCvs({ only }: { only?: (doc: ResumeDocument) => boolean } = {}
           {profile ? (
             <div className="flex flex-wrap gap-2">
               <ButtonLink href={`/cv/${profile.id}`} variant="secondary" size="sm">
-                Edit profile
+                {t('Edit profile')}
               </ButtonLink>
               <Button size="sm" onClick={newFromProfile}>
-                New CV from profile
+                {t('New CV from profile')}
               </Button>
             </div>
           ) : (
             <ButtonLink href="/profile" variant="secondary" size="sm">
-              Set up your profile
+              {t('Set up your profile')}
             </ButtonLink>
           )}
         </section>
@@ -226,7 +228,7 @@ export function MyCvs({ only }: { only?: (doc: ResumeDocument) => boolean } = {}
 
       {signedIn && cvs.length > 0 && (
         <nav
-          aria-label="Your presence"
+          aria-label={t('Your presence')}
           className="flex flex-wrap gap-3"
           data-testid="presence-links"
         >
@@ -234,13 +236,14 @@ export function MyCvs({ only }: { only?: (doc: ResumeDocument) => boolean } = {}
             href="/portfolio"
             className="border-line bg-surface hover:border-primary inline-flex min-h-11 items-center gap-2 rounded-full border px-4 text-sm font-semibold"
           >
-            <Globe aria-hidden size={16} className="text-primary" /> Portfolio page
+            <Globe aria-hidden size={16} className="text-primary" /> {t('Portfolio page')}
           </Link>
           <Link
             href="/linkedin"
             className="border-line bg-surface hover:border-primary inline-flex min-h-11 items-center gap-2 rounded-full border px-4 text-sm font-semibold"
           >
-            <Sparkles aria-hidden size={16} className="text-primary" /> LinkedIn profile writer
+            <Sparkles aria-hidden size={16} className="text-primary" />{' '}
+            {t('LinkedIn profile writer')}
           </Link>
         </nav>
       )}
@@ -254,12 +257,12 @@ export function MyCvs({ only }: { only?: (doc: ResumeDocument) => boolean } = {}
             {account.status === 'signedIn' ? 'No CVs yet' : 'No CVs on this device yet'}
           </h2>
           <p className="text-ink-muted max-w-md">
-            When you create a CV, it is saved here so you can come back to it.
+            {t('When you create a CV, it is saved here so you can come back to it.')}
           </p>
           <div className="flex flex-wrap justify-center gap-3">
-            <ButtonLink href="/start">Create a CV</ButtonLink>
+            <ButtonLink href="/start">{t('Create a CV')}</ButtonLink>
             <ButtonLink href="/makeover" variant="secondary">
-              Import a CV
+              {t('Import a CV')}
             </ButtonLink>
           </div>
         </div>
@@ -290,7 +293,10 @@ export function MyCvs({ only }: { only?: (doc: ResumeDocument) => boolean } = {}
                     </Link>
                   </h2>
                   <p className="text-ink-muted text-sm">
-                    {getTemplate(doc.design.templateId).name} · edited {when(doc.updatedAt)}
+                    {t('{name} · edited {when}', {
+                      name: getTemplate(doc.design.templateId).name,
+                      when: when(doc.updatedAt),
+                    })}
                   </p>
                 </div>
                 <Menu

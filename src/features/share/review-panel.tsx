@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { MessageSquare, Trash2, X } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
@@ -54,6 +55,7 @@ export const ReviewPanel = forwardRef<
   ReviewPanelHandle,
   { token: string; doc: ResumeDocument; ownerName: string }
 >(function ReviewPanel({ token, doc, ownerName }, ref) {
+  const tx = useT();
   const targets = useMemo(() => commentTargets(doc), [doc]);
   const [key, setKey] = useState('');
   const [target, setTarget] = useState('');
@@ -147,16 +149,18 @@ export const ReviewPanel = forwardRef<
     >
       <div>
         <h2 id="review-h" className="flex items-center gap-2 text-lg font-semibold">
-          <MessageSquare aria-hidden size={18} className="text-primary" /> Leave a comment
+          <MessageSquare aria-hidden size={18} className="text-primary" /> {tx('Leave a comment')}
         </h2>
         <p className="text-ink-muted text-sm">
-          Click a line on the CV, or choose a part below. Your comment goes only to {first}; others
-          with this link don’t see it.
+          {tx(
+            'Click a line on the CV, or choose a part below. Your comment goes only to {first}; others with this link don’t see it.',
+            { first: first },
+          )}
         </p>
       </div>
       <form onSubmit={submit} className="flex flex-col gap-4" noValidate>
         <label className="flex flex-col gap-1.5 text-sm font-semibold">
-          Which part?
+          {tx('Which part?')}
           <select
             className="border-line-strong bg-surface min-h-11 w-full min-w-0 rounded-md border px-3 text-[15px] font-normal"
             value={target}
@@ -175,12 +179,12 @@ export const ReviewPanel = forwardRef<
         {quote && (
           <div className="bg-sunken flex items-start gap-2 rounded-md p-3 text-sm">
             <p className="min-w-0 flex-1 break-words" data-testid="review-quote">
-              <span className="sr-only">About the words: </span>“{quote}”
+              <span className="sr-only">{tx('About the words:')} </span>“{quote}”
             </p>
             <button
               type="button"
               onClick={() => setQuote('')}
-              aria-label="Don’t quote these words"
+              aria-label={tx('Don’t quote these words')}
               className="text-ink-muted hover:text-ink -m-1 rounded p-1"
             >
               <X aria-hidden size={16} />
@@ -189,15 +193,15 @@ export const ReviewPanel = forwardRef<
         )}
         <TextArea
           ref={box}
-          label="Your comment"
+          label={tx('Your comment')}
           value={text}
           maxLength={MAX_TEXT}
           rows={4}
           onChange={(e) => setText(e.target.value)}
-          hint="For example: “Start this point with the result.”"
+          hint={tx('For example: “Start this point with the result.”')}
         />
         <TextField
-          label="Your name"
+          label={tx('Your name')}
           value={author}
           maxLength={MAX_AUTHOR}
           autoComplete="name"
@@ -207,7 +211,7 @@ export const ReviewPanel = forwardRef<
         {/* For robots only: hidden from people and screen readers. */}
         <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden">
           <label>
-            Website
+            {tx('Website')}
             <input
               tabIndex={-1}
               autoComplete="off"
@@ -217,7 +221,7 @@ export const ReviewPanel = forwardRef<
           </label>
         </div>
         {error && (
-          <Banner tone="error" title="Not sent" onDismiss={() => setError(null)}>
+          <Banner tone="error" title={tx('Not sent')} onDismiss={() => setError(null)}>
             {error}
           </Banner>
         )}
@@ -230,14 +234,14 @@ export const ReviewPanel = forwardRef<
           disabled={busy || !text.trim() || !author.trim() || !key}
           className="self-start"
         >
-          Send comment
+          {tx('Send comment')}
         </Button>
       </form>
 
       {mine.length > 0 && (
         <section aria-labelledby="mine-h" className="border-line border-t pt-4">
           <h3 id="mine-h" className="mb-2 font-semibold">
-            Your comments ({mine.length})
+            {tx('Your comments ({length})', { length: mine.length })}
           </h3>
           <ul className="flex flex-col gap-3" data-testid="my-comments">
             {mine.map((c) => (
@@ -253,8 +257,8 @@ export const ReviewPanel = forwardRef<
                   onClick={() => void remove(c)}
                   className="text-ink-muted hover:text-danger mt-1 inline-flex items-center gap-1 text-sm underline underline-offset-4"
                 >
-                  <Trash2 aria-hidden size={14} /> Delete
-                  <span className="sr-only"> this comment</span>
+                  <Trash2 aria-hidden size={14} /> {tx('Delete')}
+                  <span className="sr-only"> {tx('this comment')}</span>
                 </button>
               </li>
             ))}

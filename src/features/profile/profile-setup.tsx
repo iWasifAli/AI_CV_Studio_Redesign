@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -13,6 +14,7 @@ import { getRepository, type DocumentSummary } from '@/modules/storage/repositor
 
 /** /profile: open the career profile, or create it from a CV, an import, or from scratch. */
 export function ProfileSetup() {
+  const t = useT();
   const account = useAccount();
   const router = useRouter();
   const [cvs, setCvs] = useState<DocumentSummary[] | null>(null);
@@ -43,25 +45,28 @@ export function ProfileSetup() {
     return (
       <Card className="flex flex-col items-start gap-3 p-6">
         <Lock aria-hidden className="text-primary" />
-        <h2 className="text-xl font-semibold">Sign in to keep a career profile</h2>
+        <h2 className="text-xl font-semibold">{t('Sign in to keep a career profile')}</h2>
         <p className="text-ink-muted">
-          Your profile lives in your account, so every CV you make can start from it.
+          {t('Your profile lives in your account, so every CV you make can start from it.')}
         </p>
-        <ButtonLink href="/signin?next=/profile">Sign in or create a free account</ButtonLink>
+        <ButtonLink href="/signin?next=/profile">
+          {t('Sign in or create a free account')}
+        </ButtonLink>
       </Card>
     );
   if (!cvs)
-    return <div className="skeleton h-64 rounded-lg" aria-busy="true" aria-label="Loading" />;
+    return <div className="skeleton h-64 rounded-lg" aria-busy="true" aria-label={t('Loading')} />;
 
   return (
     <div className="flex flex-col gap-6">
       {cvs.length > 0 && (
         <Card className="p-5">
           <h2 className="mb-1 flex items-center gap-2 text-lg font-semibold">
-            <FileText aria-hidden size={20} className="text-primary" /> Start from one of your CVs
+            <FileText aria-hidden size={20} className="text-primary" />{' '}
+            {t('Start from one of your CVs')}
           </h2>
           <p className="text-ink-muted mb-3 text-sm">
-            We copy it into your profile; the CV itself stays as it is.
+            {t('We copy it into your profile; the CV itself stays as it is.')}
           </p>
           <ul className="divide-line divide-y">
             {cvs.map((c) => (
@@ -72,7 +77,7 @@ export function ProfileSetup() {
                   className="text-primary min-h-10 shrink-0 font-semibold"
                   onClick={() => create(c.id)}
                 >
-                  Use this
+                  {t('Use this')}
                 </button>
               </li>
             ))}
@@ -82,20 +87,20 @@ export function ProfileSetup() {
       <div className="grid gap-4 sm:grid-cols-2">
         <Card className="flex flex-col items-start gap-2 p-5">
           <FileUp aria-hidden className="text-primary" />
-          <h2 className="text-lg font-semibold">Import a CV you have</h2>
+          <h2 className="text-lg font-semibold">{t('Import a CV you have')}</h2>
           <p className="text-ink-muted text-sm">
-            Upload a PDF or Word file, then use it as your profile.
+            {t('Upload a PDF or Word file, then use it as your profile.')}
           </p>
           <Link href="/makeover" className="text-primary font-semibold">
-            Import a CV
+            {t('Import a CV')}
           </Link>
         </Card>
         <Card className="flex flex-col items-start gap-2 p-5">
           <FilePlus2 aria-hidden className="text-primary" />
-          <h2 className="text-lg font-semibold">Start from scratch</h2>
-          <p className="text-ink-muted text-sm">Add your experience step by step.</p>
+          <h2 className="text-lg font-semibold">{t('Start from scratch')}</h2>
+          <p className="text-ink-muted text-sm">{t('Add your experience step by step.')}</p>
           <button type="button" className="text-primary font-semibold" onClick={() => create()}>
-            Start an empty profile
+            {t('Start an empty profile')}
           </button>
         </Card>
       </div>

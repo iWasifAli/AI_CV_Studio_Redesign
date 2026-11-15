@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { WifiOff } from 'lucide-react';
@@ -11,6 +12,7 @@ import { getRepository } from '@/modules/storage/repository';
  * this device, so those opened before still open and edits save here until you're back online.
  */
 export function OfflineScreen() {
+  const tx = useT();
   const [docs, setDocs] = useState<{ id: string; title: string }[] | null>(null);
   useEffect(() => {
     // Read after the first paint (this device's storage isn't available on the server).
@@ -31,15 +33,16 @@ export function OfflineScreen() {
   return (
     <Container className="max-w-[640px] py-12">
       <WifiOff aria-hidden size={28} className="text-primary" />
-      <h1 className="font-display mt-3 text-3xl font-semibold">You’re offline</h1>
+      <h1 className="font-display mt-3 text-3xl font-semibold">{tx('You’re offline')}</h1>
       <p className="text-ink-muted mt-2 text-lg">
-        This page needs a connection. CVs you’ve opened on this device still open, and your edits
-        are saved here and synced when you’re back online.
+        {tx(
+          'This page needs a connection. CVs you’ve opened on this device still open, and your edits are saved here and synced when you’re back online.',
+        )}
       </p>
       {docs && docs.length > 0 && (
         <section className="mt-6" aria-labelledby="off-cvs">
           <h2 id="off-cvs" className="font-semibold">
-            Your CVs on this device
+            {tx('Your CVs on this device')}
           </h2>
           <ul className="mt-2 flex flex-col gap-1">
             {docs.map((d) => (
@@ -54,7 +57,7 @@ export function OfflineScreen() {
       )}
       <p className="mt-6">
         <Link href="/studio" className="text-primary font-semibold hover:underline">
-          Try the studio home again
+          {tx('Try the studio home again')}
         </Link>
       </p>
     </Container>

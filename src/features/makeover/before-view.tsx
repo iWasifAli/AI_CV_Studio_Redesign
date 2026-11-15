@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ImageOff } from 'lucide-react';
 
@@ -17,13 +18,17 @@ export function BeforeView({ file, lines }: { file: File | null; lines: string[]
 }
 
 function ImagePage({ file }: { file: File }) {
+  const t = useT();
   const url = useMemo(() => URL.createObjectURL(file), [file]);
   useEffect(() => () => URL.revokeObjectURL(url), [url]);
   // eslint-disable-next-line @next/next/no-img-element -- a local object URL, not an optimisable asset
-  return <img src={url} alt="Your original CV" className="h-full w-full bg-white object-contain" />;
+  return (
+    <img src={url} alt={t('Your original CV')} className="h-full w-full bg-white object-contain" />
+  );
 }
 
 function PdfPage({ file, lines }: { file: File; lines: string[] }) {
+  const t = useT();
   const canvas = useRef<HTMLCanvasElement>(null);
   const [failed, setFailed] = useState(false);
   useEffect(() => {
@@ -56,24 +61,25 @@ function PdfPage({ file, lines }: { file: File; lines: string[] }) {
     <canvas
       ref={canvas}
       role="img"
-      aria-label="Your original CV, page 1"
+      aria-label={t('Your original CV, page 1')}
       className="h-full w-full bg-white object-contain"
     />
   );
 }
 
 function TextPage({ lines }: { lines: string[] }) {
+  const t = useT();
   if (!lines.length)
     return (
       <div className="text-ink-muted flex h-full flex-col items-center justify-center gap-2 bg-white p-6 text-center text-sm">
         <ImageOff aria-hidden />
-        Your original can’t be shown here, but its text was read.
+        {t('Your original can’t be shown here, but its text was read.')}
       </div>
     );
   return (
     <div
       className="h-full overflow-hidden bg-white p-[6%] font-serif text-[clamp(6px,1.25vw,11px)] leading-snug text-black"
-      aria-label="Your original CV as plain text"
+      aria-label={t('Your original CV as plain text')}
       role="img"
     >
       {lines.slice(0, 80).map((l, i) => (

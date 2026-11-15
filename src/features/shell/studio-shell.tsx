@@ -1,5 +1,7 @@
 'use client';
 
+import { useLang, useT } from '@/i18n/client';
+import { setLanguage } from '@/i18n/language-switch';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -19,6 +21,7 @@ import { CREATE, DESTINATIONS, isActive } from './destinations';
  * switches (SiteChrome), e.g. when sign-in finishes loading.
  */
 export function ShellTop() {
+  const t = useT();
   const pathname = usePathname();
   const router = useRouter();
   const account = useAccount();
@@ -36,19 +39,30 @@ export function ShellTop() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
+  const lang = useLang();
   const profileItems = [
     { label: 'Career profile', onSelect: () => router.push('/profile') },
     { label: 'My designs', onSelect: () => router.push('/templates') },
     { label: 'Plan and Premium', onSelect: () => router.push('/premium') },
     { label: 'Account and settings', onSelect: () => router.push('/account') },
     { label: 'Help', onSelect: () => router.push('/help') },
+    // The other interface language, named in its own language.
+    lang === 'de'
+      ? {
+          label: 'English',
+          onSelect: () => void setLanguage('en').then(() => router.refresh()),
+        }
+      : {
+          label: 'Deutsch',
+          onSelect: () => void setLanguage('de').then(() => router.refresh()),
+        },
     ...(account.user?.admin
       ? [{ label: 'Admin Console', onSelect: () => router.push('/admin') }]
       : []),
   ];
   const avatar = (
     <Menu
-      label="Profile menu"
+      label={t('Profile menu')}
       align="left"
       above
       items={profileItems}
@@ -71,12 +85,12 @@ export function ShellTop() {
         href="#main"
         className="bg-primary text-on-primary sr-only rounded-md px-4 py-2 focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50"
       >
-        Skip to content
+        {t('Skip to content')}
       </a>
       {/* Desktop rail */}
       <aside
         className="border-line bg-paper fixed inset-y-0 left-0 z-30 hidden w-60 flex-col gap-4 border-r p-4 md:flex"
-        aria-label="Studio"
+        aria-label={t('Studio')}
       >
         <Logo href="/studio" className="px-2 py-1" />
         <button
@@ -84,9 +98,9 @@ export function ShellTop() {
           onClick={() => setCreate(true)}
           className="bg-primary text-on-primary hover:bg-primary-hover inline-flex min-h-11 items-center justify-center gap-2 rounded-md px-4 font-semibold"
         >
-          <Plus aria-hidden size={18} /> Create
+          <Plus aria-hidden size={18} /> {t('Create')}
         </button>
-        <nav aria-label="Main" className="flex flex-col gap-1">
+        <nav aria-label={t('Main')} className="flex flex-col gap-1">
           {DESTINATIONS.map((d) => {
             const active = isActive(pathname, d);
             return (
@@ -111,16 +125,16 @@ export function ShellTop() {
           onClick={() => setPalette(true)}
           className="border-line-strong text-ink-muted hover:bg-sunken mt-2 inline-flex min-h-10 items-center gap-2 rounded-md border px-3 text-sm"
         >
-          <Search aria-hidden size={16} /> Search
-          <span className="sr-only">or jump to</span>
-          <kbd className="bg-sunken ml-auto rounded px-1.5 text-xs">Ctrl K</kbd>
+          <Search aria-hidden size={16} /> {t('Search')}
+          <span className="sr-only">{t('or jump to')}</span>
+          <kbd className="bg-sunken ml-auto rounded px-1.5 text-xs">{t('Ctrl K')}</kbd>
         </button>
         <div className="mt-auto flex flex-col gap-1">
           <Link
             href="/help"
             className="text-ink-muted hover:bg-sunken inline-flex min-h-11 items-center gap-2 rounded-md px-3 text-[15px] font-semibold"
           >
-            <CircleHelp aria-hidden size={20} /> Help
+            <CircleHelp aria-hidden size={20} /> {t('Help')}
           </Link>
           {avatar}
         </div>
@@ -132,19 +146,19 @@ export function ShellTop() {
         <button
           type="button"
           onClick={() => setCreate(true)}
-          aria-label="Create"
+          aria-label={t('Create')}
           className="bg-primary text-on-primary ml-auto inline-flex size-11 items-center justify-center rounded-md"
         >
           <Plus aria-hidden size={20} />
         </button>
         <Menu
-          label="Profile menu"
+          label={t('Profile menu')}
           items={profileItems}
           trigger={{
             content: (
               <>
                 <CircleUserRound aria-hidden size={22} />
-                <span className="sr-only">Profile menu</span>
+                <span className="sr-only">{t('Profile menu')}</span>
               </>
             ),
             className:
@@ -153,7 +167,7 @@ export function ShellTop() {
         />
       </header>
 
-      <Dialog open={create} onClose={() => setCreate(false)} title="Create">
+      <Dialog open={create} onClose={() => setCreate(false)} title={t('Create')}>
         <ul className="grid gap-2 sm:grid-cols-2">
           {CREATE.map((c) => (
             <li key={c.href}>
@@ -180,10 +194,11 @@ export function ShellTop() {
 }
 
 export function ShellBottom() {
+  const t = useT();
   const pathname = usePathname();
   return (
     <nav
-      aria-label="Main"
+      aria-label={t('Main')}
       className="border-line bg-paper fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t md:hidden"
     >
       {DESTINATIONS.map((d) => {

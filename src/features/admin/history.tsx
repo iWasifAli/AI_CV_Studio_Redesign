@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useCallback, useEffect, useState } from 'react';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
@@ -37,6 +38,7 @@ const ACTION_LABEL: Record<string, string> = {
 };
 
 export function AdminHistory() {
+  const t = useT();
   const toast = useToast();
   const [versions, setVersions] = useState<Versions | null>(null);
   const [audit, setAudit] = useState<Audit | null>(null);
@@ -71,22 +73,22 @@ export function AdminHistory() {
   return (
     <>
       <AdminHeading
-        title="History & audit"
+        title={t('History & audit')}
         intro="Every settings version, and every change made by an administrator."
       />
       {error && (
-        <Banner tone="error" title="Something didn't load" className="mb-4">
+        <Banner tone="error" title={t("Something didn't load")} className="mb-4">
           {error}
         </Banner>
       )}
       <div className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
         <section className="border-line bg-surface rounded-lg border p-5">
-          <h2 className="mb-3 text-lg font-semibold">Settings versions</h2>
+          <h2 className="mb-3 text-lg font-semibold">{t('Settings versions')}</h2>
           {!versions ? (
             <div className="skeleton h-24 rounded-md" aria-busy="true" />
           ) : versions.versions.length === 0 ? (
             <p className="text-ink-muted text-sm">
-              Nothing saved yet — the studio is using its starting settings.
+              {t('Nothing saved yet — the studio is using its starting settings.')}
             </p>
           ) : (
             <ul className="divide-line divide-y text-sm" data-testid="config-versions">
@@ -97,7 +99,7 @@ export function AdminHistory() {
                     <span className="text-ink-muted block">{v.savedBy}</span>
                   </span>
                   {v.version === versions.version ? (
-                    <span className="text-ink-muted">Current</span>
+                    <span className="text-ink-muted">{t('Current')}</span>
                   ) : (
                     <Button
                       size="sm"
@@ -105,7 +107,7 @@ export function AdminHistory() {
                       disabled={busy}
                       onClick={() => restore(v.version)}
                     >
-                      Restore
+                      {t('Restore')}
                     </Button>
                   )}
                 </li>
@@ -114,11 +116,11 @@ export function AdminHistory() {
           )}
         </section>
         <section className="border-line bg-surface rounded-lg border p-5">
-          <h2 className="mb-3 text-lg font-semibold">Audit log</h2>
+          <h2 className="mb-3 text-lg font-semibold">{t('Audit log')}</h2>
           {!audit ? (
             <div className="skeleton h-24 rounded-md" aria-busy="true" />
           ) : audit.entries.length === 0 ? (
-            <p className="text-ink-muted text-sm">No admin changes yet.</p>
+            <p className="text-ink-muted text-sm">{t('No admin changes yet.')}</p>
           ) : (
             <ul className="divide-line divide-y text-sm" data-testid="audit-log">
               {audit.entries.map((e) => (

@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { CalendarClock, Check, Copy } from 'lucide-react';
@@ -46,6 +47,7 @@ export function GapPanel({
   doc: ResumeDocument;
   apply: (fn: (d: ResumeDocument) => ResumeDocument) => void;
 }) {
+  const t = useT();
   const account = useAccount();
   const { ent, refresh } = useEntitlements();
   const gaps = useMemo(() => findGaps(doc), [doc]);
@@ -137,17 +139,18 @@ export function GapPanel({
     >
       <div>
         <h2 id="gap-h" className="flex items-center gap-2 font-semibold">
-          <CalendarClock aria-hidden size={18} className="text-primary" /> Gaps in your dates
+          <CalendarClock aria-hidden size={18} className="text-primary" /> {t('Gaps in your dates')}
         </h2>
         <p className="text-ink-muted text-sm">
-          Breaks are common and nothing to hide. A short, calm line answers the question before it’s
-          asked. Only what you tell us is used.
+          {t(
+            'Breaks are common and nothing to hide. A short, calm line answers the question before it’s asked. Only what you tell us is used.',
+          )}
         </p>
       </div>
       {added && (
         <p className="flex items-center gap-1.5 text-sm" role="status" data-testid="gap-added">
-          <Check aria-hidden size={16} className="text-primary" /> Added as a career break in
-          Experience. Undo takes it out.
+          <Check aria-hidden size={16} className="text-primary" />{' '}
+          {t('Added as a career break in Experience. Undo takes it out.')}
         </p>
       )}
       {problem && (
@@ -158,7 +161,7 @@ export function GapPanel({
           action={
             problem.premium ? (
               <ButtonLink href="/premium" size="sm">
-                See Premium
+                {t('See Premium')}
               </ButtonLink>
             ) : undefined
           }
@@ -183,7 +186,7 @@ export function GapPanel({
                 </p>
               </div>
               <fieldset className="flex flex-col gap-2">
-                <legend className="mb-1 font-semibold">What was this time for?</legend>
+                <legend className="mb-1 font-semibold">{t('What was this time for?')}</legend>
                 <div className="flex flex-wrap gap-1.5">
                   {GAP_REASONS.map(([k, label]) => (
                     <label
@@ -204,16 +207,16 @@ export function GapPanel({
                 </div>
               </fieldset>
               <label className="flex flex-col gap-1">
-                <span className="font-semibold">In a few words (optional)</span>
+                <span className="font-semibold">{t('In a few words (optional)')}</span>
                 <input
                   className="border-line-strong bg-surface h-10 rounded-md border px-3"
                   value={d.answer}
                   maxLength={400}
-                  placeholder="For example: looked after my father after his operation"
+                  placeholder={t('For example: looked after my father after his operation')}
                   onChange={(e) => setDraft(g.key, { ...d, answer: e.target.value })}
                 />
                 <span className="text-ink-muted text-xs">
-                  Share only what you’re happy for an employer to read.
+                  {t('Share only what you’re happy for an employer to read.')}
                 </span>
               </label>
               {!w && (
@@ -225,7 +228,7 @@ export function GapPanel({
                       loading={busy === g.key}
                       onClick={() => void word(g, d, true)}
                     >
-                      Suggest wording
+                      {t('Suggest wording')}
                     </Button>
                   )}
                   <Button
@@ -242,9 +245,9 @@ export function GapPanel({
                         href={`/signin?next=/cv/${doc.id}?tab=check`}
                         className="text-primary font-semibold"
                       >
-                        Sign in
+                        {t('Sign in')}
                       </Link>{' '}
-                      for AI wording.
+                      {t('for AI wording.')}
                     </span>
                   )}
                 </div>
@@ -256,7 +259,7 @@ export function GapPanel({
                 >
                   <label className="flex flex-col gap-1">
                     <span className="text-ink-muted text-xs font-semibold uppercase">
-                      On your CV
+                      {t('On your CV')}
                     </span>
                     <input
                       className="border-line-strong bg-surface h-10 rounded-md border px-3"
@@ -267,13 +270,13 @@ export function GapPanel({
                   </label>
                   <div>
                     <p className="text-ink-muted text-xs font-semibold uppercase">
-                      If you’re asked in an interview
+                      {t('If you’re asked in an interview')}
                     </p>
                     <p data-testid="gap-interview">{w.interviewLine}</p>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <Button size="sm" disabled={!w.cvLine.trim()} onClick={() => add(g, w)}>
-                      Add as a career break
+                      {t('Add as a career break')}
                     </Button>
                     <Button
                       size="sm"
@@ -281,10 +284,10 @@ export function GapPanel({
                       icon={<Copy aria-hidden size={16} />}
                       onClick={() => void navigator.clipboard?.writeText(w.interviewLine)}
                     >
-                      Copy interview answer
+                      {t('Copy interview answer')}
                     </Button>
                     <Button size="sm" variant="ghost" onClick={() => setWording(g.key, null)}>
-                      Start again
+                      {t('Start again')}
                     </Button>
                   </div>
                 </div>

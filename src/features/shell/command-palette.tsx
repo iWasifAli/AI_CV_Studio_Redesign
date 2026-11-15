@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useRouter } from 'next/navigation';
 import { useId, useMemo, useState } from 'react';
 import { Dialog } from '@/components/ui/dialog';
@@ -10,6 +11,7 @@ type Entry = { label: string; group: string; href: string };
 
 /** Ctrl/Cmd+K: jump to any destination, start anything, or open a document by name. */
 export function CommandPalette({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const t = useT();
   const router = useRouter();
   const [q, setQ] = useState('');
   const [sel, setSel] = useState(0);
@@ -50,15 +52,15 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
     router.push(e.href);
   };
   return (
-    <Dialog open={open} onClose={onClose} title="Search or jump to" hideTitle>
+    <Dialog open={open} onClose={onClose} title={t('Search or jump to')} hideTitle>
       <input
         data-autofocus
         role="combobox"
         aria-expanded
         aria-controls={`${id}-list`}
         aria-activedescendant={shown[sel] ? `${id}-${sel}` : undefined}
-        aria-label="Search or jump to"
-        placeholder="Search documents, pages and actions…"
+        aria-label={t('Search or jump to')}
+        placeholder={t('Search documents, pages and actions…')}
         value={q}
         onChange={(e) => {
           setQ(e.target.value);
@@ -81,7 +83,7 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
       <ul
         id={`${id}-list`}
         role="listbox"
-        aria-label="Results"
+        aria-label={t('Results')}
         className="flex max-h-80 flex-col overflow-y-auto"
       >
         {shown.map((e, i) => (
@@ -98,7 +100,9 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
             <span className="text-ink-muted text-xs">{e.group}</span>
           </li>
         ))}
-        {shown.length === 0 && <li className="text-ink-muted px-3 py-2">Nothing matches “{q}”.</li>}
+        {shown.length === 0 && (
+          <li className="text-ink-muted px-3 py-2">{t('Nothing matches “{q}”.', { q: q })}</li>
+        )}
       </ul>
     </Dialog>
   );

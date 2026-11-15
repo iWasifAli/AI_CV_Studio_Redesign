@@ -1,3 +1,6 @@
+'use client';
+
+import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import type { CSSProperties, ReactNode } from 'react';
 import { ExternalLink, Mail, MapPin, Phone } from 'lucide-react';
@@ -54,6 +57,7 @@ export function PortfolioPage({
   banner,
   embedded = false,
 }: Props) {
+  const tx = useT();
   const Main = embedded ? 'div' : 'main';
   const m = toRenderModel(doc);
   const pair = FONT_PAIRS[doc.design.fontPair];
@@ -84,7 +88,7 @@ export function PortfolioPage({
   const blocks: ReactNode[] = [];
   if (summary?.text)
     blocks.push(
-      <Block key="about" id="about" title="About" theme={theme} n={next()}>
+      <Block key="about" id="about" title={tx('About')} theme={theme} n={next()}>
         <p className="text-[17px] leading-relaxed whitespace-pre-line">{summary.text}</p>
       </Block>,
     );
@@ -112,7 +116,7 @@ export function PortfolioPage({
     );
   if (contactOpen)
     blocks.push(
-      <Block key="contact" id="contact" title="Get in touch" theme={theme} n={next()}>
+      <Block key="contact" id="contact" title={tx('Get in touch')} theme={theme} n={next()}>
         <ContactForm slug={portfolio.slug} preview={preview} name={m.name} />
       </Block>,
     );
@@ -147,7 +151,7 @@ export function PortfolioPage({
           </Main>
           {side.length > 0 && (
             <aside
-              aria-label="Skills and languages"
+              aria-label={tx('Skills and languages')}
               className="flex flex-col gap-8 md:col-start-1 md:row-start-2"
             >
               {side.map((s) => (
@@ -174,9 +178,9 @@ export function PortfolioPage({
       )}
       {!embedded && (
         <footer className="text-ink-muted border-line border-t px-5 py-8 text-center text-sm">
-          Made with{' '}
+          {tx('Made with{v}', { v: ' ' })}
           <Link href="/" className="text-primary font-semibold">
-            AI CV Studio
+            {tx('AI CV Studio')}
           </Link>
         </footer>
       )}
@@ -446,6 +450,7 @@ function Projects({
   theme: Theme;
   imageSrc?: (id: string) => string;
 }) {
+  const tx = useT();
   return (
     <ul className="grid gap-6 sm:grid-cols-2" data-testid="portfolio-projects">
       {projects.map((p) => {
@@ -491,7 +496,7 @@ function Projects({
                   rel="noopener noreferrer"
                   className="mt-auto inline-flex items-center gap-1.5 self-start pt-1 font-semibold text-[var(--accent)] underline-offset-4 hover:underline"
                 >
-                  See the project
+                  {tx('See the project')}
                   <span className="sr-only">: {p.title}</span>
                   <ExternalLink aria-hidden size={15} />
                 </a>

@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useId, useState } from 'react';
 import { Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,7 @@ export function StyleAssist({
   doc: ResumeDocument;
   onApply: (d: DesignChoice) => void;
 }) {
+  const tx = useT();
   const ai = useAi();
   const s = useSuggestion('design.interpret');
   const [text, setText] = useState('');
@@ -44,7 +46,7 @@ export function StyleAssist({
       className="bg-primary-soft/60 border-primary/20 flex flex-col gap-2 rounded-lg border p-3"
     >
       <h3 id={id} className="flex items-center gap-1.5 text-[17px] font-semibold">
-        <Sparkles aria-hidden size={18} className="text-primary" /> Describe a style
+        <Sparkles aria-hidden size={18} className="text-primary" /> {tx('Describe a style')}
       </h3>
       <form
         className="flex flex-col gap-2 sm:flex-row"
@@ -54,23 +56,23 @@ export function StyleAssist({
         }}
       >
         <label htmlFor={`${id}-in`} className="sr-only">
-          Describe the look you want
+          {tx('Describe the look you want')}
         </label>
         <input
           id={`${id}-in`}
           value={text}
           onChange={(e) => setText(e.target.value)}
           maxLength={400}
-          placeholder="e.g. modern, blue, clean and elegant"
+          placeholder={tx('e.g. modern, blue, clean and elegant')}
           className="border-line-strong bg-surface focus-visible:border-primary focus-visible:ring-primary/25 h-11 min-w-0 flex-1 rounded-sm border px-3 text-base focus-visible:ring-3 focus-visible:outline-none"
         />
         <Button type="submit" disabled={text.trim().length < 2 || s.state.kind === 'loading'}>
-          Show me
+          {tx('Show me')}
         </Button>
       </form>
       <SuggestionCard s={s} demo={ai.demo}>
         {(res) => (
-          <ul className="grid gap-2" aria-label="Suggested designs">
+          <ul className="grid gap-2" aria-label={tx('Suggested designs')}>
             {res.result.choices.map((c, i) => {
               const t = TEMPLATE_CATALOG[c.design.templateId];
               return (
@@ -104,7 +106,7 @@ export function StyleAssist({
                         {c.name || t.name}
                         {i === 0 && (
                           <span className="text-primary ml-2 text-xs font-semibold uppercase">
-                            Best match
+                            {tx('Best match')}
                           </span>
                         )}
                       </span>
@@ -114,7 +116,7 @@ export function StyleAssist({
                       </span>
                     </span>
                     <span className="text-primary ml-auto shrink-0 pr-1 text-sm font-semibold">
-                      Use this
+                      {tx('Use this')}
                     </span>
                   </button>
                 </li>

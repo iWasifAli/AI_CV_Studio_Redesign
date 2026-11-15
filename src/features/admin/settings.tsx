@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { DESIGN_META, FAMILY_LABEL } from '@/modules/design/designs';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
@@ -76,6 +77,7 @@ const TASK_LABEL: Record<TaskId, string> = {
 };
 
 export function AdminSettings() {
+  const tx = useT();
   const toast = useToast();
   const [base, setBase] = useState<ConfigResponse | null>(null);
   const [draft, setDraft] = useState<BusinessConfig | null>(null);
@@ -157,9 +159,9 @@ export function AdminSettings() {
   if (!draft || !base)
     return (
       <>
-        <AdminHeading title="Settings" />
+        <AdminHeading title={tx('Settings')} />
         {error ? (
-          <Banner tone="error" title="Could not load settings">
+          <Banner tone="error" title={tx('Could not load settings')}>
             {error}
           </Banner>
         ) : (
@@ -176,26 +178,26 @@ export function AdminSettings() {
   return (
     <>
       <AdminHeading
-        title="Settings"
+        title={tx('Settings')}
         intro="Plans, designs, prices and switches. Changes take effect within a minute of saving and every save is kept in History."
       />
       <div className="flex flex-col gap-6 pb-28">
         <Section
-          title="Plans and monthly limits"
-          hint="Use −1 for unlimited and 0 for not included."
+          title={tx('Plans and monthly limits')}
+          hint={tx('Use −1 for unlimited and 0 for not included.')}
         >
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px] text-sm">
               <thead>
                 <tr className="text-ink-muted text-left">
-                  <th className="py-2 pr-3 font-semibold">Plan</th>
+                  <th className="py-2 pr-3 font-semibold">{tx('Plan')}</th>
                   {METERED.map((m) => (
                     <th key={m} className="py-2 pr-3 font-semibold">
                       {METER_LABEL[m]}
                     </th>
                   ))}
-                  <th className="py-2 pr-3 font-semibold">Jobs tracked</th>
-                  <th className="py-2 pr-3 font-semibold">Stories kept</th>
+                  <th className="py-2 pr-3 font-semibold">{tx('Jobs tracked')}</th>
+                  <th className="py-2 pr-3 font-semibold">{tx('Stories kept')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -265,13 +267,15 @@ export function AdminSettings() {
         </Section>
 
         <Section
-          title="Designs"
-          hint="Hide a design, or make it Premium. Free accounts and visitors can still preview Premium designs but download only free ones."
+          title={tx('Designs')}
+          hint={tx(
+            'Hide a design, or make it Premium. Free accounts and visitors can still preview Premium designs but download only free ones.',
+          )}
         >
           {!freeEnabled && (
             <Banner
               tone="warning"
-              title="Keep at least one design free and shown."
+              title={tx('Keep at least one design free and shown.')}
               className="mb-3"
             />
           )}
@@ -289,12 +293,14 @@ export function AdminSettings() {
                   </span>
                 </span>
                 <CheckboxField
-                  label="Shown"
+                  label={tx('Shown')}
                   checked={d.enabled}
                   onChange={(v) => editDesign(i, (d) => void (d.enabled = v))}
                 />
                 <label className="flex items-center gap-2 text-[15px]">
-                  <span className="sr-only">{cap(d.id)} tier</span>
+                  <span className="sr-only">
+                    {cap(d.id)} {tx('tier')}
+                  </span>
                   <select
                     className="border-line-strong bg-surface h-10 rounded-sm border px-2"
                     value={d.tier}
@@ -303,12 +309,12 @@ export function AdminSettings() {
                       editDesign(i, (d) => void (d.tier = e.target.value as 'free' | 'premium'))
                     }
                   >
-                    <option value="free">Free</option>
-                    <option value="premium">Premium</option>
+                    <option value="free">{tx('Free')}</option>
+                    <option value="premium">{tx('Premium')}</option>
                   </select>
                 </label>
                 <CheckboxField
-                  label="Mark as new"
+                  label={tx('Mark as new')}
                   checked={d.isNew}
                   onChange={(v) => editDesign(i, (d) => void (d.isNew = v))}
                 />
@@ -318,20 +324,20 @@ export function AdminSettings() {
         </Section>
 
         <Section
-          title="Premium passes"
-          hint="What people can buy once sales are on. Prices are in PKR."
+          title={tx('Premium passes')}
+          hint={tx('What people can buy once sales are on. Prices are in PKR.')}
         >
           <ul className="flex flex-col gap-3">
             {draft.passes.map((p, i) => (
               <li key={i} className="flex flex-wrap items-end gap-3">
                 <TextField
-                  label="Name"
+                  label={tx('Name')}
                   value={p.label}
                   onChange={(e) => editPass(i, (p) => void (p.label = e.target.value))}
                   containerClassName="w-40"
                 />
                 <TextField
-                  label="Days"
+                  label={tx('Days')}
                   type="number"
                   min={1}
                   value={p.days}
@@ -341,7 +347,7 @@ export function AdminSettings() {
                   containerClassName="w-24"
                 />
                 <TextField
-                  label="Price (PKR)"
+                  label={tx('Price (PKR)')}
                   type="number"
                   min={0}
                   value={p.pricePkr}
@@ -351,7 +357,7 @@ export function AdminSettings() {
                   containerClassName="w-32"
                 />
                 <CheckboxField
-                  label="On sale"
+                  label={tx('On sale')}
                   checked={p.active}
                   onChange={(v) => editPass(i, (p) => void (p.active = v))}
                 />
@@ -384,20 +390,22 @@ export function AdminSettings() {
                 )
               }
             >
-              Add a pass
+              {tx('Add a pass')}
             </Button>
           )}
         </Section>
 
         <Section
-          title="Discount codes"
-          hint="Codes buyers can enter on the Premium page. A code can take a percentage off, add days, or both. Leave “Passes” empty to allow every pass; 0 uses means no limit."
+          title={tx('Discount codes')}
+          hint={tx(
+            'Codes buyers can enter on the Premium page. A code can take a percentage off, add days, or both. Leave “Passes” empty to allow every pass; 0 uses means no limit.',
+          )}
         >
           <ul className="flex flex-col gap-4" data-testid="coupons">
             {draft.coupons.map((c, i) => (
               <li key={i} className="border-line flex flex-wrap items-end gap-3 border-b pb-4">
                 <TextField
-                  label="Code"
+                  label={tx('Code')}
                   value={c.code}
                   maxLength={20}
                   onChange={(e) =>
@@ -410,7 +418,7 @@ export function AdminSettings() {
                   containerClassName="w-36"
                 />
                 <TextField
-                  label="% off"
+                  label={tx('% off')}
                   type="number"
                   min={0}
                   max={90}
@@ -428,7 +436,7 @@ export function AdminSettings() {
                   containerClassName="w-24"
                 />
                 <TextField
-                  label="Extra days"
+                  label={tx('Extra days')}
                   type="number"
                   min={0}
                   value={c.extraDays}
@@ -445,7 +453,7 @@ export function AdminSettings() {
                   containerClassName="w-24"
                 />
                 <TextField
-                  label="Max uses"
+                  label={tx('Max uses')}
                   type="number"
                   min={0}
                   value={c.maxUses}
@@ -459,7 +467,7 @@ export function AdminSettings() {
                   containerClassName="w-24"
                 />
                 <TextField
-                  label="Last day"
+                  label={tx('Last day')}
                   optional
                   type="date"
                   value={c.expiresOn}
@@ -467,7 +475,7 @@ export function AdminSettings() {
                   containerClassName="w-44"
                 />
                 <fieldset className="flex flex-wrap items-center gap-x-3">
-                  <legend className="text-sm font-semibold">Passes</legend>
+                  <legend className="text-sm font-semibold">{tx('Passes')}</legend>
                   {draft.passes.map((p) => (
                     <CheckboxField
                       key={p.id}
@@ -486,7 +494,7 @@ export function AdminSettings() {
                   ))}
                 </fieldset>
                 <CheckboxField
-                  label="Active"
+                  label={tx('Active')}
                   checked={c.active}
                   onChange={(v) => editCoupon(i, (c) => void (c.active = v))}
                 />
@@ -521,23 +529,25 @@ export function AdminSettings() {
                 )
               }
             >
-              Add a code
+              {tx('Add a code')}
             </Button>
           )}
         </Section>
 
         <Section
-          title="Invite friends"
-          hint="Each account gets an invite link on its Account page (shown while sales are on). When a friend who joined with it has their first pass approved, the inviter gets Premium days and the friend gets extra days on that pass."
+          title={tx('Invite friends')}
+          hint={tx(
+            'Each account gets an invite link on its Account page (shown while sales are on). When a friend who joined with it has their first pass approved, the inviter gets Premium days and the friend gets extra days on that pass.',
+          )}
         >
           <div className="flex flex-wrap items-end gap-4">
             <CheckboxField
-              label="Invites are on"
+              label={tx('Invites are on')}
               checked={draft.referrals.enabled}
               onChange={(v) => edit((c) => void (c.referrals.enabled = v))}
             />
             <TextField
-              label="Days for the inviter"
+              label={tx('Days for the inviter')}
               type="number"
               min={0}
               value={draft.referrals.rewardDays}
@@ -553,7 +563,7 @@ export function AdminSettings() {
               containerClassName="w-40"
             />
             <TextField
-              label="Extra days for the friend"
+              label={tx('Extra days for the friend')}
               type="number"
               min={0}
               value={draft.referrals.welcomeDays}
@@ -572,22 +582,24 @@ export function AdminSettings() {
         </Section>
 
         <Section
-          title="How to pay"
-          hint="Shown on the Premium page while sales are open. Put each account detail on its own line; buyers get a copy button for every line."
+          title={tx('How to pay')}
+          hint={tx(
+            'Shown on the Premium page while sales are open. Put each account detail on its own line; buyers get a copy button for every line.',
+          )}
         >
           <ul className="flex flex-col gap-4">
             {draft.payments.methods.map((m, i) => (
               <li key={i} className="border-line flex flex-col gap-2 rounded-md border p-3">
                 <div className="flex flex-wrap items-end gap-3">
                   <TextField
-                    label="Method"
+                    label={tx('Method')}
                     value={m.label}
-                    placeholder="Bank transfer"
+                    placeholder={tx('Bank transfer')}
                     onChange={(e) => editMethod(i, (x) => void (x.label = e.target.value))}
                     containerClassName="w-56"
                   />
                   <CheckboxField
-                    label="Shown"
+                    label={tx('Shown')}
                     checked={m.active}
                     onChange={(v) => editMethod(i, (x) => void (x.active = v))}
                   />
@@ -600,7 +612,7 @@ export function AdminSettings() {
                   />
                 </div>
                 <TextArea
-                  label="Account details"
+                  label={tx('Account details')}
                   rows={3}
                   value={m.details}
                   placeholder={'Account title: …\nIBAN: …'}
@@ -627,11 +639,11 @@ export function AdminSettings() {
                 )
               }
             >
-              Add a payment method
+              {tx('Add a payment method')}
             </Button>
           )}
           <TextArea
-            label="Instructions for buyers"
+            label={tx('Instructions for buyers')}
             rows={3}
             maxLength={600}
             containerClassName="mt-4"
@@ -639,8 +651,10 @@ export function AdminSettings() {
             onChange={(e) => edit((c) => void (c.payments.instructions = e.target.value))}
           />
           <TextField
-            label="WhatsApp number for payment screenshots"
-            hint="Buyers get a button that opens WhatsApp to this number with their order number and amount already written. Example: +92 300 1234567"
+            label={tx('WhatsApp number for payment screenshots')}
+            hint={tx(
+              'Buyers get a button that opens WhatsApp to this number with their order number and amount already written. Example: +92 300 1234567',
+            )}
             type="tel"
             maxLength={20}
             containerClassName="mt-4 max-w-md"
@@ -649,9 +663,9 @@ export function AdminSettings() {
           />
         </Section>
 
-        <Section title="Switches">
+        <Section title={tx('Switches')}>
           <CheckboxField
-            label="Premium sales are open (shows prices and “Get Premium”)"
+            label={tx('Premium sales are open (shows prices and “Get Premium”)')}
             checked={draft.features.sales}
             onChange={(v) => edit((c) => void (c.features.sales = v))}
           />
@@ -659,149 +673,153 @@ export function AdminSettings() {
             <Banner
               tone="warning"
               className="my-2"
-              title="To open sales, keep at least one pass on sale and one payment method shown."
+              title={tx(
+                'To open sales, keep at least one pass on sale and one payment method shown.',
+              )}
             />
           )}
           <CheckboxField
-            label="AI help is available"
+            label={tx('AI help is available')}
             checked={draft.features.ai}
             onChange={(v) => edit((c) => void (c.features.ai = v))}
           />
           <CheckboxField
-            label="CV import is available"
+            label={tx('CV import is available')}
             checked={draft.features.import}
             onChange={(v) => edit((c) => void (c.features.import = v))}
           />
           <CheckboxField
-            label="New accounts can sign up"
+            label={tx('New accounts can sign up')}
             checked={draft.features.signups}
             onChange={(v) => edit((c) => void (c.features.signups = v))}
           />
           <CheckboxField
-            label="Maintenance mode (downloads and AI paused)"
+            label={tx('Maintenance mode (downloads and AI paused)')}
             checked={draft.features.maintenance}
             onChange={(v) => edit((c) => void (c.features.maintenance = v))}
           />
           <CheckboxField
-            label="Design Studio (adjust and fine-tune every design detail)"
+            label={tx('Design Studio (adjust and fine-tune every design detail)')}
             checked={draft.features.designStudio}
             onChange={(v) => edit((c) => void (c.features.designStudio = v))}
           />
           <CheckboxField
-            label="AI Designer (describe a design in words or with a picture)"
+            label={tx('AI Designer (describe a design in words or with a picture)')}
             checked={draft.features.designer}
             onChange={(v) => edit((c) => void (c.features.designer = v))}
           />
           <CheckboxField
-            label="ATS check (in the editor’s Check tab)"
+            label={tx('ATS check (in the editor’s Check tab)')}
             checked={draft.features.atsCheck}
             onChange={(v) => edit((c) => void (c.features.atsCheck = v))}
           />
           <CheckboxField
-            label="Letter library (resignation, reference request, thank-you…)"
+            label={tx('Letter library (resignation, reference request, thank-you…)')}
             checked={draft.features.letters}
             onChange={(v) => edit((c) => void (c.features.letters = v))}
           />
           <CheckboxField
-            label="Application kit on jobs (tailored CV, letter and email together)"
+            label={tx('Application kit on jobs (tailored CV, letter and email together)')}
             checked={draft.features.kit}
             onChange={(v) => edit((c) => void (c.features.kit = v))}
           />
           <CheckboxField
-            label="Mock interview on jobs and in Coach"
+            label={tx('Mock interview on jobs and in Coach')}
             checked={draft.features.mockInterview}
             onChange={(v) => edit((c) => void (c.features.mockInterview = v))}
           />
           <CheckboxField
-            label="Career coach chat"
+            label={tx('Career coach chat')}
             checked={draft.features.coach}
             onChange={(v) => edit((c) => void (c.features.coach = v))}
           />
           <CheckboxField
-            label="Story bank (achievement stories for interviews and letters)"
+            label={tx('Story bank (achievement stories for interviews and letters)')}
             checked={draft.features.stories}
             onChange={(v) => edit((c) => void (c.features.stories = v))}
           />
           <CheckboxField
-            label="Skill gap and learning plan"
+            label={tx('Skill gap and learning plan')}
             checked={draft.features.skillGap}
             onChange={(v) => edit((c) => void (c.features.skillGap = v))}
           />
           <CheckboxField
-            label="Add a job from its link (the server reads the advert page)"
+            label={tx('Add a job from its link (the server reads the advert page)')}
             checked={draft.features.jobFromUrl}
             onChange={(v) => edit((c) => void (c.features.jobFromUrl = v))}
           />
           <CheckboxField
-            label="Reminders on jobs, and the daily reminder email"
+            label={tx('Reminders on jobs, and the daily reminder email')}
             checked={draft.features.reminders}
             onChange={(v) => edit((c) => void (c.features.reminders = v))}
           />
           <CheckboxField
-            label="Comments on share links (each person turns them on for their own link)"
+            label={tx('Comments on share links (each person turns them on for their own link)')}
             checked={draft.features.shareComments}
             onChange={(v) => edit((c) => void (c.features.shareComments = v))}
           />
           <CheckboxField
-            label="Contact forms on portfolio pages (each person turns theirs on)"
+            label={tx('Contact forms on portfolio pages (each person turns theirs on)')}
             checked={draft.features.portfolioContact}
             onChange={(v) => edit((c) => void (c.features.portfolioContact = v))}
           />
           <CheckboxField
-            label="LinkedIn review (from the person's LinkedIn PDF export)"
+            label={tx("LinkedIn review (from the person's LinkedIn PDF export)")}
             checked={draft.features.linkedinReview}
             onChange={(v) => edit((c) => void (c.features.linkedinReview = v))}
           />
           <CheckboxField
-            label="Application results (replies and interviews by CV and design)"
+            label={tx('Application results (replies and interviews by CV and design)')}
             checked={draft.features.jobInsights}
             onChange={(v) => edit((c) => void (c.features.jobInsights = v))}
           />
           <CheckboxField
-            label="Proofread the whole CV (AI)"
+            label={tx('Proofread the whole CV (AI)')}
             checked={draft.features.proofread}
             onChange={(v) => edit((c) => void (c.features.proofread = v))}
           />
           <CheckboxField
-            label="Questions that add numbers to CV points (AI)"
+            label={tx('Questions that add numbers to CV points (AI)')}
             checked={draft.features.quantify}
             onChange={(v) => edit((c) => void (c.features.quantify = v))}
           />
           <CheckboxField
-            label="Application pack (CV, letter and certificates as one PDF or ZIP)"
+            label={tx('Application pack (CV, letter and certificates as one PDF or ZIP)')}
             checked={draft.features.pack}
             onChange={(v) => edit((c) => void (c.features.pack = v))}
           />
           <CheckboxField
-            label="Explain a gap in work history (AI wording)"
+            label={tx('Explain a gap in work history (AI wording)')}
             checked={draft.features.gapCoach}
             onChange={(v) => edit((c) => void (c.features.gapCoach = v))}
           />
           <CheckboxField
-            label="Community designs (shared designs, shown only after you approve them in Design review)"
+            label={tx(
+              'Community designs (shared designs, shown only after you approve them in Design review)',
+            )}
             checked={draft.features.community}
             onChange={(v) => edit((c) => void (c.features.community = v))}
           />
           <CheckboxField
-            label="Translate a CV into another language (AI)"
+            label={tx('Translate a CV into another language (AI)')}
             checked={draft.features.translate}
             onChange={(v) => edit((c) => void (c.features.translate = v))}
           />
           <CheckboxField
-            label="Company brief on jobs (AI)"
+            label={tx('Company brief on jobs (AI)')}
             checked={draft.features.companyBrief}
             onChange={(v) => edit((c) => void (c.features.companyBrief = v))}
           />
           <CheckboxField
-            label="Career paths (AI)"
+            label={tx('Career paths (AI)')}
             checked={draft.features.careerPaths}
             onChange={(v) => edit((c) => void (c.features.careerPaths = v))}
           />
         </Section>
 
         <Section
-          title="AI action weights"
-          hint="How many AI actions bigger tasks count as against a plan’s monthly allowance."
+          title={tx('AI action weights')}
+          hint={tx('How many AI actions bigger tasks count as against a plan’s monthly allowance.')}
         >
           {AI_WEIGHTS.map(([key, label]) => (
             <label key={key} className="flex items-center gap-3 text-sm font-semibold">
@@ -828,8 +846,10 @@ export function AdminSettings() {
         </Section>
 
         <Section
-          title="AI tasks"
-          hint="Untick a task to switch off just that AI help; the tool says AI isn’t available and nothing is counted."
+          title={tx('AI tasks')}
+          hint={tx(
+            'Untick a task to switch off just that AI help; the tool says AI isn’t available and nothing is counted.',
+          )}
         >
           <div className="grid gap-x-6 sm:grid-cols-2" data-testid="ai-tasks">
             {TASK_IDS.map((t) => (
@@ -851,8 +871,10 @@ export function AdminSettings() {
         </Section>
 
         <Section
-          title="AI models"
-          hint="Which model each kind of task uses, by its name at your AI provider (for example gemini-flash-latest). Leave empty to keep the server's setting. Run the AI evaluation after a change."
+          title={tx('AI models')}
+          hint={tx(
+            "Which model each kind of task uses, by its name at your AI provider (for example gemini-flash-latest). Leave empty to keep the server's setting. Run the AI evaluation after a change.",
+          )}
         >
           <div className="grid gap-3 sm:grid-cols-2" data-testid="ai-models">
             {(
@@ -866,7 +888,7 @@ export function AdminSettings() {
                 <input
                   className="border-line-strong bg-surface min-h-11 rounded-md border px-3 font-mono text-sm font-normal"
                   value={draft.ai.models?.[k] ?? ''}
-                  placeholder="Server setting"
+                  placeholder={tx('Server setting')}
                   spellCheck={false}
                   onChange={(e) =>
                     edit((c) => {
@@ -883,8 +905,10 @@ export function AdminSettings() {
         </Section>
 
         <Section
-          title="AI cost estimate"
-          hint="Prices per million tokens in US dollars (from your AI provider’s price list) and the rupee rate. Used only for the estimate on the Overview."
+          title={tx('AI cost estimate')}
+          hint={tx(
+            'Prices per million tokens in US dollars (from your AI provider’s price list) and the rupee rate. Used only for the estimate on the Overview.',
+          )}
         >
           <div className="grid gap-3 sm:grid-cols-2">
             {(
@@ -914,7 +938,7 @@ export function AdminSettings() {
               />
             ))}
             <TextField
-              label="Rupees per US dollar"
+              label={tx('Rupees per US dollar')}
               type="number"
               min={1}
               value={String(draft.ai.usdToPkr)}
@@ -932,8 +956,10 @@ export function AdminSettings() {
         </Section>
 
         <Section
-          title="Payment emails"
-          hint="Order details, dates and links are filled in automatically. {order} in a subject becomes the order number. Leave a field empty for the standard wording."
+          title={tx('Payment emails')}
+          hint={tx(
+            'Order details, dates and links are filled in automatically. {order} in a subject becomes the order number. Leave a field empty for the standard wording.',
+          )}
         >
           {(['approved', 'rejected'] as const).map((k) => (
             <div key={k} className="flex flex-col gap-2" data-testid={`email-${k}`}>
@@ -941,7 +967,7 @@ export function AdminSettings() {
                 {k === 'approved' ? 'Payment approved' : 'Payment not confirmed'}
               </h3>
               <TextField
-                label="Subject"
+                label={tx('Subject')}
                 maxLength={160}
                 placeholder={
                   k === 'approved'
@@ -952,7 +978,7 @@ export function AdminSettings() {
                 onChange={(e) => edit((c) => void (c.emails[k].subject = e.target.value))}
               />
               <TextArea
-                label="Extra note (optional)"
+                label={tx('Extra note (optional)')}
                 rows={2}
                 maxLength={600}
                 value={draft.emails[k].note}
@@ -964,17 +990,19 @@ export function AdminSettings() {
         </Section>
 
         <Section
-          title="Premium page wording"
-          hint="The headline and the line under it on the Premium page. Prices and limits come from the plans above."
+          title={tx('Premium page wording')}
+          hint={tx(
+            'The headline and the line under it on the Premium page. Prices and limits come from the plans above.',
+          )}
         >
           <TextField
-            label="Headline"
+            label={tx('Headline')}
             maxLength={120}
             value={draft.content.offer.title}
             onChange={(e) => edit((c) => void (c.content.offer.title = e.target.value))}
           />
           <TextArea
-            label="Line under the headline"
+            label={tx('Line under the headline')}
             rows={2}
             maxLength={400}
             value={draft.content.offer.intro}
@@ -983,11 +1011,13 @@ export function AdminSettings() {
         </Section>
 
         <Section
-          title="AI Designer example prompts"
-          hint="One per line, up to 8. Shown under “Describe the CV you imagine” for everyone. Leave empty to use the built-in examples, which change with the kind of work."
+          title={tx('AI Designer example prompts')}
+          hint={tx(
+            'One per line, up to 8. Shown under “Describe the CV you imagine” for everyone. Leave empty to use the built-in examples, which change with the kind of work.',
+          )}
         >
           <TextArea
-            label="Example prompts"
+            label={tx('Example prompts')}
             rows={4}
             value={(draft.content.designerPrompts ?? []).join('\n')}
             onChange={(e) =>
@@ -1003,8 +1033,8 @@ export function AdminSettings() {
         </Section>
 
         <Section
-          title="Help page questions"
-          hint="Shown on the Help page in this order. Keep answers short and plain."
+          title={tx('Help page questions')}
+          hint={tx('Shown on the Help page in this order. Keep answers short and plain.')}
         >
           <ol className="flex flex-col gap-4" data-testid="faq-editor">
             {draft.content.faq.map((f, i) => (
@@ -1035,7 +1065,7 @@ export function AdminSettings() {
                       })
                     }
                   >
-                    ↑ Up
+                    {tx('↑ Up')}
                   </Button>
                   <Button
                     size="sm"
@@ -1049,7 +1079,7 @@ export function AdminSettings() {
                       })
                     }
                   >
-                    ↓ Down
+                    {tx('↓ Down')}
                   </Button>
                   <Button
                     size="sm"
@@ -1058,7 +1088,7 @@ export function AdminSettings() {
                     aria-label={`Remove question ${i + 1}`}
                     onClick={() => edit((c) => void c.content.faq.splice(i, 1))}
                   >
-                    Remove
+                    {tx('Remove')}
                   </Button>
                 </div>
               </li>
@@ -1074,14 +1104,14 @@ export function AdminSettings() {
                 edit((c) => void c.content.faq.push({ q: 'New question', a: 'The answer.' }))
               }
             >
-              Add a question
+              {tx('Add a question')}
             </Button>
           )}
         </Section>
 
         <Section
-          title="Letter types"
-          hint="Untick a type to stop offering it. Letters already written stay."
+          title={tx('Letter types')}
+          hint={tx('Untick a type to stop offering it. Letters already written stay.')}
         >
           {LETTER_TYPES.map((t) => (
             <CheckboxField
@@ -1101,11 +1131,13 @@ export function AdminSettings() {
         </Section>
 
         <Section
-          title="Support contact"
-          hint="Shown on the Help, Terms and Premium pages so people can reach you about payments, privacy and problems."
+          title={tx('Support contact')}
+          hint={tx(
+            'Shown on the Help, Terms and Premium pages so people can reach you about payments, privacy and problems.',
+          )}
         >
           <TextField
-            label="Support email"
+            label={tx('Support email')}
             type="email"
             value={draft.support.email}
             onChange={(e) => edit((c) => void (c.support.email = e.target.value.trim()))}
@@ -1113,14 +1145,17 @@ export function AdminSettings() {
           <EmailCheck />
         </Section>
 
-        <Section title="Announcement" hint="A short message shown at the top of every page.">
+        <Section
+          title={tx('Announcement')}
+          hint={tx('A short message shown at the top of every page.')}
+        >
           <CheckboxField
-            label="Show the announcement"
+            label={tx('Show the announcement')}
             checked={draft.announcement.enabled}
             onChange={(v) => edit((c) => void (c.announcement.enabled = v))}
           />
           <TextField
-            label="Message"
+            label={tx('Message')}
             maxLength={240}
             value={draft.announcement.text}
             onChange={(e) => edit((c) => void (c.announcement.text = e.target.value))}
@@ -1143,14 +1178,14 @@ export function AdminSettings() {
             disabled={!dirty || saving}
             onClick={() => setDraft(structuredClone(base.value))}
           >
-            Discard
+            {tx('Discard')}
           </Button>
           <Button
             disabled={!dirty || saving || !freeEnabled || salesProblem}
             loading={saving}
             onClick={save}
           >
-            Save changes
+            {tx('Save changes')}
           </Button>
         </div>
       </div>
@@ -1160,6 +1195,7 @@ export function AdminSettings() {
 
 /** Whether buyer emails can be sent, and a test send to the admin's own address. */
 function EmailCheck() {
+  const tx = useT();
   const toast = useToast();
   const [status, setStatus] = useState<{ configured: boolean; from: string } | null>(null);
   const [busy, setBusy] = useState(false);
@@ -1196,7 +1232,7 @@ function EmailCheck() {
             }
           }}
         >
-          Send a test email to me
+          {tx('Send a test email to me')}
         </Button>{' '}
         <Button
           size="sm"
@@ -1217,7 +1253,7 @@ function EmailCheck() {
             }
           }}
         >
-          Send a sample reminder email
+          {tx('Send a sample reminder email')}
         </Button>{' '}
         <Button
           size="sm"
@@ -1238,7 +1274,7 @@ function EmailCheck() {
             }
           }}
         >
-          Send a sample comment email
+          {tx('Send a sample comment email')}
         </Button>{' '}
         <Button
           size="sm"
@@ -1259,7 +1295,7 @@ function EmailCheck() {
             }
           }}
         >
-          Send a sample portfolio message
+          {tx('Send a sample portfolio message')}
         </Button>
       </div>
       {problem && (
@@ -1296,6 +1332,7 @@ function Section({
 
 /** Sends the saved payment email wording to the admin's own address. */
 function SampleEmail({ kind }: { kind: 'approved' | 'rejected' }) {
+  const tx = useT();
   const toast = useToast();
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
@@ -1319,7 +1356,7 @@ function SampleEmail({ kind }: { kind: 'approved' | 'rejected' }) {
           }
         }}
       >
-        Send me a sample (saved wording)
+        {tx('Send me a sample (saved wording)')}
       </Button>
       {problem && (
         <p role="alert" className="text-danger text-sm">

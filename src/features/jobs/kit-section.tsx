@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { Copy, Download, FileText, Mail, Package } from 'lucide-react';
@@ -38,6 +39,7 @@ export function KitSection({
   onProblem: (p: Problem | null) => void;
   refresh: () => void;
 }) {
+  const t = useT();
   const toast = useToast();
   const [busy, setBusy] = useState(false);
   const cv = useMemo(
@@ -104,11 +106,14 @@ export function KitSection({
     >
       <div>
         <h3 id="kit-h" className="flex items-center gap-2 font-semibold">
-          <Package aria-hidden size={18} className="text-primary" /> Application kit
+          <Package aria-hidden size={18} className="text-primary" /> {t('Application kit')}
         </h3>
         <p className="text-ink-muted text-sm">
-          A CV tailored to this job, a cover letter and a covering email — made together, from your
-          own facts. Uses {weight} AI action{weight === 1 ? '' : 's'}.
+          {t(
+            'A CV tailored to this job, a cover letter and a covering email — made together, from your own facts. Uses {weight} AI action',
+            { weight: weight },
+          )}
+          {weight === 1 ? '' : 's'}.
         </p>
       </div>
 
@@ -127,24 +132,26 @@ export function KitSection({
                     firstPageOnly
                     decorative
                     debounceMs={0}
-                    title="Tailored CV"
+                    title={t('Tailored CV')}
                   />
                 </div>
               </Link>
             ) : (
               <p className="text-ink-muted bg-surface rounded-md p-3 text-sm">
-                The tailored CV isn’t on this device yet. It appears once your account has synced.
+                {t(
+                  'The tailored CV isn’t on this device yet. It appears once your account has synced.',
+                )}
               </p>
             )}
             <figcaption className="flex items-center gap-1.5 text-sm font-semibold">
-              <FileText aria-hidden size={16} /> Tailored CV
+              <FileText aria-hidden size={16} /> {t('Tailored CV')}
             </figcaption>
           </figure>
           <figure className="flex flex-col gap-2">
             {html && cv ? (
-              <a href="#letter" aria-label="Edit the cover letter" className="block">
+              <a href="#letter" aria-label={t('Edit the cover letter')} className="block">
                 <ScaledPage
-                  title="Cover letter in the kit"
+                  title={t('Cover letter in the kit')}
                   html={html}
                   widthMm={resolvePage(cv).widthMm}
                   heightMm={resolvePage(cv).heightMm}
@@ -152,7 +159,7 @@ export function KitSection({
               </a>
             ) : null}
             <figcaption className="flex items-center gap-1.5 text-sm font-semibold">
-              <FileText aria-hidden size={16} /> Cover letter
+              <FileText aria-hidden size={16} /> {t('Cover letter')}
             </figcaption>
           </figure>
           <figure className="flex flex-col gap-2">
@@ -163,7 +170,7 @@ export function KitSection({
               </p>
             </div>
             <figcaption className="flex items-center gap-1.5 text-sm font-semibold">
-              <Mail aria-hidden size={16} /> Email
+              <Mail aria-hidden size={16} /> {t('Email')}
             </figcaption>
           </figure>
         </div>
@@ -188,11 +195,11 @@ export function KitSection({
               loading={busy}
               onClick={downloadAll}
             >
-              Download CV and letter
+              {t('Download CV and letter')}
             </Button>
-            <PackButton cv={cv} letter={`job:${job.id}`} label="One file with certificates" />
+            <PackButton cv={cv} letter={`job:${job.id}`} label={t('One file with certificates')} />
             <Button variant="secondary" icon={<Copy aria-hidden size={18} />} onClick={copyEmail}>
-              Copy email
+              {t('Copy email')}
             </Button>
           </>
         )}

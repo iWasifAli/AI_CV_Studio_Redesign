@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import {
@@ -93,6 +94,7 @@ function Ring({ percent }: { percent: number }) {
 
 /** Studio Home (complete-studio-spec §11.2): what you have, and the one thing to do next. */
 export function StudioHome() {
+  const tx = useT();
   const account = useAccount();
   const signedIn = account.status === 'signedIn';
   const list = useDocuments();
@@ -185,7 +187,7 @@ export function StudioHome() {
               id="continue"
               className="text-ink-muted text-sm font-semibold tracking-wide uppercase"
             >
-              Continue
+              {tx('Continue')}
             </h2>
             <div className="flex gap-4">
               <div className="w-36 shrink-0 sm:w-44">
@@ -198,7 +200,7 @@ export function StudioHome() {
                   icon={<ArrowRight aria-hidden size={18} />}
                   className="self-start"
                 >
-                  Continue editing
+                  {tx('Continue editing')}
                 </ButtonLink>
               </div>
             </div>
@@ -212,7 +214,7 @@ export function StudioHome() {
           className="bg-primary-soft/60 border-primary/20 flex flex-col justify-center gap-3 rounded-xl border p-6"
         >
           <h2 id="next" className="text-primary text-sm font-semibold tracking-wide uppercase">
-            Next best step
+            {tx('Next best step')}
           </h2>
           <p className="font-display text-2xl font-semibold">{action.title}</p>
           <p className="text-ink-muted">{action.body}</p>
@@ -225,10 +227,10 @@ export function StudioHome() {
       <section aria-labelledby="docs" className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <h2 id="docs" className="text-lg font-semibold">
-            Your documents
+            {tx('Your documents')}
           </h2>
           <Link href="/documents" className="text-primary text-sm font-semibold hover:underline">
-            See all
+            {tx('See all')}
           </Link>
         </div>
         <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
@@ -237,7 +239,7 @@ export function StudioHome() {
               href="/start"
               className="border-line-strong text-primary hover:bg-primary-soft/40 flex aspect-[210/297] flex-col items-center justify-center gap-2 rounded-[4px] border-2 border-dashed font-semibold"
             >
-              <Plus aria-hidden size={24} /> New
+              <Plus aria-hidden size={24} /> {tx('New')}
             </Link>
           </li>
           {row.map((d) => (
@@ -256,31 +258,31 @@ export function StudioHome() {
         >
           <div className="flex items-center justify-between">
             <h2 id="jobs" className="text-lg font-semibold">
-              Your jobs
+              {tx('Your jobs')}
             </h2>
             <Link href="/jobs" className="text-primary text-sm font-semibold hover:underline">
-              Open tracker
+              {tx('Open tracker')}
             </Link>
           </div>
           {!signedIn ? (
             <p className="text-ink-muted">
               <Link href="/signin" className="text-primary font-semibold hover:underline">
-                Sign in
+                {tx('Sign in')}
               </Link>{' '}
-              to track the jobs you’re going for.
+              {tx('to track the jobs you’re going for.')}
             </p>
           ) : jobs === null ? (
             <Skeleton className="h-16 w-full rounded-md" />
           ) : jobs.length === 0 ? (
             <p className="text-ink-muted">
-              No jobs yet.{' '}
+              {tx('No jobs yet.{v}', { v: ' ' })}
               <Link href="/jobs?new=1" className="text-primary font-semibold hover:underline">
-                Add one you want
+                {tx('Add one you want')}
               </Link>{' '}
-              and get a CV tailored to it.
+              {tx('and get a CV tailored to it.')}
             </p>
           ) : (
-            <ul className="grid grid-cols-4 gap-2" aria-label="Pipeline">
+            <ul className="grid grid-cols-4 gap-2" aria-label={tx('Pipeline')}>
               {counts.map((c) => (
                 <li key={c.stage} className="bg-sunken flex flex-col items-center rounded-md py-3">
                   <span className="text-2xl font-semibold">{c.n}</span>
@@ -293,7 +295,7 @@ export function StudioHome() {
           {next && (
             <p className="text-sm" data-testid="next-reminder">
               <Bell aria-hidden size={14} className="text-primary mr-1 inline" />
-              Next reminder:{' '}
+              {tx('Next reminder:{v}', { v: ' ' })}
               <Link href={`/jobs/${next.job.id}`} className="text-primary font-semibold underline">
                 {next.reminder.note}
               </Link>{' '}
@@ -309,7 +311,7 @@ export function StudioHome() {
           className="border-line bg-surface flex flex-col gap-4 rounded-xl border p-5"
         >
           <h2 id="strength" className="text-lg font-semibold">
-            Profile strength
+            {tx('Profile strength')}
           </h2>
           {strength ? (
             <div className="flex items-start gap-5">
@@ -326,17 +328,19 @@ export function StudioHome() {
                 </ul>
               ) : (
                 <p className="text-ink-muted flex items-center gap-2">
-                  <CheckCircle2 aria-hidden size={18} className="text-primary" /> Nothing missing.
-                  Nice work.
+                  <CheckCircle2 aria-hidden size={18} className="text-primary" />{' '}
+                  {tx('Nothing missing. Nice work.')}
                 </p>
               )}
             </div>
           ) : (
             <p className="text-ink-muted">
-              Your career profile holds everything about you once, so every CV and letter starts
-              complete.{' '}
+              {tx(
+                'Your career profile holds everything about you once, so every CV and letter starts complete.{v}',
+                { v: ' ' },
+              )}
               <Link href="/profile" className="text-primary font-semibold hover:underline">
-                Set it up
+                {tx('Set it up')}
               </Link>
               .
             </p>
@@ -346,7 +350,7 @@ export function StudioHome() {
 
       <section aria-labelledby="explore" className="flex flex-col gap-3">
         <h2 id="explore" className="text-lg font-semibold">
-          Explore
+          {tx('Explore')}
         </h2>
         <ul className="grid gap-4 sm:grid-cols-3">
           {explore.map((t) => (
@@ -377,6 +381,7 @@ const zone = () => {
 
 /** Home: a one-line summary of sent applications, linking to the results page (R9.10). */
 function SentLine({ jobs }: { jobs: Job[] | null }) {
+  const tx = useT();
   const { ent } = useEntitlements();
   if (!jobs || ent?.features.jobInsights === false) return null;
   const sent = jobs.filter(wasSent);
@@ -384,9 +389,10 @@ function SentLine({ jobs }: { jobs: Job[] | null }) {
   const replies = sent.filter((j) => factsOf(j).replied).length;
   return (
     <p className="text-sm" data-testid="home-results">
-      {sent.length} sent · {replies} {replies === 1 ? 'reply' : 'replies'} ·{' '}
+      {tx('{length} sent · {replies}', { length: sent.length, replies: replies })}{' '}
+      {replies === 1 ? 'reply' : 'replies'} ·{' '}
       <Link href="/jobs/insights" className="text-primary font-semibold underline">
-        See your results
+        {tx('See your results')}
       </Link>
     </p>
   );

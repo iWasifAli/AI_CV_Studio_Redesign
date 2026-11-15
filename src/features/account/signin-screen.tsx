@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
@@ -49,6 +50,7 @@ function GoogleMark() {
 }
 
 export function SignInScreen() {
+  const t = useT();
   const router = useRouter();
   const params = useSearchParams();
   const account = useAccount();
@@ -150,14 +152,14 @@ export function SignInScreen() {
             size="lg"
             icon={<GoogleMark />}
             loading={busy === 'google'}
-            loadingText="Opening Google…"
+            loadingText={t('Opening Google…')}
             disabled={busy !== null}
             onClick={() => void google()}
           >
-            Continue with Google
+            {t('Continue with Google')}
           </Button>
           <div className="text-ink-subtle flex items-center gap-3 text-sm">
-            <span className="bg-line h-px flex-1" /> or with email{' '}
+            <span className="bg-line h-px flex-1" /> {t('or with email{v}', { v: ' ' })}
             <span className="bg-line h-px flex-1" />
           </div>
         </>
@@ -165,7 +167,7 @@ export function SignInScreen() {
 
       <form className="flex flex-col gap-4" onSubmit={(e) => void submit(e)} noValidate>
         <TextField
-          label="Email"
+          label={t('Email')}
           type="email"
           autoComplete="email"
           required
@@ -174,7 +176,7 @@ export function SignInScreen() {
         />
         {mode !== 'reset' && (
           <TextField
-            label="Password"
+            label={t('Password')}
             type="password"
             autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
             required
@@ -184,7 +186,7 @@ export function SignInScreen() {
         )}
         {mode === 'signup' && (
           <>
-            <ul className="grid gap-1 text-sm" aria-label="Password requirements">
+            <ul className="grid gap-1 text-sm" aria-label={t('Password requirements')}>
               {PASSWORD_RULES.map((r) => {
                 const ok = r.test(password);
                 return (
@@ -207,7 +209,7 @@ export function SignInScreen() {
               })}
             </ul>
             <TextField
-              label="Confirm password"
+              label={t('Confirm password')}
               type="password"
               autoComplete="new-password"
               required
@@ -216,7 +218,7 @@ export function SignInScreen() {
               error={confirm && confirm !== password ? 'The passwords don’t match' : undefined}
             />
             <CheckboxField
-              label="I am 18 or older and agree to the terms and privacy notice"
+              label={t('I am 18 or older and agree to the terms and privacy notice')}
               checked={adult}
               onChange={setAdult}
             />
@@ -235,16 +237,16 @@ export function SignInScreen() {
               className="text-primary self-start font-semibold"
               onClick={() => setMode('reset')}
             >
-              Forgot your password?
+              {t('Forgot your password?')}
             </button>
             <p>
-              New here?{' '}
+              {t('New here?{v}', { v: ' ' })}
               <button
                 type="button"
                 className="text-primary font-semibold"
                 onClick={() => setMode('signup')}
               >
-                Create an account
+                {t('Create an account')}
               </button>
             </p>
           </>
@@ -262,13 +264,13 @@ export function SignInScreen() {
           </p>
         )}
         <p className="text-sm">
-          By continuing you confirm you are 18 or older and agree to our{' '}
+          {t('By continuing you confirm you are 18 or older and agree to our{v}', { v: ' ' })}
           <Link href="/terms" className="text-primary underline underline-offset-4">
-            terms
+            {t('terms')}
           </Link>
-          . Read our{' '}
+          {t('. Read our{v}', { v: ' ' })}
           <Link href="/privacy" className="text-primary underline underline-offset-4">
-            privacy notice
+            {t('privacy notice')}
           </Link>
           .
         </p>

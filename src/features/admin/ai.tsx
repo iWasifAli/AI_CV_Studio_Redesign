@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useEffect, useRef, useState } from 'react';
 import { Play, Square } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
@@ -33,6 +34,7 @@ type Batch = {
  * in batches of 4. The pass mark is 0 unmarked new facts.
  */
 export function AdminAi() {
+  const t = useT();
   const [samples, setSamples] = useState<Sample[] | null>(null);
   const [results, setResults] = useState<Result[]>([]);
   const [info, setInfo] = useState<Pick<Batch, 'mode' | 'models'> | null>(null);
@@ -76,11 +78,11 @@ export function AdminAi() {
   return (
     <>
       <AdminHeading
-        title="AI"
+        title={t('AI')}
         intro="Run the live evaluation before relying on AI help: every writing task over realistic CVs and messy notes. It passes with 0 unmarked new facts."
       />
       {error && (
-        <Banner tone="error" title="The evaluation stopped" className="mb-4">
+        <Banner tone="error" title={t('The evaluation stopped')} className="mb-4">
           {error}
         </Banner>
       )}
@@ -91,16 +93,16 @@ export function AdminAi() {
             icon={<Square aria-hidden size={16} />}
             onClick={() => (stop.current = true)}
           >
-            Stop
+            {t('Stop')}
           </Button>
         ) : (
           <Button icon={<Play aria-hidden size={16} />} onClick={run} disabled={!samples}>
-            Run evaluation ({samples?.length ?? '…'} samples)
+            {t('Run evaluation ({v} samples)', { v: samples?.length ?? '…' })}
           </Button>
         )}
         {info && (
           <span className="text-ink-muted text-sm">
-            Provider {info.mode} · {info.models.fast}
+            {t('Provider {mode} · {fast}', { mode: info.mode, fast: info.models.fast })}
           </span>
         )}
       </div>
@@ -110,11 +112,14 @@ export function AdminAi() {
           data-testid="eval-summary"
           aria-live="polite"
         >
-          <Stat label="Samples done" value={`${done}${samples ? ` / ${samples.length}` : ''}`} />
-          <Stat label="Failed calls" value={String(failed)} />
-          <Stat label="Facts caught by the guard" value={String(caught)} />
           <Stat
-            label="Unmarked new facts (must be 0)"
+            label={t('Samples done')}
+            value={`${done}${samples ? ` / ${samples.length}` : ''}`}
+          />
+          <Stat label={t('Failed calls')} value={String(failed)} />
+          <Stat label={t('Facts caught by the guard')} value={String(caught)} />
+          <Stat
+            label={t('Unmarked new facts (must be 0)')}
             value={String(residual)}
             tone={residual ? 'bad' : finished ? 'good' : undefined}
           />
@@ -144,23 +149,27 @@ export function AdminAi() {
                 · {r.task} · {(r.ms / 1000).toFixed(1)} s
               </span>
             </p>
-            {!r.ok && <p className="text-danger mt-1">Failed: {r.error}</p>}
+            {!r.ok && (
+              <p className="text-danger mt-1">{t('Failed: {error}', { error: r.error })}</p>
+            )}
             {r.residual.length > 0 && (
               <p className="text-danger mt-1 font-semibold">
-                Unmarked new facts: {r.residual.join(', ')}
+                {t('Unmarked new facts: {v}', { v: r.residual.join(', ') })}
               </p>
             )}
             {(r.problems?.length ?? 0) > 0 && (
               <p className="text-danger mt-1 font-semibold">
-                Quality check: {r.problems!.join(', ')}
+                {t('Quality check: {v}', { v: r.problems!.join(', ') })}
               </p>
             )}
             {r.caught.length > 0 && (
-              <p className="text-ink-muted mt-1">Guard replaced: {r.caught.join(', ')}</p>
+              <p className="text-ink-muted mt-1">
+                {t('Guard replaced: {v}', { v: r.caught.join(', ') })}
+              </p>
             )}
             {r.ok && (
               <details className="mt-2">
-                <summary className="text-primary cursor-pointer">Show the answer</summary>
+                <summary className="text-primary cursor-pointer">{t('Show the answer')}</summary>
                 <pre className="bg-sunken mt-2 overflow-x-auto rounded p-3 text-xs whitespace-pre-wrap">
                   {JSON.stringify(r.output, null, 1)}
                 </pre>

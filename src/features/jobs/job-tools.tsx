@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
@@ -51,6 +52,7 @@ const toProblem = (e: unknown): Problem =>
  * Everything uses the person's own facts; the server checks each claim against their CV.
  */
 export function JobTools({ job, onJobChange }: { job: Job; onJobChange: (j: Job) => void }) {
+  const tx = useT();
   const router = useRouter();
   const toast = useToast();
   const { ent, refresh } = useEntitlements();
@@ -119,10 +121,10 @@ export function JobTools({ job, onJobChange }: { job: Job; onJobChange: (j: Job)
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 className="flex items-center gap-2 text-lg font-semibold">
-            <Sparkles aria-hidden size={18} className="text-primary" /> Get ready to apply
+            <Sparkles aria-hidden size={18} className="text-primary" /> {tx('Get ready to apply')}
           </h2>
           <p className="text-ink-muted text-sm">
-            Uses only what’s in your CV. Nothing is invented.
+            {tx('Uses only what’s in your CV. Nothing is invented.')}
           </p>
         </div>
       </div>
@@ -130,15 +132,16 @@ export function JobTools({ job, onJobChange }: { job: Job; onJobChange: (j: Job)
       {aiLocked ? (
         <Banner
           tone="info"
-          title="Job match, tailoring and cover letters are part of Premium"
+          title={tx('Job match, tailoring and cover letters are part of Premium')}
           action={
             <ButtonLink size="sm" href={`/premium?next=/jobs/${job.id}`}>
-              See Premium
+              {tx('See Premium')}
             </ButtonLink>
           }
         >
-          See how well your CV fits this job, get a copy that puts your most relevant experience
-          first, and a cover letter in the same design.
+          {tx(
+            'See how well your CV fits this job, get a copy that puts your most relevant experience first, and a cover letter in the same design.',
+          )}
         </Banner>
       ) : null}
       {aiLocked ? (
@@ -156,14 +159,14 @@ export function JobTools({ job, onJobChange }: { job: Job; onJobChange: (j: Job)
       ) : cvs.length === 0 ? (
         <p className="text-ink-muted text-sm">
           <Link href="/start" className="text-primary font-semibold">
-            Create a CV
+            {tx('Create a CV')}
           </Link>{' '}
-          first, then come back here.
+          {tx('first, then come back here.')}
         </p>
       ) : (
         <>
           <label className="flex flex-col gap-1.5 text-sm font-semibold">
-            Use this CV
+            {tx('Use this CV')}
             <select
               className="border-line-strong bg-surface min-h-11 rounded-md border px-3 text-[15px] font-normal"
               value={sourceId}
@@ -178,8 +181,8 @@ export function JobTools({ job, onJobChange }: { job: Job; onJobChange: (j: Job)
           </label>
 
           {advertShort && (
-            <Banner tone="info" title="Paste the job advert first">
-              Add the full advert in “The job” and save. It’s what we compare your CV with.
+            <Banner tone="info" title={tx('Paste the job advert first')}>
+              {tx('Add the full advert in “The job” and save. It’s what we compare your CV with.')}
             </Banner>
           )}
 
@@ -212,19 +215,19 @@ export function JobTools({ job, onJobChange }: { job: Job; onJobChange: (j: Job)
               loading={busy === 'tailor'}
               onClick={tailor}
             >
-              Make a tailored CV
+              {tx('Make a tailored CV')}
             </Button>
           </div>
 
           {problem && (
             <Banner
               tone="error"
-              title="That didn’t work"
+              title={tx('That didn’t work')}
               onDismiss={() => setProblem(null)}
               action={
                 problem.premium ? (
                   <ButtonLink size="sm" href={`/premium?next=/jobs/${job.id}`}>
-                    See Premium
+                    {tx('See Premium')}
                   </ButtonLink>
                 ) : undefined
               }
@@ -236,9 +239,9 @@ export function JobTools({ job, onJobChange }: { job: Job; onJobChange: (j: Job)
           {job.match && <MatchView match={job.match} cvId={sourceId} />}
           {job.match && ent?.features.skillGap !== false && (
             <p className="text-sm">
-              Missing some of it?{' '}
+              {tx('Missing some of it?{v}', { v: ' ' })}
               <Link href={`/skills?job=${job.id}`} className="text-primary font-semibold underline">
-                Make a learning plan for this job
+                {tx('Make a learning plan for this job')}
               </Link>
             </p>
           )}
@@ -304,6 +307,7 @@ function ApplicationEmail({
   email: Letter['email'];
   onChange: (e: Letter['email']) => void;
 }) {
+  const tx = useT();
   const toast = useToast();
   const text = `${email.subject}\n\n${email.body}`;
   const copy = async () => {
@@ -318,19 +322,21 @@ function ApplicationEmail({
   return (
     <div className="bg-sunken flex flex-col gap-3 rounded-md p-4" data-testid="application-email">
       <h4 className="flex items-center gap-2 text-sm font-semibold">
-        <Mail aria-hidden size={16} /> Application email
+        <Mail aria-hidden size={16} /> {tx('Application email')}
       </h4>
       <p className="text-ink-muted -mt-2 text-xs">
-        To send with your CV and letter attached. Add the employer’s address in your email app.
+        {tx(
+          'To send with your CV and letter attached. Add the employer’s address in your email app.',
+        )}
       </p>
       <TextField
-        label="Subject"
+        label={tx('Subject')}
         value={email.subject}
         maxLength={160}
         onChange={(e) => onChange({ ...email, subject: e.target.value })}
       />
       <TextArea
-        label="Email"
+        label={tx('Email')}
         rows={7}
         value={email.body}
         maxLength={1500}
@@ -338,13 +344,13 @@ function ApplicationEmail({
       />
       <div className="flex flex-wrap gap-2">
         <Button size="sm" variant="secondary" icon={<Copy aria-hidden size={16} />} onClick={copy}>
-          Copy email
+          {tx('Copy email')}
         </Button>
         <a
           href={mailto}
           className="text-primary inline-flex min-h-9 items-center gap-1.5 px-2 text-sm font-semibold"
         >
-          Open in my email app
+          {tx('Open in my email app')}
         </a>
       </div>
     </div>
@@ -379,6 +385,7 @@ function InterviewPrepSection({
   onJobChange: (j: Job) => void;
   refresh: () => void;
 }) {
+  const tx = useT();
   const toast = useToast();
   const prep = job.interview;
   const [notes, setNotes] = useState<string[]>(job.interviewNotes ?? []);
@@ -417,11 +424,11 @@ function InterviewPrepSection({
   return (
     <section
       id="interview"
-      aria-label="Interview preparation"
+      aria-label={tx('Interview preparation')}
       className="border-line flex scroll-mt-20 flex-col gap-4 border-t pt-5"
     >
       <h3 className="flex items-center gap-2 font-semibold">
-        <MessagesSquare aria-hidden size={18} /> Interview preparation
+        <MessagesSquare aria-hidden size={18} /> {tx('Interview preparation')}
       </h3>
       <Button
         variant={prep ? 'ghost' : 'secondary'}
@@ -454,7 +461,7 @@ function InterviewPrepSection({
                 )}
                 {q.evidence.length > 0 && (
                   <p className="text-ink-muted mt-2 text-xs">
-                    From your CV:{' '}
+                    {tx('From your CV:{v}', { v: ' ' })}
                     {q.evidence.map((ev, j) => (
                       <span key={j}>
                         {j > 0 && ' · '}
@@ -473,7 +480,7 @@ function InterviewPrepSection({
                   </p>
                 )}
                 <TextArea
-                  label="My answer notes"
+                  label={tx('My answer notes')}
                   optional
                   rows={3}
                   maxLength={2000}
@@ -491,7 +498,7 @@ function InterviewPrepSection({
           </ol>
           {prep.tips.length > 0 && (
             <div className="bg-sunken rounded-md p-4 text-sm">
-              <p className="font-semibold">Tips for this interview</p>
+              <p className="font-semibold">{tx('Tips for this interview')}</p>
               <ul className="mt-1 flex list-disc flex-col gap-1 pl-5">
                 {prep.tips.map((t, i) => (
                   <li key={i}>
@@ -507,7 +514,7 @@ function InterviewPrepSection({
             onClick={save}
             className="self-start"
           >
-            Save my notes
+            {tx('Save my notes')}
           </Button>
         </div>
       )}
@@ -539,20 +546,31 @@ const STATUS = {
 } as const;
 
 function MatchView({ match, cvId }: { match: MatchResult; cvId: string }) {
+  const tx = useT();
   const groups = (['missing', 'partial', 'met'] as const)
     .map((s) => ({ s, items: match.requirements.filter((r) => r.status === s) }))
     .filter((g) => g.items.length);
   const met = match.requirements.filter((r) => r.status === 'met').length;
   return (
-    <section aria-label="How your CV matches" className="flex flex-col gap-4" data-testid="match">
+    <section
+      aria-label={tx('How your CV matches')}
+      className="flex flex-col gap-4"
+      data-testid="match"
+    >
       <div className="bg-sunken rounded-md p-4">
         <p className="font-semibold">
-          {met} of {match.requirements.length} requirements clearly shown
+          {tx('{met} of {length} requirements clearly shown', {
+            met: met,
+            length: match.requirements.length,
+          })}
         </p>
         {match.summary && <p className="text-ink-muted mt-1 text-sm">{match.summary}</p>}
         <p className="text-ink-muted mt-1 text-xs">
-          Checked against “{match.sourceTitle}” on{' '}
-          {new Date(match.at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+          {tx('Checked against “{sourceTitle}” on{v} {v2}', {
+            sourceTitle: match.sourceTitle,
+            v: ' ',
+            v2: new Date(match.at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
+          })}
         </p>
       </div>
       {groups.map(({ s, items }) => {
@@ -568,7 +586,9 @@ function MatchView({ match, cvId }: { match: MatchResult; cvId: string }) {
                   <p className="font-medium">
                     {r.text}
                     {r.importance === 'must' && (
-                      <span className="text-ink-muted ml-2 text-xs font-normal">Essential</span>
+                      <span className="text-ink-muted ml-2 text-xs font-normal">
+                        {tx('Essential')}
+                      </span>
                     )}
                   </p>
                   {r.evidence.map((ev, j) => (
@@ -579,7 +599,7 @@ function MatchView({ match, cvId }: { match: MatchResult; cvId: string }) {
                           href={`/cv/${cvId}?focus=${encodeURIComponent(ev.ref)}`}
                           className="text-primary shrink-0 font-semibold not-italic"
                         >
-                          Show me
+                          {tx('Show me')}
                         </Link>
                       )}
                     </p>
@@ -593,8 +613,8 @@ function MatchView({ match, cvId }: { match: MatchResult; cvId: string }) {
       })}
       {match.keywords.length > 0 && (
         <div className="flex flex-col gap-2">
-          <h3 className="text-sm font-semibold">Words from the advert</h3>
-          <ul className="flex flex-wrap gap-1.5" aria-label="Keywords">
+          <h3 className="text-sm font-semibold">{tx('Words from the advert')}</h3>
+          <ul className="flex flex-wrap gap-1.5" aria-label={tx('Keywords')}>
             {match.keywords.map((k) => (
               <li
                 key={k.term}
@@ -611,7 +631,7 @@ function MatchView({ match, cvId }: { match: MatchResult; cvId: string }) {
             ))}
           </ul>
           <p className="text-ink-muted text-xs">
-            Only add a missing word if it’s true for you. Employers check.
+            {tx('Only add a missing word if it’s true for you. Employers check.')}
           </p>
         </div>
       )}
@@ -638,6 +658,7 @@ function LetterEditor({
   onJobChange: (j: Job) => void;
   refresh: () => void;
 }) {
+  const tx = useT();
   const toast = useToast();
   const [tone, setTone] = useState<'warm' | 'formal'>(job.letter?.tone ?? 'warm');
   const [draft, setDraft] = useState<Letter | null>(job.letter ?? null);
@@ -703,14 +724,14 @@ function LetterEditor({
   return (
     <section
       id="letter"
-      aria-label="Cover letter"
+      aria-label={tx('Cover letter')}
       className="border-line flex scroll-mt-20 flex-col gap-4 border-t pt-5"
     >
       <div className="flex flex-wrap items-end justify-between gap-3">
         <h3 className="flex items-center gap-2 font-semibold">
-          <FileText aria-hidden size={18} /> Cover letter
+          <FileText aria-hidden size={18} /> {tx('Cover letter')}
         </h3>
-        <div role="radiogroup" aria-label="Tone" className="flex gap-2">
+        <div role="radiogroup" aria-label={tx('Tone')} className="flex gap-2">
           {(['warm', 'formal'] as const).map((t) => (
             <button
               key={t}
@@ -747,11 +768,11 @@ function LetterEditor({
         <div className="flex flex-col gap-3" data-testid="letter-editor">
           {asks > 0 && (
             <Banner tone="warning" title={`${asks} detail${asks > 1 ? 's' : ''} to fill in`}>
-              Replace the highlighted [brackets] with your own details before sending.
+              {tx('Replace the highlighted [brackets] with your own details before sending.')}
             </Banner>
           )}
           <TextField
-            label="Greeting"
+            label={tx('Greeting')}
             value={draft.greeting}
             maxLength={80}
             onChange={(e) => setDraft({ ...draft, greeting: e.target.value })}
@@ -773,11 +794,11 @@ function LetterEditor({
               className="self-start"
               onClick={() => setDraft({ ...draft, paragraphs: [...draft.paragraphs, ''] })}
             >
-              Add a paragraph
+              {tx('Add a paragraph')}
             </Button>
           )}
           <TextField
-            label="Sign-off"
+            label={tx('Sign-off')}
             value={draft.closing}
             maxLength={80}
             onChange={(e) => setDraft({ ...draft, closing: e.target.value })}
@@ -790,7 +811,7 @@ function LetterEditor({
           )}
           <div className="flex flex-wrap gap-2">
             <Button disabled={!dirty || busy !== null} loading={busy === 'save'} onClick={save}>
-              Save letter
+              {tx('Save letter')}
             </Button>
             <Button
               variant="secondary"
@@ -800,7 +821,7 @@ function LetterEditor({
               onClick={pdf}
               title={dirty ? 'Save the letter first' : undefined}
             >
-              Download PDF
+              {tx('Download PDF')}
             </Button>
           </div>
           {html && design && (

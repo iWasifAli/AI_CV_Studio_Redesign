@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import {
   ArrowDown,
   ArrowUp,
@@ -35,6 +36,7 @@ type Props = {
 };
 
 export function SectionCard({ editor, section, index, count, preset, expanded, toggle }: Props) {
+  const t = useT();
   const { update } = editor;
   const toast = useToast();
   const info = KIND_INFO[section.kind];
@@ -100,7 +102,7 @@ export function SectionCard({ editor, section, index, count, preset, expanded, t
           {...touchDragHandlers('data-section-index', (to) =>
             update((d) => ops.moveSectionTo(d, section.id, to)),
           )}
-          title="Drag to move this section"
+          title={t('Drag to move this section')}
           aria-hidden
           data-drag-section={section.id}
           className="text-ink-subtle hover:text-ink inline-flex h-10 w-7 shrink-0 cursor-grab touch-none items-center justify-center"
@@ -110,7 +112,7 @@ export function SectionCard({ editor, section, index, count, preset, expanded, t
         {renaming ? (
           <input
             autoFocus
-            aria-label="Section name"
+            aria-label={t('Section name')}
             defaultValue={section.title}
             className="border-primary h-10 min-w-0 flex-1 rounded-sm border px-2 text-[17px] font-semibold focus-visible:outline-none"
             onBlur={(e) => {
@@ -127,7 +129,9 @@ export function SectionCard({ editor, section, index, count, preset, expanded, t
           <h3 id={titleId} className="min-w-0 flex-1 truncate text-[17px] font-semibold">
             {section.title}
             {section.hidden && (
-              <span className="text-ink-muted ml-2 text-sm font-normal">(hidden from CV)</span>
+              <span className="text-ink-muted ml-2 text-sm font-normal">
+                {t('(hidden from CV)')}
+              </span>
             )}
           </h3>
         )}
@@ -213,7 +217,7 @@ export function SectionCard({ editor, section, index, count, preset, expanded, t
                     {...touchDragHandlers(`data-item-index-${section.id}`, (to) =>
                       update((d) => ops.moveItemTo(d, section.id, item.id, to)),
                     )}
-                    title="Drag to reorder"
+                    title={t('Drag to reorder')}
                     aria-hidden
                     data-drag-item={item.id}
                     className="text-ink-subtle hover:text-ink -mr-2 ml-1 inline-flex h-10 w-6 shrink-0 cursor-grab touch-none items-center justify-center"
@@ -299,7 +303,7 @@ export function SectionCard({ editor, section, index, count, preset, expanded, t
           className="text-primary hover:bg-primary-soft inline-flex min-h-11 items-center gap-2 rounded-md px-3 text-[15px] font-semibold"
         >
           <Plus aria-hidden size={18} />
-          Add {section.items.length ? 'another' : 'a'} {info.noun}
+          {t('Add')} {section.items.length ? 'another' : 'a'} {info.noun}
         </button>
       </div>
     </section>

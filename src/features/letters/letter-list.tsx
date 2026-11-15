@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Briefcase, FileText, Plus } from 'lucide-react';
@@ -28,6 +29,7 @@ const when = (iso: string) =>
 
 /** Letters in the Documents hub: library letters and the cover letters written on jobs. */
 export function LetterList({ jobId }: { jobId?: string }) {
+  const tx = useT();
   const account = useAccount();
   const { ent } = useEntitlements();
   const [data, setData] = useState<{ letters: SavedLetter[]; jobs: Job[] } | null>(null);
@@ -44,9 +46,9 @@ export function LetterList({ jobId }: { jobId?: string }) {
     return (
       <p className="text-ink-muted">
         <Link href="/signin?next=/documents" className="text-primary font-semibold hover:underline">
-          Sign in
+          {tx('Sign in')}
         </Link>{' '}
-        to write cover letters and other letters in the same design as your CV.
+        {tx('to write cover letters and other letters in the same design as your CV.')}
       </p>
     );
   if (error) return <Banner tone="error" title={error} />;
@@ -80,7 +82,7 @@ export function LetterList({ jobId }: { jobId?: string }) {
       {rows.length > 0 ? (
         <ul
           className="border-line bg-surface divide-line divide-y rounded-xl border"
-          aria-label="Letters"
+          aria-label={tx('Letters')}
         >
           {rows.map((r) => (
             <li key={r.key}>
@@ -104,7 +106,7 @@ export function LetterList({ jobId }: { jobId?: string }) {
         </p>
       )}
       {!jobId && ent?.features.letters !== false && (
-        <ul className="flex flex-wrap gap-2" aria-label="Start a letter">
+        <ul className="flex flex-wrap gap-2" aria-label={tx('Start a letter')}>
           {LETTER_TYPES.filter((t) => !ent?.hiddenLetterTypes.includes(t.id)).map((t) => (
             <li key={t.id}>
               <Link
@@ -119,7 +121,7 @@ export function LetterList({ jobId }: { jobId?: string }) {
       )}
       {jobId && (
         <ButtonLink href={`/jobs/${jobId}`} variant="secondary" className="self-start">
-          Write the cover letter on the job
+          {tx('Write the cover letter on the job')}
         </ButtonLink>
       )}
     </div>

@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -23,6 +24,7 @@ export function CopyField({
   /** Without its own card (inside another card). */
   bare?: boolean;
 }) {
+  const t = useT();
   const toast = useToast();
   const over = value.length > limit;
   const copy = async () => {
@@ -44,10 +46,12 @@ export function CopyField({
       />
       <div className="flex items-center justify-between gap-3">
         <span className={`text-xs ${over ? 'text-danger font-semibold' : 'text-ink-muted'}`}>
-          {value.length} / {limit} characters{over ? ' — too long for LinkedIn' : ''}
+          {t('{length} / {limit} characters', { length: value.length, limit: limit })}
+          {over ? ' — too long for LinkedIn' : ''}
         </span>
         <Button size="sm" variant="secondary" icon={<Copy aria-hidden size={16} />} onClick={copy}>
-          Copy<span className="sr-only"> {label}</span>
+          {t('Copy')}
+          <span className="sr-only"> {label}</span>
         </Button>
       </div>
     </Box>

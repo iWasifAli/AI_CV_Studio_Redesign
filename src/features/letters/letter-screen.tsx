@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
@@ -43,6 +44,7 @@ const key = (e: Editable) => JSON.stringify(e);
 
 /** /letters/[id]: edit a library letter beside a live preview in the CV's design; PDF; AI redraft. */
 export function LetterScreen({ id }: { id: string }) {
+  const tx = useT();
   const account = useAccount();
   const [letter, setLetter] = useState<SavedLetter | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -54,10 +56,10 @@ export function LetterScreen({ id }: { id: string }) {
     return (
       <Banner
         tone="info"
-        title="Sign in to see this letter"
+        title={tx('Sign in to see this letter')}
         action={
           <ButtonLink size="sm" href={`/signin?next=/letters/${id}`}>
-            Sign in
+            {tx('Sign in')}
           </ButtonLink>
         }
       />
@@ -69,7 +71,7 @@ export function LetterScreen({ id }: { id: string }) {
         title={error}
         action={
           <ButtonLink size="sm" href="/documents?type=letters">
-            Your letters
+            {tx('Your letters')}
           </ButtonLink>
         }
       />
@@ -79,6 +81,7 @@ export function LetterScreen({ id }: { id: string }) {
 }
 
 function Editor({ initial }: { initial: SavedLetter }) {
+  const tx = useT();
   const router = useRouter();
   const params = useSearchParams();
   const toast = useToast();
@@ -208,7 +211,7 @@ function Editor({ initial }: { initial: SavedLetter }) {
           href="/documents?type=letters"
           className="text-primary inline-flex items-center gap-1 text-sm font-semibold hover:underline"
         >
-          <ArrowLeft aria-hidden size={16} /> Your letters
+          <ArrowLeft aria-hidden size={16} /> {tx('Your letters')}
         </Link>
         <div>
           <p className="text-ink-muted text-sm font-semibold">{type.title}</p>
@@ -223,7 +226,7 @@ function Editor({ initial }: { initial: SavedLetter }) {
             action={
               problem.premium ? (
                 <ButtonLink href="/premium" size="sm">
-                  See Premium
+                  {tx('See Premium')}
                 </ButtonLink>
               ) : undefined
             }
@@ -231,13 +234,13 @@ function Editor({ initial }: { initial: SavedLetter }) {
         )}
         {asks > 0 && (
           <Banner tone="warning" title={`${asks} detail${asks > 1 ? 's' : ''} to fill in`}>
-            Replace the highlighted [brackets] with your own details before sending.
+            {tx('Replace the highlighted [brackets] with your own details before sending.')}
           </Banner>
         )}
 
         <details className="border-line bg-surface rounded-lg border p-4">
           <summary className="cursor-pointer font-semibold">
-            Your answers and a new AI draft
+            {tx('Your answers and a new AI draft')}
           </summary>
           <div className="mt-4 flex flex-col gap-3">
             {type.questions.map((q) =>
@@ -269,7 +272,7 @@ function Editor({ initial }: { initial: SavedLetter }) {
                 />
               ),
             )}
-            <div role="radiogroup" aria-label="Tone" className="flex gap-2">
+            <div role="radiogroup" aria-label={tx('Tone')} className="flex gap-2">
               {(['warm', 'formal'] as const).map((t) => (
                 <button
                   key={t}
@@ -298,15 +301,15 @@ function Editor({ initial }: { initial: SavedLetter }) {
                 void redraft();
               }}
             >
-              Write a new AI draft
+              {tx('Write a new AI draft')}
             </Button>
             {aiLocked && (
               <p className="text-ink-muted text-sm">
-                AI drafts are part of{' '}
+                {tx('AI drafts are part of{v}', { v: ' ' })}
                 <Link href="/premium" className="text-primary font-semibold">
-                  Premium
+                  {tx('Premium')}
                 </Link>
-                . You can always write and download the letter yourself.
+                {tx('. You can always write and download the letter yourself.')}
               </p>
             )}
           </div>
@@ -314,13 +317,13 @@ function Editor({ initial }: { initial: SavedLetter }) {
 
         {cvs.length > 0 && (
           <label className="flex flex-col gap-1.5 text-sm font-semibold">
-            Design and contact details from
+            {tx('Design and contact details from')}
             <select
               className="border-line-strong bg-surface min-h-11 rounded-md border px-3 text-[15px] font-normal"
               value={draft.documentId}
               onChange={(e) => setDraft({ ...draft, documentId: e.target.value })}
             >
-              {!draft.documentId && <option value="">A plain page</option>}
+              {!draft.documentId && <option value="">{tx('A plain page')}</option>}
               {cvs.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.role === 'profile' ? 'Career profile' : c.title || c.name || 'Untitled CV'}
@@ -331,7 +334,7 @@ function Editor({ initial }: { initial: SavedLetter }) {
         )}
         {savedDesigns.length > 0 && (
           <label className="flex flex-col gap-1.5 text-sm font-semibold">
-            Design
+            {tx('Design')}
             <select
               className="border-line-strong bg-surface min-h-11 rounded-md border px-3 text-[15px] font-normal"
               value={draft.designId}
@@ -341,7 +344,7 @@ function Editor({ initial }: { initial: SavedLetter }) {
               <option value="">{draft.documentId ? 'The CV’s design' : 'Plain'}</option>
               {savedDesigns.map((d) => (
                 <option key={d.id} value={d.id}>
-                  My design: {d.name}
+                  {tx('My design: {name}', { name: d.name })}
                 </option>
               ))}
             </select>
@@ -350,8 +353,8 @@ function Editor({ initial }: { initial: SavedLetter }) {
         {!statement && (
           <>
             <TextArea
-              label="Who it’s to"
-              hint="One line each."
+              label={tx('Who it’s to')}
+              hint={tx('One line each.')}
               optional
               rows={2}
               value={draft.to.join('\n')}
@@ -368,7 +371,7 @@ function Editor({ initial }: { initial: SavedLetter }) {
         {!statement && (
           <>
             <TextField
-              label="Greeting"
+              label={tx('Greeting')}
               value={draft.greeting}
               maxLength={80}
               onChange={(e) => setDraft({ ...draft, greeting: e.target.value })}
@@ -392,12 +395,12 @@ function Editor({ initial }: { initial: SavedLetter }) {
             className="self-start"
             onClick={() => setDraft({ ...draft, paragraphs: [...draft.paragraphs, ''] })}
           >
-            Add a paragraph
+            {tx('Add a paragraph')}
           </Button>
         )}
         {!statement && (
           <TextField
-            label="Sign-off"
+            label={tx('Sign-off')}
             value={draft.closing}
             maxLength={80}
             onChange={(e) => setDraft({ ...draft, closing: e.target.value })}
@@ -405,7 +408,7 @@ function Editor({ initial }: { initial: SavedLetter }) {
         )}
         <div className="flex flex-wrap gap-2">
           <Button disabled={!dirty || busy !== null} loading={busy === 'save'} onClick={save}>
-            Save letter
+            {tx('Save letter')}
           </Button>
           <Button
             variant="secondary"
@@ -415,13 +418,13 @@ function Editor({ initial }: { initial: SavedLetter }) {
             onClick={pdf}
             title={dirty ? 'Save the letter first' : undefined}
           >
-            Download PDF
+            {tx('Download PDF')}
           </Button>
           {!dirty && draft.paragraphs.some((p) => p.trim()) && (
             <PackButton
               cv={design}
               letter={`letter:${saved.id}`}
-              label="With CV and certificates"
+              label={tx('With CV and certificates')}
             />
           )}
           <Button
@@ -430,14 +433,14 @@ function Editor({ initial }: { initial: SavedLetter }) {
             disabled={busy !== null}
             onClick={remove}
           >
-            Delete
+            {tx('Delete')}
           </Button>
         </div>
       </div>
       <div className="lg:sticky lg:top-6 lg:self-start">
         {html && (
           <ScaledPage
-            title="Letter preview"
+            title={tx('Letter preview')}
             html={html}
             widthMm={resolvePage(design).widthMm}
             heightMm={resolvePage(design).heightMm}

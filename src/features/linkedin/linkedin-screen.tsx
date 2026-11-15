@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useMemo, useState, useSyncExternalStore } from 'react';
@@ -30,6 +31,7 @@ const cacheKey = (id: string) => `cvstudio:v1:linkedin:${id}`;
 
 /** LinkedIn profile writer (Premium): headline, About and job descriptions, ready to paste. */
 export function LinkedinScreen() {
+  const tx = useT();
   // CVs live in this browser: render after mounting so server and client agree.
   const mounted = useSyncExternalStore(
     () => () => {},
@@ -53,7 +55,7 @@ export function LinkedinScreen() {
     <div className="mx-auto flex max-w-[860px] flex-col gap-6 px-4 py-8 md:px-8">
       <div>
         <h1 className="font-display text-[32px] leading-tight font-semibold tracking-tight">
-          Your LinkedIn profile
+          {tx('Your LinkedIn profile')}
         </h1>
         <p className="text-ink-muted mt-1">
           {tab === 'write'
@@ -62,7 +64,7 @@ export function LinkedinScreen() {
         </p>
       </div>
       <Tabs
-        label="LinkedIn tools"
+        label={tx('LinkedIn tools')}
         idBase="linkedin"
         value={tab}
         onChange={pick}
@@ -84,6 +86,7 @@ export function LinkedinScreen() {
 }
 
 function LinkedinWriter() {
+  const tx = useT();
   const account = useAccount();
   const { ent, refresh } = useEntitlements();
   const params = useSearchParams();
@@ -164,28 +167,30 @@ function LinkedinWriter() {
       {signedOut ? (
         <Banner
           tone="info"
-          title="Sign in to write your LinkedIn profile"
-          action={<ButtonLink href="/signin?next=/linkedin">Sign in</ButtonLink>}
+          title={tx('Sign in to write your LinkedIn profile')}
+          action={<ButtonLink href="/signin?next=/linkedin">{tx('Sign in')}</ButtonLink>}
         />
       ) : locked ? (
         <Banner
           tone="info"
-          title="The LinkedIn profile writer is part of Premium"
-          action={<ButtonLink href="/premium?next=/linkedin">See Premium</ButtonLink>}
+          title={tx('The LinkedIn profile writer is part of Premium')}
+          action={<ButtonLink href="/premium?next=/linkedin">{tx('See Premium')}</ButtonLink>}
         >
-          Get a headline, About section and job descriptions that match your CV, in your own words.
+          {tx(
+            'Get a headline, About section and job descriptions that match your CV, in your own words.',
+          )}
         </Banner>
       ) : cvs.length === 0 ? (
         <p className="text-ink-muted">
           <Link href="/start" className="text-primary font-semibold">
-            Create a CV
+            {tx('Create a CV')}
           </Link>{' '}
-          first, then come back here.
+          {tx('first, then come back here.')}
         </p>
       ) : (
         <Card className="flex flex-col gap-4 p-5">
           <label className="flex flex-col gap-1.5 text-sm font-semibold">
-            Write from
+            {tx('Write from')}
             <select
               className="border-line-strong bg-surface min-h-11 rounded-md border px-3 text-[15px] font-normal"
               value={docId}
@@ -207,9 +212,11 @@ function LinkedinWriter() {
             </select>
           </label>
           <TextField
-            label="The kind of role you want next"
+            label={tx('The kind of role you want next')}
             optional
-            hint="For example “transport planning” or “team leader”. Leave empty to describe your current work."
+            hint={tx(
+              'For example “transport planning” or “team leader”. Leave empty to describe your current work.',
+            )}
             value={target}
             maxLength={160}
             onChange={(e) => setTarget(e.target.value)}
@@ -217,7 +224,7 @@ function LinkedinWriter() {
           <Button
             icon={<Sparkles aria-hidden size={18} />}
             loading={busy}
-            loadingText="Writing… this takes about 20 seconds"
+            loadingText={tx('Writing… this takes about 20 seconds')}
             disabled={!docId}
             onClick={write}
             className="self-start"
@@ -227,12 +234,12 @@ function LinkedinWriter() {
           {error && (
             <Banner
               tone="error"
-              title="That didn’t work"
+              title={tx('That didn’t work')}
               onDismiss={() => setError(null)}
               action={
                 error.premium ? (
                   <ButtonLink size="sm" href="/premium?next=/linkedin">
-                    See Premium
+                    {tx('See Premium')}
                   </ButtonLink>
                 ) : undefined
               }
@@ -245,25 +252,26 @@ function LinkedinWriter() {
 
       {result && !signedOut && !locked && (
         <section
-          aria-label="Your LinkedIn text"
+          aria-label={tx('Your LinkedIn text')}
           className="flex flex-col gap-4"
           data-testid="linkedin-result"
         >
           {asks > 0 && (
             <Banner tone="warning" title={`${asks} detail${asks > 1 ? 's' : ''} to check`}>
-              Replace or remove the parts in [brackets] before you paste. They mark facts that
-              aren’t in your CV.
+              {tx(
+                'Replace or remove the parts in [brackets] before you paste. They mark facts that aren’t in your CV.',
+              )}
             </Banner>
           )}
           <CopyField
-            label="Headline"
+            label={tx('Headline')}
             value={result.headline}
             limit={LIMITS.headline}
             rows={2}
             onChange={(v) => edit({ headline: v })}
           />
           <CopyField
-            label="About"
+            label={tx('About')}
             value={result.about}
             limit={LIMITS.about}
             rows={10}
@@ -285,8 +293,8 @@ function LinkedinWriter() {
           ))}
           {result.skills.length > 0 && (
             <Card className="flex flex-col gap-2 p-5">
-              <h2 className="font-semibold">Skills to add</h2>
-              <ul className="flex flex-wrap gap-1.5" aria-label="Skills">
+              <h2 className="font-semibold">{tx('Skills to add')}</h2>
+              <ul className="flex flex-wrap gap-1.5" aria-label={tx('Skills')}>
                 {result.skills.map((s) => (
                   <li key={s} className="bg-sunken rounded-full px-3 py-1 text-sm">
                     {s}
@@ -294,7 +302,7 @@ function LinkedinWriter() {
                 ))}
               </ul>
               <p className="text-ink-muted text-xs">
-                Add these in LinkedIn under Skills, most important first.
+                {tx('Add these in LinkedIn under Skills, most important first.')}
               </p>
             </Card>
           )}

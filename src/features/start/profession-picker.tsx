@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useSearchParams } from 'next/navigation';
 import { ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/cn';
@@ -13,11 +14,12 @@ type Props = {
 };
 
 export function ProfessionPicker({ onChoose, busy }: Props) {
+  const t = useT();
   const params = useSearchParams();
   const highlighted = params.get('work');
 
   return (
-    <ul className="grid gap-3 sm:grid-cols-2" aria-label="Kinds of work">
+    <ul className="grid gap-3 sm:grid-cols-2" aria-label={t('Kinds of work')}>
       {PROFESSIONS.map((p) => {
         const isHighlighted = highlighted === p.id;
         return (

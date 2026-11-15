@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import {
   createContext,
   useCallback,
@@ -31,6 +32,7 @@ export function useToast() {
 }
 
 export function ToastProvider({ children }: { children: ReactNode }) {
+  const tx = useT();
   const [items, setItems] = useState<ToastItem[]>([]);
   const nextId = useRef(1);
 
@@ -86,7 +88,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             )}
             <button
               type="button"
-              aria-label="Dismiss notification"
+              aria-label={tx('Dismiss notification')}
               className="rounded-sm p-1 text-white/70 hover:bg-white/10 hover:text-white"
               onClick={() => dismiss(t.id)}
             >

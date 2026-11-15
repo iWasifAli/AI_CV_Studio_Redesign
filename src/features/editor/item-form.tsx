@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useState } from 'react';
 import { TextField } from '@/components/ui/field';
 import type { Preset } from '@/modules/resume/presets';
@@ -170,12 +171,13 @@ function SkillLevels({
   levels: number[];
   onChange: (levels: number[] | undefined) => void;
 }) {
+  const tx = useT();
   const on = levels.some((l) => l > 0);
   const [open, setOpen] = useState(on);
   return (
     <div className="flex flex-col gap-2">
       <CheckboxField
-        label="Show a level for each skill (for bar or dot designs)"
+        label={tx('Show a level for each skill (for bar or dot designs)')}
         checked={open}
         onChange={(v) => {
           setOpen(v);
@@ -183,7 +185,7 @@ function SkillLevels({
         }}
       />
       {open && (
-        <ul className="flex flex-col gap-1.5" aria-label="Skill levels">
+        <ul className="flex flex-col gap-1.5" aria-label={tx('Skill levels')}>
           {tags.map((t, i) => (
             <li key={`${t}-${i}`} className="flex items-center justify-between gap-3 text-sm">
               <span className="min-w-0 truncate">{t}</span>
@@ -197,12 +199,12 @@ function SkillLevels({
                   onChange(next);
                 }}
               >
-                <option value={0}>Not set</option>
-                <option value={1}>1 — Beginner</option>
+                <option value={0}>{tx('Not set')}</option>
+                <option value={1}>{tx('1 — Beginner')}</option>
                 <option value={2}>2</option>
-                <option value={3}>3 — Good</option>
+                <option value={3}>{tx('3 — Good')}</option>
                 <option value={4}>4</option>
-                <option value={5}>5 — Expert</option>
+                <option value={5}>{tx('5 — Expert')}</option>
               </select>
             </li>
           ))}

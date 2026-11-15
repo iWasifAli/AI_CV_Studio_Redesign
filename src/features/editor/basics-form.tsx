@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { Plus, Trash2 } from 'lucide-react';
 import { TextField } from '@/components/ui/field';
 import { IconButton } from '@/components/ui/icon-button';
@@ -18,6 +19,7 @@ export function BasicsForm({
   editor: DocumentEditor;
   showLinks?: boolean;
 }) {
+  const t = useT();
   const { doc, update } = editor;
   const b = doc.basics;
   const preset = getPreset(doc.presetId);
@@ -30,24 +32,24 @@ export function BasicsForm({
     <div className="grid grid-cols-2 gap-x-3 gap-y-4">
       <TextField
         containerClassName="col-span-2"
-        label="Full name"
+        label={t('Full name')}
         autoComplete="name"
         value={b.name}
-        placeholder="e.g. Imran Qureshi"
+        placeholder={t('e.g. Imran Qureshi')}
         onChange={(e) => set({ name: e.target.value }, 'name')}
         data-field="basics.name"
       />
       <TextField
         containerClassName="col-span-2"
-        label="Job title you want"
-        hint="Shown under your name."
+        label={t('Job title you want')}
+        hint={t('Shown under your name.')}
         value={b.headline}
         placeholder={`e.g. ${preset.headlineExample}`}
         onChange={(e) => set({ headline: e.target.value }, 'headline')}
       />
       <TextField
         containerClassName="col-span-2 sm:col-span-1"
-        label="Phone"
+        label={t('Phone')}
         type="tel"
         autoComplete="tel"
         value={b.phone}
@@ -55,7 +57,7 @@ export function BasicsForm({
       />
       <TextField
         containerClassName="col-span-2 sm:col-span-1"
-        label="Email"
+        label={t('Email')}
         type="email"
         autoComplete="email"
         value={b.email}
@@ -64,16 +66,16 @@ export function BasicsForm({
       />
       <TextField
         containerClassName="col-span-2"
-        label="Town or city"
-        hint="Your full address is not needed."
+        label={t('Town or city')}
+        hint={t('Your full address is not needed.')}
         autoComplete="address-level2"
         value={b.location}
         onChange={(e) => set({ location: e.target.value }, 'location')}
       />
       <label className="col-span-2 flex flex-col gap-1.5 text-sm font-semibold">
-        Where you’re applying
+        {t('Where you’re applying')}
         <span className="text-ink-muted font-normal">
-          For advice that fits the country (photo, date of birth). Optional.
+          {t('For advice that fits the country (photo, date of birth). Optional.')}
         </span>
         <select
           className="border-line-strong bg-surface min-h-11 rounded-md border px-3 text-[15px] font-normal"
@@ -81,7 +83,7 @@ export function BasicsForm({
           onChange={(e) => update((d) => ({ ...d, market: e.target.value || undefined }), 'market')}
           data-testid="market"
         >
-          <option value="">Not saying / several countries</option>
+          <option value="">{t('Not saying / several countries')}</option>
           {MARKETS.map((m) => (
             <option key={m.code} value={m.code}>
               {m.name}
@@ -94,16 +96,17 @@ export function BasicsForm({
       </div>
       <div className="col-span-2 flex flex-col gap-2" data-testid="key-numbers">
         <p className="text-sm font-semibold">
-          Key numbers <span className="text-ink-muted font-normal">(optional)</span>
+          {t('Key numbers')} <span className="text-ink-muted font-normal">{t('(optional)')}</span>
         </p>
         <p className="text-ink-muted text-sm">
-          Up to three figures you can stand behind, shown large by the graphic designs — for example
-          “12+” and “Years teaching”. Without them, designs show counts from your CV.
+          {t(
+            'Up to three figures you can stand behind, shown large by the graphic designs — for example “12+” and “Years teaching”. Without them, designs show counts from your CV.',
+          )}
         </p>
         {b.stats.map((k) => (
           <div key={k.id} className="grid grid-cols-[6.5rem_1fr_auto] items-end gap-2">
             <TextField
-              label="Number"
+              label={t('Number')}
               value={k.value}
               maxLength={12}
               placeholder="e.g. 12+"
@@ -120,10 +123,10 @@ export function BasicsForm({
               }
             />
             <TextField
-              label="What it counts"
+              label={t('What it counts')}
               value={k.label}
               maxLength={40}
-              placeholder="e.g. Years teaching"
+              placeholder={t('e.g. Years teaching')}
               onChange={(e) =>
                 update(
                   (d) =>
@@ -137,7 +140,7 @@ export function BasicsForm({
               }
             />
             <IconButton
-              label="Remove this number"
+              label={t('Remove this number')}
               icon={<Trash2 aria-hidden size={18} />}
               onClick={() =>
                 update((d) =>
@@ -159,7 +162,7 @@ export function BasicsForm({
             }
             className="text-primary hover:bg-primary-soft inline-flex min-h-11 items-center gap-2 self-start rounded-md px-2 text-[15px] font-semibold"
           >
-            <Plus aria-hidden size={18} /> Add a key number
+            <Plus aria-hidden size={18} /> {t('Add a key number')}
           </button>
         )}
       </div>
@@ -168,9 +171,9 @@ export function BasicsForm({
           {b.links.map((l) => (
             <div key={l.id} className="grid grid-cols-[1fr_1.6fr_auto] items-end gap-2">
               <TextField
-                label="Link name"
+                label={t('Link name')}
                 value={l.label}
-                placeholder="e.g. LinkedIn"
+                placeholder={t('e.g. LinkedIn')}
                 onChange={(e) =>
                   update(
                     (d) => ops.updateLink(d, l.id, { label: e.target.value }),
@@ -179,9 +182,9 @@ export function BasicsForm({
                 }
               />
               <TextField
-                label="Web address"
+                label={t('Web address')}
                 value={l.url}
-                placeholder="e.g. linkedin.com/in/you"
+                placeholder={t('e.g. linkedin.com/in/you')}
                 onChange={(e) =>
                   update(
                     (d) => ops.updateLink(d, l.id, { url: e.target.value }),
@@ -190,7 +193,7 @@ export function BasicsForm({
                 }
               />
               <IconButton
-                label="Remove link"
+                label={t('Remove link')}
                 icon={<Trash2 aria-hidden size={18} />}
                 onClick={() => update((d) => ops.removeLink(d, l.id))}
               />
@@ -201,7 +204,7 @@ export function BasicsForm({
             onClick={() => update((d) => ops.addLink(d))}
             className="text-primary hover:bg-primary-soft inline-flex min-h-11 items-center gap-2 self-start rounded-md px-2 text-[15px] font-semibold"
           >
-            <Plus aria-hidden size={18} /> Add a link (LinkedIn, website…)
+            <Plus aria-hidden size={18} /> {t('Add a link (LinkedIn, website…)')}
           </button>
         </div>
       )}

@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useRef, useState, type DragEvent } from 'react';
 import { FileUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,7 @@ export function DropZone({
   compact?: boolean;
   id?: string;
 }) {
+  const t = useT();
   const input = useRef<HTMLInputElement>(null);
   const [drag, setDrag] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,8 +56,10 @@ export function DropZone({
         )}
       >
         <FileUp aria-hidden size={compact ? 28 : 36} className="text-primary" />
-        <p className="text-lg font-semibold">Drop your CV here</p>
-        <p className="text-ink-muted text-sm">PDF, Word or a photo of a paper CV · up to 10 MB</p>
+        <p className="text-lg font-semibold">{t('Drop your CV here')}</p>
+        <p className="text-ink-muted text-sm">
+          {t('PDF, Word or a photo of a paper CV · up to 10 MB')}
+        </p>
         <input
           ref={input}
           id={id}
@@ -63,7 +67,7 @@ export function DropZone({
           accept={ACCEPT}
           className="sr-only"
           tabIndex={-1}
-          aria-label="Choose your CV file (PDF, Word or a photo)"
+          aria-label={t('Choose your CV file (PDF, Word or a photo)')}
           data-testid="makeover-file"
           onChange={(e) => {
             const f = e.target.files?.[0];
@@ -72,7 +76,7 @@ export function DropZone({
           }}
         />
         <Button onClick={() => input.current?.click()} disabled={busy} size={compact ? 'md' : 'lg'}>
-          Choose a file
+          {t('Choose a file')}
         </Button>
       </div>
       {error && (

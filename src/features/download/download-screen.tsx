@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { tierDesignId } from '@/modules/design/catalogue';
 import { DESIGN_META } from '@/modules/design/designs';
 import Link from 'next/link';
@@ -38,6 +39,7 @@ type Blocked = {
 };
 
 export function DownloadScreen({ doc: initialDoc }: { doc: ResumeDocument }) {
+  const t = useT();
   const toast = useToast();
   const account = useAccount();
   const { ent, refresh } = useEntitlements();
@@ -164,17 +166,17 @@ export function DownloadScreen({ doc: initialDoc }: { doc: ResumeDocument }) {
           href={editHref}
           className="hover:bg-sunken inline-flex h-11 items-center gap-2 rounded-md px-3 text-[15px] font-semibold"
         >
-          <ArrowLeft aria-hidden size={20} /> Back to editing
+          <ArrowLeft aria-hidden size={20} /> {t('Back to editing')}
         </Link>
       </header>
       <div className="mx-auto grid w-full max-w-[1200px] flex-1 gap-8 px-4 py-8 sm:px-8 lg:grid-cols-[minmax(0,420px)_1fr]">
         <main id="main" className="flex flex-col gap-6">
           <div className="flex flex-col gap-2">
             <h1 className="font-display text-[32px] leading-tight font-semibold tracking-tight">
-              Ready to send
+              {t('Ready to send')}
             </h1>
             <p className="text-ink-muted">
-              A last look before you download. Your PDF will look exactly like the preview.
+              {t('A last look before you download. Your PDF will look exactly like the preview.')}
             </p>
           </div>
 
@@ -183,11 +185,11 @@ export function DownloadScreen({ doc: initialDoc }: { doc: ResumeDocument }) {
           {failed && (
             <Banner
               tone="error"
-              title="We couldn’t create the PDF"
+              title={t('We couldn’t create the PDF')}
               action={
                 <div className="flex flex-wrap gap-2">
                   <Button size="sm" variant="secondary" onClick={downloadPdf}>
-                    Try again
+                    {t('Try again')}
                   </Button>
                   {!signedOut && !lockedDesign && (
                     <Button
@@ -196,7 +198,7 @@ export function DownloadScreen({ doc: initialDoc }: { doc: ResumeDocument }) {
                       icon={<Printer aria-hidden size={16} />}
                       onClick={print}
                     >
-                      Print or save as PDF
+                      {t('Print or save as PDF')}
                     </Button>
                   )}
                 </div>
@@ -222,8 +224,9 @@ export function DownloadScreen({ doc: initialDoc }: { doc: ResumeDocument }) {
                   : `${DESIGN_META[designId].name} is a Premium design`}
               </h2>
               <p className="text-ink-muted">
-                Premium unlocks every design, AI writing help and more downloads. Or switch to a
-                free design — your words stay exactly the same.
+                {t(
+                  'Premium unlocks every design, AI writing help and more downloads. Or switch to a free design — your words stay exactly the same.',
+                )}
               </p>
               <div className="flex flex-wrap gap-2">
                 {ent?.features.sales && (
@@ -231,11 +234,11 @@ export function DownloadScreen({ doc: initialDoc }: { doc: ResumeDocument }) {
                     href={`/premium?next=${encodeURIComponent(here)}`}
                     icon={<Crown aria-hidden size={18} />}
                   >
-                    See Premium
+                    {t('See Premium')}
                   </ButtonLink>
                 )}
                 <Button variant="secondary" onClick={switchToFreeDesign}>
-                  Use a free design instead
+                  {t('Use a free design instead')}
                 </Button>
               </div>
             </section>
@@ -244,7 +247,7 @@ export function DownloadScreen({ doc: initialDoc }: { doc: ResumeDocument }) {
           {blocked?.code === 'LIMIT_REACHED' && (
             <Banner
               tone="warning"
-              title="Monthly download limit reached"
+              title={t('Monthly download limit reached')}
               action={
                 ent?.features.sales ? (
                   <ButtonLink
@@ -252,7 +255,7 @@ export function DownloadScreen({ doc: initialDoc }: { doc: ResumeDocument }) {
                     href={`/premium?next=${encodeURIComponent(here)}`}
                     icon={<Crown aria-hidden size={16} />}
                   >
-                    See Premium
+                    {t('See Premium')}
                   </ButtonLink>
                 ) : undefined
               }
@@ -270,11 +273,12 @@ export function DownloadScreen({ doc: initialDoc }: { doc: ResumeDocument }) {
                   href={`/signin?next=${encodeURIComponent(here)}`}
                   icon={<LogIn aria-hidden size={20} />}
                 >
-                  Sign in to download
+                  {t('Sign in to download')}
                 </ButtonLink>
                 <p className="text-ink-muted text-sm">
-                  A free account saves your CV safely and lets you download it as a PDF. It takes
-                  under a minute.
+                  {t(
+                    'A free account saves your CV safely and lets you download it as a PDF. It takes under a minute.',
+                  )}
                 </p>
               </>
             ) : (
@@ -283,53 +287,58 @@ export function DownloadScreen({ doc: initialDoc }: { doc: ResumeDocument }) {
                   size="lg"
                   icon={<Download aria-hidden size={20} />}
                   loading={busy}
-                  loadingText="Preparing your PDF…"
+                  loadingText={t('Preparing your PDF…')}
                   disabled={lockedDesign || account.status === 'loading'}
                   onClick={downloadPdf}
                 >
-                  Download PDF
+                  {t('Download PDF')}
                 </Button>
                 <Button
                   variant="secondary"
                   icon={<ScanText aria-hidden size={18} />}
                   loading={busyAts}
-                  loadingText="Preparing your ATS PDF…"
+                  loadingText={t('Preparing your ATS PDF…')}
                   disabled={account.status === 'loading' || busy}
                   onClick={() => download('ats')}
                   data-testid="download-ats"
                 >
-                  ATS PDF (plain, one column)
+                  {t('ATS PDF (plain, one column)')}
                 </Button>
                 <p className="text-ink-muted max-w-md text-sm" data-testid="dual-export-hint">
-                  Two versions of the same CV: the PDF above exactly as designed, for people; the
-                  ATS PDF in one plain column with the text in reading order, for online application
-                  forms. No format can promise every system reads it perfectly.
+                  {t(
+                    'Two versions of the same CV: the PDF above exactly as designed, for people; the ATS PDF in one plain column with the text in reading order, for online application forms. No format can promise every system reads it perfectly.',
+                  )}
                 </p>
                 <Button
                   variant="secondary"
                   icon={<FileText aria-hidden size={18} />}
                   loading={busyWord}
-                  loadingText="Preparing your Word file…"
+                  loadingText={t('Preparing your Word file…')}
                   disabled={account.status === 'loading' || busy}
                   onClick={() => download('docx')}
                 >
-                  Download Word (.docx)
+                  {t('Download Word (.docx)')}
                 </Button>
                 {account.status === 'signedIn' && !lockedDesign && (
-                  <PackButton cv={doc} label="CV with certificates (one PDF or ZIP)" />
+                  <PackButton cv={doc} label={t('CV with certificates (one PDF or ZIP)')} />
                 )}
                 {left !== null && Number.isFinite(left) && (
                   <p className="text-ink-muted text-sm" data-testid="downloads-left">
-                    {left} of {ent!.limits['pdf.download']} downloads left this month.
+                    {t('{left} of {v} downloads left this month.', {
+                      left: left,
+                      v: ent!.limits['pdf.download'],
+                    })}
                   </p>
                 )}
               </>
             )}
             <Button variant="secondary" icon={<FileJson aria-hidden size={18} />} onClick={backup}>
-              Save a backup file
+              {t('Save a backup file')}
             </Button>
             <p className="text-ink-muted text-sm">
-              A backup file lets you open this CV in another browser, even without an account.
+              {t(
+                'A backup file lets you open this CV in another browser, even without an account.',
+              )}
             </p>
           </div>
           {account.status === 'signedIn' && <SharePanel docId={doc.id} />}
@@ -338,16 +347,16 @@ export function DownloadScreen({ doc: initialDoc }: { doc: ResumeDocument }) {
               href={`/linkedin?doc=${encodeURIComponent(doc.id)}`}
               className="text-primary inline-flex items-center gap-1.5 font-semibold"
             >
-              Update your LinkedIn profile from this CV →
+              {t('Update your LinkedIn profile from this CV →')}
             </Link>
           )}
         </main>
         <section
-          aria-label="Final preview"
+          aria-label={t('Final preview')}
           className="bg-sunken flex flex-col gap-3 rounded-lg p-4 sm:p-8"
         >
           <PreviewStatusLine status={status} />
-          <DocumentPreview doc={doc} onStatus={setStatus} title="Final preview of your CV" />
+          <DocumentPreview doc={doc} onStatus={setStatus} title={t('Final preview of your CV')} />
         </section>
       </div>
     </div>

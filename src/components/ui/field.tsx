@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useId, type ComponentProps, type ReactNode } from 'react';
 import { CircleAlert } from 'lucide-react';
 import { cn } from '@/lib/cn';
@@ -18,6 +19,7 @@ type FieldShellProps = {
 
 /** Label + control + hint/error, wired for screen readers. */
 export function FieldShell({ label, hint, error, optional, className, children }: FieldShellProps) {
+  const t = useT();
   const id = useId();
   const hintId = `${id}-hint`;
   const describedBy = error || hint ? hintId : undefined;
@@ -25,7 +27,7 @@ export function FieldShell({ label, hint, error, optional, className, children }
     <div className={cn('flex flex-col gap-1.5', className)}>
       <label htmlFor={id} className="text-ink text-sm font-semibold">
         {label}
-        {optional && <span className="text-ink-subtle ml-1.5 font-normal">(optional)</span>}
+        {optional && <span className="text-ink-subtle ml-1.5 font-normal">{t('(optional)')}</span>}
       </label>
       {children({ id, describedBy, invalid: Boolean(error) })}
       {error ? (

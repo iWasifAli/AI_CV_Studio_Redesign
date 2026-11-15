@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useEffect, useRef, useState } from 'react';
 import { ArrowDown, ArrowUp, Download, ImagePlus, Plus, Trash2, X } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
@@ -138,6 +139,7 @@ export function ThemePicker({
   onChange: (t: PortfolioTheme) => void;
   onPreview: (t: Theme) => void;
 }) {
+  const tx = useT();
   const options: { id: PortfolioTheme; name: string; hint: string; sketch: Theme }[] = [
     {
       id: 'auto',
@@ -149,7 +151,7 @@ export function ThemePicker({
   ];
   return (
     <fieldset className="flex flex-col gap-3" data-testid="theme-picker">
-      <legend className="mb-1 text-sm font-semibold">Theme</legend>
+      <legend className="mb-1 text-sm font-semibold">{tx('Theme')}</legend>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {options.map((o) => {
           const on = value === o.id;
@@ -183,7 +185,11 @@ export function ThemePicker({
                 onClick={() => onPreview(o.sketch)}
                 className="text-primary self-start text-xs font-semibold underline underline-offset-4"
               >
-                Preview<span className="sr-only"> the {o.name} theme with my CV</span>
+                {tx('Preview')}
+                <span className="sr-only">
+                  {' '}
+                  {tx('the {name} theme with my CV', { name: o.name })}
+                </span>
               </button>
             </div>
           );
@@ -250,6 +256,7 @@ export function SectionsEditor({
   value: PortfolioSection[];
   onChange: (v: PortfolioSection[]) => void;
 }) {
+  const tx = useT();
   const set = (i: number, patch: Partial<PortfolioSection>) =>
     onChange(value.map((s, j) => (j === i ? { ...s, ...patch } : s)));
   return (
@@ -260,10 +267,12 @@ export function SectionsEditor({
     >
       <div>
         <h2 id="sections-h" className="font-semibold">
-          Your own sections
+          {tx('Your own sections')}
         </h2>
         <p className="text-ink-muted text-sm">
-          Only on your page, not on the CV. For example “What I’m looking for” or “How I work”.
+          {tx(
+            'Only on your page, not on the CV. For example “What I’m looking for” or “How I work”.',
+          )}
         </p>
       </div>
       {value.map((s, i) => (
@@ -275,7 +284,7 @@ export function SectionsEditor({
           <div className="flex items-start gap-2">
             <TextField
               containerClassName="flex-1"
-              label="Title"
+              label={tx('Title')}
               value={s.title}
               maxLength={60}
               onChange={(e) => set(i, { title: e.target.value })}
@@ -289,23 +298,23 @@ export function SectionsEditor({
             />
           </div>
           <TextArea
-            label="Text"
+            label={tx('Text')}
             value={s.text}
             maxLength={2000}
             rows={4}
-            hint="Leave an empty line between paragraphs."
+            hint={tx('Leave an empty line between paragraphs.')}
             onChange={(e) => set(i, { text: e.target.value })}
           />
           <div className="grid gap-3 sm:grid-cols-2">
             <TextField
-              label="Link (optional)"
+              label={tx('Link (optional)')}
               value={s.link}
               maxLength={300}
-              placeholder="example.com/more"
+              placeholder={tx('example.com/more')}
               onChange={(e) => set(i, { link: e.target.value })}
             />
             <TextField
-              label="Link text (optional)"
+              label={tx('Link text (optional)')}
               value={s.linkLabel}
               maxLength={60}
               onChange={(e) => set(i, { linkLabel: e.target.value })}
@@ -323,7 +332,7 @@ export function SectionsEditor({
             onChange([...value, { id: newId(), title: '', text: '', link: '', linkLabel: '' }])
           }
         >
-          Add a section
+          {tx('Add a section')}
         </Button>
       )}
     </section>
@@ -391,6 +400,7 @@ export function ProjectsEditor({
   value: PortfolioProject[];
   onChange: (v: PortfolioProject[]) => void;
 }) {
+  const tx = useT();
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   // Uploads finish one by one; each must add to the list as it is by then.
@@ -428,15 +438,17 @@ export function ProjectsEditor({
     >
       <div>
         <h2 id="projects-h" className="font-semibold">
-          Projects
+          {tx('Projects')}
         </h2>
         <p className="text-ink-muted text-sm">
-          Show your work with pictures: a site you built, a room you renovated, a lesson plan, a
-          design. Up to {MAX_PROJECTS} projects with {MAX_IMAGES_PER_PROJECT} pictures each.
+          {tx(
+            'Show your work with pictures: a site you built, a room you renovated, a lesson plan, a design. Up to {MAX_PROJECTS} projects with {MAX_IMAGES_PER_PROJECT} pictures each.',
+            { MAX_PROJECTS: MAX_PROJECTS, MAX_IMAGES_PER_PROJECT: MAX_IMAGES_PER_PROJECT },
+          )}
         </p>
       </div>
       {error && (
-        <Banner tone="error" title="Picture not added" onDismiss={() => setError(null)}>
+        <Banner tone="error" title={tx('Picture not added')} onDismiss={() => setError(null)}>
           {error}
         </Banner>
       )}
@@ -449,7 +461,7 @@ export function ProjectsEditor({
           <div className="flex items-start gap-2">
             <TextField
               containerClassName="flex-1"
-              label="Project name"
+              label={tx('Project name')}
               value={p.title}
               maxLength={80}
               onChange={(e) => set(p.id, () => ({ title: e.target.value }))}
@@ -463,17 +475,17 @@ export function ProjectsEditor({
             />
           </div>
           <TextArea
-            label="What it is and what you did"
+            label={tx('What it is and what you did')}
             value={p.text}
             maxLength={800}
             rows={3}
             onChange={(e) => set(p.id, () => ({ text: e.target.value }))}
           />
           <TextField
-            label="Link (optional)"
+            label={tx('Link (optional)')}
             value={p.link}
             maxLength={300}
-            placeholder="example.com/project"
+            placeholder={tx('example.com/project')}
             onChange={(e) => set(p.id, () => ({ link: e.target.value }))}
           />
           {p.images.length > 0 && (
@@ -492,7 +504,7 @@ export function ProjectsEditor({
                   <div className="flex min-w-0 flex-1 flex-col gap-1">
                     <TextField
                       label={`Describe picture ${k + 1}`}
-                      hint="For people who can’t see it."
+                      hint={tx('For people who can’t see it.')}
                       value={im.alt}
                       maxLength={140}
                       onChange={(e) =>
@@ -510,7 +522,7 @@ export function ProjectsEditor({
                       }
                       className="text-ink-muted hover:text-danger inline-flex items-center gap-1 self-start text-sm underline underline-offset-4"
                     >
-                      <X aria-hidden size={14} /> Remove picture {k + 1}
+                      <X aria-hidden size={14} /> {tx('Remove picture {v}', { v: k + 1 })}
                     </button>
                   </div>
                 </li>
@@ -551,7 +563,7 @@ export function ProjectsEditor({
             onChange([...value, { id: newId(), title: '', text: '', link: '', images: [] }])
           }
         >
-          Add a project
+          {tx('Add a project')}
         </Button>
       )}
     </section>
@@ -563,6 +575,7 @@ export function ProjectsEditor({
 
 /** A QR code for the page's address, to print on a business card, a poster or the CV itself. */
 export function QrCard({ url, slug }: { url: string; slug: string }) {
+  const tx = useT();
   const [png, setPng] = useState<string | null>(null);
   const [svg, setSvg] = useState<string | null>(null);
   useEffect(() => {
@@ -601,10 +614,11 @@ export function QrCard({ url, slug }: { url: string; slug: string }) {
         <div className="skeleton size-32 rounded-md" aria-hidden />
       )}
       <div className="flex flex-col gap-2">
-        <p className="font-semibold">QR code for your page</p>
+        <p className="font-semibold">{tx('QR code for your page')}</p>
         <p className="text-ink-muted max-w-[320px] text-sm">
-          Print it on a business card or a poster. You can also add it to your CV in the Design
-          Studio (Extras → QR code).
+          {tx(
+            'Print it on a business card or a poster. You can also add it to your CV in the Design Studio (Extras → QR code).',
+          )}
         </p>
         <div className="flex flex-wrap gap-2">
           <a
@@ -613,7 +627,7 @@ export function QrCard({ url, slug }: { url: string; slug: string }) {
             aria-disabled={!png}
             className="border-line-strong hover:bg-sunken inline-flex min-h-9 items-center gap-1.5 rounded-md border px-3 text-sm font-semibold"
           >
-            <Download aria-hidden size={16} /> PNG
+            <Download aria-hidden size={16} /> {tx('PNG')}
           </a>
           <a
             href={svg ?? undefined}
@@ -621,7 +635,7 @@ export function QrCard({ url, slug }: { url: string; slug: string }) {
             aria-disabled={!svg}
             className="border-line-strong hover:bg-sunken inline-flex min-h-9 items-center gap-1.5 rounded-md border px-3 text-sm font-semibold"
           >
-            <Download aria-hidden size={16} /> SVG (for printing)
+            <Download aria-hidden size={16} /> {tx('SVG (for printing)')}
           </a>
         </div>
       </div>

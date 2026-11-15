@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Check, Crown, RotateCcw, Sparkles, X } from 'lucide-react';
 import { Button, ButtonLink } from '@/components/ui/button';
@@ -104,6 +105,7 @@ export function SuggestionCard<T extends TaskId>({
   onUse?: (data: AiResponse<T>) => void;
   useLabel?: string;
 }) {
+  const tx = useT();
   const { state } = s;
   const { ent } = useEntitlements();
   const salesOpen = Boolean(ent?.features.sales);
@@ -111,7 +113,7 @@ export function SuggestionCard<T extends TaskId>({
   return (
     <section
       aria-live="polite"
-      aria-label="AI suggestion"
+      aria-label={tx('AI suggestion')}
       data-ai-card={state.kind}
       className={cn(
         'mt-2 flex flex-col gap-3 rounded-md border p-3',
@@ -126,7 +128,7 @@ export function SuggestionCard<T extends TaskId>({
       </div>
       {state.kind === 'loading' && (
         <p className="text-ink-muted flex items-center gap-2 text-[15px]">
-          <Spinner size={16} /> Writing a suggestion…
+          <Spinner size={16} /> {tx('Writing a suggestion…')}
         </p>
       )}
       {state.kind === 'error' && <p className="text-ink text-[15px]">{state.message}</p>}
@@ -136,7 +138,7 @@ export function SuggestionCard<T extends TaskId>({
           href={`/signin?next=${encodeURIComponent(currentPath())}`}
           className="self-start"
         >
-          Sign in
+          {tx('Sign in')}
         </ButtonLink>
       )}
       {state.kind === 'error' && state.code === 'PREMIUM_REQUIRED' && salesOpen && (
@@ -146,7 +148,7 @@ export function SuggestionCard<T extends TaskId>({
           className="self-start"
           icon={<Crown aria-hidden size={16} />}
         >
-          See Premium
+          {tx('See Premium')}
         </ButtonLink>
       )}
       {state.kind === 'done' && (
@@ -154,8 +156,9 @@ export function SuggestionCard<T extends TaskId>({
           <div className="text-ink text-[15px] leading-6">{children(state.data)}</div>
           {state.data.needsInput.length > 0 && (
             <p className="text-ink-muted text-sm">
-              Highlighted parts need a real detail from you — we never guess facts. Replace them
-              after you use this.
+              {tx(
+                'Highlighted parts need a real detail from you — we never guess facts. Replace them after you use this.',
+              )}
             </p>
           )}
         </>
@@ -177,7 +180,7 @@ export function SuggestionCard<T extends TaskId>({
             icon={<RotateCcw aria-hidden size={16} />}
             onClick={s.tryAgain}
           >
-            Try again
+            {tx('Try again')}
           </Button>
         )}
         <Button size="sm" variant="ghost" icon={<X aria-hidden size={16} />} onClick={s.dismiss}>
@@ -190,12 +193,13 @@ export function SuggestionCard<T extends TaskId>({
 
 /** Shown under a field whose text still contains `{{?…}}` markers. */
 export function NeedsInputHint({ texts }: { texts: string[] }) {
+  const tx = useT();
   const has = texts.some((t) => /\{\{\?[^{}]+\}\}/.test(t));
   if (!has) return null;
   return (
     <p className="text-ink bg-warning-soft rounded-sm px-2 py-1.5 text-sm" data-needs-input>
-      Replace the parts in <strong>{'{{?…}}'}</strong> with your real details before you send your
-      CV.
+      {tx('Replace the parts in')} <strong>{'{{?…}}'}</strong>{' '}
+      {tx('with your real details before you send your CV.')}
     </p>
   );
 }

@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useCallback, useEffect, useState } from 'react';
 import { Check, Star, Trash2, X } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
@@ -36,6 +37,7 @@ const SAMPLES = [FIXTURES.driver, FIXTURES.teacher, FIXTURES.engineer];
  * with the automated check results; approving puts it in the Community gallery.
  */
 export function AdminDesignReview() {
+  const tx = useT();
   const toast = useToast();
   const [tab, setTab] = useState<Tab>('pending');
   const [items, setItems] = useState<Item[] | null>(null);
@@ -88,11 +90,11 @@ export function AdminDesignReview() {
   return (
     <>
       <AdminHeading
-        title="Design review"
+        title={tx('Design review')}
         intro="Designs people share wait here. Nothing is shown to others until you approve it."
       />
       <Segmented
-        label="Show"
+        label={tx('Show')}
         value={tab}
         onChange={(t) => {
           setItems(null);
@@ -122,7 +124,8 @@ export function AdminDesignReview() {
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <div>
                 <h2 className="text-lg font-semibold">
-                  {d.name} {d.featured && <span className="text-primary text-sm">· Featured</span>}
+                  {d.name}{' '}
+                  {d.featured && <span className="text-primary text-sm">{tx('· Featured')}</span>}
                 </h2>
                 <p className="text-ink-muted text-sm">
                   {d.credit ? `By ${d.credit}` : 'Anonymous'} ·{' '}
@@ -131,7 +134,7 @@ export function AdminDesignReview() {
                 {d.description && <p className="mt-1">{d.description}</p>}
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-3" aria-label="On three sample CVs">
+            <div className="grid grid-cols-3 gap-3" aria-label={tx('On three sample CVs')}>
               {SAMPLES.map((cv) => (
                 <div key={cv.id} className="border-line overflow-hidden rounded-md border">
                   <DocumentPreview
@@ -145,7 +148,7 @@ export function AdminDesignReview() {
               ))}
             </div>
             <div className="text-sm">
-              <p className="font-semibold">Automatic checks</p>
+              <p className="font-semibold">{tx('Automatic checks')}</p>
               {d.checks.notes.length ? (
                 <ul className="text-ink-muted list-disc pl-5">
                   {d.checks.notes.map((n, i) => (
@@ -153,12 +156,12 @@ export function AdminDesignReview() {
                   ))}
                 </ul>
               ) : (
-                <p className="text-ink-muted">Valid design; nothing was adjusted.</p>
+                <p className="text-ink-muted">{tx('Valid design; nothing was adjusted.')}</p>
               )}
             </div>
             {d.status === 'rejected' && d.reason && (
               <p className="text-sm">
-                <span className="font-semibold">Reason given:</span> {d.reason}
+                <span className="font-semibold">{tx('Reason given:')}</span> {d.reason}
               </p>
             )}
             <div className="flex flex-wrap items-end gap-2">
@@ -169,7 +172,7 @@ export function AdminDesignReview() {
                   loading={busy === `${d.id}:approve`}
                   onClick={() => void act(d, 'approve')}
                 >
-                  Approve
+                  {tx('Approve')}
                 </Button>
               )}
               {d.status === 'approved' && (
@@ -186,7 +189,7 @@ export function AdminDesignReview() {
               {d.status === 'pending' && (
                 <>
                   <TextField
-                    label="Reason (for declining)"
+                    label={tx('Reason (for declining)')}
                     className="min-w-60"
                     maxLength={300}
                     value={reasons[d.id] ?? ''}
@@ -200,7 +203,7 @@ export function AdminDesignReview() {
                     loading={busy === `${d.id}:reject`}
                     onClick={() => void act(d, 'reject')}
                   >
-                    Decline
+                    {tx('Decline')}
                   </Button>
                 </>
               )}
@@ -212,7 +215,7 @@ export function AdminDesignReview() {
                   loading={busy === `${d.id}:remove`}
                   onClick={() => void act(d, 'remove')}
                 >
-                  Take down
+                  {tx('Take down')}
                 </Button>
               )}
             </div>

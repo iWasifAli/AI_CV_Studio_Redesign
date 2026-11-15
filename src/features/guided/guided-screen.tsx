@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { AiDocProvider } from '@/features/ai/context';
 import { SummaryAssist } from '@/features/ai/assist';
 import { NeedsInputHint } from '@/features/ai/suggestion';
@@ -30,6 +31,7 @@ function SectionStep({
   editor: ReturnType<typeof useDocumentEditor>;
   section: Section;
 }) {
+  const t = useT();
   const { doc, update } = editor;
   const preset = getPreset(doc.presetId);
   const info = KIND_INFO[section.kind];
@@ -38,8 +40,8 @@ function SectionStep({
     const group = section.items[0];
     return (
       <TagsField
-        label="Your skills"
-        hint="Type a skill and press Enter, or tap the suggestions that fit you."
+        label={t('Your skills')}
+        hint={t('Type a skill and press Enter, or tap the suggestions that fit you.')}
         value={group && 'keywords' in group ? group.keywords : []}
         suggestions={preset.suggestedSkills}
         onChange={(keywords) =>
@@ -88,13 +90,15 @@ function SectionStep({
         onClick={() => update((d) => ops.addItem(d, section.id).doc)}
         className="border-line-strong bg-surface text-primary hover:border-primary hover:bg-primary-soft inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-dashed font-semibold"
       >
-        <Plus aria-hidden size={18} /> Add {section.items.length ? 'another' : 'a'} {info.noun}
+        <Plus aria-hidden size={18} /> {t('Add')} {section.items.length ? 'another' : 'a'}{' '}
+        {info.noun}
       </button>
     </div>
   );
 }
 
 export function GuidedScreen({ initial }: { initial: ResumeDocument }) {
+  const t = useT();
   const editor = useDocumentEditor(initial);
   const { doc, update } = editor;
   const router = useRouter();
@@ -192,7 +196,7 @@ export function GuidedScreen({ initial }: { initial: ResumeDocument }) {
                   />
                   {nameError && (
                     <p role="alert" className="text-danger text-sm font-semibold">
-                      Please add your name so we can put it at the top of your CV.
+                      {t('Please add your name so we can put it at the top of your CV.')}
                     </p>
                   )}
                 </div>
@@ -201,10 +205,12 @@ export function GuidedScreen({ initial }: { initial: ResumeDocument }) {
               {step.kind === 'summary' && (
                 <div className="flex flex-col gap-2">
                   <TextArea
-                    label="Your introduction"
+                    label={t('Your introduction')}
                     rows={5}
                     placeholder={preset.hints.summary}
-                    hint="Say what you do, how long you have done it, and what you are looking for."
+                    hint={t(
+                      'Say what you do, how long you have done it, and what you are looking for.',
+                    )}
                     value={doc.basics.summary}
                     onChange={(e) =>
                       update(
@@ -228,11 +234,11 @@ export function GuidedScreen({ initial }: { initial: ResumeDocument }) {
             </div>
           </main>
           <aside
-            aria-label="Preview"
+            aria-label={t('Preview')}
             className="border-line bg-sunken hidden w-[min(44vw,620px)] shrink-0 border-l p-8 lg:block"
           >
             <div className="sticky top-8">
-              <DocumentPreview doc={doc} title="Preview of your CV" />
+              <DocumentPreview doc={doc} title={t('Preview of your CV')} />
             </div>
           </aside>
         </div>
@@ -245,7 +251,7 @@ export function GuidedScreen({ initial }: { initial: ResumeDocument }) {
               onClick={() => setIndex(Math.max(0, index - 1))}
               disabled={index === 0}
             >
-              Back
+              {t('Back')}
             </Button>
             <Button
               variant="secondary"
@@ -253,7 +259,7 @@ export function GuidedScreen({ initial }: { initial: ResumeDocument }) {
               icon={<Eye aria-hidden size={18} />}
               onClick={() => setPeek(true)}
             >
-              Peek
+              {t('Peek')}
             </Button>
             <Button
               className="ml-auto"
@@ -269,20 +275,20 @@ export function GuidedScreen({ initial }: { initial: ResumeDocument }) {
           <div
             role="dialog"
             aria-modal="true"
-            aria-label="Preview of your CV"
+            aria-label={t('Preview of your CV')}
             className="bg-sunken fixed inset-0 z-40 flex flex-col lg:hidden"
           >
             <div className="border-line bg-surface flex h-14 items-center justify-between border-b px-4">
-              <p className="font-semibold">Your CV so far</p>
+              <p className="font-semibold">{t('Your CV so far')}</p>
               <IconButton
                 autoFocus
-                label="Close preview"
+                label={t('Close preview')}
                 icon={<X aria-hidden size={20} />}
                 onClick={() => setPeek(false)}
               />
             </div>
             <div className="flex-1 overflow-y-auto p-4">
-              <DocumentPreview doc={doc} title="Preview of your CV" />
+              <DocumentPreview doc={doc} title={t('Preview of your CV')} />
             </div>
           </div>
         )}

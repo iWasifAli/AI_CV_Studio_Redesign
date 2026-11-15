@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { CircleAlert, CircleCheck, Info, Lock, ScanSearch } from 'lucide-react';
@@ -60,6 +61,7 @@ function AtsPanel({
   onShow: (ref: string) => void;
   onDesign: () => void;
 }) {
+  const tx = useT();
   const account = useAccount();
   const { ent, refresh } = useEntitlements();
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -118,11 +120,12 @@ function AtsPanel({
     >
       <div>
         <h2 id="ats-h" className="flex items-center gap-2 font-semibold">
-          <ScanSearch aria-hidden size={18} className="text-primary" /> ATS check
+          <ScanSearch aria-hidden size={18} className="text-primary" /> {tx('ATS check')}
         </h2>
         <p className="text-ink-muted text-sm">
-          Many employers screen CVs with software first. We make your PDF, read it back the way that
-          software does, and tell you what it sees.
+          {tx(
+            'Many employers screen CVs with software first. We make your PDF, read it back the way that software does, and tell you what it sees.',
+          )}
         </p>
       </div>
 
@@ -132,16 +135,16 @@ function AtsPanel({
             href={`/signin?next=/cv/${doc.id}?tab=check`}
             className="text-primary font-semibold"
           >
-            Sign in
+            {tx('Sign in')}
           </Link>{' '}
-          to run the ATS check.
+          {tx('to run the ATS check.')}
         </p>
       ) : (
         <>
           {jobs.length > 0 && (
             <label className="flex flex-col gap-1.5 text-sm font-semibold">
               <span className="flex items-center gap-1.5">
-                Check keywords for a job {!premium && <Lock aria-hidden size={14} />}
+                {tx('Check keywords for a job')} {!premium && <Lock aria-hidden size={14} />}
               </span>
               <select
                 className="border-line-strong bg-surface min-h-11 rounded-md border px-3 text-[15px] font-normal disabled:opacity-60"
@@ -149,7 +152,7 @@ function AtsPanel({
                 disabled={!premium}
                 onChange={(e) => setJobId(e.target.value)}
               >
-                <option value="">No job — readability only</option>
+                <option value="">{tx('No job — readability only')}</option>
                 {jobs.map((j) => (
                   <option key={j.id} value={j.id}>
                     {j.title}
@@ -159,9 +162,9 @@ function AtsPanel({
               </select>
               {!premium && (
                 <span className="text-ink-muted font-normal">
-                  Job keywords are part of{' '}
+                  {tx('Job keywords are part of{v}', { v: ' ' })}
                   <Link href="/premium" className="text-primary font-semibold">
-                    Premium
+                    {tx('Premium')}
                   </Link>
                   .
                 </span>
@@ -180,7 +183,7 @@ function AtsPanel({
             </Button>
             {ent && Number.isFinite(left) && (
               <span className="text-ink-muted text-sm" data-testid="ats-left">
-                {left} of {ent.limits['ats.check']} left this month
+                {tx('{left} of {v} left this month', { left: left, v: ent.limits['ats.check'] })}
               </span>
             )}
           </div>
@@ -194,7 +197,7 @@ function AtsPanel({
           action={
             problem.premium ? (
               <ButtonLink href="/premium" size="sm">
-                See Premium
+                {tx('See Premium')}
               </ButtonLink>
             ) : undefined
           }
@@ -255,13 +258,15 @@ function AtsPanel({
               className="border-line flex flex-col gap-3 border-t pt-4"
               data-testid="ats-keywords"
             >
-              <h3 className="font-semibold">Keywords for {report.keywords.jobTitle}</h3>
+              <h3 className="font-semibold">
+                {tx('Keywords for {jobTitle}', { jobTitle: report.keywords.jobTitle })}
+              </h3>
               {report.keywords.present.length > 0 && (
                 <div>
                   <p className="text-ink-muted mb-1.5 text-sm">
-                    In your CV ({report.keywords.present.length})
+                    {tx('In your CV ({length})', { length: report.keywords.present.length })}
                   </p>
-                  <ul className="flex flex-wrap gap-1.5" aria-label="Keywords in your CV">
+                  <ul className="flex flex-wrap gap-1.5" aria-label={tx('Keywords in your CV')}>
                     {report.keywords.present.map((t) => (
                       <li
                         key={t}
@@ -276,10 +281,11 @@ function AtsPanel({
               {report.keywords.missing.length > 0 && (
                 <div>
                   <p className="text-ink-muted mb-1.5 text-sm">
-                    Not in your CV ({report.keywords.missing.length}). Add a word only where it’s
-                    true for you.
+                    {tx('Not in your CV ({length}). Add a word only where it’s true for you.', {
+                      length: report.keywords.missing.length,
+                    })}
                   </p>
-                  <ul className="flex flex-col gap-2" aria-label="Keywords not in your CV">
+                  <ul className="flex flex-col gap-2" aria-label={tx('Keywords not in your CV')}>
                     {report.keywords.missing.map((m) => (
                       <li key={m.term} className="text-sm">
                         <span className="bg-sunken rounded-full px-2.5 py-1 font-semibold">
@@ -287,13 +293,16 @@ function AtsPanel({
                         </span>
                         {m.line && (
                           <span className="text-ink-muted mt-1 block">
-                            You may already show this: “{m.line.text}”{' '}
+                            {tx('You may already show this: “{text}”{v}', {
+                              text: m.line.text,
+                              v: ' ',
+                            })}
                             <button
                               type="button"
                               onClick={() => onShow(m.line!.ref)}
                               className="text-primary font-semibold underline underline-offset-4"
                             >
-                              Show me
+                              {tx('Show me')}
                             </button>
                           </span>
                         )}
@@ -307,7 +316,7 @@ function AtsPanel({
 
           <details className="text-sm">
             <summary className="text-primary cursor-pointer font-semibold">
-              What the software reads first
+              {tx('What the software reads first')}
             </summary>
             <pre className="bg-sunken mt-2 overflow-x-auto rounded-md p-3 text-xs whitespace-pre-wrap">
               {report.sample.join('\n')}

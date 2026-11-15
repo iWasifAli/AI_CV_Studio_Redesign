@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
@@ -48,6 +49,7 @@ const when = (iso: string) =>
  * shows (with the lines that show them), what's partly there or missing, and what to learn first.
  */
 export function SkillPlans() {
+  const tx = useT();
   const account = useAccount();
   const { ent, refresh } = useEntitlements();
   const params = useSearchParams();
@@ -100,16 +102,19 @@ export function SkillPlans() {
   if (account.status === 'signedOut')
     return (
       <div className="border-line bg-surface flex flex-col items-start gap-3 rounded-xl border p-6">
-        <p className="text-lg font-semibold">Sign in to plan your next skills</p>
+        <p className="text-lg font-semibold">{tx('Sign in to plan your next skills')}</p>
         <p className="text-ink-muted">
-          See which skills your CV already shows for the role you want, and what to learn first.
+          {tx(
+            'See which skills your CV already shows for the role you want, and what to learn first.',
+          )}
         </p>
-        <ButtonLink href="/signin?next=/skills">Sign in</ButtonLink>
+        <ButtonLink href="/signin?next=/skills">{tx('Sign in')}</ButtonLink>
       </div>
     );
   if (error) return <Banner tone="error" title={error} />;
   if (!data) return <Skeleton className="h-40 w-full rounded-xl" />;
-  if (!data.enabled) return <Banner tone="info" title="Skill plans are switched off right now." />;
+  if (!data.enabled)
+    return <Banner tone="info" title={tx('Skill plans are switched off right now.')} />;
 
   const aiLocked = ent ? ent.limits['ai.action'] === 0 : false;
   const full = data.plans.length >= data.max;
@@ -169,19 +174,21 @@ export function SkillPlans() {
         className="border-line bg-surface flex flex-col gap-4 rounded-xl border p-5"
       >
         <h2 id="new-plan-h" className="text-lg font-semibold">
-          Make a learning plan
+          {tx('Make a learning plan')}
         </h2>
         {!source ? (
           <p className="text-ink-muted">
             <Link href="/makeover" className="text-primary underline">
-              Upload your CV
+              {tx('Upload your CV')}
             </Link>{' '}
-            first, so the plan can see what you already have.
+            {tx('first, so the plan can see what you already have.')}
           </p>
         ) : (
           <>
             <fieldset className="flex flex-col gap-3">
-              <legend className="mb-2 text-sm font-semibold">What are you aiming for?</legend>
+              <legend className="mb-2 text-sm font-semibold">
+                {tx('What are you aiming for?')}
+              </legend>
               {jobs.length > 0 && (
                 <div className="flex flex-wrap items-center gap-3">
                   <label className="flex items-center gap-3">
@@ -192,10 +199,10 @@ export function SkillPlans() {
                       checked={target.kind === 'job'}
                       onChange={() => setTarget({ ...target, kind: 'job' })}
                     />
-                    <span>One of my jobs</span>
+                    <span>{tx('One of my jobs')}</span>
                   </label>
                   <select
-                    aria-label="Job"
+                    aria-label={tx('Job')}
                     className="border-line-strong bg-surface h-11 min-w-0 flex-1 rounded-sm border px-2"
                     value={target.jobId}
                     disabled={target.kind !== 'job'}
@@ -218,12 +225,12 @@ export function SkillPlans() {
                   checked={target.kind === 'role'}
                   onChange={() => setTarget({ ...target, kind: 'role' })}
                 />
-                <span>A role I’d like</span>
+                <span>{tx('A role I’d like')}</span>
               </label>
               {target.kind === 'role' && (
                 <TextField
-                  label="The role"
-                  hint="For example “Transport planner” or “Junior data analyst”."
+                  label={tx('The role')}
+                  hint={tx('For example “Transport planner” or “Junior data analyst”.')}
                   maxLength={160}
                   value={target.role}
                   onChange={(e) => setTarget({ ...target, role: e.target.value })}
@@ -239,16 +246,19 @@ export function SkillPlans() {
                 disabled={!ready || busy || full}
                 onClick={make}
               >
-                Make my plan
+                {tx('Make my plan')}
               </Button>
               <p className="text-ink-muted text-sm">
-                Reads your CV “{source.title || source.basics.name || 'Untitled'}”.
+                {tx('Reads your CV “')}
+                {source.title || source.basics.name || 'Untitled'}”.
                 {aiLocked ? ' Part of Premium.' : ' Uses one AI action.'}
               </p>
             </div>
             {full && (
               <p className="text-ink-muted text-sm">
-                You can keep up to {data.max} plans. Delete one to make another.
+                {tx('You can keep up to {max} plans. Delete one to make another.', {
+                  max: data.max,
+                })}
               </p>
             )}
           </>
@@ -261,7 +271,7 @@ export function SkillPlans() {
             action={
               problem.premium && ent?.features.sales ? (
                 <ButtonLink href="/premium?next=/skills" size="sm">
-                  See Premium
+                  {tx('See Premium')}
                 </ButtonLink>
               ) : undefined
             }
@@ -270,7 +280,7 @@ export function SkillPlans() {
       </section>
 
       {data.plans.length > 1 && (
-        <nav aria-label="Your plans" className="flex flex-wrap gap-2">
+        <nav aria-label={tx('Your plans')} className="flex flex-wrap gap-2">
           {data.plans.map((p) => {
             const g = progressOf(p);
             return (
@@ -296,10 +306,11 @@ export function SkillPlans() {
       ) : (
         <div className="border-line bg-surface flex flex-col items-start gap-3 rounded-xl border p-6">
           <BookOpen aria-hidden size={26} className="text-primary" />
-          <p className="text-lg font-semibold">No plans yet</p>
+          <p className="text-lg font-semibold">{tx('No plans yet')}</p>
           <p className="text-ink-muted max-w-xl">
-            Pick a job you track or type a role. You’ll see the skills your CV already shows — with
-            the lines that show them — what’s missing, and the few things to learn first.
+            {tx(
+              'Pick a job you track or type a role. You’ll see the skills your CV already shows — with the lines that show them — what’s missing, and the few things to learn first.',
+            )}
           </p>
         </div>
       )}
@@ -318,6 +329,7 @@ function SkillGroup({
   documentId: string;
   tone: 'success' | 'warning' | 'neutral';
 }) {
+  const tx = useT();
   if (!skills.length) return null;
   return (
     <div className="flex flex-col gap-2">
@@ -329,7 +341,9 @@ function SkillGroup({
           <li key={k.name} className="text-sm">
             <span className="flex flex-wrap items-center gap-1.5">
               <Badge tone={tone}>{k.name}</Badge>
-              {k.importance === 'core' && <span className="text-ink-muted text-xs">key skill</span>}
+              {k.importance === 'core' && (
+                <span className="text-ink-muted text-xs">{tx('key skill')}</span>
+              )}
             </span>
             {k.note && <p className="text-ink-muted mt-1">{k.note}</p>}
             {k.evidence.map((e) => (
@@ -340,7 +354,7 @@ function SkillGroup({
                     href={`/cv/${documentId}?focus=${encodeURIComponent(e.ref)}`}
                     className="text-primary text-xs font-semibold underline"
                   >
-                    Show me
+                    {tx('Show me')}
                   </Link>
                 )}
               </p>
@@ -361,6 +375,7 @@ function PlanView({
   onChange: (p: SkillPlan) => void;
   onDelete: () => void;
 }) {
+  const tx = useT();
   const [saving, setSaving] = useState<number | null>(null);
   const g = progressOf(plan);
   const set = async (i: number, status: StepStatus) => {
@@ -392,7 +407,9 @@ function PlanView({
           <h2 id="plan-h" className="text-xl font-semibold">
             {plan.role}
           </h2>
-          <p className="text-ink-muted text-sm">Made {when(plan.createdAt)}</p>
+          <p className="text-ink-muted text-sm">
+            {tx('Made {when}', { when: when(plan.createdAt) })}
+          </p>
         </div>
         <button
           type="button"
@@ -407,34 +424,34 @@ function PlanView({
 
       <div className="grid gap-6 md:grid-cols-3">
         <SkillGroup
-          title="You already show"
+          title={tx('You already show')}
           skills={by('have')}
           documentId={plan.documentId}
           tone="success"
         />
         <SkillGroup
-          title="Partly there"
+          title={tx('Partly there')}
           skills={by('partly')}
           documentId={plan.documentId}
           tone="warning"
         />
-        <SkillGroup title="To learn" skills={by('missing')} documentId="" tone="neutral" />
+        <SkillGroup title={tx('To learn')} skills={by('missing')} documentId="" tone="neutral" />
       </div>
 
       {plan.plan.length > 0 && (
         <section aria-labelledby="learn-h" className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 id="learn-h" className="text-lg font-semibold">
-              Learn first
+              {tx('Learn first')}
             </h3>
             <span className="text-ink-muted text-sm" data-testid="plan-progress">
-              {g.done} of {g.total} done
+              {tx('{done} of {total} done', { done: g.done, total: g.total })}
             </span>
           </div>
           <div
             className="bg-sunken h-1.5 overflow-hidden rounded-full"
             role="progressbar"
-            aria-label="Plan progress"
+            aria-label={tx('Plan progress')}
             aria-valuemin={0}
             aria-valuemax={g.total}
             aria-valuenow={g.done}
@@ -463,7 +480,7 @@ function PlanView({
                     )}
                     {i + 1}. {s.skill}
                     <span className="text-ink-muted text-sm font-normal">
-                      · about {s.weeks} {s.weeks === 1 ? 'week' : 'weeks'}
+                      {tx('· about {weeks}', { weeks: s.weeks })} {s.weeks === 1 ? 'week' : 'weeks'}
                     </span>
                   </p>
                   <select
@@ -483,13 +500,13 @@ function PlanView({
                 {s.why && <p className="text-sm">{s.why}</p>}
                 {s.how && (
                   <p className="text-sm">
-                    <span className="font-semibold">How: </span>
+                    <span className="font-semibold">{tx('How:')} </span>
                     {s.how}
                   </p>
                 )}
                 {s.proof && (
                   <p className="text-ink-muted text-sm">
-                    <span className="text-ink font-semibold">Show it on your CV: </span>
+                    <span className="text-ink font-semibold">{tx('Show it on your CV:')} </span>
                     {s.proof}
                   </p>
                 )}
@@ -502,7 +519,7 @@ function PlanView({
                         variant="secondary"
                         icon={<PenLine aria-hidden size={16} />}
                       >
-                        Add it to my CV
+                        {tx('Add it to my CV')}
                       </ButtonLink>
                     )}
                     <ButtonLink
@@ -511,7 +528,7 @@ function PlanView({
                       variant="secondary"
                       icon={<BookOpen aria-hidden size={16} />}
                     >
-                      Write a story about it
+                      {tx('Write a story about it')}
                     </ButtonLink>
                   </div>
                 )}
@@ -519,8 +536,9 @@ function PlanView({
             ))}
           </ol>
           <p className="text-ink-muted text-xs">
-            Week estimates are rough, for someone learning alongside work. Add a skill to your CV
-            only once it’s true.
+            {tx(
+              'Week estimates are rough, for someone learning alongside work. Add a skill to your CV only once it’s true.',
+            )}
           </p>
         </section>
       )}

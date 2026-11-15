@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useState } from 'react';
 import { Check, Sparkles, X } from 'lucide-react';
 import { Button, ButtonLink } from '@/components/ui/button';
@@ -94,6 +95,7 @@ function Suggestions({
   makeoverId: string;
   onAccept: (s: Suggestion[]) => void;
 }) {
+  const t = useT();
   const [state, setState] = useState<
     | { s: 'idle' }
     | { s: 'busy' }
@@ -143,14 +145,14 @@ function Suggestions({
             : 'We’ll suggest stronger openings for weak points. Nothing is added that isn’t already in your CV.'}
         </p>
         <Button size="sm" onClick={run} icon={<Sparkles aria-hidden size={16} />}>
-          Show suggestions
+          {t('Show suggestions')}
         </Button>
       </Card>
     );
   if (state.s === 'busy')
     return (
       <Card className="flex items-center gap-3 p-4" role="status">
-        <Spinner /> Checking your lines…
+        <Spinner /> {t('Checking your lines…')}
       </Card>
     );
   if (state.s === 'denied')
@@ -159,12 +161,12 @@ function Suggestions({
         <p>{state.d.message}</p>
         {state.d.reason === 'sign_in' && (
           <ButtonLink size="sm" href="/signin?next=/makeover%3Fresume%3D1">
-            Sign in
+            {t('Sign in')}
           </ButtonLink>
         )}
         {(state.d.reason === 'premium' || state.d.reason === 'limit') && (
           <ButtonLink size="sm" href="/premium">
-            See Premium
+            {t('See Premium')}
           </ButtonLink>
         )}
       </Card>
@@ -182,7 +184,7 @@ function Suggestions({
   if (!state.items.length)
     return (
       <Card className="p-4" data-testid="polish-none">
-        No changes needed — these lines already read well.
+        {t('No changes needed — these lines already read well.')}
       </Card>
     );
   return (
@@ -201,7 +203,7 @@ function Suggestions({
               )
             }
           >
-            Accept all
+            {t('Accept all')}
           </Button>
         )}
       </div>
@@ -218,21 +220,21 @@ function Suggestions({
                   <span className="text-ink-muted inline-flex items-center gap-1 text-sm">
                     {d === 'yes' ? (
                       <>
-                        <Check aria-hidden size={15} /> Accepted
+                        <Check aria-hidden size={15} /> {t('Accepted')}
                       </>
                     ) : (
                       <>
-                        <X aria-hidden size={15} /> Skipped
+                        <X aria-hidden size={15} /> {t('Skipped')}
                       </>
                     )}
                   </span>
                 ) : (
                   <>
                     <Button size="sm" variant="secondary" onClick={() => decide([it.id], 'yes')}>
-                      Accept
+                      {t('Accept')}
                     </Button>
                     <Button size="sm" variant="ghost" onClick={() => decide([it.id], 'no')}>
-                      Skip
+                      {t('Skip')}
                     </Button>
                   </>
                 )}
@@ -264,6 +266,7 @@ function GapsList({
   doc: ResumeDocument;
   onBasics: (patch: Partial<ResumeDocument['basics']>) => void;
 }) {
+  const t = useT();
   const findings = gapFindings(doc);
   const ids = new Set(findings.map((f) => f.id));
   const fields = BASIC_FIELDS.filter((f) => f.ids.some((id) => ids.has(id)));
@@ -294,7 +297,9 @@ function GapsList({
         </ul>
       )}
       {others.length > 0 && (
-        <p className="text-ink-subtle text-sm">You can fill these in the editor after saving.</p>
+        <p className="text-ink-subtle text-sm">
+          {t('You can fill these in the editor after saving.')}
+        </p>
       )}
     </Card>
   );

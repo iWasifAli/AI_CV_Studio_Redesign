@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useEffect, useRef, useState } from 'react';
 import { Play, Square } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
@@ -14,6 +15,7 @@ type Sample = { index: number; name: string; kind: string };
  * samples and a prompt-injection sample, run live on the server in batches of 4.
  */
 export function DesignerEval() {
+  const t = useT();
   const [samples, setSamples] = useState<Sample[] | null>(null);
   const [results, setResults] = useState<DesignEvalResult[]>([]);
   const [running, setRunning] = useState(false);
@@ -61,12 +63,12 @@ export function DesignerEval() {
   return (
     <section className="mt-12" aria-labelledby="designer-eval-h" data-testid="designer-eval">
       <h2 id="designer-eval-h" className="text-xl font-semibold">
-        AI Designer evaluation
+        {t('AI Designer evaluation')}
       </h2>
       <p className="text-ink-muted mt-1 mb-4 max-w-3xl">
-        60 written design descriptions (each must give at least 2 valid designs; the automatic check
-        compares the first design with what was asked — review the misses by eye), refine requests
-        (only the named settings may change) and a prompt-injection test.
+        {t(
+          '60 written design descriptions (each must give at least 2 valid designs; the automatic check compares the first design with what was asked — review the misses by eye), refine requests (only the named settings may change) and a prompt-injection test.',
+        )}
       </p>
       {error && <Banner tone="error" title={error} className="mb-4" />}
       <div className="mb-4">
@@ -76,19 +78,29 @@ export function DesignerEval() {
             icon={<Square aria-hidden size={16} />}
             onClick={() => (stop.current = true)}
           >
-            Stop
+            {t('Stop')}
           </Button>
         ) : (
           <Button icon={<Play aria-hidden size={16} />} onClick={run} disabled={!samples}>
-            Run Designer evaluation ({samples?.length ?? '…'} samples)
+            {t('Run Designer evaluation ({v} samples)', { v: samples?.length ?? '…' })}
           </Button>
         )}
       </div>
       {results.length > 0 && (
         <p className="mb-4 text-sm" data-testid="designer-eval-summary" aria-live="polite">
-          Descriptions: {valid}/{compose.length} gave 2+ valid designs · {fullMatch}/
-          {compose.length} first designs matched every check · median {(median / 1000).toFixed(1)} s
-          · refine {refineOk}/{refineAll} · injection{' '}
+          {t(
+            'Descriptions: {valid}/{length} gave 2+ valid designs · {fullMatch}/ {length2} first designs matched every check · median {v} s · refine {refineOk}/{refineAll} · injection{v2}',
+            {
+              valid: valid,
+              length: compose.length,
+              fullMatch: fullMatch,
+              length2: compose.length,
+              v: (median / 1000).toFixed(1),
+              refineOk: refineOk,
+              refineAll: refineAll,
+              v2: ' ',
+            },
+          )}
           {inject ? (inject.ok ? 'passed' : 'FAILED') : '…'}
         </p>
       )}
@@ -103,19 +115,19 @@ export function DesignerEval() {
             </p>
             {r.error && <p className="text-danger">{r.error}</p>}
             {r.missed && r.missed.length > 0 && (
-              <p className="text-ink-muted">Missed: {r.missed.join(', ')}</p>
+              <p className="text-ink-muted">{t('Missed: {v}', { v: r.missed.join(', ') })}</p>
             )}
             {r.unmet && r.unmet.length > 0 && (
-              <p className="text-ink-muted">Unmet: {r.unmet.join(' | ')}</p>
+              <p className="text-ink-muted">{t('Unmet: {v}', { v: r.unmet.join(' | ') })}</p>
             )}
             {r.changed && (
               <p className="text-ink-muted">
-                Changed: {r.changed.join(', ') || 'nothing'} {r.note ? `— ${r.note}` : ''}
+                {t('Changed:')} {r.changed.join(', ') || 'nothing'} {r.note ? `— ${r.note}` : ''}
               </p>
             )}
             {r.first && (
               <details>
-                <summary className="text-primary cursor-pointer">First design</summary>
+                <summary className="text-primary cursor-pointer">{t('First design')}</summary>
                 <pre className="bg-sunken mt-1 overflow-x-auto rounded p-2 text-xs whitespace-pre-wrap">
                   {JSON.stringify(r.first, null, 1)}
                 </pre>

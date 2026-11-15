@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useEffect, useMemo, useState } from 'react';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,7 @@ import { getRepository } from '@/modules/storage/repository';
  * after changing a fact the profile still has as before.
  */
 export function ProfileSyncBanner({ doc }: { doc: ResumeDocument }) {
+  const tx = useT();
   const toast = useToast();
   // The CV as it was when the editor opened (or after the last answer).
   const [baseline, setBaseline] = useState(doc);
@@ -51,10 +53,10 @@ export function ProfileSyncBanner({ doc }: { doc: ResumeDocument }) {
               done();
             }}
           >
-            Update profile
+            {tx('Update profile')}
           </Button>
           <Button size="sm" variant="ghost" onClick={done}>
-            Only this CV
+            {tx('Only this CV')}
           </Button>
         </div>
       }
@@ -62,7 +64,8 @@ export function ProfileSyncBanner({ doc }: { doc: ResumeDocument }) {
       {changes.every((c) => c.kind === 'item')
         ? `You added ${n === 1 ? 'an entry' : `${n} entries`} that your career profile doesn’t have`
         : `You changed ${n === 1 ? 'something' : `${n} things`} that your career profile also has`}
-      {changes[0] ? ` (${describeChange(changes[0])})` : ''}. Every new CV starts from the profile.
+      {changes[0] ? ` (${describeChange(changes[0])})` : ''}
+      {tx('. Every new CV starts from the profile.')}
     </Banner>
   );
 }

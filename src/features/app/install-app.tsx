@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useEffect, useState } from 'react';
 import { Download, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,7 @@ const isIos = () =>
  * iPhone and iPad (Share → Add to Home Screen), and nothing once it's installed.
  */
 export function InstallApp() {
+  const t = useT();
   const [state, setState] = useState<'unknown' | 'prompt' | 'ios' | 'installed' | 'other'>(
     'unknown',
   );
@@ -54,16 +56,17 @@ export function InstallApp() {
       data-testid="install-app"
     >
       <h2 id="install-h" className="flex items-center gap-2 font-semibold">
-        <Smartphone aria-hidden size={18} className="text-primary" /> The app on your phone or
-        computer
+        <Smartphone aria-hidden size={18} className="text-primary" />{' '}
+        {t('The app on your phone or computer')}
       </h2>
       {state === 'installed' ? (
-        <p className="text-ink-muted text-sm">You’re using the installed app.</p>
+        <p className="text-ink-muted text-sm">{t('You’re using the installed app.')}</p>
       ) : state === 'prompt' ? (
         <>
           <p className="text-ink-muted text-sm">
-            Open AI CV Studio from your home screen like any app. CVs you’ve opened work without a
-            connection too.
+            {t(
+              'Open AI CV Studio from your home screen like any app. CVs you’ve opened work without a connection too.',
+            )}
           </p>
           <Button
             size="sm"
@@ -78,18 +81,19 @@ export function InstallApp() {
               setState(c.outcome === 'accepted' ? 'installed' : 'other');
             }}
           >
-            Install the app
+            {t('Install the app')}
           </Button>
         </>
       ) : state === 'ios' ? (
         <p className="text-ink-muted text-sm">
-          In Safari, tap <strong>Share</strong>, then <strong>Add to Home Screen</strong>.
+          {t('In Safari, tap')} <strong>{t('Share')}</strong>
+          {t(', then')} <strong>{t('Add to Home Screen')}</strong>.
         </p>
       ) : (
         <p className="text-ink-muted text-sm">
-          In Chrome or Edge, choose <strong>Install</strong> in the address bar or the browser menu.
-          On iPhone and iPad, use Safari: <strong>Share</strong> →{' '}
-          <strong>Add to Home Screen</strong>.
+          {t('In Chrome or Edge, choose')} <strong>{t('Install')}</strong>{' '}
+          {t('in the address bar or the browser menu. On iPhone and iPad, use Safari:')}{' '}
+          <strong>{t('Share')}</strong> → <strong>{t('Add to Home Screen')}</strong>.
         </p>
       )}
     </section>

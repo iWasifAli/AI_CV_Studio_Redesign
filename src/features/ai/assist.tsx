@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useState } from 'react';
 import { PenLine, Sparkles, Wand2, Scissors, Briefcase, ListPlus, PowerOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -119,6 +120,7 @@ export function BulletsAssist({
   bullets: string[];
   onApply: (bullets: string[]) => void;
 }) {
+  const t = useT();
   const ai = useAi();
   const improve = useSuggestion('write.improveBullets');
   const notes = useSuggestion('write.fromNotes');
@@ -180,14 +182,16 @@ export function BulletsAssist({
       {notesOpen && notes.state.kind === 'idle' && (
         <div className="border-line bg-surface mt-2 flex flex-col gap-2 rounded-md border p-3">
           <label htmlFor={`notes-${role}`} className="text-sm font-semibold">
-            Tell us what you did, in your own words
+            {t('Tell us what you did, in your own words')}
           </label>
           <textarea
             id={`notes-${role}`}
             rows={3}
             value={notesText}
             onChange={(e) => setNotesText(e.target.value)}
-            placeholder="e.g. drove a van, about 100 drops a day, loaded the van every morning, sometimes trained new drivers"
+            placeholder={t(
+              'e.g. drove a van, about 100 drops a day, loaded the van every morning, sometimes trained new drivers',
+            )}
             className="border-line-strong bg-surface focus-visible:border-primary focus-visible:ring-primary/25 w-full rounded-sm border px-3 py-2 text-base focus-visible:ring-3 focus-visible:outline-none"
           />
           <div className="flex gap-2">
@@ -199,10 +203,10 @@ export function BulletsAssist({
                 void notes.run({ ...base, notes: notesText.slice(0, 2000) }, 'From your notes')
               }
             >
-              Write points
+              {t('Write points')}
             </Button>
             <Button size="sm" variant="ghost" onClick={() => setNotesOpen(false)}>
-              Cancel
+              {t('Cancel')}
             </Button>
           </div>
         </div>
@@ -242,6 +246,7 @@ export function SkillsAssist({
   existing: string[];
   onAdd: (skills: string[]) => void;
 }) {
+  const t = useT();
   const ai = useAi();
   const doc = useAiDoc();
   const s = useSuggestion('suggest.skills');
@@ -258,7 +263,7 @@ export function SkillsAssist({
           void s.run(skillsInput(doc, existing), 'Pick the ones you have');
         }}
       >
-        <Sparkles aria-hidden size={16} /> Suggest skills for me
+        <Sparkles aria-hidden size={16} /> {t('Suggest skills for me')}
       </button>
       <SuggestionCard
         s={s}
@@ -275,7 +280,7 @@ export function SkillsAssist({
         }}
       >
         {(d) => (
-          <ul className="flex flex-wrap gap-2" aria-label="Suggested skills">
+          <ul className="flex flex-wrap gap-2" aria-label={t('Suggested skills')}>
             {d.result.skills
               .filter((k) => !have.has(k.toLowerCase()))
               .map((k) => {

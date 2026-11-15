@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { Copy, Link2 } from 'lucide-react';
@@ -25,6 +26,7 @@ async function call<T>(path: string, init?: RequestInit): Promise<T> {
 
 /** Create, copy and switch off a read-only link to this CV (always shows its latest version). */
 export function SharePanel({ docId }: { docId: string }) {
+  const t = useT();
   const toast = useToast();
   const { ent } = useEntitlements();
   const commentsOn = ent ? ent.features.shareComments : false;
@@ -102,27 +104,28 @@ export function SharePanel({ docId }: { docId: string }) {
   return (
     <Card className="flex flex-col gap-3 p-5" data-testid="share-panel">
       <h2 className="flex items-center gap-2 text-lg font-semibold">
-        <Link2 aria-hidden size={18} /> Share a link
+        <Link2 aria-hidden size={18} /> {t('Share a link')}
       </h2>
       <p className="text-ink-muted -mt-1 text-sm">
-        A private, read-only link that always shows your latest version. Only people you give it to
-        can open it, and you can switch it off at any time.
+        {t(
+          'A private, read-only link that always shows your latest version. Only people you give it to can open it, and you can switch it off at any time.',
+        )}
       </p>
       {error && (
-        <Banner tone="error" title="That didn’t work" onDismiss={() => setError(null)}>
+        <Banner tone="error" title={t('That didn’t work')} onDismiss={() => setError(null)}>
           {error}
         </Banner>
       )}
       {!share ? (
         <Button variant="secondary" loading={busy} onClick={create} className="self-start">
-          Create a link
+          {t('Create a link')}
         </Button>
       ) : (
         <>
           <div className="flex gap-2">
             <input
               readOnly
-              aria-label="Link to your CV"
+              aria-label={t('Link to your CV')}
               value={url}
               onFocus={(e) => e.currentTarget.select()}
               className={`border-line-strong bg-surface min-h-11 min-w-0 flex-1 rounded-md border px-3 text-sm ${share.enabled ? '' : 'text-ink-muted line-through'}`}
@@ -133,11 +136,11 @@ export function SharePanel({ docId }: { docId: string }) {
               onClick={copy}
               disabled={!share.enabled}
             >
-              Copy
+              {t('Copy')}
             </Button>
           </div>
           <CheckboxField
-            label="Link is on"
+            label={t('Link is on')}
             checked={share.enabled}
             onChange={(v) => void toggle(v)}
           />
@@ -147,7 +150,7 @@ export function SharePanel({ docId }: { docId: string }) {
               data-testid="share-comments"
             >
               <CheckboxField
-                label="Let people with the link leave comments"
+                label={t('Let people with the link leave comments')}
                 checked={share.comments}
                 onChange={(v) =>
                   void change(
@@ -157,11 +160,13 @@ export function SharePanel({ docId }: { docId: string }) {
                 }
               />
               <p className="text-ink-muted -mt-1 pl-8 text-sm">
-                A friend or mentor clicks a line and leaves a note. Only you see all the comments.
+                {t(
+                  'A friend or mentor clicks a line and leaves a note. Only you see all the comments.',
+                )}
               </p>
               {share.comments && (
                 <CheckboxField
-                  label="Email me when someone comments (at most once an hour)"
+                  label={t('Email me when someone comments (at most once an hour)')}
                   checked={share.notify}
                   onChange={(v) =>
                     void change({ notify: v }, v ? 'Comment emails on' : 'Comment emails off')
@@ -188,7 +193,7 @@ export function SharePanel({ docId }: { docId: string }) {
             .
           </p>
           <Button variant="ghost" size="sm" onClick={remove} disabled={busy} className="self-start">
-            Delete this link
+            {t('Delete this link')}
           </Button>
         </>
       )}

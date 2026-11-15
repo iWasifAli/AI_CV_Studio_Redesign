@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { ArrowLeft, BarChart3, Lock } from 'lucide-react';
@@ -22,6 +23,7 @@ const weekLabel = (d: string) =>
 
 /** R9.10 application analytics: what happened to the applications the person sent. */
 export function JobInsights() {
+  const t = useT();
   const account = useAccount();
   const toast = useToast();
   const [data, setData] = useState<{ insights: Insights; total: number } | null>(null);
@@ -49,16 +51,18 @@ export function JobInsights() {
   };
 
   if (account.status === 'loading')
-    return <div className="skeleton h-72 rounded-lg" aria-busy="true" aria-label="Loading" />;
+    return <div className="skeleton h-72 rounded-lg" aria-busy="true" aria-label={t('Loading')} />;
   if (account.status === 'signedOut')
     return (
       <Card className="flex flex-col items-start gap-3 p-6">
         <Lock aria-hidden className="text-primary" />
-        <h2 className="text-xl font-semibold">Sign in to see your results</h2>
+        <h2 className="text-xl font-semibold">{t('Sign in to see your results')}</h2>
         <p className="text-ink-muted">
-          Track your applications, and see which CVs and designs get replies and interviews.
+          {t('Track your applications, and see which CVs and designs get replies and interviews.')}
         </p>
-        <ButtonLink href="/signin?next=/jobs/insights">Sign in or create a free account</ButtonLink>
+        <ButtonLink href="/signin?next=/jobs/insights">
+          {t('Sign in or create a free account')}
+        </ButtonLink>
       </Card>
     );
   if (error && !data)
@@ -68,21 +72,21 @@ export function JobInsights() {
       </Banner>
     );
   if (!data)
-    return <div className="skeleton h-72 rounded-lg" aria-busy="true" aria-label="Loading" />;
+    return <div className="skeleton h-72 rounded-lg" aria-busy="true" aria-label={t('Loading')} />;
 
   const s = data.insights;
   if (s.sent === 0)
     return (
       <div className="border-line-strong bg-surface flex flex-col items-center gap-3 rounded-lg border border-dashed px-6 py-14 text-center">
         <BarChart3 aria-hidden size={28} className="text-primary" />
-        <h2 className="text-xl font-semibold">No applications sent yet</h2>
+        <h2 className="text-xl font-semibold">{t('No applications sent yet')}</h2>
         <p className="text-ink-muted max-w-md">
-          When you send an application, move the job to <strong>Applied</strong> and tick the CV you
-          sent. Your replies and interviews will add up here
+          {t('When you send an application, move the job to')} <strong>{t('Applied')}</strong>{' '}
+          {t('and tick the CV you sent. Your replies and interviews will add up here')}
           {s.saved ? ` — you have ${plural(s.saved, 'saved job')} waiting` : ''}.
         </p>
         <ButtonLink href="/jobs" variant="secondary">
-          Go to your jobs
+          {t('Go to your jobs')}
         </ButtonLink>
       </div>
     );
@@ -93,31 +97,31 @@ export function JobInsights() {
   return (
     <div className="flex flex-col gap-6" data-testid="insights">
       {error && (
-        <Banner tone="error" title="That didn’t work" onDismiss={() => setError(null)}>
+        <Banner tone="error" title={t('That didn’t work')} onDismiss={() => setError(null)}>
           {error.message}
         </Banner>
       )}
       <section aria-labelledby="totals" className="flex flex-col gap-3">
         <h2 id="totals" className="sr-only">
-          Totals
+          {t('Totals')}
         </h2>
         <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-          <Stat label="Applications sent" value={s.sent} testId="stat-sent" />
+          <Stat label={t('Applications sent')} value={s.sent} testId="stat-sent" />
           <Stat
-            label="Replies"
+            label={t('Replies')}
             value={s.replies}
             note={replyRate !== null ? `${replyRate}% of sent` : undefined}
             testId="stat-replies"
           />
           <Stat
-            label="Interviews"
+            label={t('Interviews')}
             value={s.interviews}
             note={interviewRate !== null ? `${interviewRate}% of sent` : undefined}
             testId="stat-interviews"
           />
-          <Stat label="Offers" value={s.offers} testId="stat-offers" />
+          <Stat label={t('Offers')} value={s.offers} testId="stat-offers" />
           <Stat
-            label="Still waiting"
+            label={t('Still waiting')}
             value={s.waiting}
             note={s.noReply ? `${s.noReply} closed with no answer` : undefined}
             testId="stat-waiting"
@@ -132,11 +136,13 @@ export function JobInsights() {
 
       {(s.missingOutcome.length > 0 || s.noCv.length > 0) && (
         <Card className="flex flex-col gap-4 p-5" data-testid="insights-gaps">
-          <h2 className="text-lg font-semibold">Fill in the gaps for truer numbers</h2>
+          <h2 className="text-lg font-semibold">{t('Fill in the gaps for truer numbers')}</h2>
           {s.missingOutcome.length > 0 && (
             <div className="flex flex-col gap-2">
               <p className="text-sm">
-                How did these end? A “no” from an employer counts as a reply; silence doesn’t.
+                {t(
+                  'How did these end? A “no” from an employer counts as a reply; silence doesn’t.',
+                )}
               </p>
               <ul className="flex flex-col gap-2">
                 {s.missingOutcome.map((j) => (
@@ -154,7 +160,7 @@ export function JobInsights() {
                       }
                     >
                       <option value="" disabled>
-                        Choose…
+                        {t('Choose…')}
                       </option>
                       {JOB_OUTCOMES.map((o) => (
                         <option key={o} value={o}>
@@ -169,8 +175,9 @@ export function JobInsights() {
           )}
           {s.noCv.length > 0 && (
             <p className="text-sm" data-testid="no-cv">
-              {plural(s.noCv.length, 'application')} {s.noCv.length === 1 ? 'has' : 'have'} no CV
-              ticked, so {s.noCv.length === 1 ? 'it' : 'they'} can’t be compared:{' '}
+              {plural(s.noCv.length, 'application')} {s.noCv.length === 1 ? 'has' : 'have'}{' '}
+              {t('no CV ticked, so')} {s.noCv.length === 1 ? 'it' : 'they'}{' '}
+              {t('can’t be compared:{v}', { v: ' ' })}
               {s.noCv.map((j, i) => (
                 <span key={j.id}>
                   {i > 0 && ', '}
@@ -179,14 +186,14 @@ export function JobInsights() {
                   </Link>
                 </span>
               ))}
-              . Open the job and tick the CV you sent.
+              {t('. Open the job and tick the CV you sent.')}
             </p>
           )}
         </Card>
       )}
 
       <Card className="flex flex-col gap-3 p-5">
-        <h2 className="text-lg font-semibold">From sent to offer</h2>
+        <h2 className="text-lg font-semibold">{t('From sent to offer')}</h2>
         <ul className="flex flex-col gap-2" data-testid="funnel">
           {(
             [
@@ -214,7 +221,7 @@ export function JobInsights() {
       </Card>
 
       <Card className="flex flex-col gap-3 p-5">
-        <h2 className="text-lg font-semibold">Applications per week</h2>
+        <h2 className="text-lg font-semibold">{t('Applications per week')}</h2>
         <div
           className="flex h-28 items-end gap-1.5"
           role="img"
@@ -235,25 +242,29 @@ export function JobInsights() {
         </div>
         <div className="text-ink-subtle flex justify-between text-xs" aria-hidden>
           <span>{weekLabel(s.weeks[0]!.start)}</span>
-          <span>This week</span>
+          <span>{t('This week')}</span>
         </div>
       </Card>
 
       <GroupTable
-        title="By CV"
-        hint="Tailored copies made for each job are counted together, so you can see whether tailoring helps."
+        title={t('By CV')}
+        hint={t(
+          'Tailored copies made for each job are counted together, so you can see whether tailoring helps.',
+        )}
         rows={s.byCv}
         testId="by-cv"
       />
       <GroupTable
-        title="By design"
-        hint="The design each CV had when you applied."
+        title={t('By design')}
+        hint={t('The design each CV had when you applied.')}
         rows={s.byDesign}
         testId="by-design"
       />
       <p className="text-ink-muted text-sm">
-        Small numbers can mislead: one or two replies more is often luck. Rates appear once a row
-        has {FEW} or more applications. Only you can see these numbers.
+        {t(
+          'Small numbers can mislead: one or two replies more is often luck. Rates appear once a row has {FEW} or more applications. Only you can see these numbers.',
+          { FEW: FEW },
+        )}
       </p>
     </div>
   );
@@ -293,6 +304,7 @@ function GroupTable({
   rows: Group[];
   testId: string;
 }) {
+  const t = useT();
   const cell = (n: number, of: number) => {
     const p = of >= FEW ? pct(n, of) : null;
     return (
@@ -314,12 +326,15 @@ function GroupTable({
           <li key={r.key} className="border-line border-b py-2 text-sm last:border-0">
             <p className="font-semibold">{r.label}</p>
             <p className="text-ink-muted tabular-nums">
-              {r.sent} sent · {r.replies} {r.replies === 1 ? 'reply' : 'replies'}
+              {t('{sent} sent · {replies}', { sent: r.sent, replies: r.replies })}{' '}
+              {r.replies === 1 ? 'reply' : 'replies'}
               {r.sent >= FEW ? ` (${pct(r.replies, r.sent)}%)` : ''} · {r.interviews}{' '}
               {r.interviews === 1 ? 'interview' : 'interviews'} · {r.offers}{' '}
               {r.offers === 1 ? 'offer' : 'offers'}
             </p>
-            {r.sent < FEW && <p className="text-ink-subtle text-xs">Too few to compare yet</p>}
+            {r.sent < FEW && (
+              <p className="text-ink-subtle text-xs">{t('Too few to compare yet')}</p>
+            )}
           </li>
         ))}
       </ul>
@@ -336,16 +351,16 @@ function GroupTable({
                 {title === 'By CV' ? 'CV' : 'Design'}
               </th>
               <th scope="col" className="px-2 py-2 text-right font-semibold">
-                Sent
+                {t('Sent')}
               </th>
               <th scope="col" className="px-2 py-2 text-right font-semibold">
-                Replies
+                {t('Replies')}
               </th>
               <th scope="col" className="px-2 py-2 text-right font-semibold">
-                Interviews
+                {t('Interviews')}
               </th>
               <th scope="col" className="py-2 pl-2 text-right font-semibold">
-                Offers
+                {t('Offers')}
               </th>
             </tr>
           </thead>
@@ -356,7 +371,7 @@ function GroupTable({
                   {r.label}
                   {r.sent < FEW && (
                     <span className="text-ink-subtle block text-xs font-normal">
-                      Too few to compare yet
+                      {t('Too few to compare yet')}
                     </span>
                   )}
                 </th>
@@ -375,9 +390,10 @@ function GroupTable({
 
 /** Back link for the results page. */
 export function BackToJobs() {
+  const t = useT();
   return (
     <Link href="/jobs" className="text-primary inline-flex items-center gap-1.5 font-semibold">
-      <ArrowLeft aria-hidden size={18} /> All jobs
+      <ArrowLeft aria-hidden size={18} /> {t('All jobs')}
     </Link>
   );
 }

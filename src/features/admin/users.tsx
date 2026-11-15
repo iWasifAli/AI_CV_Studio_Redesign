@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Search } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
@@ -40,6 +41,7 @@ type ListData = {
 const GRANT_OPTIONS = [7, 30, 90, 365];
 
 export function AdminUsers() {
+  const t = useT();
   const toast = useToast();
   const [list, setList] = useState<ListData | null>(null);
   const [email, setEmail] = useState('');
@@ -92,12 +94,12 @@ export function AdminUsers() {
   return (
     <>
       <AdminHeading
-        title="Users"
+        title={t('Users')}
         intro="Find an account by email to grant Premium, reset this month's allowance or block sign-in."
       />
       <form onSubmit={onSearch} className="mb-6 flex items-end gap-2" role="search">
         <TextField
-          label="Email address"
+          label={t('Email address')}
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -105,24 +107,24 @@ export function AdminUsers() {
           autoComplete="off"
         />
         <Button type="submit" icon={<Search aria-hidden size={18} />} disabled={busy}>
-          Find
+          {t('Find')}
         </Button>
       </form>
       {error && (
         <Banner
           tone="error"
-          title="That didn't work"
+          title={t("That didn't work")}
           className="mb-4"
           onDismiss={() => setError(null)}
         >
           {error}
         </Banner>
       )}
-      {user === null && <Banner tone="info" title="No account uses that email address." />}
+      {user === null && <Banner tone="info" title={t('No account uses that email address.')} />}
       {user && (
         <section
           className="border-line bg-surface mb-8 rounded-lg border p-5"
-          aria-label="Account details"
+          aria-label={t('Account details')}
           data-testid="admin-user"
         >
           <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -141,22 +143,26 @@ export function AdminUsers() {
             </span>
           </div>
           <dl className="mt-4 grid grid-cols-[max-content_1fr] gap-x-6 gap-y-1.5 text-sm">
-            <dt className="text-ink-muted">Email</dt>
+            <dt className="text-ink-muted">{t('Email')}</dt>
             <dd>
               {user.email} {user.emailVerified ? '(verified)' : '(not verified)'}
             </dd>
-            <dt className="text-ink-muted">Signs in with</dt>
+            <dt className="text-ink-muted">{t('Signs in with')}</dt>
             <dd>{user.providers.join(', ') || '—'}</dd>
-            <dt className="text-ink-muted">Joined</dt>
+            <dt className="text-ink-muted">{t('Joined')}</dt>
             <dd>{when(user.createdAt)}</dd>
-            <dt className="text-ink-muted">Last sign-in</dt>
+            <dt className="text-ink-muted">{t('Last sign-in')}</dt>
             <dd>{when(user.lastSignInAt)}</dd>
-            <dt className="text-ink-muted">Premium until</dt>
+            <dt className="text-ink-muted">{t('Premium until')}</dt>
             <dd data-testid="admin-user-expiry">{user.pass ? when(user.pass.expiresAt) : '—'}</dd>
-            <dt className="text-ink-muted">This month</dt>
+            <dt className="text-ink-muted">{t('This month')}</dt>
             <dd>
-              {user.usage['pdf.download'] ?? 0} downloads · {user.usage['import.cv'] ?? 0} imports ·{' '}
-              {user.usage['ai.action'] ?? 0} AI actions
+              {t('{v} downloads · {v2} imports ·{v3} {v4} AI actions', {
+                v: user.usage['pdf.download'] ?? 0,
+                v2: user.usage['import.cv'] ?? 0,
+                v3: ' ',
+                v4: user.usage['ai.action'] ?? 0,
+              })}
             </dd>
           </dl>
           <div className="mt-5 flex flex-col gap-3">
@@ -172,7 +178,7 @@ export function AdminUsers() {
                   disabled={busy}
                   onClick={() => act({ action: 'grant', days: d }, `Premium added: ${d} days`)}
                 >
-                  {d} days
+                  {t('{d} days', { d: d })}
                 </Button>
               ))}
             </div>
@@ -187,7 +193,7 @@ export function AdminUsers() {
                     act({ action: 'revoke' }, 'Premium removed')
                   }
                 >
-                  Remove Premium
+                  {t('Remove Premium')}
                 </Button>
               )}
               <Button
@@ -196,7 +202,7 @@ export function AdminUsers() {
                 disabled={busy}
                 onClick={() => act({ action: 'resetUsage' }, "This month's usage was reset")}
               >
-                Reset this month&apos;s usage
+                {t('Reset this month&apos;s usage')}
               </Button>
               <Button
                 size="sm"
@@ -218,9 +224,9 @@ export function AdminUsers() {
       {list && (
         <div className="grid gap-6 lg:grid-cols-2">
           <section className="border-line bg-surface rounded-lg border p-5">
-            <h2 className="mb-3 text-lg font-semibold">Premium accounts</h2>
+            <h2 className="mb-3 text-lg font-semibold">{t('Premium accounts')}</h2>
             {list.passes.length === 0 ? (
-              <p className="text-ink-muted text-sm">None yet.</p>
+              <p className="text-ink-muted text-sm">{t('None yet.')}</p>
             ) : (
               <ul className="divide-line divide-y text-sm">
                 {list.passes.map((p) => (
@@ -231,7 +237,7 @@ export function AdminUsers() {
                         p.expiresAt > new Date().toISOString() ? '' : 'text-ink-subtle line-through'
                       }
                     >
-                      until {when(p.expiresAt)}
+                      {t('until {when}', { when: when(p.expiresAt) })}
                     </span>
                   </li>
                 ))}
@@ -239,7 +245,9 @@ export function AdminUsers() {
             )}
           </section>
           <section className="border-line bg-surface rounded-lg border p-5">
-            <h2 className="mb-3 text-lg font-semibold">Recently active ({list.total} accounts)</h2>
+            <h2 className="mb-3 text-lg font-semibold">
+              {t('Recently active ({total} accounts)', { total: list.total })}
+            </h2>
             <ul className="divide-line divide-y text-sm">
               {list.recent.map((u) => (
                 <li key={u.uid} className="flex items-center justify-between gap-4 py-1.5">

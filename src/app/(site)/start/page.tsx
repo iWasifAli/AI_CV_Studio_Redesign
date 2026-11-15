@@ -1,3 +1,4 @@
+import { getT } from '@/i18n/server';
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import Link from 'next/link';
@@ -7,16 +8,18 @@ import { StartFlow } from '@/features/start/start-flow';
 
 export const metadata: Metadata = { title: 'Create your CV' };
 
-export default function StartPage() {
+export default async function StartPage() {
+  const t = await getT();
   return (
     <Container className="max-w-[880px] py-10 md:py-14">
       <div className="flex flex-col gap-3">
         <h1 className="font-display text-[32px] leading-tight font-semibold tracking-tight sm:text-4xl">
-          What kind of work do you do?
+          {t('What kind of work do you do?')}
         </h1>
         <p className="text-ink-muted text-lg">
-          Choose the closest one. It helps us ask the right questions — you can change anything
-          later.
+          {t(
+            'Choose the closest one. It helps us ask the right questions — you can change anything later.',
+          )}
         </p>
       </div>
       <Link
@@ -25,9 +28,9 @@ export default function StartPage() {
       >
         <FileUp aria-hidden className="text-primary shrink-0" />
         <span>
-          <span className="font-semibold">Already have a CV?</span>{' '}
+          <span className="font-semibold">{t('Already have a CV?')}</span>{' '}
           <span className="text-ink-muted">
-            Import your PDF or Word file and give it a new design.
+            {t('Import your PDF or Word file and give it a new design.')}
           </span>
         </span>
       </Link>

@@ -1,3 +1,4 @@
+import { getT } from '@/i18n/server';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Container } from '@/components/ui/misc';
@@ -10,15 +11,18 @@ export const metadata: Metadata = { title: 'Help' };
 export const dynamic = 'force-dynamic';
 
 export default async function HelpPage() {
+  const t = await getT();
   const cfg = (await getBusinessConfig()).value;
   const { email } = cfg.support;
   const FAQ = cfg.content.faq;
   return (
     <Container className="max-w-[760px] py-10 md:py-14">
       <h1 className="font-display text-[32px] leading-tight font-semibold tracking-tight sm:text-4xl">
-        Help
+        {t('Help')}
       </h1>
-      <p className="text-ink-muted mt-3 text-lg">Short answers to the questions people ask most.</p>
+      <p className="text-ink-muted mt-3 text-lg">
+        {t('Short answers to the questions people ask most.')}
+      </p>
       <div className="divide-line border-line bg-surface mt-8 flex flex-col divide-y rounded-lg border">
         {FAQ.map((item) => (
           <details
@@ -43,7 +47,7 @@ export default async function HelpPage() {
       </div>
       {email && (
         <p className="mt-8" data-testid="support-contact">
-          Still stuck? Email us at{' '}
+          {t('Still stuck? Email us at{v}', { v: ' ' })}
           <a
             href={`mailto:${email}`}
             className="text-primary font-semibold underline underline-offset-4"
@@ -54,13 +58,13 @@ export default async function HelpPage() {
         </p>
       )}
       <p className="text-ink-muted mt-4">
-        Read how we handle your information in our{' '}
+        {t('Read how we handle your information in our{v}', { v: ' ' })}
         <Link href="/privacy" className="text-primary font-semibold underline underline-offset-4">
-          privacy notice
+          {t('privacy notice')}
         </Link>{' '}
-        and the{' '}
+        {t('and the{v}', { v: ' ' })}
         <Link href="/terms" className="text-primary font-semibold underline underline-offset-4">
-          terms of use
+          {t('terms of use')}
         </Link>
         .
       </p>

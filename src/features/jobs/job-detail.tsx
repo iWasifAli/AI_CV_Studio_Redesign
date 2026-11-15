@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
@@ -64,6 +65,7 @@ function useCvList() {
 }
 
 export function JobDetail({ id }: { id: string }) {
+  const t = useT();
   const router = useRouter();
   const toast = useToast();
   const cvs = useCvList();
@@ -85,9 +87,9 @@ export function JobDetail({ id }: { id: string }) {
 
   if (!job || !draft)
     return error ? (
-      <Banner tone="error" title={error} action={<Link href="/jobs">Back to jobs</Link>} />
+      <Banner tone="error" title={error} action={<Link href="/jobs">{t('Back to jobs')}</Link>} />
     ) : (
-      <div className="skeleton h-96 rounded-lg" aria-busy="true" aria-label="Loading" />
+      <div className="skeleton h-96 rounded-lg" aria-busy="true" aria-label={t('Loading')} />
     );
 
   const dirty = JSON.stringify(pick(job)) !== JSON.stringify(draft);
@@ -122,7 +124,7 @@ export function JobDetail({ id }: { id: string }) {
   return (
     <div className="flex flex-col gap-6 pb-24">
       <Link href="/jobs" className="text-primary inline-flex items-center gap-1.5 font-semibold">
-        <ArrowLeft aria-hidden size={18} /> All jobs
+        <ArrowLeft aria-hidden size={18} /> {t('All jobs')}
       </Link>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
@@ -140,12 +142,12 @@ export function JobDetail({ id }: { id: string }) {
             rel="noopener noreferrer"
             className="text-primary inline-flex items-center gap-1.5 font-semibold"
           >
-            Open the advert <ExternalLink aria-hidden size={16} />
+            {t('Open the advert')} <ExternalLink aria-hidden size={16} />
           </a>
         )}
       </div>
       {error && (
-        <Banner tone="error" title="That didn’t work" onDismiss={() => setError(null)}>
+        <Banner tone="error" title={t('That didn’t work')} onDismiss={() => setError(null)}>
           {error}
         </Banner>
       )}
@@ -153,8 +155,8 @@ export function JobDetail({ id }: { id: string }) {
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <div className="flex flex-col gap-6">
           <Card className="flex flex-col gap-4 p-5">
-            <h2 className="text-lg font-semibold">Where you are</h2>
-            <div role="radiogroup" aria-label="Stage" className="flex flex-wrap gap-2">
+            <h2 className="text-lg font-semibold">{t('Where you are')}</h2>
+            <div role="radiogroup" aria-label={t('Stage')} className="flex flex-wrap gap-2">
               {JOB_STAGES.map((s: JobStage) => (
                 <button
                   key={s}
@@ -175,7 +177,8 @@ export function JobDetail({ id }: { id: string }) {
             {draft.stage === 'closed' && (
               <label className="flex max-w-sm flex-col gap-1.5">
                 <span className="text-sm font-semibold">
-                  How did it end? <span className="text-ink-muted font-normal">(optional)</span>
+                  {t('How did it end?')}{' '}
+                  <span className="text-ink-muted font-normal">{t('(optional)')}</span>
                 </span>
                 <select
                   className="border-line-strong bg-surface h-11 rounded-md border px-3"
@@ -183,7 +186,7 @@ export function JobDetail({ id }: { id: string }) {
                   onChange={(e) => set('outcome', e.target.value as JobOutcome | '')}
                   data-testid="job-outcome"
                 >
-                  <option value="">Not said</option>
+                  <option value="">{t('Not said')}</option>
                   {JOB_OUTCOMES.map((o) => (
                     <option key={o} value={o}>
                       {OUTCOME_LABEL[o]}
@@ -191,12 +194,12 @@ export function JobDetail({ id }: { id: string }) {
                   ))}
                 </select>
                 <span className="text-ink-muted text-sm">
-                  It helps your results: a “no” counts as a reply, silence doesn’t.
+                  {t('It helps your results: a “no” counts as a reply, silence doesn’t.')}
                 </span>
               </label>
             )}
             <TextField
-              label="Applied on"
+              label={t('Applied on')}
               optional
               type="date"
               value={draft.appliedOn}
@@ -204,10 +207,10 @@ export function JobDetail({ id }: { id: string }) {
               containerClassName="max-w-[220px]"
             />
             <TextArea
-              label="Notes"
+              label={t('Notes')}
               optional
               rows={4}
-              hint="Contacts, interview times, what to follow up."
+              hint={t('Contacts, interview times, what to follow up.')}
               value={draft.notes}
               onChange={(e) => set('notes', e.target.value)}
               maxLength={4000}
@@ -217,19 +220,19 @@ export function JobDetail({ id }: { id: string }) {
           {ent?.features.reminders !== false && <RemindersCard job={job} onJobChange={setJob} />}
 
           <Card className="flex flex-col gap-3 p-5">
-            <h2 className="text-lg font-semibold">CVs used for this job</h2>
+            <h2 className="text-lg font-semibold">{t('CVs used for this job')}</h2>
             {job.sent && (
               <p className="text-ink-muted text-sm" data-testid="job-sent">
-                Sent with “{job.sent.title}”{' '}
-                {job.sent.designId ? `in ${job.sent.designName}` : 'in a design of your own'}. Your
-                results count this application under that CV and design.
+                {t('Sent with “{title}”{v}', { title: job.sent.title, v: ' ' })}
+                {job.sent.designId ? `in ${job.sent.designName}` : 'in a design of your own'}
+                {t('. Your results count this application under that CV and design.')}
               </p>
             )}
             {cvs.length === 0 ? (
               <p className="text-ink-muted text-sm">
-                You have no CVs yet.{' '}
+                {t('You have no CVs yet.{v}', { v: ' ' })}
                 <Link href="/start" className="text-primary font-semibold">
-                  Create one
+                  {t('Create one')}
                 </Link>
                 .
               </p>
@@ -253,7 +256,7 @@ export function JobDetail({ id }: { id: string }) {
                       href={`/cv/${c.id}`}
                       className="text-primary shrink-0 text-sm font-semibold"
                     >
-                      Open
+                      {t('Open')}
                     </Link>
                   </li>
                 ))}
@@ -278,30 +281,30 @@ export function JobDetail({ id }: { id: string }) {
         </div>
 
         <Card className="flex flex-col gap-4 p-5">
-          <h2 className="text-lg font-semibold">The job</h2>
+          <h2 className="text-lg font-semibold">{t('The job')}</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <TextField
-              label="Job title"
+              label={t('Job title')}
               value={draft.title}
               onChange={(e) => set('title', e.target.value)}
               maxLength={160}
             />
             <TextField
-              label="Company"
+              label={t('Company')}
               optional
               value={draft.company}
               onChange={(e) => set('company', e.target.value)}
               maxLength={160}
             />
             <TextField
-              label="Location"
+              label={t('Location')}
               optional
               value={draft.location}
               onChange={(e) => set('location', e.target.value)}
               maxLength={120}
             />
             <TextField
-              label="Link to the advert"
+              label={t('Link to the advert')}
               optional
               type="url"
               value={draft.url}
@@ -310,10 +313,12 @@ export function JobDetail({ id }: { id: string }) {
             />
           </div>
           <TextArea
-            label="The job advert"
+            label={t('The job advert')}
             optional
             rows={14}
-            hint="Paste the full advert. It’s used to check your CV against the job and to write a letter."
+            hint={t(
+              'Paste the full advert. It’s used to check your CV against the job and to write a letter.',
+            )}
             value={draft.advert}
             onChange={(e) => set('advert', e.target.value)}
             maxLength={20000}
@@ -324,7 +329,7 @@ export function JobDetail({ id }: { id: string }) {
             onClick={remove}
             className="self-start"
           >
-            Remove this job
+            {t('Remove this job')}
           </Button>
         </Card>
       </div>
@@ -335,10 +340,10 @@ export function JobDetail({ id }: { id: string }) {
             {dirty ? 'Unsaved changes' : 'All changes saved'}
           </span>
           <Button variant="ghost" disabled={!dirty || saving} onClick={() => setDraft(pick(job))}>
-            Discard
+            {t('Discard')}
           </Button>
           <Button disabled={!dirty} loading={saving} onClick={save}>
-            Save changes
+            {t('Save changes')}
           </Button>
         </div>
       </div>

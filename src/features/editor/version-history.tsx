@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, History, Pencil, RotateCcw, Star, Trash2 } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
@@ -42,11 +43,12 @@ export function versionLabel(v: VersionMeta) {
 }
 
 export function VersionHistoryButton({ editor }: { editor: DocumentEditor }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   return (
     <>
       <IconButton
-        label="Version history"
+        label={t('Version history')}
         icon={<History aria-hidden size={20} />}
         onClick={() => {
           editor.flush();
@@ -56,7 +58,7 @@ export function VersionHistoryButton({ editor }: { editor: DocumentEditor }) {
       <Dialog
         open={open}
         onClose={() => setOpen(false)}
-        title="Version history"
+        title={t('Version history')}
         className="w-[min(100vw-1rem,72rem)]!"
       >
         <VersionHistory editor={editor} onDone={() => setOpen(false)} />
@@ -66,6 +68,7 @@ export function VersionHistoryButton({ editor }: { editor: DocumentEditor }) {
 }
 
 function VersionHistory({ editor, onDone }: { editor: DocumentEditor; onDone: () => void }) {
+  const t = useT();
   const { doc } = editor;
   const toast = useToast();
   const base = `/api/documents/${encodeURIComponent(doc.id)}/versions`;
@@ -204,11 +207,12 @@ function VersionHistory({ editor, onDone }: { editor: DocumentEditor; onDone: ()
   return (
     <div className="flex flex-col gap-5">
       <p className="text-ink-muted -mt-2">
-        Your CV is kept as it was before each editing session. Save a version yourself before a big
-        change, compare any version with now, and go back if you need to.
+        {t(
+          'Your CV is kept as it was before each editing session. Save a version yourself before a big change, compare any version with now, and go back if you need to.',
+        )}
       </p>
       {error && (
-        <Banner tone="error" title="That didn’t work" onDismiss={() => setError('')}>
+        <Banner tone="error" title={t('That didn’t work')} onDismiss={() => setError('')}>
           {error}
         </Banner>
       )}
@@ -220,12 +224,12 @@ function VersionHistory({ editor, onDone }: { editor: DocumentEditor; onDone: ()
         }}
       >
         <label className="flex min-w-0 flex-1 flex-col gap-1.5">
-          <span className="text-sm font-semibold">Save this version as</span>
+          <span className="text-sm font-semibold">{t('Save this version as')}</span>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
             maxLength={60}
-            placeholder="For example: Before tailoring for Acme"
+            placeholder={t('For example: Before tailoring for Acme')}
             className="border-line-strong bg-surface h-11 rounded-md border px-3"
             data-autofocus
           />
@@ -236,20 +240,23 @@ function VersionHistory({ editor, onDone }: { editor: DocumentEditor; onDone: ()
           loading={busy === 'save'}
           icon={<Star aria-hidden size={18} />}
         >
-          Save version
+          {t('Save version')}
         </Button>
       </form>
       {named >= maxNamed && (
         <p className="text-ink-muted text-sm">
-          You have {maxNamed} named versions, the most a CV can keep. Delete one to save another.
+          {t(
+            'You have {maxNamed} named versions, the most a CV can keep. Delete one to save another.',
+            { maxNamed: maxNamed },
+          )}
         </p>
       )}
 
       {!list ? (
-        <div className="skeleton h-40 rounded-lg" aria-busy="true" aria-label="Loading" />
+        <div className="skeleton h-40 rounded-lg" aria-busy="true" aria-label={t('Loading')} />
       ) : list.length === 0 ? (
         <p className="text-ink-muted border-line rounded-lg border border-dashed p-6 text-center">
-          No earlier versions yet. They appear here as you edit this CV over time.
+          {t('No earlier versions yet. They appear here as you edit this CV over time.')}
         </p>
       ) : (
         <ul className="divide-line border-line divide-y rounded-lg border" data-testid="versions">
@@ -268,12 +275,12 @@ function VersionHistory({ editor, onDone }: { editor: DocumentEditor; onDone: ()
                       value={renaming.name}
                       onChange={(e) => setRenaming({ id: v.id, name: e.target.value })}
                       maxLength={60}
-                      aria-label="Version name"
+                      aria-label={t('Version name')}
                       className="border-line-strong bg-surface h-9 min-w-0 flex-1 rounded-md border px-2"
                       autoFocus
                     />
                     <Button type="submit" size="sm" loading={busy === v.id}>
-                      Save
+                      {t('Save')}
                     </Button>
                     <Button
                       type="button"
@@ -281,7 +288,7 @@ function VersionHistory({ editor, onDone }: { editor: DocumentEditor; onDone: ()
                       variant="ghost"
                       onClick={() => setRenaming(null)}
                     >
-                      Cancel
+                      {t('Cancel')}
                     </Button>
                   </form>
                 ) : (
@@ -305,7 +312,7 @@ function VersionHistory({ editor, onDone }: { editor: DocumentEditor; onDone: ()
                   onClick={() => void view(v)}
                   aria-label={`Compare with now: ${versionLabel(v)}, ${when(v.savedAt)}`}
                 >
-                  Compare
+                  {t('Compare')}
                 </Button>
                 {v.kind === 'named' && renaming?.id !== v.id && (
                   <IconButton
@@ -327,8 +334,10 @@ function VersionHistory({ editor, onDone }: { editor: DocumentEditor; onDone: ()
         </ul>
       )}
       <p className="text-ink-subtle text-sm">
-        The last 30 automatic versions are kept, plus up to {maxNamed} you name. Deleting this CV
-        deletes its versions.
+        {t(
+          'The last 30 automatic versions are kept, plus up to {maxNamed} you name. Deleting this CV deletes its versions.',
+          { maxNamed: maxNamed },
+        )}
       </p>
     </div>
   );
@@ -357,6 +366,7 @@ function Compare({
   onCancel: () => void;
   onRestore: () => void;
 }) {
+  const t = useT();
   const changes = useMemo(() => diffDocs(then, now), [then, now]);
   const [side, setSide] = useState<'then' | 'now'>('then');
   return (
@@ -366,28 +376,30 @@ function Compare({
         onClick={onBack}
         className="text-primary -mt-2 inline-flex items-center gap-1.5 self-start font-semibold"
       >
-        <ArrowLeft aria-hidden size={18} /> All versions
+        <ArrowLeft aria-hidden size={18} /> {t('All versions')}
       </button>
       <div>
         <h3 className="text-lg font-semibold">
           {versionLabel(meta)} · {when(meta.savedAt)}
         </h3>
-        <p className="text-ink-muted text-sm">Compared with your CV now.</p>
+        <p className="text-ink-muted text-sm">{t('Compared with your CV now.')}</p>
       </div>
       {error && <Banner tone="error" title={error} />}
       <div className="flex flex-col gap-4">
         <section aria-labelledby="changes-h" className="flex flex-col gap-2">
           <h4 id="changes-h" className="font-semibold">
-            What changed since then
+            {t('What changed since then')}
           </h4>
           {changes.length === 0 ? (
-            <p className="text-ink-muted text-sm">Nothing: this version is the same as now.</p>
+            <p className="text-ink-muted text-sm">
+              {t('Nothing: this version is the same as now.')}
+            </p>
           ) : (
             <ul
               className="border-line flex max-h-[30vh] flex-col gap-2 overflow-y-auto rounded-lg border p-3 text-sm"
               data-testid="changes"
               tabIndex={0}
-              aria-label="Changes"
+              aria-label={t('Changes')}
             >
               {changes.map((c, i) => (
                 <ChangeLine key={i} c={c} />
@@ -396,7 +408,7 @@ function Compare({
           )}
         </section>
         <div className="flex min-w-0 flex-1 flex-col gap-2">
-          <div className="flex gap-1 md:hidden" role="group" aria-label="Show">
+          <div className="flex gap-1 md:hidden" role="group" aria-label={t('Show')}>
             {(['then', 'now'] as const).map((s) => (
               <Button
                 key={s}
@@ -430,18 +442,19 @@ function Compare({
         <div
           className="border-line bg-sunken flex flex-col gap-3 rounded-lg border p-4"
           role="group"
-          aria-label="Go back"
+          aria-label={t('Go back')}
         >
           <p>
-            Go back to this version? Your CV as it is now is kept in History first, and Undo works
-            too.
+            {t(
+              'Go back to this version? Your CV as it is now is kept in History first, and Undo works too.',
+            )}
           </p>
           <div className="flex flex-wrap gap-2">
             <Button onClick={onRestore} loading={busy} icon={<RotateCcw aria-hidden size={18} />}>
-              Yes, go back
+              {t('Yes, go back')}
             </Button>
             <Button variant="secondary" onClick={onCancel} disabled={busy}>
-              Cancel
+              {t('Cancel')}
             </Button>
           </div>
         </div>
@@ -453,7 +466,7 @@ function Compare({
           disabled={changes.length === 0}
           icon={<RotateCcw aria-hidden size={18} />}
         >
-          Go back to this version
+          {t('Go back to this version')}
         </Button>
       )}
     </div>

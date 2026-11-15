@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useEffect, useId, useRef, useState } from 'react';
 import { Eraser, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -52,6 +53,7 @@ export function SignatureField({
   value: string;
   onChange: (dataUrl: string) => void;
 }) {
+  const t = useT();
   const id = useId();
   const pad = useRef<HTMLCanvasElement>(null);
   const file = useRef<HTMLInputElement>(null);
@@ -113,21 +115,21 @@ export function SignatureField({
   return (
     <div className="col-span-2 flex flex-col gap-2" data-testid="signature-field">
       <p id={id} className="text-sm font-semibold">
-        Signature <span className="text-ink-subtle font-normal">(optional)</span>
+        {t('Signature')} <span className="text-ink-subtle font-normal">{t('(optional)')}</span>
       </p>
       {!editing && value ? (
         <div className="flex flex-wrap items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element -- local data URL */}
           <img
             src={value}
-            alt="Your signature"
+            alt={t('Your signature')}
             className="border-line h-14 max-w-56 rounded border bg-white object-contain p-1"
           />
           <Button size="sm" variant="secondary" onClick={() => setEditing(true)}>
-            Sign again
+            {t('Sign again')}
           </Button>
           <Button size="sm" variant="ghost" onClick={() => onChange('')}>
-            Remove
+            {t('Remove')}
           </Button>
         </div>
       ) : (
@@ -165,8 +167,9 @@ export function SignatureField({
             }}
           />
           <p className="text-ink-muted text-sm">
-            Sign in the box with your finger, a pen or the mouse, or upload a photo of your
-            signature on white paper.
+            {t(
+              'Sign in the box with your finger, a pen or the mouse, or upload a photo of your signature on white paper.',
+            )}
           </p>
           <div className="flex flex-wrap gap-2">
             <Button
@@ -179,7 +182,7 @@ export function SignatureField({
                 onChange('');
               }}
             >
-              Clear
+              {t('Clear')}
             </Button>
             <Button
               size="sm"
@@ -187,11 +190,11 @@ export function SignatureField({
               icon={<Upload aria-hidden size={16} />}
               onClick={() => file.current?.click()}
             >
-              Upload a picture
+              {t('Upload a picture')}
             </Button>
             {value && (
               <Button size="sm" variant="secondary" onClick={() => setEditing(false)}>
-                Done
+                {t('Done')}
               </Button>
             )}
           </div>

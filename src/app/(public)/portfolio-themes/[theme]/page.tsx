@@ -1,3 +1,4 @@
+import { getT } from '@/i18n/server';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -24,6 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 /** A sample portfolio page in one theme (linked from the gallery and the theme picker). */
 export default async function PortfolioThemeSample({ params }: Props) {
+  const tx = await getT();
   const { theme } = await params;
   if (!isTheme(theme)) notFound();
   return (
@@ -64,9 +66,9 @@ export default async function PortfolioThemeSample({ params }: Props) {
       }}
       banner={
         <>
-          A sample page in the {THEME_INFO[theme].name} theme.{' '}
+          {tx('A sample page in the {name} theme.{v}', { name: THEME_INFO[theme].name, v: ' ' })}
           <Link href="/portfolio" className="font-semibold underline underline-offset-2">
-            Make your own
+            {tx('Make your own')}
           </Link>
         </>
       }

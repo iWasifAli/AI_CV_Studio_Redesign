@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useEffect, useState } from 'react';
 import { Share2, Users } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
@@ -43,6 +44,7 @@ export function ShareDesign({
   design: { id: string; name: string };
   onShared: () => void;
 }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(design.name);
   const [description, setDescription] = useState('');
@@ -86,48 +88,51 @@ export function ShareDesign({
         <Share2 aria-hidden size={16} />
       </button>
       {open && (
-        <Dialog open onClose={() => setOpen(false)} title="Share with the community">
+        <Dialog open onClose={() => setOpen(false)} title={t('Share with the community')}>
           {done ? (
             <div className="flex flex-col gap-3" data-testid="share-done">
               <p>
-                Thank you! “{name}” is waiting for review. Once it’s approved, others can use it
-                from the Community designs.
+                {t(
+                  'Thank you! “{name}” is waiting for review. Once it’s approved, others can use it from the Community designs.',
+                  { name: name },
+                )}
               </p>
               <Button className="self-end" onClick={() => setOpen(false)}>
-                Done
+                {t('Done')}
               </Button>
             </div>
           ) : (
             <div className="flex flex-col gap-4">
               <p className="text-ink-muted text-sm">
-                Only the design is shared — never your CV or its content. We check every design
-                before others can see it.
+                {t(
+                  'Only the design is shared — never your CV or its content. We check every design before others can see it.',
+                )}
               </p>
               <TextField
-                label="Design name"
+                label={t('Design name')}
                 maxLength={40}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
               <TextArea
-                label="One line about it (optional)"
+                label={t('One line about it (optional)')}
                 rows={2}
                 maxLength={200}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
               />
               <CheckboxField
-                label="Show my first name as the designer"
+                label={t('Show my first name as the designer')}
                 checked={credit}
                 onChange={setCredit}
               />
               {problem && <Banner tone="error" title={problem} />}
               <div className="flex justify-end gap-2">
                 <Button variant="ghost" onClick={() => setOpen(false)}>
-                  Cancel
+                  {t('Cancel')}
                 </Button>
                 <Button loading={busy} disabled={name.trim().length < 3} onClick={submit}>
-                  Share for review
+                  {t('Share for review')}
                 </Button>
               </div>
             </div>
@@ -140,6 +145,7 @@ export function ShareDesign({
 
 /** Where the account's shared designs are in review. */
 export function MySharedDesigns({ tick }: { tick: number }) {
+  const t = useT();
   const [list, setList] = useState<Mine[] | null>(null);
   useEffect(() => {
     let live = true;
@@ -154,7 +160,7 @@ export function MySharedDesigns({ tick }: { tick: number }) {
   if (!list?.length) return null;
   return (
     <div className="text-sm" data-testid="my-shared">
-      <p className="font-semibold">Shared with the community</p>
+      <p className="font-semibold">{t('Shared with the community')}</p>
       <ul className="mt-1 flex flex-col gap-1">
         {list.map((d) => (
           <li key={d.id}>
@@ -175,6 +181,7 @@ export function CommunityGallery({
   doc: ResumeDocument;
   onUse: (d: CommunityItem) => void;
 }) {
+  const t = useT();
   const [list, setList] = useState<CommunityItem[] | null>(null);
   useEffect(() => {
     let live = true;
@@ -190,7 +197,7 @@ export function CommunityGallery({
   return (
     <div className="border-line flex flex-col gap-3 border-t pt-4" data-testid="community-gallery">
       <p className="flex items-center gap-2 font-semibold">
-        <Users aria-hidden size={16} className="text-primary" /> Community designs
+        <Users aria-hidden size={16} className="text-primary" /> {t('Community designs')}
       </p>
       <ul className="grid grid-cols-2 gap-3">
         {list.map((d) => (
@@ -206,11 +213,11 @@ export function CommunityGallery({
             </div>
             <p className="text-sm font-semibold">
               {d.name}
-              {d.featured && <span className="text-primary"> · Featured</span>}
+              {d.featured && <span className="text-primary"> {t('· Featured')}</span>}
             </p>
             <p className="text-ink-muted text-xs">{d.credit ? `By ${d.credit}` : 'Community'}</p>
             <Button size="sm" variant="secondary" onClick={() => onUse(d)}>
-              Use “{d.name}”
+              {t('Use “{name}”', { name: d.name })}
             </Button>
           </li>
         ))}

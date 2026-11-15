@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Lock, Send, Sparkles, Trash2 } from 'lucide-react';
@@ -59,6 +60,7 @@ function label(a: CoachAction, jobs: Job[]): string {
  * checks apply; nothing happens until the person chooses it.
  */
 export function CoachChat({ jobs }: { jobs: Job[] }) {
+  const t = useT();
   const router = useRouter();
   const toast = useToast();
   const { ent, refresh } = useEntitlements();
@@ -190,36 +192,40 @@ export function CoachChat({ jobs }: { jobs: Job[] }) {
     >
       <div className="flex items-center justify-between gap-3">
         <h2 id="coach-h" className="flex items-center gap-2 text-xl font-semibold">
-          <Sparkles aria-hidden size={20} className="text-primary" /> Ask your coach
+          <Sparkles aria-hidden size={20} className="text-primary" /> {t('Ask your coach')}
         </h2>
         {thread && thread.messages.length > 0 && (
           <Button size="sm" variant="ghost" icon={<Trash2 aria-hidden size={16} />} onClick={clear}>
-            Clear
+            {t('Clear')}
           </Button>
         )}
       </div>
       <p className="text-ink-muted text-sm">
-        Advice from your own CV{source ? ` (“${source.title}”)` : ''} and the jobs you track. It
-        never makes up experience for you.
+        {t('Advice from your own CV')}
+        {source ? ` (“${source.title}”)` : ''}{' '}
+        {t('and the jobs you track. It never makes up experience for you.')}
       </p>
 
       {locked ? (
         <Banner
           tone="info"
-          title="The career coach is part of Premium"
+          title={t('The career coach is part of Premium')}
           action={
             ent?.features.sales ? (
               <ButtonLink href="/premium?next=/coach" size="sm">
-                See Premium
+                {t('See Premium')}
               </ButtonLink>
             ) : undefined
           }
         >
-          Ask anything about your CV and applications, and let the coach set up the next step for
-          you.
+          {t(
+            'Ask anything about your CV and applications, and let the coach set up the next step for you.',
+          )}
         </Banner>
       ) : !source ? (
-        <p className="text-ink-muted">Create or upload a CV first, so the coach can read it.</p>
+        <p className="text-ink-muted">
+          {t('Create or upload a CV first, so the coach can read it.')}
+        </p>
       ) : (
         <>
           {thread === undefined ? (
@@ -227,7 +233,7 @@ export function CoachChat({ jobs }: { jobs: Job[] }) {
           ) : (
             <ol
               className="flex max-h-[28rem] flex-col gap-3 overflow-y-auto"
-              aria-label="Conversation"
+              aria-label={t('Conversation')}
               aria-live="polite"
             >
               {(thread?.messages ?? []).map((m, i) => (
@@ -264,7 +270,7 @@ export function CoachChat({ jobs }: { jobs: Job[] }) {
             </ol>
           )}
           {(!thread || thread.messages.length === 0) && (
-            <ul className="flex flex-wrap gap-2" aria-label="Questions to start with">
+            <ul className="flex flex-wrap gap-2" aria-label={t('Questions to start with')}>
               {STARTERS.map((s) => (
                 <li key={s}>
                   <button
@@ -287,12 +293,12 @@ export function CoachChat({ jobs }: { jobs: Job[] }) {
             }}
           >
             <label className="flex flex-1 flex-col gap-1.5 text-sm font-semibold">
-              <span className="sr-only">Message to your coach</span>
+              <span className="sr-only">{t('Message to your coach')}</span>
               <textarea
                 rows={2}
                 maxLength={2000}
                 value={message}
-                placeholder="Ask anything about your CV, jobs or interviews…"
+                placeholder={t('Ask anything about your CV, jobs or interviews…')}
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
@@ -305,12 +311,12 @@ export function CoachChat({ jobs }: { jobs: Job[] }) {
             </label>
             <Button
               type="submit"
-              aria-label="Send"
+              aria-label={t('Send')}
               icon={busy === 'send' ? undefined : <Send aria-hidden size={18} />}
               loading={busy === 'send'}
               disabled={busy !== null || !message.trim()}
             >
-              Send
+              {t('Send')}
             </Button>
           </form>
         </>
@@ -326,7 +332,7 @@ export function CoachChat({ jobs }: { jobs: Job[] }) {
                 size="sm"
                 icon={<Lock aria-hidden size={14} />}
               >
-                See Premium
+                {t('See Premium')}
               </ButtonLink>
             ) : undefined
           }

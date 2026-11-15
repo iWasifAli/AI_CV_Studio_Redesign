@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useState } from 'react';
 import { Send } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
@@ -19,6 +20,7 @@ export function ContactForm({
   name: string;
   preview?: boolean;
 }) {
+  const t = useT();
   const [from, setFrom] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
@@ -35,7 +37,10 @@ export function ContactForm({
         className="bg-success-soft text-success rounded-lg p-4 font-semibold"
         data-testid="contact-sent"
       >
-        Thank you, your message is on its way. {first} will reply to {email}.
+        {t('Thank you, your message is on its way. {first} will reply to {email}.', {
+          first: first,
+          email: email,
+        })}
       </p>
     );
 
@@ -73,16 +78,18 @@ export function ContactForm({
       className="flex max-w-[560px] flex-col gap-4"
       data-testid="contact-form"
     >
-      <p className="text-ink-muted">Send {first} a message. They’ll reply by email.</p>
+      <p className="text-ink-muted">
+        {t('Send {first} a message. They’ll reply by email.', { first: first })}
+      </p>
       <TextField
-        label="Your name"
+        label={t('Your name')}
         value={from}
         maxLength={80}
         autoComplete="name"
         onChange={(e) => setFrom(e.target.value)}
       />
       <TextField
-        label="Your email"
+        label={t('Your email')}
         type="email"
         value={email}
         maxLength={200}
@@ -90,7 +97,7 @@ export function ContactForm({
         onChange={(e) => setEmail(e.target.value)}
       />
       <TextArea
-        label="Message"
+        label={t('Message')}
         value={message}
         maxLength={2000}
         rows={5}
@@ -99,7 +106,7 @@ export function ContactForm({
       {/* For robots only: hidden from people and screen readers. */}
       <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden">
         <label>
-          Website
+          {t('Website')}
           <input
             tabIndex={-1}
             autoComplete="off"
@@ -109,7 +116,7 @@ export function ContactForm({
         </label>
       </div>
       {error && (
-        <Banner tone="error" title="Not sent" onDismiss={() => setError(null)}>
+        <Banner tone="error" title={t('Not sent')} onDismiss={() => setError(null)}>
           {error}
         </Banner>
       )}
@@ -120,7 +127,7 @@ export function ContactForm({
         icon={<Send aria-hidden size={16} />}
         className="self-start"
       >
-        Send message
+        {t('Send message')}
       </Button>
     </form>
   );

@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useState } from 'react';
 import { Download, Redo2, Trash2, Undo2 } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
@@ -44,6 +45,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 export function Showcase() {
+  const tx = useT();
   const toast = useToast();
   const [tab, setTab] = useState<'content' | 'design'>('content');
   const [density, setDensity] = useState<'compact' | 'balanced' | 'airy'>('balanced');
@@ -54,13 +56,15 @@ export function Showcase() {
     <main id="main">
       <Container className="flex flex-col gap-10 py-12">
         <header className="flex flex-col gap-2">
-          <h1 className="font-display text-4xl font-semibold">Paper &amp; Ink — components</h1>
+          <h1 className="font-display text-4xl font-semibold">
+            {tx('Paper &amp; Ink — components')}
+          </h1>
           <p className="text-ink-muted">
-            Internal reference. Tokens mirror docs/ux/design-system.md.
+            {tx('Internal reference. Tokens mirror docs/ux/design-system.md.')}
           </p>
         </header>
 
-        <Section title="Colour">
+        <Section title={tx('Colour')}>
           <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
             {COLORS.map((c) => (
               <li key={c} className="flex flex-col gap-1.5 text-sm">
@@ -74,54 +78,64 @@ export function Showcase() {
           </ul>
         </Section>
 
-        <Section title="Typography">
-          <p className="font-display text-5xl font-semibold">Display — Fraunces</p>
-          <p className="font-display text-[32px] font-semibold">Page title — Fraunces 32</p>
-          <p className="text-[22px] font-semibold">Section — Figtree 22</p>
-          <p className="text-lg font-semibold">Card title — Figtree 18</p>
-          <p>Body — Figtree 16. Plain words for everyone, from drivers to directors.</p>
-          <p className="text-ink-muted text-sm">Helper — Figtree 14 muted.</p>
+        <Section title={tx('Typography')}>
+          <p className="font-display text-5xl font-semibold">{tx('Display — Fraunces')}</p>
+          <p className="font-display text-[32px] font-semibold">{tx('Page title — Fraunces 32')}</p>
+          <p className="text-[22px] font-semibold">{tx('Section — Figtree 22')}</p>
+          <p className="text-lg font-semibold">{tx('Card title — Figtree 18')}</p>
+          <p>{tx('Body — Figtree 16. Plain words for everyone, from drivers to directors.')}</p>
+          <p className="text-ink-muted text-sm">{tx('Helper — Figtree 14 muted.')}</p>
         </Section>
 
-        <Section title="Buttons">
+        <Section title={tx('Buttons')}>
           <div className="flex flex-wrap items-center gap-3">
-            <Button>Primary</Button>
-            <Button variant="secondary">Secondary</Button>
-            <Button variant="ghost">Ghost</Button>
+            <Button>{tx('Primary')}</Button>
+            <Button variant="secondary">{tx('Secondary')}</Button>
+            <Button variant="ghost">{tx('Ghost')}</Button>
             <Button variant="danger" icon={<Trash2 aria-hidden size={16} />}>
-              Delete
+              {tx('Delete')}
             </Button>
-            <Button loading loadingText="Preparing your PDF…">
-              Download PDF
+            <Button loading loadingText={tx('Preparing your PDF…')}>
+              {tx('Download PDF')}
             </Button>
-            <Button size="sm">Small</Button>
+            <Button size="sm">{tx('Small')}</Button>
             <Button size="lg" icon={<Download aria-hidden size={18} />}>
-              Large
+              {tx('Large')}
             </Button>
-            <IconButton label="Undo" icon={<Undo2 aria-hidden size={20} />} />
-            <IconButton label="Redo" variant="outlined" icon={<Redo2 aria-hidden size={20} />} />
+            <IconButton label={tx('Undo')} icon={<Undo2 aria-hidden size={20} />} />
+            <IconButton
+              label={tx('Redo')}
+              variant="outlined"
+              icon={<Redo2 aria-hidden size={20} />}
+            />
           </div>
         </Section>
 
-        <Section title="Form fields">
+        <Section title={tx('Form fields')}>
           <div className="grid max-w-2xl gap-5 sm:grid-cols-2">
-            <TextField label="Full name" placeholder="e.g. Imran Qureshi" />
+            <TextField label={tx('Full name')} placeholder={tx('e.g. Imran Qureshi')} />
             <TextField
-              label="Email"
+              label={tx('Email')}
               optional
-              hint="Employers will use this to reply."
-              placeholder="name@example.com"
+              hint={tx('Employers will use this to reply.')}
+              placeholder={tx('name@example.com')}
             />
-            <TextField label="Phone" error="This number looks too short" defaultValue="0300" />
-            <TextField label="Disabled" disabled defaultValue="Can't edit" />
+            <TextField
+              label={tx('Phone')}
+              error="This number looks too short"
+              defaultValue="0300"
+            />
+            <TextField label={tx('Disabled')} disabled defaultValue="Can't edit" />
             <TextArea
               containerClassName="sm:col-span-2"
-              label="What did you do there?"
-              hint="One thing per line. For example: Delivered 120 parcels a day across north London."
+              label={tx('What did you do there?')}
+              hint={tx(
+                'One thing per line. For example: Delivered 120 parcels a day across north London.',
+              )}
             />
           </div>
           <Segmented
-            label="Spacing"
+            label={tx('Spacing')}
             value={density}
             onChange={setDensity}
             options={[
@@ -133,7 +147,7 @@ export function Showcase() {
           />
         </Section>
 
-        <Section title="Chips and badges">
+        <Section title={tx('Chips and badges')}>
           <div className="flex flex-wrap gap-2">
             {['Customer service', 'Route planning', 'Forklift', 'First aid'].map((s) => (
               <Chip
@@ -148,34 +162,36 @@ export function Showcase() {
             ))}
           </div>
           <div className="flex flex-wrap gap-2">
-            <Badge>Neutral</Badge>
-            <Badge tone="primary">Saved</Badge>
-            <Badge tone="accent">Suggested</Badge>
-            <Badge tone="success">Ready</Badge>
-            <Badge tone="warning">Needs your input</Badge>
-            <Badge tone="danger">Error</Badge>
+            <Badge>{tx('Neutral')}</Badge>
+            <Badge tone="primary">{tx('Saved')}</Badge>
+            <Badge tone="accent">{tx('Suggested')}</Badge>
+            <Badge tone="success">{tx('Ready')}</Badge>
+            <Badge tone="warning">{tx('Needs your input')}</Badge>
+            <Badge tone="danger">{tx('Error')}</Badge>
           </div>
         </Section>
 
-        <Section title="Cards">
+        <Section title={tx('Cards')}>
           <div className="grid gap-4 sm:grid-cols-3">
             {['Calm & classic', 'Modern & clear', 'Bold sidebar'].map((t, i) => (
               <SelectableCard key={t} selected={selected === i} onClick={() => setSelected(i)}>
                 <span className="font-semibold">{t}</span>
-                <span className="text-ink-muted text-sm">A short description of the style.</span>
+                <span className="text-ink-muted text-sm">
+                  {tx('A short description of the style.')}
+                </span>
               </SelectableCard>
             ))}
           </div>
           <Card className="max-w-md p-5">
-            <p className="font-semibold">Static card</p>
-            <p className="text-ink-muted text-sm">Used for grouped content.</p>
+            <p className="font-semibold">{tx('Static card')}</p>
+            <p className="text-ink-muted text-sm">{tx('Used for grouped content.')}</p>
           </Card>
         </Section>
 
-        <Section title="Tabs and stepper">
+        <Section title={tx('Tabs and stepper')}>
           <div className="max-w-md">
             <Tabs
-              label="Editor"
+              label={tx('Editor')}
               idBase="ds-tabs"
               value={tab}
               onChange={setTab}
@@ -194,27 +210,27 @@ export function Showcase() {
             </div>
           </div>
           <div className="max-w-md">
-            <Stepper current={2} total={6} label="Work history" />
+            <Stepper current={2} total={6} label={tx('Work history')} />
           </div>
         </Section>
 
-        <Section title="Feedback">
+        <Section title={tx('Feedback')}>
           <div className="flex max-w-2xl flex-col gap-3">
-            <Banner tone="info" title="Saved on this device">
-              Download a backup to keep your CVs safe.
+            <Banner tone="info" title={tx('Saved on this device')}>
+              {tx('Download a backup to keep your CVs safe.')}
             </Banner>
-            <Banner tone="success" title="Your CV is ready" />
-            <Banner tone="warning" title="2 details need your input" />
+            <Banner tone="success" title={tx('Your CV is ready')} />
+            <Banner tone="warning" title={tx('2 details need your input')} />
             <Banner
               tone="error"
-              title="We couldn't create the PDF"
+              title={tx("We couldn't create the PDF")}
               action={
                 <Button size="sm" variant="secondary">
-                  Try again
+                  {tx('Try again')}
                 </Button>
               }
             >
-              You can also use Print to save it as a PDF.
+              {tx('You can also use Print to save it as a PDF.')}
             </Banner>
           </div>
           <div className="flex gap-3">
@@ -222,7 +238,7 @@ export function Showcase() {
               variant="secondary"
               onClick={() => toast.show({ message: 'Saved', tone: 'success' })}
             >
-              Show toast
+              {tx('Show toast')}
             </Button>
             <Button
               variant="secondary"
@@ -233,7 +249,7 @@ export function Showcase() {
                 })
               }
             >
-              Toast with undo
+              {tx('Toast with undo')}
             </Button>
           </div>
           <div className="flex max-w-md flex-col gap-2">

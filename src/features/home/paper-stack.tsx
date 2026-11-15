@@ -1,3 +1,6 @@
+'use client';
+
+import { useT } from '@/i18n/client';
 /**
  * Decorative hero illustration: three miniature CV pages in different styles.
  * Purely visual (aria-hidden). Replaced by real rendered template thumbnails in Phase 2.
@@ -28,14 +31,15 @@ function Bullets({ rows }: { rows: string[] }) {
 }
 
 function ClarityMini() {
+  const tx = useT();
   return (
     <div className="flex h-full flex-col gap-4 p-6">
       <div className="flex flex-col gap-2">
         <div className="font-[Georgia,serif] text-[17px] leading-none font-semibold text-[#1b2a4a]">
-          Imran Qureshi
+          {tx('Imran Qureshi')}
         </div>
         <div className="text-[9px] font-semibold tracking-wide text-[#2a5db0] uppercase">
-          Delivery Driver
+          {tx('Delivery Driver')}
         </div>
         <Line w="70%" h="h-[4px]" />
       </div>
@@ -52,12 +56,15 @@ function ClarityMini() {
 }
 
 function MeridianMini() {
+  const tx = useT();
   return (
     <div className="grid h-full grid-cols-[1fr_38%]">
       <div className="flex flex-col gap-4 p-5">
         <div className="flex flex-col gap-1.5">
-          <div className="text-[16px] leading-none font-bold text-[#163b37]">Grace Mensah</div>
-          <div className="text-[8.5px] text-[#4b6b67]">Primary School Teacher</div>
+          <div className="text-[16px] leading-none font-bold text-[#163b37]">
+            {tx('Grace Mensah')}
+          </div>
+          <div className="text-[8.5px] text-[#4b6b67]">{tx('Primary School Teacher')}</div>
         </div>
         {[0, 1].map((k) => (
           <div key={k} className="flex flex-col gap-2">
@@ -86,14 +93,15 @@ function MeridianMini() {
 }
 
 function HeritageMini() {
+  const tx = useT();
   return (
     <div className="flex h-full flex-col items-center gap-4 p-6">
       <div className="flex flex-col items-center gap-1.5">
         <div className="font-[Georgia,serif] text-[18px] leading-none tracking-wide text-[#2b2620]">
-          Robert Hale
+          {tx('Robert Hale')}
         </div>
         <div className="text-[7.5px] tracking-[0.2em] text-[#8a6a3a] uppercase">
-          Operations Director
+          {tx('Operations Director')}
         </div>
       </div>
       <div className="h-px w-1/2 bg-[#c8b48f]" />

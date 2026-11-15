@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { HeaderPicture, HeadingPicture, LayoutPicture } from './studio-pictures';
 import { type ReactNode, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Bookmark, Minimize2, RotateCcw, ShieldCheck, Trash2 } from 'lucide-react';
@@ -230,6 +231,7 @@ export function DesignStudio({
   editor: DocumentEditor;
   status: PreviewStatus | null;
 }) {
+  const tx = useT();
   const { doc, update } = editor;
   const account = useAccount();
   const spec = useMemo(() => doc.design.v2 ?? migrateV1(doc.design), [doc.design]);
@@ -404,7 +406,7 @@ export function DesignStudio({
     <section aria-labelledby="studio-h" className="flex flex-col gap-4" data-testid="design-studio">
       <div>
         <h3 id="studio-h" className="text-[17px] font-semibold">
-          Design Studio
+          {tx('Design Studio')}
         </h3>
         <p className="text-ink-muted text-sm" data-testid="studio-base">
           {spec.atsSafe
@@ -417,12 +419,12 @@ export function DesignStudio({
 
       <div className="flex flex-wrap items-center gap-2">
         <Toggle
-          label="ATS-safe version"
+          label={tx('ATS-safe version')}
           checked={spec.atsSafe}
           onChange={(v) => edit((s) => void (s.atsSafe = v), { keepBase: true })}
         />
         <Segmented
-          label="Page target"
+          label={tx('Page target')}
           value={String(target) as '1' | '2' | '0'}
           onChange={(v) => {
             setTarget(Number(v) as PageTarget);
@@ -453,7 +455,7 @@ export function DesignStudio({
             icon={<RotateCcw aria-hidden size={16} />}
             onClick={() => update((x) => ops.useDesign(x, baseId))}
           >
-            Back to {base.name}
+            {tx('Back to {name}', { name: base.name })}
           </Button>
         )}
       </div>
@@ -470,14 +472,14 @@ export function DesignStudio({
         <ul
           className="flex flex-col gap-1.5 text-sm"
           data-testid="fit-cuts"
-          aria-label="Ideas to save space"
+          aria-label={tx('Ideas to save space')}
         >
           {cuts.map((c) => (
             <li key={c.key} className="flex flex-wrap items-center justify-between gap-2">
               <span>{c.label}</span>
               {c.apply && (
                 <Button size="sm" variant="ghost" onClick={() => applyCut(c)}>
-                  Do this
+                  {tx('Do this')}
                 </Button>
               )}
             </li>
@@ -487,7 +489,7 @@ export function DesignStudio({
       {spec.atsSafe && (
         <p className="text-ink-muted flex items-start gap-1.5 text-sm">
           <ShieldCheck aria-hidden size={16} className="text-primary mt-0.5 shrink-0" />
-          Your other choices are kept. Untick to go back to them.
+          {tx('Your other choices are kept. Untick to go back to them.')}
         </p>
       )}
       {notes.length > 0 && (
@@ -498,9 +500,9 @@ export function DesignStudio({
         </ul>
       )}
 
-      <Group title="Layout" open>
+      <Group title={tx('Layout')} open>
         <Choice
-          label="Columns"
+          label={tx('Columns')}
           value={spec.layout.type}
           options={opts(LAYOUTS, LAYOUT_LABEL)}
           onChange={(v) => edit((s) => void (s.layout.type = v))}
@@ -509,7 +511,7 @@ export function DesignStudio({
         {sideLayout && (
           <>
             <Choice
-              label="Side column colour"
+              label={tx('Side column colour')}
               value={spec.layout.sideFill}
               options={opts(['none', 'tint', 'solid', 'deep'] as const, {
                 none: 'None',
@@ -520,12 +522,12 @@ export function DesignStudio({
               onChange={(v) => edit((s) => void (s.layout.sideFill = v))}
             />
             <Toggle
-              label="Colour runs to the page edge"
+              label={tx('Colour runs to the page edge')}
               checked={spec.layout.sideBleed}
               onChange={(v) => edit((s) => void (s.layout.sideBleed = v))}
             />
             <Toggle
-              label="Keep the side column on every page"
+              label={tx('Keep the side column on every page')}
               checked={spec.layout.continuation === 'keep-columns'}
               onChange={(v) =>
                 edit((s) => void (s.layout.continuation = v ? 'keep-columns' : 'full-width'))
@@ -535,9 +537,9 @@ export function DesignStudio({
         )}
       </Group>
 
-      <Group title="Header">
+      <Group title={tx('Header')}>
         <Choice
-          label="Style"
+          label={tx('Style')}
           value={spec.header.style}
           options={opts(HEADER_STYLES, {
             band: 'Colour band',
@@ -548,14 +550,14 @@ export function DesignStudio({
         />
         {(spec.header.style === 'band' || spec.header.style === 'in-sidebar') && (
           <Choice
-            label="Band"
+            label={tx('Band')}
             value={spec.header.band}
             options={opts(['solid', 'gradient', 'angled'] as const)}
             onChange={(v) => edit((s) => void (s.header.band = v))}
           />
         )}
         <Choice
-          label="Name size"
+          label={tx('Name size')}
           value={spec.header.name.size}
           options={opts(['S', 'M', 'L', 'XL'] as const, {
             S: 'Small',
@@ -566,7 +568,7 @@ export function DesignStudio({
           onChange={(v) => edit((s) => void (s.header.name.size = v))}
         />
         <Choice
-          label="Name letters"
+          label={tx('Name letters')}
           value={spec.header.name.case}
           options={opts(['normal', 'upper', 'small-caps'] as const, {
             upper: 'Capitals',
@@ -575,12 +577,12 @@ export function DesignStudio({
           onChange={(v) => edit((s) => void (s.header.name.case = v))}
         />
         <Toggle
-          label="Surname in the accent colour"
+          label={tx('Surname in the accent colour')}
           checked={spec.header.name.twoTone}
           onChange={(v) => edit((s) => void (s.header.name.twoTone = v))}
         />
         <Choice
-          label="Contact details"
+          label={tx('Contact details')}
           value={spec.header.contact.layout}
           options={opts(['inline', 'stacked', 'grid-2'] as const, {
             inline: 'In a row',
@@ -590,20 +592,20 @@ export function DesignStudio({
           onChange={(v) => edit((s) => void (s.header.contact.layout = v))}
         />
         <Toggle
-          label="Icons for phone, email and links"
+          label={tx('Icons for phone, email and links')}
           checked={spec.header.contact.icons}
           onChange={(v) => edit((s) => void (s.header.contact.icons = v))}
         />
         {doc.basics.photo && (
           <>
             <Choice
-              label="Photo shape"
+              label={tx('Photo shape')}
               value={spec.header.photo.shape}
               options={opts(['circle', 'rounded', 'square'] as const)}
               onChange={(v) => edit((s) => void (s.header.photo.shape = v))}
             />
             <Choice
-              label="Photo position"
+              label={tx('Photo position')}
               value={spec.header.photo.position}
               options={opts(['header-left', 'header-right', 'side-top', 'overlap'] as const, {
                 'header-left': 'Left',
@@ -617,9 +619,9 @@ export function DesignStudio({
         )}
       </Group>
 
-      <Group title="Colours">
+      <Group title={tx('Colours')}>
         <Choice
-          label="Colour use"
+          label={tx('Colour use')}
           value={spec.color.mode}
           options={opts(['mono', 'accent', 'duo'] as const, {
             mono: 'Black and white',
@@ -643,26 +645,26 @@ export function DesignStudio({
               }
               className="size-9 cursor-pointer rounded-full border-0 bg-transparent p-0"
             />
-            Second colour (headings)
+            {tx('Second colour (headings)')}
           </label>
         )}
         <Choice
-          label="Text colour"
+          label={tx('Text colour')}
           value={spec.color.ink}
           options={opts(INKS)}
           onChange={(v) => edit((s) => void (s.color.ink = v))}
         />
         <Choice
-          label="Paper"
+          label={tx('Paper')}
           value={spec.page.background}
           options={opts(BACKGROUNDS, { tint: 'Tinted' })}
           onChange={(v) => edit((s) => void (s.page.background = v))}
         />
       </Group>
 
-      <Group title="Headings">
+      <Group title={tx('Headings')}>
         <Choice
-          label="Style"
+          label={tx('Style')}
           value={spec.headings.style}
           options={opts(HEADING_STYLES, {
             'rule-after': 'Line after',
@@ -673,7 +675,7 @@ export function DesignStudio({
           picture={(v) => <HeadingPicture value={v} />}
         />
         <Choice
-          label="Letters"
+          label={tx('Letters')}
           value={spec.headings.case}
           options={opts(['normal', 'upper', 'small-caps'] as const, {
             upper: 'Capitals',
@@ -682,27 +684,27 @@ export function DesignStudio({
           onChange={(v) => edit((s) => void (s.headings.case = v))}
         />
         <Choice
-          label="Colour"
+          label={tx('Colour')}
           value={spec.headings.color}
           options={opts(['accent', 'ink'] as const, { accent: 'Accent', ink: 'Text colour' })}
           onChange={(v) => edit((s) => void (s.headings.color = v))}
         />
         <Toggle
-          label="Icons next to headings"
+          label={tx('Icons next to headings')}
           checked={spec.icons.sections}
           onChange={(v) => edit((s) => void (s.icons.sections = v))}
         />
       </Group>
 
-      <Group title="Bullets, dates and skills">
+      <Group title={tx('Bullets, dates and skills')}>
         <Choice
-          label="Bullets"
+          label={tx('Bullets')}
           value={spec.bullets.marker}
           options={opts(MARKERS)}
           onChange={(v) => edit((s) => void (s.bullets.marker = v))}
         />
         <Choice
-          label="Dates"
+          label={tx('Dates')}
           value={spec.entries.layout}
           options={opts(ENTRY_LAYOUTS, {
             'dates-right': 'On the right',
@@ -713,13 +715,13 @@ export function DesignStudio({
           onChange={(v) => edit((s) => void (s.entries.layout = v))}
         />
         <Choice
-          label="Date style"
+          label={tx('Date style')}
           value={spec.entries.dateFormat}
           options={opts(DATE_FORMATS)}
           onChange={(v) => edit((s) => void (s.entries.dateFormat = v))}
         />
         <Choice
-          label="Job lines start with"
+          label={tx('Job lines start with')}
           value={spec.entries.lead}
           options={opts(['role', 'organisation'] as const, {
             role: 'Job title',
@@ -728,7 +730,7 @@ export function DesignStudio({
           onChange={(v) => edit((s) => void (s.entries.lead = v))}
         />
         <Choice
-          label="Skills"
+          label={tx('Skills')}
           value={spec.lists.skills.style}
           options={opts(['tags', 'inline', 'columns', 'grouped-list'] as const, {
             tags: 'Labels',
@@ -742,7 +744,7 @@ export function DesignStudio({
           }
         />
         <Choice
-          label="Short items per row (languages, certificates, licences)"
+          label={tx('Short items per row (languages, certificates, licences)')}
           value={spec.lists.compactColumns}
           options={[
             { value: 1 as const, label: 'One' },
@@ -753,9 +755,9 @@ export function DesignStudio({
         />
       </Group>
 
-      <Group title="Spacing and lines">
+      <Group title={tx('Spacing and lines')}>
         <Choice
-          label="Sections"
+          label={tx('Sections')}
           value={spec.sections.container}
           options={opts(CONTAINERS, {
             none: 'Plain',
@@ -766,16 +768,16 @@ export function DesignStudio({
           onChange={(v) => edit((s) => void (s.sections.container = v))}
         />
         <Choice
-          label="Between sections"
+          label={tx('Between sections')}
           value={spec.sections.divider}
           options={opts(DIVIDERS, { 'accent-line': 'Coloured line', space: 'Extra space' })}
           onChange={(v) => edit((s) => void (s.sections.divider = v))}
         />
       </Group>
 
-      <Group title="Extras">
+      <Group title={tx('Extras')}>
         <Choice
-          label="Decoration"
+          label={tx('Decoration')}
           value={
             spec.decor.kind.startsWith('signature:')
               ? 'none'
@@ -791,17 +793,17 @@ export function DesignStudio({
           onChange={(v) => edit((s) => void (s.decor.kind = v))}
         />
         <Toggle
-          label="Page numbers"
+          label={tx('Page numbers')}
           checked={spec.furniture.pageNumbers}
           onChange={(v) => edit((s) => void (s.furniture.pageNumbers = v))}
         />
         <Toggle
-          label="My name at the top of later pages"
+          label={tx('My name at the top of later pages')}
           checked={spec.furniture.runningHeader}
           onChange={(v) => edit((s) => void (s.furniture.runningHeader = v))}
         />
         <Choice
-          label="QR code"
+          label={tx('QR code')}
           value={spec.extras.qr}
           options={opts(['none', 'portfolio', 'linkedin'] as const, {
             portfolio: 'My website',
@@ -810,15 +812,15 @@ export function DesignStudio({
           onChange={(v) => edit((s) => void (s.extras.qr = v))}
         />
         <Toggle
-          label="“References available on request”"
+          label={tx('“References available on request”')}
           checked={spec.extras.referencesLine}
           onChange={(v) => edit((s) => void (s.extras.referencesLine = v))}
         />
       </Group>
 
-      <Group title="Fine-tune">
+      <Group title={tx('Fine-tune')}>
         <Slider
-          label="Page margin"
+          label={tx('Page margin')}
           unit=" mm"
           min={10}
           max={22}
@@ -827,7 +829,7 @@ export function DesignStudio({
           onChange={(v) => edit((s) => void (s.page.marginMm = v), { key: 'studio.margin' })}
         />
         <Slider
-          label="Text size"
+          label={tx('Text size')}
           unit=" pt"
           min={9.5}
           max={12}
@@ -836,7 +838,7 @@ export function DesignStudio({
           onChange={(v) => edit((s) => void (s.type.basePt = v), { key: 'studio.size' })}
         />
         <Slider
-          label="Line spacing"
+          label={tx('Line spacing')}
           unit=""
           min={1.3}
           max={1.6}
@@ -845,7 +847,7 @@ export function DesignStudio({
           onChange={(v) => edit((s) => void (s.type.lineHeight = v), { key: 'studio.lh' })}
         />
         <Slider
-          label="Space between sections"
+          label={tx('Space between sections')}
           unit=" pt"
           min={6}
           max={28}
@@ -854,7 +856,7 @@ export function DesignStudio({
           onChange={(v) => edit((s) => void (s.spacing.sectionGapPt = v), { key: 'studio.sgap' })}
         />
         <Slider
-          label="Space between entries"
+          label={tx('Space between entries')}
           unit=" pt"
           min={3}
           max={18}
@@ -864,7 +866,7 @@ export function DesignStudio({
         />
         {sideLayout && (
           <Slider
-            label="Side column width"
+            label={tx('Side column width')}
             unit="%"
             min={spec.layout.type === 'rails' ? 20 : 24}
             max={spec.layout.type === 'rails' ? 27 : 40}
@@ -875,7 +877,7 @@ export function DesignStudio({
         )}
         {sideLayout && placeKinds.length > 0 && (
           <div className="flex flex-col gap-2" data-testid="placement">
-            <p className="text-sm font-semibold">Where sections go</p>
+            <p className="text-sm font-semibold">{tx('Where sections go')}</p>
             {placeKinds.map((k) => {
               const where = spec.placement.side.includes(k)
                 ? 'side'
@@ -897,9 +899,11 @@ export function DesignStudio({
                       })
                     }
                   >
-                    <option value="main">Main column</option>
-                    <option value="side">Side column</option>
-                    {spec.layout.type === 'rails' && <option value="third">Right column</option>}
+                    <option value="main">{tx('Main column')}</option>
+                    <option value="side">{tx('Side column')}</option>
+                    {spec.layout.type === 'rails' && (
+                      <option value="third">{tx('Right column')}</option>
+                    )}
                   </select>
                 </label>
               );
@@ -909,16 +913,18 @@ export function DesignStudio({
       </Group>
 
       <div className="border-line flex flex-col gap-2 border-t pt-4">
-        <p className="font-semibold">My designs</p>
+        <p className="font-semibold">{tx('My designs')}</p>
         {!signedIn ? (
-          <p className="text-ink-muted text-sm">Sign in to save designs and use them on any CV.</p>
+          <p className="text-ink-muted text-sm">
+            {tx('Sign in to save designs and use them on any CV.')}
+          </p>
         ) : (
           <>
             <div className="flex gap-2">
               <input
                 className="border-line-strong bg-surface h-10 min-w-0 flex-1 rounded-md border px-3 text-sm"
-                placeholder="Name this design"
-                aria-label="Design name"
+                placeholder={tx('Name this design')}
+                aria-label={tx('Design name')}
                 value={name}
                 maxLength={60}
                 onChange={(e) => setName(e.target.value)}
@@ -929,7 +935,7 @@ export function DesignStudio({
                 onClick={() => void save()}
                 disabled={!name.trim()}
               >
-                Save as my design
+                {tx('Save as my design')}
               </Button>
             </div>
             {saveMsg && (
@@ -946,7 +952,7 @@ export function DesignStudio({
                       className="text-primary min-h-9 font-semibold hover:underline"
                       onClick={() => update((x) => ops.setSpec(x, d.spec))}
                     >
-                      Use “{d.name}”
+                      {tx('Use “{name}”', { name: d.name })}
                     </button>
                     {community && (
                       <ShareDesign design={d} onShared={() => setShareTick((t) => t + 1)} />

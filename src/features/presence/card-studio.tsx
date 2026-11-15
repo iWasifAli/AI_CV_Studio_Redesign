@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useEffect, useMemo, useState } from 'react';
 import { Copy, Download } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
@@ -21,6 +22,7 @@ import { getRepository } from '@/modules/storage/repository';
 
 /** Email signature and business card (spec §10.1), from one of the person's CVs. */
 export function CardStudio() {
+  const tx = useT();
   const account = useAccount();
   const toast = useToast();
   const [docs, setDocs] = useState<{ id: string; title: string }[]>([]);
@@ -82,16 +84,16 @@ export function CardStudio() {
 
   if (account.status === 'signedOut')
     return (
-      <Banner tone="info" title="Sign in to make your signature and card" className="mt-6">
+      <Banner tone="info" title={tx('Sign in to make your signature and card')} className="mt-6">
         <ButtonLink size="sm" href="/signin?next=/presence/card">
-          Sign in
+          {tx('Sign in')}
         </ButtonLink>
       </Banner>
     );
   if (!docs.length)
     return (
       <p className="text-ink-muted mt-6">
-        Make a CV first — the signature and card use its details and design.
+        {tx('Make a CV first — the signature and card use its details and design.')}
       </p>
     );
 
@@ -144,7 +146,7 @@ export function CardStudio() {
     <div className="mt-6 grid gap-8 lg:grid-cols-[18rem_1fr]">
       <div className="flex flex-col gap-3" data-testid="card-options">
         <label className="flex flex-col gap-1.5 text-sm font-semibold">
-          Details from
+          {tx('Details from')}
           <select
             className="border-line-strong bg-surface min-h-11 rounded-md border px-3 text-[15px] font-normal"
             value={docId}
@@ -158,28 +160,28 @@ export function CardStudio() {
           </select>
         </label>
         <CheckboxField
-          label="Phone"
+          label={tx('Phone')}
           checked={opts.phone}
           onChange={(v) => setOpts({ ...opts, phone: v })}
         />
         <CheckboxField
-          label="Email"
+          label={tx('Email')}
           checked={opts.email}
           onChange={(v) => setOpts({ ...opts, email: v })}
         />
         <CheckboxField
-          label="Town or city"
+          label={tx('Town or city')}
           checked={opts.location}
           onChange={(v) => setOpts({ ...opts, location: v })}
         />
         <CheckboxField
-          label="Links from your CV"
+          label={tx('Links from your CV')}
           checked={opts.links}
           onChange={(v) => setOpts({ ...opts, links: v })}
         />
         <TextField
-          label="Your page (for the QR code)"
-          hint="Your portfolio page or a share link, starting with https://"
+          label={tx('Your page (for the QR code)')}
+          hint={tx('Your portfolio page or a share link, starting with https://')}
           optional
           value={opts.url}
           error={urlOk ? undefined : 'Use a full link starting with https://'}
@@ -189,7 +191,7 @@ export function CardStudio() {
       <div className="flex flex-col gap-8">
         <section aria-labelledby="sig-h" className="flex flex-col gap-3">
           <h2 id="sig-h" className="text-xl font-semibold">
-            Email signature
+            {tx('Email signature')}
           </h2>
           <div
             className="border-line bg-surface rounded-lg border p-5"
@@ -199,20 +201,21 @@ export function CardStudio() {
           />
           <div className="flex flex-wrap gap-2">
             <Button icon={<Copy aria-hidden size={18} />} onClick={copySignature}>
-              Copy signature
+              {tx('Copy signature')}
             </Button>
           </div>
           <p className="text-ink-muted text-sm">
-            Gmail: Settings → See all settings → Signature → paste. Outlook: Settings → Mail →
-            Compose and reply → Email signature → paste.
+            {tx(
+              'Gmail: Settings → See all settings → Signature → paste. Outlook: Settings → Mail → Compose and reply → Email signature → paste.',
+            )}
           </p>
         </section>
         <section aria-labelledby="card-h" className="flex flex-col gap-3">
           <h2 id="card-h" className="text-xl font-semibold">
-            Business card
+            {tx('Business card')}
           </h2>
           <iframe
-            title="Business card preview, front and back"
+            title={tx('Business card preview, front and back')}
             className="border-line h-[330px] w-full max-w-[520px] rounded-lg border bg-[#eef0f2]"
             sandbox="allow-scripts"
             srcDoc={card}
@@ -227,10 +230,10 @@ export function CardStudio() {
             disabled={!urlOk}
             onClick={download}
           >
-            Download the card (PDF)
+            {tx('Download the card (PDF)')}
           </Button>
           <p className="text-ink-muted text-sm">
-            85 × 55 mm, front and back. Print shops can print straight from the PDF.
+            {tx('85 × 55 mm, front and back. Print shops can print straight from the PDF.')}
           </p>
         </section>
       </div>

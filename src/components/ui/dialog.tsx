@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useEffect, useRef, type ReactNode } from 'react';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/cn';
@@ -23,6 +24,7 @@ export function Dialog({
   className?: string;
   hideTitle?: boolean;
 }) {
+  const t = useT();
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     const d = ref.current;
@@ -58,7 +60,7 @@ export function Dialog({
             <button
               type="button"
               onClick={onClose}
-              aria-label="Close"
+              aria-label={t('Close')}
               className="text-ink-muted hover:bg-sunken -m-1 ml-auto inline-flex size-10 items-center justify-center rounded-md"
             >
               <X aria-hidden size={20} />

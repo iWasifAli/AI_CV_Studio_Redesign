@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { AiDocProvider } from '@/features/ai/context';
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -31,7 +32,8 @@ export function PreviewStatusLine({
   status: PreviewStatus | null;
   onCompact?: () => void;
 }) {
-  if (!status) return <p className="text-ink-muted h-6 text-sm">Preparing preview…</p>;
+  const tx = useT();
+  if (!status) return <p className="text-ink-muted h-6 text-sm">{tx('Preparing preview…')}</p>;
   return (
     <div
       className="text-ink-muted flex min-h-6 flex-wrap items-center gap-x-3 gap-y-1 text-sm"
@@ -42,13 +44,13 @@ export function PreviewStatusLine({
       </span>
       {status.nearlyFits && onCompact && (
         <span>
-          · Only a little runs onto page 2.{' '}
+          {tx('· Only a little runs onto page 2.{v}', { v: ' ' })}
           <button
             type="button"
             onClick={onCompact}
             className="text-primary font-semibold underline underline-offset-4"
           >
-            Fit on one page
+            {tx('Fit on one page')}
           </button>
         </span>
       )}
@@ -57,6 +59,7 @@ export function PreviewStatusLine({
 }
 
 export function EditorScreen({ initial }: { initial: ResumeDocument }) {
+  const tx = useT();
   const editor = useDocumentEditor(initial);
   const { doc, update } = editor;
   const signedIn = useAccount().status === 'signedIn';
@@ -128,7 +131,7 @@ export function EditorScreen({ initial }: { initial: ResumeDocument }) {
       className="sm:h-11 sm:px-4"
       icon={<Download aria-hidden size={18} />}
     >
-      Download
+      {tx('Download')}
     </ButtonLink>
   );
 
@@ -157,7 +160,7 @@ export function EditorScreen({ initial }: { initial: ResumeDocument }) {
           >
             <div className="bg-paper/95 sticky top-0 z-10 hidden px-5 pt-3 backdrop-blur lg:block">
               <Tabs
-                label="Edit your CV"
+                label={tx('Edit your CV')}
                 idBase="editor"
                 value={panelTab}
                 onChange={(v) => setView(v)}
@@ -177,28 +180,30 @@ export function EditorScreen({ initial }: { initial: ResumeDocument }) {
               {doc.role === 'profile' && (
                 <Banner
                   tone="info"
-                  title="This is your career profile"
+                  title={tx('This is your career profile')}
                   className="mb-4"
                   action={
                     <ButtonLink href="/documents" size="sm" variant="secondary">
-                      Make a CV from it
+                      {tx('Make a CV from it')}
                     </ButtonLink>
                   }
                 >
-                  Keep all your experience here — even things you leave off some CVs. New and
-                  tailored CVs are copies of it, so update facts here first.
+                  {tx(
+                    'Keep all your experience here — even things you leave off some CVs. New and tailored CVs are copies of it, so update facts here first.',
+                  )}
                 </Banner>
               )}
               <ProfileSyncBanner doc={doc} />
               {welcome && doc.role !== 'profile' && (
                 <Banner
                   tone="success"
-                  title="Your CV is ready"
+                  title={tx('Your CV is ready')}
                   onDismiss={() => setWelcome(false)}
                   className="mb-4"
                 >
-                  Check the preview, change anything you like, then download it. Everything saves
-                  automatically.
+                  {tx(
+                    'Check the preview, change anything you like, then download it. Everything saves automatically.',
+                  )}
                 </Banner>
               )}
               {panelTab === 'content' ? (
@@ -221,7 +226,7 @@ export function EditorScreen({ initial }: { initial: ResumeDocument }) {
           </main>
 
           <section
-            aria-label="Preview"
+            aria-label={tx('Preview')}
             className={cn(
               'bg-sunken min-h-0 flex-1 overflow-y-auto px-4 pt-4 pb-24 lg:block lg:px-10 lg:pt-6 lg:pb-10',
               view === 'preview' ? 'block' : 'hidden',
@@ -238,14 +243,14 @@ export function EditorScreen({ initial }: { initial: ResumeDocument }) {
                 onSelect={onSelect}
                 inlineEdit={inlineEdit}
                 onMove={onMove}
-                title="Preview of your CV. Click any part to edit it."
+                title={tx('Preview of your CV. Click any part to edit it.')}
               />
             </div>
           </section>
         </div>
 
         <nav
-          aria-label="Editor views"
+          aria-label={tx('Editor views')}
           className="border-line bg-surface fixed inset-x-0 bottom-0 z-20 grid grid-cols-4 border-t pb-[env(safe-area-inset-bottom)] lg:hidden"
         >
           {(

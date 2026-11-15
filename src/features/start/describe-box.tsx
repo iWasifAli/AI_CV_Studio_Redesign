@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useId, useState } from 'react';
 import { Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,7 @@ import { callAi, useAi } from '@/features/ai/client';
 
 /** "Describe what you need" on the Start page. Creates the CV directly from the AI's choice. */
 export function DescribeBox({ onCreate }: { onCreate: (href: string) => void }) {
+  const t = useT();
   const ai = useAi();
   const id = useId();
   const [text, setText] = useState('');
@@ -43,7 +45,7 @@ export function DescribeBox({ onCreate }: { onCreate: (href: string) => void }) 
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 id={id} className="text-[19px] font-semibold">
-          Describe what you need
+          {t('Describe what you need')}
         </h2>
         <AiBadge demo={ai.demo} />
       </div>
@@ -55,14 +57,14 @@ export function DescribeBox({ onCreate }: { onCreate: (href: string) => void }) 
         }}
       >
         <label htmlFor={`${id}-in`} className="sr-only">
-          Describe the CV you need
+          {t('Describe the CV you need')}
         </label>
         <input
           id={`${id}-in`}
           value={text}
           maxLength={600}
           onChange={(e) => setText(e.target.value)}
-          placeholder="e.g. A simple CV for a delivery driver"
+          placeholder={t('e.g. A simple CV for a delivery driver')}
           className="border-line-strong bg-surface focus-visible:border-primary focus-visible:ring-primary/25 h-12 min-w-0 flex-1 rounded-sm border px-3 text-base focus-visible:ring-3 focus-visible:outline-none"
         />
         <Button
@@ -70,10 +72,10 @@ export function DescribeBox({ onCreate }: { onCreate: (href: string) => void }) 
           size="lg"
           icon={<Sparkles aria-hidden size={18} />}
           loading={busy}
-          loadingText="Setting up…"
+          loadingText={t('Setting up…')}
           disabled={text.trim().length < 3}
         >
-          Create my CV
+          {t('Create my CV')}
         </Button>
       </form>
       {error ? (
@@ -82,8 +84,9 @@ export function DescribeBox({ onCreate }: { onCreate: (href: string) => void }) 
         </p>
       ) : (
         <p className="text-ink-muted text-sm">
-          Say what job you want and any style you like. We set up the right sections and a matching
-          design — you can change everything later.
+          {t(
+            'Say what job you want and any style you like. We set up the right sections and a matching design — you can change everything later.',
+          )}
         </p>
       )}
     </section>

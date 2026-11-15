@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { Check, Hash } from 'lucide-react';
@@ -53,6 +54,7 @@ export function QuantifyPanel({
   onShow: (ref: string) => void;
   apply: (fn: (d: ResumeDocument) => ResumeDocument) => void;
 }) {
+  const t = useT();
   const account = useAccount();
   const { ent, refresh } = useEntitlements();
   const points = useMemo(() => unmeasured(doc), [doc]);
@@ -120,11 +122,12 @@ export function QuantifyPanel({
     >
       <div>
         <h2 id="quant-h" className="flex items-center gap-2 font-semibold">
-          <Hash aria-hidden size={18} className="text-primary" /> Add numbers to your points
+          <Hash aria-hidden size={18} className="text-primary" /> {t('Add numbers to your points')}
         </h2>
         <p className="text-ink-muted text-sm">
-          Points with a number (how many, how often, what changed) stand out. We ask; you answer
-          with what’s true; only your answer is added.
+          {t(
+            'Points with a number (how many, how often, what changed) stand out. We ask; you answer with what’s true; only your answer is added.',
+          )}
         </p>
       </div>
       {points.length === 0 ? (
@@ -139,23 +142,23 @@ export function QuantifyPanel({
             href={`/signin?next=/cv/${doc.id}?tab=check`}
             className="text-primary font-semibold"
           >
-            Sign in
+            {t('Sign in')}
           </Link>{' '}
-          to get questions for your points.
+          {t('to get questions for your points.')}
         </p>
       ) : premiumOnly ? (
         <p className="text-ink-muted text-sm" data-testid="quantify-premium">
-          {points.length} {points.length === 1 ? 'point has' : 'points have'} no number. Questions
-          that help are part of{' '}
+          {points.length} {points.length === 1 ? 'point has' : 'points have'}{' '}
+          {t('no number. Questions that help are part of{v}', { v: ' ' })}
           <Link href="/premium" className="text-primary font-semibold">
-            Premium
+            {t('Premium')}
           </Link>
           .
         </p>
       ) : (
         <>
           <p className="text-sm font-semibold">
-            {points.length} {points.length === 1 ? 'point has' : 'points have'} no number
+            {points.length} {points.length === 1 ? 'point has' : 'points have'} {t('no number')}
           </p>
           {problem && (
             <Banner
@@ -165,7 +168,7 @@ export function QuantifyPanel({
               action={
                 problem.premium ? (
                   <ButtonLink href="/premium" size="sm">
-                    See Premium
+                    {t('See Premium')}
                   </ButtonLink>
                 ) : undefined
               }
@@ -185,10 +188,10 @@ export function QuantifyPanel({
                   {(st.kind === 'idle' || st.kind === 'asking') && (
                     <div className="flex flex-wrap gap-2">
                       <Button size="sm" loading={st.kind === 'asking'} onClick={() => void ask(p)}>
-                        Ask me
+                        {t('Ask me')}
                       </Button>
                       <Button size="sm" variant="ghost" onClick={() => onShow(p.ref)}>
-                        Show me
+                        {t('Show me')}
                       </Button>
                     </div>
                   )}
@@ -218,7 +221,7 @@ export function QuantifyPanel({
                         </label>
                       ))}
                       <p className="text-ink-muted text-xs">
-                        Only answer what’s true. Leave a question empty if you don’t know.
+                        {t('Only answer what’s true. Leave a question empty if you don’t know.')}
                       </p>
                       <div className="flex flex-wrap gap-2">
                         <Button
@@ -227,7 +230,7 @@ export function QuantifyPanel({
                           loading={st.kind === 'adding'}
                           disabled={!st.answers.some((a) => a.trim())}
                         >
-                          Add to my point
+                          {t('Add to my point')}
                         </Button>
                         <Button
                           size="sm"
@@ -235,7 +238,7 @@ export function QuantifyPanel({
                           type="button"
                           onClick={() => set(k, { kind: 'idle' })}
                         >
-                          Cancel
+                          {t('Cancel')}
                         </Button>
                       </div>
                     </form>
@@ -245,14 +248,16 @@ export function QuantifyPanel({
                       className="bg-sunken flex flex-col gap-2 rounded-md p-3"
                       data-testid="quantify-review"
                     >
-                      <p className="text-ink-muted text-xs font-semibold uppercase">New point</p>
+                      <p className="text-ink-muted text-xs font-semibold uppercase">
+                        {t('New point')}
+                      </p>
                       <p>
                         <AskText text={st.next} />
                       </p>
                       <NeedsInputHint texts={[st.next]} />
                       <div className="flex flex-wrap gap-2">
                         <Button size="sm" onClick={() => use(p, st.next)}>
-                          Use this
+                          {t('Use this')}
                         </Button>
                         <Button
                           size="sm"
@@ -265,14 +270,14 @@ export function QuantifyPanel({
                             })
                           }
                         >
-                          Change my answers
+                          {t('Change my answers')}
                         </Button>
                       </div>
                     </div>
                   )}
                   {st.kind === 'stale' && (
                     <p className="text-ink-muted">
-                      This point has changed since you asked, so it was not changed.
+                      {t('This point has changed since you asked, so it was not changed.')}
                     </p>
                   )}
                 </li>
@@ -286,14 +291,14 @@ export function QuantifyPanel({
               className="self-start"
               onClick={() => setShowAll(true)}
             >
-              Show all {points.length}
+              {t('Show all {length}', { length: points.length })}
             </Button>
           )}
         </>
       )}
       {doneKeys.some(([, s]) => s.kind === 'done') && (
         <p className="text-success flex items-center gap-1.5 text-sm" data-testid="quantify-done">
-          <Check aria-hidden size={16} /> Point updated. Undo puts it back.
+          <Check aria-hidden size={16} /> {t('Point updated. Undo puts it back.')}
         </p>
       )}
     </section>

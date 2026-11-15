@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { Check, Crown } from 'lucide-react';
 import { isPremiumDesign, useEntitlements } from '@/features/account/entitlements';
 import { useId, useMemo, useState } from 'react';
@@ -65,6 +66,7 @@ export function DesignPanel({
   editor: DocumentEditor;
   status?: PreviewStatus | null;
 }) {
+  const tx = useT();
   const { doc, update } = editor;
   const d = doc.design;
   const set = (patch: Partial<DesignSpec>) => update((x) => ops.setDesign(x, patch));
@@ -116,8 +118,8 @@ export function DesignPanel({
           }
         />
       )}
-      <Group title="Look" hint="Your words stay the same — only the design changes.">
-        <div role="group" aria-label="Design families" className="flex flex-wrap gap-1.5">
+      <Group title={tx('Look')} hint={tx('Your words stay the same — only the design changes.')}>
+        <div role="group" aria-label={tx('Design families')} className="flex flex-wrap gap-1.5">
           {(['all', ...FAMILIES] as const).map((f) => (
             <button
               key={f}
@@ -135,7 +137,7 @@ export function DesignPanel({
             </button>
           ))}
         </div>
-        <div role="radiogroup" aria-label="Design" className="grid grid-cols-2 gap-3">
+        <div role="radiogroup" aria-label={tx('Design')} className="grid grid-cols-2 gap-3">
           {shown.map((t) => {
             const selected = current === t.id;
             return (
@@ -178,7 +180,7 @@ export function DesignPanel({
                   )}
                   {showPremium(t.id) && (
                     <span className="bg-ink/85 absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold text-white">
-                      <Crown aria-hidden size={12} /> Premium
+                      <Crown aria-hidden size={12} /> {tx('Premium')}
                     </span>
                   )}
                 </span>
@@ -202,21 +204,22 @@ export function DesignPanel({
             data-gate="premium-note"
           >
             <Crown aria-hidden size={14} className="text-accent-ink mr-1 inline" />
-            You can try this Premium design freely. Downloading it needs Premium — or pick a free
-            design.
+            {tx(
+              'You can try this Premium design freely. Downloading it needs Premium — or pick a free design.',
+            )}
           </p>
         )}
         {(meta?.photo ?? true) && doc.basics.photo && (
           <CheckboxField
-            label="Show my photo"
+            label={tx('Show my photo')}
             checked={d.options.showPhoto !== false}
             onChange={(showPhoto) => set({ options: { showPhoto } })}
           />
         )}
       </Group>
 
-      <Group title="Colour">
-        <div role="radiogroup" aria-label="Accent colour" className="flex flex-wrap gap-2">
+      <Group title={tx('Colour')}>
+        <div role="radiogroup" aria-label={tx('Accent colour')} className="flex flex-wrap gap-2">
           {ACCENT_PALETTE.map((c) => {
             const selected = d.accent.toLowerCase() === c.hex;
             return (
@@ -250,21 +253,26 @@ export function DesignPanel({
                 update((x) => ops.setDesign(x, { accent: e.target.value }), 'design.accent')
               }
               className="size-8 cursor-pointer rounded-full border-0 bg-transparent p-0"
-              aria-label="Choose any colour"
+              aria-label={tx('Choose any colour')}
             />
-            Other
+            {tx('Other')}
           </label>
         </div>
         {customLow && (
           <p className="text-ink-muted text-sm">
-            This colour is quite light, so we use a slightly darker shade for text to keep it
-            readable.
+            {tx(
+              'This colour is quite light, so we use a slightly darker shade for text to keep it readable.',
+            )}
           </p>
         )}
       </Group>
 
-      <Group title="Font">
-        <div role="radiogroup" aria-label="Font" className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+      <Group title={tx('Font')}>
+        <div
+          role="radiogroup"
+          aria-label={tx('Font')}
+          className="grid grid-cols-1 gap-2 sm:grid-cols-2"
+        >
           {FONT_PAIR_IDS.map((id) => (
             <SelectableCard
               key={id}
@@ -281,9 +289,9 @@ export function DesignPanel({
         </div>
       </Group>
 
-      <Group title="Layout">
+      <Group title={tx('Layout')}>
         <Segmented
-          label="Spacing"
+          label={tx('Spacing')}
           value={d.density}
           onChange={(density) => set({ density })}
           options={[
@@ -293,7 +301,7 @@ export function DesignPanel({
           ]}
         />
         <Segmented
-          label="Paper size"
+          label={tx('Paper size')}
           value={d.pageSize}
           onChange={(pageSize) => set({ pageSize })}
           options={[
@@ -303,7 +311,7 @@ export function DesignPanel({
         />
         {template.support.headerAlign.length > 1 && (
           <Segmented
-            label="Name position"
+            label={tx('Name position')}
             value={d.options.headerAlign ?? template.support.defaults.headerAlign}
             onChange={(headerAlign) => set({ options: { headerAlign } })}
             options={[
@@ -314,7 +322,7 @@ export function DesignPanel({
         )}
         {template.support.skillStyle.length > 1 && (
           <Segmented
-            label="Skills shown as"
+            label={tx('Skills shown as')}
             value={d.options.skillStyle ?? template.support.defaults.skillStyle}
             onChange={(skillStyle) => set({ options: { skillStyle } })}
             options={[

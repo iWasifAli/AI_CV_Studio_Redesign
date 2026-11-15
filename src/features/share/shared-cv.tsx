@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useRef } from 'react';
 import { MessageSquare, Printer } from 'lucide-react';
@@ -19,6 +20,7 @@ export function SharedCv({
   /** The owner lets people with this link leave comments. */
   comments?: boolean;
 }) {
+  const t = useT();
   const name = doc.basics.name || 'CV';
   const review = useRef<ReviewPanelHandle>(null);
   function print() {
@@ -46,7 +48,7 @@ export function SharedCv({
                 href="#review-h"
                 className="border-line-strong text-ink hover:bg-sunken inline-flex min-h-9 items-center gap-1.5 rounded-md border px-3 text-sm font-semibold lg:hidden"
               >
-                <MessageSquare aria-hidden size={16} /> Comment
+                <MessageSquare aria-hidden size={16} /> {t('Comment')}
               </a>
             )}
             <Button
@@ -55,7 +57,7 @@ export function SharedCv({
               icon={<Printer aria-hidden size={16} />}
               onClick={print}
             >
-              Print or save as PDF
+              {t('Print or save as PDF')}
             </Button>
           </div>
         </div>
@@ -80,11 +82,11 @@ export function SharedCv({
         </main>
       )}
       <footer className="text-ink-muted px-4 pb-8 text-center text-sm">
-        Shared with{' '}
+        {t('Shared with{v}', { v: ' ' })}
         <Link href="/" className="text-primary font-semibold">
-          AI CV Studio
+          {t('AI CV Studio')}
         </Link>{' '}
-        — make your own professional CV, free.
+        {t('— make your own professional CV, free.')}
       </footer>
     </div>
   );

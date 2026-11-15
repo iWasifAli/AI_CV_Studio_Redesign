@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useRef, useState } from 'react';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
@@ -55,6 +56,7 @@ function PackDialog({
   letter: string | null;
   onClose: () => void;
 }) {
+  const t = useT();
   const [format, setFormat] = useState<'pdf' | 'zip'>('pdf');
   const [withLetter, setWithLetter] = useState(!!letter);
   const [files, setFiles] = useState<File[]>([]);
@@ -134,15 +136,22 @@ function PackDialog({
   ];
 
   return (
-    <Dialog open onClose={onClose} title="Download as one file" className="w-[min(36rem,94vw)]!">
+    <Dialog
+      open
+      onClose={onClose}
+      title={t('Download as one file')}
+      className="w-[min(36rem,94vw)]!"
+    >
       <div className="flex flex-col gap-4" data-testid="pack-dialog">
         <p className="text-ink-muted text-sm">
-          Put your CV{letter ? ', your letter' : ''} and any certificates or references into one
-          file to send or upload. The documents you add are used for this download only and are not
-          saved.
+          {t('Put your CV')}
+          {letter ? ', your letter' : ''}{' '}
+          {t(
+            'and any certificates or references into one file to send or upload. The documents you add are used for this download only and are not saved.',
+          )}
         </p>
         <Segmented
-          label="File type"
+          label={t('File type')}
           value={format}
           onChange={setFormat}
           options={[
@@ -151,13 +160,21 @@ function PackDialog({
           ]}
         />
         {letter && (
-          <CheckboxField label="Include the letter" checked={withLetter} onChange={setWithLetter} />
+          <CheckboxField
+            label={t('Include the letter')}
+            checked={withLetter}
+            onChange={setWithLetter}
+          />
         )}
         <div>
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="font-semibold">Added documents</h3>
+            <h3 className="font-semibold">{t('Added documents')}</h3>
             <span className="text-ink-muted text-sm">
-              {files.length} of {PACK_MAX_FILES} · {mb(total)} of 15 MB
+              {t('{length} of {PACK_MAX_FILES} · {mb} of 15 MB', {
+                length: files.length,
+                PACK_MAX_FILES: PACK_MAX_FILES,
+                mb: mb(total),
+              })}
             </span>
           </div>
           {files.length > 0 && (
@@ -190,7 +207,7 @@ function PackDialog({
                     onClick={() => setFiles((fs) => fs.filter((_, k) => k !== i))}
                     aria-label={`Remove ${f.name}`}
                   >
-                    Remove
+                    {t('Remove')}
                   </Button>
                 </li>
               ))}
@@ -203,36 +220,36 @@ function PackDialog({
               multiple
               accept="application/pdf,image/png,image/jpeg,.pdf,.png,.jpg,.jpeg"
               className="hidden"
-              aria-label="Add certificates or other documents"
+              aria-label={t('Add certificates or other documents')}
               data-testid="pack-files"
               onChange={(e) => add(e.target.files)}
             />
             <Button variant="secondary" size="sm" onClick={() => input.current?.click()}>
-              Add certificates or other documents
+              {t('Add certificates or other documents')}
             </Button>
           </div>
-          <p className="text-ink-muted mt-1 text-xs">PDF, PNG or JPG, up to 5 MB each.</p>
+          <p className="text-ink-muted mt-1 text-xs">{t('PDF, PNG or JPG, up to 5 MB each.')}</p>
         </div>
         <div>
-          <h3 className="text-sm font-semibold">In this order</h3>
+          <h3 className="text-sm font-semibold">{t('In this order')}</h3>
           <p className="text-ink-muted text-sm" data-testid="pack-order">
             {order.join(' → ')}
           </p>
         </div>
         {problem && (
-          <Banner tone="error" title="Something needs a look">
+          <Banner tone="error" title={t('Something needs a look')}>
             {problem}
           </Banner>
         )}
         <div className="flex justify-end gap-2">
           <Button variant="ghost" onClick={onClose}>
-            Cancel
+            {t('Cancel')}
           </Button>
           <Button onClick={download} disabled={busy} data-testid="pack-download">
             {busy ? 'Putting it together…' : format === 'pdf' ? 'Download PDF' : 'Download ZIP'}
           </Button>
         </div>
-        <p className="text-ink-muted text-xs">Counts as one PDF download.</p>
+        <p className="text-ink-muted text-xs">{t('Counts as one PDF download.')}</p>
       </div>
     </Dialog>
   );

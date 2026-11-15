@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { ExternalLink, Eye, Globe } from 'lucide-react';
@@ -43,6 +44,7 @@ export function PortfolioSettings() {
 }
 
 function Settings() {
+  const tx = useT();
   const account = useAccount();
   const { ent } = useEntitlements();
   const toast = useToast();
@@ -131,36 +133,37 @@ function Settings() {
     <div className="mx-auto flex max-w-[760px] flex-col gap-6 px-4 py-8 md:px-8">
       <div>
         <h1 className="font-display text-[32px] leading-tight font-semibold tracking-tight">
-          Your portfolio page
+          {tx('Your portfolio page')}
         </h1>
         <p className="text-ink-muted mt-1">
-          A personal web page made from your CV, in your colours, to put on LinkedIn, your email
-          signature or a business card. It updates when you change the CV.
+          {tx(
+            'A personal web page made from your CV, in your colours, to put on LinkedIn, your email signature or a business card. It updates when you change the CV.',
+          )}
         </p>
       </div>
       {account.status === 'signedOut' ? (
         <Banner
           tone="info"
-          title="Sign in to make your portfolio page"
-          action={<ButtonLink href="/signin?next=/portfolio">Sign in</ButtonLink>}
+          title={tx('Sign in to make your portfolio page')}
+          action={<ButtonLink href="/signin?next=/portfolio">{tx('Sign in')}</ButtonLink>}
         />
       ) : ent && !premium ? (
         <Banner
           tone="info"
-          title="Your portfolio page is part of Premium"
-          action={<ButtonLink href="/premium?next=/portfolio">See Premium</ButtonLink>}
+          title={tx('Your portfolio page is part of Premium')}
+          action={<ButtonLink href="/premium?next=/portfolio">{tx('See Premium')}</ButtonLink>}
         >
-          Get your own address, like aicvstudio.app/p/your-name, with your CV as a web page.
+          {tx('Get your own address, like aicvstudio.app/p/your-name, with your CV as a web page.')}
         </Banner>
       ) : cvs.length === 0 ? (
         <p className="text-ink-muted">
           <Link href="/start" className="text-primary font-semibold">
-            Create a CV
+            {tx('Create a CV')}
           </Link>{' '}
-          first, then come back here.
+          {tx('first, then come back here.')}
         </p>
       ) : !form || saved === undefined ? (
-        <div className="skeleton h-80 rounded-lg" aria-busy="true" aria-label="Loading" />
+        <div className="skeleton h-80 rounded-lg" aria-busy="true" aria-label={tx('Loading')} />
       ) : (
         <>
           {saved?.published && (
@@ -170,7 +173,7 @@ function Settings() {
             >
               <div className="min-w-0">
                 <p className="flex items-center gap-2 font-semibold">
-                  <Globe aria-hidden size={18} className="text-success" /> Your page is live
+                  <Globe aria-hidden size={18} className="text-success" /> {tx('Your page is live')}
                 </p>
                 <a
                   href={url(saved.slug)}
@@ -190,7 +193,7 @@ function Settings() {
                 target="_blank"
                 icon={<ExternalLink aria-hidden size={16} />}
               >
-                Open my page
+                {tx('Open my page')}
               </ButtonLink>
               <div className="border-line w-full border-t pt-4">
                 <QrCard url={url(saved.slug)} slug={saved.slug} />
@@ -199,7 +202,7 @@ function Settings() {
           )}
           <Card className="flex flex-col gap-4 p-5">
             <label className="flex flex-col gap-1.5 text-sm font-semibold">
-              Make it from
+              {tx('Make it from')}
               <select
                 className="border-line-strong bg-surface min-h-11 rounded-md border px-3 text-[15px] font-normal"
                 value={form.docId}
@@ -219,7 +222,7 @@ function Settings() {
               onPreview={(t) => preview(t)}
             />
             <TextField
-              label="Your address"
+              label={tx('Your address')}
               hint={`aicvstudio.app/p/${form.slug || 'your-name'}`}
               value={form.slug}
               maxLength={40}
@@ -229,33 +232,36 @@ function Settings() {
               }
             />
             <fieldset className="flex flex-col">
-              <legend className="mb-1 text-sm font-semibold">Contact details on the page</legend>
+              <legend className="mb-1 text-sm font-semibold">
+                {tx('Contact details on the page')}
+              </legend>
               <CheckboxField
-                label="Show my email address"
+                label={tx('Show my email address')}
                 checked={form.showEmail}
                 onChange={(v) => setForm({ ...form, showEmail: v })}
               />
               <CheckboxField
-                label="Show my phone number"
+                label={tx('Show my phone number')}
                 checked={form.showPhone}
                 onChange={(v) => setForm({ ...form, showPhone: v })}
               />
               <p className="text-ink-muted text-xs">
-                Your location and links are shown. The page is public, so only show what you’re
-                happy for anyone to see.
+                {tx(
+                  'Your location and links are shown. The page is public, so only show what you’re happy for anyone to see.',
+                )}
               </p>
             </fieldset>
             {(contactOn || form.contact) && (
               <div className="flex flex-col">
                 <CheckboxField
-                  label="Add a contact form"
+                  label={tx('Add a contact form')}
                   checked={form.contact}
                   onChange={(v) => setForm({ ...form, contact: v })}
                 />
                 <p className="text-ink-muted -mt-1 pl-8 text-xs">
-                  Visitors can send you a message. It comes to your sign-in email
-                  {account.user?.email ? ` (${account.user.email})` : ''}; your address stays hidden
-                  and replying answers them.
+                  {tx('Visitors can send you a message. It comes to your sign-in email')}
+                  {account.user?.email ? ` (${account.user.email})` : ''}
+                  {tx('; your address stays hidden and replying answers them.')}
                 </p>
               </div>
             )}
@@ -272,12 +278,12 @@ function Settings() {
           </Card>
           <Card className="flex flex-col gap-4 p-5">
             <CheckboxField
-              label="Page is published"
+              label={tx('Page is published')}
               checked={form.published}
               onChange={(v) => setForm({ ...form, published: v })}
             />
             {error && (
-              <Banner tone="error" title="That didn’t work" onDismiss={() => setError(null)}>
+              <Banner tone="error" title={tx('That didn’t work')} onDismiss={() => setError(null)}>
                 {error}
               </Banner>
             )}
@@ -290,11 +296,11 @@ function Settings() {
                 icon={<Eye aria-hidden size={16} />}
                 onClick={() => preview()}
               >
-                Preview
+                {tx('Preview')}
               </Button>
               {saved && (
                 <Button variant="ghost" onClick={remove}>
-                  Delete my page
+                  {tx('Delete my page')}
                 </Button>
               )}
             </div>

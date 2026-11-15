@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useSelectionAssist } from '@/features/ai/selection-assist';
 import { forwardRef, useImperativeHandle, useState } from 'react';
 import { ChevronDown, Plus } from 'lucide-react';
@@ -53,6 +54,7 @@ function Collapsible({
 
 export const ContentPanel = forwardRef<ContentPanelHandle, { editor: DocumentEditor }>(
   function ContentPanel({ editor }, ref) {
+    const t = useT();
     const { doc, update } = editor;
     const preset = getPreset(doc.presetId);
     const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
@@ -109,13 +111,15 @@ export const ContentPanel = forwardRef<ContentPanelHandle, { editor: DocumentEdi
 
     return (
       <div className="flex flex-col gap-4">
-        <Collapsible title="About you" id="editor-basics">
+        <Collapsible title={t('About you')} id="editor-basics">
           <BasicsForm editor={editor} />
         </Collapsible>
-        <Collapsible title="Profile" id="editor-summary">
+        <Collapsible title={t('Profile')} id="editor-summary">
           <TextArea
-            label="A short introduction"
-            hint="Two or three sentences about you and the work you want. Optional, but recommended."
+            label={t('A short introduction')}
+            hint={t(
+              'Two or three sentences about you and the work you want. Optional, but recommended.',
+            )}
             placeholder={preset.hints.summary}
             rows={4}
             value={doc.basics.summary}
@@ -154,19 +158,19 @@ export const ContentPanel = forwardRef<ContentPanelHandle, { editor: DocumentEdi
         ))}
         {adding ? (
           <section
-            aria-label="Add a section"
+            aria-label={t('Add a section')}
             className="border-line-strong bg-surface rounded-lg border border-dashed p-4"
           >
-            <p className="mb-3 font-semibold">What would you like to add?</p>
+            <p className="mb-3 font-semibold">{t('What would you like to add?')}</p>
             <input
               type="search"
-              aria-label="Find a section type"
-              placeholder="Find a section — e.g. references"
+              aria-label={t('Find a section type')}
+              placeholder={t('Find a section — e.g. references')}
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
               className="border-line-strong bg-surface focus-visible:border-primary mb-3 h-11 w-full rounded-md border px-3 text-[15px]"
             />
-            <ul className="grid gap-2" aria-label="Section types">
+            <ul className="grid gap-2" aria-label={t('Section types')}>
               {[
                 ...suggested.map((s) => ({ kind: s.kind, title: s.title })),
                 ...others.map((k) => ({ kind: k, title: KIND_INFO[k].title })),
@@ -202,7 +206,7 @@ export const ContentPanel = forwardRef<ContentPanelHandle, { editor: DocumentEdi
               }}
               className="text-ink-muted hover:bg-sunken mt-3 min-h-11 rounded-md px-3 font-semibold"
             >
-              Cancel
+              {t('Cancel')}
             </button>
           </section>
         ) : (
@@ -211,7 +215,7 @@ export const ContentPanel = forwardRef<ContentPanelHandle, { editor: DocumentEdi
             onClick={() => setAdding(true)}
             className="border-line-strong bg-surface text-primary hover:border-primary hover:bg-primary-soft inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-dashed font-semibold"
           >
-            <Plus aria-hidden size={18} /> Add a section
+            <Plus aria-hidden size={18} /> {t('Add a section')}
           </button>
         )}
       </div>

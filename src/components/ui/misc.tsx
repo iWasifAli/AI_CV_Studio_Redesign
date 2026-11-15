@@ -1,3 +1,6 @@
+'use client';
+
+import { useT } from '@/i18n/client';
 import type { ComponentProps } from 'react';
 import { cn } from '@/lib/cn';
 
@@ -15,12 +18,13 @@ export function Stepper({
   total: number;
   label: string;
 }) {
+  const t = useT();
   const pct = Math.round((current / total) * 100);
   return (
     <div className="flex flex-col gap-2">
       <p className="text-ink-muted text-sm font-semibold">
-        Step {current} of {total} <span aria-hidden>·</span>{' '}
-        <span className="text-ink">{label}</span>
+        {t('Step {current} of {total}', { current: current, total: total })}{' '}
+        <span aria-hidden>·</span> <span className="text-ink">{label}</span>
       </p>
       <div aria-hidden className="bg-sunken h-1.5 w-full overflow-hidden rounded-full">
         <div

@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useEffect, useState } from 'react';
 import { Banner } from '@/components/ui/banner';
 import { ButtonLink } from '@/components/ui/button';
@@ -59,6 +60,7 @@ type Overview = {
 };
 
 export function AdminOverview() {
+  const t = useT();
   const [data, setData] = useState<Overview | null>(null);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
@@ -66,9 +68,9 @@ export function AdminOverview() {
   }, []);
   return (
     <>
-      <AdminHeading title="Overview" intro="How the studio is doing this month." />
+      <AdminHeading title={t('Overview')} intro="How the studio is doing this month." />
       {error && (
-        <Banner tone="error" title="Could not load the overview">
+        <Banner tone="error" title={t('Could not load the overview')}>
           {error}
         </Banner>
       )}
@@ -81,36 +83,38 @@ export function AdminOverview() {
               title={`${data.payments.pending} payment${data.payments.pending === 1 ? '' : 's'} waiting for a check`}
               action={
                 <ButtonLink href="/admin/payments" size="sm">
-                  Review payments
+                  {t('Review payments')}
                 </ButtonLink>
               }
             />
           )}
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4" data-testid="admin-stats">
-            <Stat label="Accounts" value={data.users.total} />
-            <Stat label="Premium active" value={data.premium.active} />
+            <Stat label={t('Accounts')} value={data.users.total} />
+            <Stat label={t('Premium active')} value={data.premium.active} />
             <Stat label={`PDF downloads (${data.month})`} value={data.usage['pdf.download']} />
             <Stat label={`AI actions (${data.month})`} value={data.usage['ai.action']} />
           </div>
           {data.product && <ProductNumbers list={data.product} />}
           <Numbers n={data.numbers} />
           <section className="border-line bg-surface rounded-lg border p-5">
-            <h2 className="mb-3 text-lg font-semibold">Switches</h2>
+            <h2 className="mb-3 text-lg font-semibold">{t('Switches')}</h2>
             <ul className="flex flex-wrap gap-2 text-sm">
-              <Flag on={data.config.sales} label="Premium sales" />
-              <Flag on={data.config.ai} label="AI help (setting)" />
+              <Flag on={data.config.sales} label={t('Premium sales')} />
+              <Flag on={data.config.ai} label={t('AI help (setting)')} />
               <Flag on={data.aiProvider !== 'off'} label={`AI server: ${data.aiProvider}`} />
               <Flag
                 on={!data.config.maintenance}
                 label={data.config.maintenance ? 'Maintenance mode' : 'Open'}
               />
             </ul>
-            <p className="text-ink-muted mt-3 text-sm">Settings version {data.config.version}.</p>
+            <p className="text-ink-muted mt-3 text-sm">
+              {t('Settings version {version}.', { version: data.config.version })}
+            </p>
           </section>
           <section className="border-line bg-surface rounded-lg border p-5">
-            <h2 className="mb-3 text-lg font-semibold">Recently active</h2>
+            <h2 className="mb-3 text-lg font-semibold">{t('Recently active')}</h2>
             {data.users.recent.length === 0 ? (
-              <p className="text-ink-muted text-sm">No accounts yet.</p>
+              <p className="text-ink-muted text-sm">{t('No accounts yet.')}</p>
             ) : (
               <ul className="divide-line divide-y text-sm">
                 {data.users.recent.map((u) => (
@@ -163,6 +167,7 @@ const pct = (a: number, b: number) => (b ? `${Math.round((a / b) * 100)}%` : '�
 
 /** Landing → upload → reveal → saved (spec §16 R5). */
 function Funnel({ m }: { m: NonNullable<Overview['numbers']['makeover']> }) {
+  const t = useT();
   const steps: [string, number][] = [
     ['Home page visits', m.landing],
     ['Uploads', m.started],
@@ -171,7 +176,7 @@ function Funnel({ m }: { m: NonNullable<Overview['numbers']['makeover']> }) {
   ];
   return (
     <div className="border-line mt-5 border-t pt-4" data-testid="makeover-funnel">
-      <h3 className="font-semibold">Instant Makeover</h3>
+      <h3 className="font-semibold">{t('Instant Makeover')}</h3>
       <ol className="mt-2 grid gap-3 sm:grid-cols-4">
         {steps.map(([label, v], i) => (
           <li key={label}>
@@ -184,14 +189,24 @@ function Funnel({ m }: { m: NonNullable<Overview['numbers']['makeover']> }) {
         ))}
       </ol>
       <p className="text-ink-muted mt-2 text-sm">
-        {m.failed} failed · {m.previews} previews · {m.scansRead} scans or photos read ·{' '}
-        {m.designSwitches} design switches · {m.polish} polish checks
+        {t(
+          '{failed} failed · {previews} previews · {scansRead} scans or photos read ·{v} {designSwitches} design switches · {polish} polish checks',
+          {
+            failed: m.failed,
+            previews: m.previews,
+            scansRead: m.scansRead,
+            v: ' ',
+            designSwitches: m.designSwitches,
+            polish: m.polish,
+          },
+        )}
       </p>
     </div>
   );
 }
 
 function Numbers({ n }: { n: Overview['numbers'] }) {
+  const t = useT();
   const budgetUse = n.aiDailyBudget ? n.aiCallsToday / n.aiDailyBudget : 0;
   const rows: [string, string, string?][] = [
     ['New accounts', String(n.newAccounts)],
@@ -233,8 +248,10 @@ function Numbers({ n }: { n: Overview['numbers'] }) {
   return (
     <section className="border-line bg-surface rounded-lg border p-5" data-testid="admin-numbers">
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="text-lg font-semibold">Last 30 days</h2>
-        <span className="text-ink-muted text-sm">Counts only — no CV content is recorded.</span>
+        <h2 className="text-lg font-semibold">{t('Last 30 days')}</h2>
+        <span className="text-ink-muted text-sm">
+          {t('Counts only — no CV content is recorded.')}
+        </span>
       </div>
       <dl className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
         {rows.map(([label, value, note]) => (
@@ -250,13 +267,13 @@ function Numbers({ n }: { n: Overview['numbers'] }) {
       {n.makeover && <Funnel m={n.makeover} />}
       <div className="mt-5">
         <p className="text-sm">
-          AI calls today: <strong className="tabular-nums">{n.aiCallsToday}</strong> of{' '}
-          {n.aiDailyBudget.toLocaleString()} daily budget
+          {t('AI calls today:')} <strong className="tabular-nums">{n.aiCallsToday}</strong>{' '}
+          {t('of{v} {v2} daily budget', { v: ' ', v2: n.aiDailyBudget.toLocaleString() })}
         </p>
         <div
           className="bg-sunken mt-1.5 h-2 overflow-hidden rounded-full"
           role="meter"
-          aria-label="AI daily budget used"
+          aria-label={t('AI daily budget used')}
           aria-valuemin={0}
           aria-valuemax={n.aiDailyBudget}
           aria-valuenow={n.aiCallsToday}
@@ -268,15 +285,20 @@ function Numbers({ n }: { n: Overview['numbers'] }) {
         </div>
         {budgetUse >= 0.8 && (
           <p className="text-danger mt-1 text-sm font-semibold">
-            Over 80% of today’s AI budget is used.
+            {t('Over 80% of today’s AI budget is used.')}
           </p>
         )}
         {n.aiCost && (
           <p className="mt-3 text-sm" data-testid="ai-cost">
-            AI cost (estimate):{' '}
-            <strong className="tabular-nums">Rs {n.aiCost.month.pkr.toLocaleString()}</strong> in 30
-            days (${n.aiCost.month.usd.toFixed(2)}, {n.aiCost.month.tokens.toLocaleString()} tokens)
-            · today Rs {n.aiCost.today.pkr.toLocaleString()}
+            {t('AI cost (estimate):{v}', { v: ' ' })}
+            <strong className="tabular-nums">
+              {t('Rs {v}', { v: n.aiCost.month.pkr.toLocaleString() })}
+            </strong>{' '}
+            {t('in 30 days (${v}, {v2} tokens) · today Rs {v3}', {
+              v: n.aiCost.month.usd.toFixed(2),
+              v2: n.aiCost.month.tokens.toLocaleString(),
+              v3: n.aiCost.today.pkr.toLocaleString(),
+            })}
           </p>
         )}
       </div>
@@ -311,12 +333,15 @@ const TONE = {
 
 /** The nine product numbers with their targets (spec §17.2). */
 function ProductNumbers({ list }: { list: Num[] }) {
+  const t = useT();
   return (
     <section className="border-line bg-surface rounded-lg border p-5" data-testid="product-numbers">
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="text-lg font-semibold">Product numbers</h2>
+        <h2 className="text-lg font-semibold">{t('Product numbers')}</h2>
         <span className="text-ink-muted text-sm">
-          Targets from the plan. Shown once at least {MIN_BASE} accounts or makeovers count.
+          {t('Targets from the plan. Shown once at least {MIN_BASE} accounts or makeovers count.', {
+            MIN_BASE: MIN_BASE,
+          })}
         </span>
       </div>
       <ul className="grid grid-cols-[repeat(auto-fill,minmax(13rem,1fr))] gap-3">
@@ -337,7 +362,10 @@ function ProductNumbers({ list }: { list: Num[] }) {
               </span>
               <p className="mt-1 text-2xl font-semibold tabular-nums">{show(n, n.value)}</p>
               <p className="text-ink-muted text-sm">
-                Target {showTarget(n)} · based on {n.base.toLocaleString()}
+                {t('Target {showTarget} · based on {v}', {
+                  showTarget: showTarget(n),
+                  v: n.base.toLocaleString(),
+                })}
               </p>
               <p className="text-ink-muted mt-1 text-xs">{n.definition}</p>
             </li>

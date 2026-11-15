@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useState } from 'react';
 import { Bell, BellRing, Trash2 } from 'lucide-react';
@@ -42,6 +43,7 @@ const PRESETS = [
  * (one daily digest per person), and shows on Home and the job board.
  */
 export function RemindersCard({ job, onJobChange }: { job: Job; onJobChange: (j: Job) => void }) {
+  const t = useT();
   const tz = zone();
   const today = todayIn(tz);
   const [on, setOn] = useState(addDays(today, 3));
@@ -76,29 +78,29 @@ export function RemindersCard({ job, onJobChange }: { job: Job; onJobChange: (j:
     <Card className="flex flex-col gap-4 p-5" data-testid="reminders">
       <div className="flex items-center justify-between gap-2">
         <h2 className="flex items-center gap-2 text-lg font-semibold">
-          <Bell aria-hidden size={18} /> Reminders
+          <Bell aria-hidden size={18} /> {t('Reminders')}
         </h2>
         <Link href="/account#reminders" className="text-primary text-sm underline">
-          Email settings
+          {t('Email settings')}
         </Link>
       </div>
 
       {suggest && (
         <div className="bg-primary-soft/50 flex flex-wrap items-center justify-between gap-2 rounded-lg p-3 text-sm">
-          <span>You’ve applied. Most employers reply within a week or two.</span>
+          <span>{t('You’ve applied. Most employers reply within a week or two.')}</span>
           <Button
             size="sm"
             variant="secondary"
             loading={busy === 'add'}
             onClick={() => add(addDays(today, 7), defaultNote(job))}
           >
-            Remind me to follow up in a week
+            {t('Remind me to follow up in a week')}
           </Button>
         </div>
       )}
 
       {open.length > 0 && (
-        <ul className="flex flex-col gap-2" aria-label="Open reminders">
+        <ul className="flex flex-col gap-2" aria-label={t('Open reminders')}>
           {open.map((r) => {
             const due = r.on <= today;
             return (
@@ -141,7 +143,7 @@ export function RemindersCard({ job, onJobChange }: { job: Job; onJobChange: (j:
 
       <div className="flex flex-col gap-3">
         <TextField
-          label="Remind me to…"
+          label={t('Remind me to…')}
           optional
           placeholder={defaultNote(job)}
           maxLength={200}
@@ -161,7 +163,7 @@ export function RemindersCard({ job, onJobChange }: { job: Job; onJobChange: (j:
             </Button>
           ))}
           <TextField
-            label="Or on"
+            label={t('Or on')}
             type="date"
             min={today}
             max={addDays(today, 366)}
@@ -175,10 +177,12 @@ export function RemindersCard({ job, onJobChange }: { job: Job; onJobChange: (j:
             disabled={!on}
             onClick={() => add(on)}
           >
-            Add reminder
+            {t('Add reminder')}
           </Button>
         </div>
-        <p className="text-ink-muted text-xs">We email you at 8:00 on the day (your time).</p>
+        <p className="text-ink-muted text-xs">
+          {t('We email you at 8:00 on the day (your time).')}
+        </p>
       </div>
 
       {error && (
@@ -189,7 +193,9 @@ export function RemindersCard({ job, onJobChange }: { job: Job; onJobChange: (j:
 
       {done.length > 0 && (
         <details className="text-sm">
-          <summary className="text-ink-muted cursor-pointer">Done ({done.length})</summary>
+          <summary className="text-ink-muted cursor-pointer">
+            {t('Done ({length})', { length: done.length })}
+          </summary>
           <ul className="mt-2 flex flex-col gap-1">
             {done.map((r) => (
               <li key={r.id} className="flex items-center gap-2">
@@ -202,7 +208,7 @@ export function RemindersCard({ job, onJobChange }: { job: Job; onJobChange: (j:
                     act(r.id, () => jobsApi.updateReminder(job.id, r.id, { done: false }))
                   }
                 >
-                  Not done
+                  {t('Not done')}
                 </button>
               </li>
             ))}

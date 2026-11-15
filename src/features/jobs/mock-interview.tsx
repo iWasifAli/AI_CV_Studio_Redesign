@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import {
@@ -29,6 +30,7 @@ const VERDICT = {
 } as const;
 
 function Feedback({ f }: { f: MockFeedback }) {
+  const tx = useT();
   const v = VERDICT[f.verdict];
   return (
     <div
@@ -38,7 +40,7 @@ function Feedback({ f }: { f: MockFeedback }) {
       <p className={cn('flex items-center gap-1.5 font-semibold', v.cls)}>
         <v.Icon aria-hidden size={16} /> {v.label}
       </p>
-      <ul className="flex flex-wrap gap-1.5" aria-label="STAR structure">
+      <ul className="flex flex-wrap gap-1.5" aria-label={tx('STAR structure')}>
         {(['situation', 'task', 'action', 'result'] as const).map((k) => (
           <li
             key={k}
@@ -52,7 +54,9 @@ function Feedback({ f }: { f: MockFeedback }) {
           </li>
         ))}
       </ul>
-      {f.quote && <p className="text-ink-muted italic">About “{f.quote}”</p>}
+      {f.quote && (
+        <p className="text-ink-muted italic">{tx('About “{quote}”', { quote: f.quote })}</p>
+      )}
       {f.strengths.length > 0 && (
         <ul className="list-disc pl-5">
           {f.strengths.map((s) => (
@@ -61,7 +65,7 @@ function Feedback({ f }: { f: MockFeedback }) {
         </ul>
       )}
       {f.improve.length > 0 && (
-        <ul className="text-ink list-disc pl-5" aria-label="To improve">
+        <ul className="text-ink list-disc pl-5" aria-label={tx('To improve')}>
           {f.improve.map((s) => (
             <li key={s}>{s}</li>
           ))}
@@ -91,6 +95,7 @@ export function MockInterview({
   onError: (e: unknown) => void;
   refresh: () => void;
 }) {
+  const tx = useT();
   const [answer, setAnswer] = useState('');
   const [busy, setBusy] = useState(false);
   // Story bank (R9.3): stories that fit the question, and saving a good answer as a story.
@@ -142,13 +147,13 @@ export function MockInterview({
   return (
     <section
       id="mock"
-      aria-label="Mock interview"
+      aria-label={tx('Mock interview')}
       className="border-line flex scroll-mt-20 flex-col gap-4 border-t pt-5"
       data-testid="mock"
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="flex items-center gap-2 font-semibold">
-          <MessageCircle aria-hidden size={18} /> Mock interview
+          <MessageCircle aria-hidden size={18} /> {tx('Mock interview')}
         </h3>
         {m && (
           <span className="text-ink-muted text-sm" data-testid="mock-progress">
@@ -160,7 +165,7 @@ export function MockInterview({
         <div
           className="bg-sunken h-1.5 overflow-hidden rounded-full"
           role="progressbar"
-          aria-label="Interview progress"
+          aria-label={tx('Interview progress')}
           aria-valuemin={0}
           aria-valuemax={MOCK_QUESTIONS}
           aria-valuenow={m.turns.length}
@@ -173,12 +178,14 @@ export function MockInterview({
       )}
       {!m && (
         <p className="text-ink-muted text-sm">
-          Practise out loud or in writing: {MOCK_QUESTIONS} questions for this job, one at a time,
-          with feedback after each answer.
+          {tx(
+            'Practise out loud or in writing: {MOCK_QUESTIONS} questions for this job, one at a time, with feedback after each answer.',
+            { MOCK_QUESTIONS: MOCK_QUESTIONS },
+          )}
         </p>
       )}
       {m && (
-        <ol className="flex flex-col gap-4" aria-label="Interview so far">
+        <ol className="flex flex-col gap-4" aria-label={tx('Interview so far')}>
           {m.turns.map((t, i) => (
             <li key={i} className="flex flex-col gap-2">
               <p className="bg-primary-soft max-w-[85%] self-start rounded-lg rounded-tl-sm px-3 py-2 font-semibold">
@@ -192,9 +199,9 @@ export function MockInterview({
                 <div className="flex flex-wrap items-center gap-2 text-sm">
                   {saved[i] === 'saved' ? (
                     <span className="text-success font-semibold">
-                      Saved to your{' '}
+                      {tx('Saved to your{v}', { v: ' ' })}
                       <Link href="/stories" className="underline">
-                        story bank
+                        {tx('story bank')}
                       </Link>
                     </span>
                   ) : (
@@ -205,7 +212,7 @@ export function MockInterview({
                       loading={saved[i] === 'saving'}
                       onClick={() => saveStory(i, t.question, t.answer)}
                     >
-                      Save to my story bank
+                      {tx('Save to my story bank')}
                     </Button>
                   )}
                   {saved[i] && saved[i] !== 'saving' && saved[i] !== 'saved' && (
@@ -231,7 +238,7 @@ export function MockInterview({
               data-testid="mock-stories"
             >
               <p className="flex items-center gap-1.5 font-semibold">
-                <BookOpen aria-hidden size={16} /> Your stories that fit
+                <BookOpen aria-hidden size={16} /> {tx('Your stories that fit')}
               </p>
               <ul className="flex flex-col gap-2">
                 {fits.map((st) => (
@@ -246,7 +253,7 @@ export function MockInterview({
                         setAnswer(storyAsAnswer(st).slice(0, 3000));
                       }}
                     >
-                      Use this story
+                      {tx('Use this story')}
                     </Button>
                   </li>
                 ))}
@@ -254,8 +261,10 @@ export function MockInterview({
             </div>
           )}
           <TextArea
-            label="Your answer"
-            hint="Answer as you would in the interview. Try: the situation, what you had to do, what you did, and the result."
+            label={tx('Your answer')}
+            hint={tx(
+              'Answer as you would in the interview. Try: the situation, what you had to do, what you did, and the result.',
+            )}
             rows={5}
             maxLength={3000}
             value={answer}
@@ -268,13 +277,13 @@ export function MockInterview({
             disabled={disabled || busy || answer.trim().length < 10}
             onClick={() => turn({ answer })}
           >
-            Send answer
+            {tx('Send answer')}
           </Button>
         </div>
       )}
       {m && !m.current && m.summary && (
         <div className="bg-primary-soft/60 rounded-lg p-3 text-sm" data-testid="mock-summary">
-          <p className="mb-1 font-semibold">How it went</p>
+          <p className="mb-1 font-semibold">{tx('How it went')}</p>
           <p>{m.summary}</p>
         </div>
       )}
@@ -300,7 +309,7 @@ export function MockInterview({
               void turn({ restart: true });
           }}
         >
-          Start over
+          {tx('Start over')}
         </button>
       )}
     </section>

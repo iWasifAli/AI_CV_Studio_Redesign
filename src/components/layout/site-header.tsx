@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -19,6 +20,7 @@ const NAV = [
 ];
 
 export function SiteHeader() {
+  const t = useT();
   const pathname = usePathname();
   // The menu is open only for the page it was opened on, so navigating closes it.
   const [openOn, setOpenOn] = useState<string | null>(null);
@@ -51,11 +53,11 @@ export function SiteHeader() {
         href="#main"
         className="focus:bg-surface focus:shadow-2 sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:px-4 focus:py-2"
       >
-        Skip to content
+        {t('Skip to content')}
       </a>
       <Container className="flex h-16 items-center gap-6">
         <Logo />
-        <nav aria-label="Main" className="hidden items-center gap-1 md:flex">
+        <nav aria-label={t('Main')} className="hidden items-center gap-1 md:flex">
           {NAV.map((item) => {
             const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
             return (
@@ -92,11 +94,11 @@ export function SiteHeader() {
             variant="secondary"
             className="max-sm:hidden sm:h-11 sm:px-4 sm:text-[15px]"
           >
-            Start from scratch
+            {t('Start from scratch')}
           </ButtonLink>
           <ButtonLink href="/makeover" size="sm" className="sm:h-11 sm:px-4 sm:text-[15px]">
-            <span className="sm:hidden">Upload CV</span>
-            <span className="hidden sm:inline">Upload my CV</span>
+            <span className="sm:hidden">{t('Upload CV')}</span>
+            <span className="hidden sm:inline">{t('Upload my CV')}</span>
           </ButtonLink>
           <button
             ref={menuButton}
@@ -114,7 +116,7 @@ export function SiteHeader() {
       {open && (
         <nav
           id="mobile-menu"
-          aria-label="Main"
+          aria-label={t('Main')}
           className="border-line bg-surface border-t md:hidden"
         >
           <Container className="flex flex-col py-2">
@@ -137,7 +139,7 @@ export function SiteHeader() {
               href="/start"
               className="text-ink hover:bg-sunken rounded-md px-3 py-3 text-base font-semibold"
             >
-              Start from scratch
+              {t('Start from scratch')}
             </Link>
           </Container>
         </nav>

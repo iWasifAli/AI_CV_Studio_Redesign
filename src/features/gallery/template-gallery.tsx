@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useEffect, useId, useMemo, useState } from 'react';
 import { ArrowRight, Crown } from 'lucide-react';
@@ -61,6 +62,7 @@ export function useShowWith() {
 }
 
 export function TemplateGallery() {
+  const tx = useT();
   const { ent } = useEntitlements();
   const own = useShowWith();
   const [show, setShow] = useState<string>('sample:teacher');
@@ -101,9 +103,9 @@ export function TemplateGallery() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-4" role="search" aria-label="Find a design">
+      <div className="flex flex-col gap-4" role="search" aria-label={tx('Find a design')}>
         <label className="flex flex-col gap-1.5 text-sm font-semibold sm:max-w-sm">
-          Show the designs with
+          {tx('Show the designs with')}
           <select
             value={show}
             onChange={(e) => setShow(e.target.value)}
@@ -111,17 +113,17 @@ export function TemplateGallery() {
           >
             {own.map((c) => (
               <option key={c.id} value={`own:${c.id}`}>
-                My CV: {c.label}
+                {tx('My CV: {label}', { label: c.label })}
               </option>
             ))}
             {(Object.keys(SAMPLES) as SampleId[]).map((k) => (
               <option key={k} value={`sample:${k}`}>
-                An example {SAMPLES[k].label.toLowerCase()} CV
+                {tx('An example {v} CV', { v: SAMPLES[k].label.toLowerCase() })}
               </option>
             ))}
           </select>
         </label>
-        <div role="group" aria-label="Design families" className="flex flex-wrap gap-1.5">
+        <div role="group" aria-label={tx('Design families')} className="flex flex-wrap gap-1.5">
           {(['all', ...FAMILIES] as const).map((f) => (
             <button
               key={f}
@@ -142,7 +144,7 @@ export function TemplateGallery() {
         </div>
         <div className="flex flex-wrap items-end gap-4">
           <Segmented
-            label="Columns"
+            label={tx('Columns')}
             value={columns}
             onChange={setColumns}
             options={[
@@ -153,7 +155,7 @@ export function TemplateGallery() {
             ]}
           />
           <Segmented
-            label="Photo"
+            label={tx('Photo')}
             value={photo}
             onChange={setPhoto}
             options={[
@@ -163,13 +165,13 @@ export function TemplateGallery() {
             ]}
           />
           <label className="flex flex-col gap-1.5 text-sm font-semibold">
-            Suits
+            {tx('Suits')}
             <select
               value={work}
               onChange={(e) => setWork(e.target.value as PresetId | '')}
               className="border-line-strong bg-surface min-h-11 rounded-md border px-3 text-[15px] font-normal"
             >
-              <option value="">Any kind of work</option>
+              <option value="">{tx('Any kind of work')}</option>
               {PROFESSIONS.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}
@@ -184,11 +186,12 @@ export function TemplateGallery() {
               onChange={(e) => setOnline(e.target.checked)}
               className="size-5"
             />
-            Best for online applications
+            {tx('Best for online applications')}
           </label>
         </div>
         <p className="text-ink-muted text-sm" id={`${ids}-count`} aria-live="polite">
-          {shown.length} design{shown.length === 1 ? '' : 's'}
+          {tx('{length} design', { length: shown.length })}
+          {shown.length === 1 ? '' : 's'}
           {family !== 'all' ? ` · ${FAMILY_LABEL[family].hint}` : ''}
         </p>
       </div>
@@ -223,7 +226,7 @@ export function TemplateGallery() {
               />
               {showPremium(t.id) && (
                 <span className="bg-ink/85 absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold text-white">
-                  <Crown aria-hidden size={12} /> Premium
+                  <Crown aria-hidden size={12} /> {tx('Premium')}
                 </span>
               )}
             </Link>
@@ -232,7 +235,11 @@ export function TemplateGallery() {
                 {t.name} <span className="text-ink-muted font-normal">· {t.style}</span>
               </h2>
               <p className="text-ink-muted text-sm">
-                {FAMILY_LABEL[t.family].name} · {t.columns} column{t.columns > 1 ? 's' : ''}
+                {tx('{name} · {columns} column', {
+                  name: FAMILY_LABEL[t.family].name,
+                  columns: t.columns,
+                })}
+                {t.columns > 1 ? 's' : ''}
                 {t.photo ? ' · photo' : ''}
               </p>
               <p
@@ -258,13 +265,13 @@ export function TemplateGallery() {
               href={`/templates/${t.id}${show.startsWith('own:') ? `?cv=${show.slice(4)}` : ''}`}
               className="text-primary inline-flex items-center gap-1 self-start font-semibold"
             >
-              See {t.name} <ArrowRight aria-hidden size={16} />
+              {tx('See {name}', { name: t.name })} <ArrowRight aria-hidden size={16} />
             </Link>
           </li>
         ))}
       </ul>
       {shown.length === 0 && (
-        <p className="text-ink-muted">No design matches all of these. Try fewer filters.</p>
+        <p className="text-ink-muted">{tx('No design matches all of these. Try fewer filters.')}</p>
       )}
     </div>
   );

@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { BookOpen, Lock, Pencil, Plus, Sparkles, Trash2 } from 'lucide-react';
@@ -43,6 +44,7 @@ const QUESTION = /\{\{\?[^}]*\}\}/;
  * Writing is free up to the plan's number; drafting one from a CV point is a Premium AI action.
  */
 export function StoryBank() {
+  const t = useT();
   const account = useAccount();
   const { ent, refresh } = useEntitlements();
   const toast = useToast();
@@ -81,17 +83,17 @@ export function StoryBank() {
   if (account.status === 'signedOut')
     return (
       <div className="border-line bg-surface flex flex-col items-start gap-3 rounded-xl border p-6">
-        <p className="text-lg font-semibold">Sign in to keep your stories</p>
+        <p className="text-lg font-semibold">{t('Sign in to keep your stories')}</p>
         <p className="text-ink-muted">
-          Write your best work stories once, then use them in interviews and letters.
+          {t('Write your best work stories once, then use them in interviews and letters.')}
         </p>
-        <ButtonLink href="/signin?next=/stories">Sign in</ButtonLink>
+        <ButtonLink href="/signin?next=/stories">{t('Sign in')}</ButtonLink>
       </div>
     );
   if (error) return <Banner tone="error" title={error} />;
   if (!data) return <Skeleton className="h-40 w-full rounded-xl" />;
   if (!data.enabled)
-    return <Banner tone="info" title="The story bank is switched off right now." />;
+    return <Banner tone="info" title={t('The story bank is switched off right now.')} />;
 
   const full = data.max !== -1 && data.stories.length >= data.max;
   const aiLocked = ent ? ent.limits['ai.action'] === 0 : false;
@@ -153,7 +155,7 @@ export function StoryBank() {
               setEditing({ ...EMPTY });
             }}
           >
-            New story
+            {t('New story')}
           </Button>
         )}
       </div>
@@ -168,12 +170,12 @@ export function StoryBank() {
           action={
             ent?.features.sales ? (
               <ButtonLink href="/premium?next=/stories" size="sm">
-                See Premium
+                {t('See Premium')}
               </ButtonLink>
             ) : undefined
           }
         >
-          Delete a story you no longer need
+          {t('Delete a story you no longer need')}
           {ent?.features.sales ? ', or get Premium to keep more' : ''}.
         </Banner>
       )}
@@ -185,7 +187,7 @@ export function StoryBank() {
           action={
             problem.premium && ent?.features.sales ? (
               <ButtonLink href="/premium?next=/stories" size="sm">
-                See Premium
+                {t('See Premium')}
               </ButtonLink>
             ) : undefined
           }
@@ -223,15 +225,15 @@ export function StoryBank() {
       {data.stories.length === 0 && !editing ? (
         <div className="border-line bg-surface flex flex-col items-start gap-3 rounded-xl border p-6">
           <BookOpen aria-hidden size={26} className="text-primary" />
-          <p className="text-lg font-semibold">Your first story</p>
+          <p className="text-lg font-semibold">{t('Your first story')}</p>
           <p className="text-ink-muted max-w-xl">
-            Interviewers ask “Tell me about a time…”. Write a few real examples now — a problem you
-            solved, something you improved, a time you helped someone — and they’ll be ready in mock
-            interviews, the coach and your letters.
+            {t(
+              'Interviewers ask “Tell me about a time…”. Write a few real examples now — a problem you solved, something you improved, a time you helped someone — and they’ll be ready in mock interviews, the coach and your letters.',
+            )}
           </p>
         </div>
       ) : (
-        <ul className="grid gap-4 md:grid-cols-2" aria-label="Your stories">
+        <ul className="grid gap-4 md:grid-cols-2" aria-label={t('Your stories')}>
           {data.stories.map((s) => (
             <li
               key={s.id}
@@ -269,11 +271,11 @@ export function StoryBank() {
                     {k}
                   </Badge>
                 ))}
-                {!isComplete(s) && <Badge tone="warning">Add what you did</Badge>}
+                {!isComplete(s) && <Badge tone="warning">{t('Add what you did')}</Badge>}
                 {STORY_PARTS.some((p) => QUESTION.test(s[p])) && (
-                  <Badge tone="warning">Has questions to answer</Badge>
+                  <Badge tone="warning">{t('Has questions to answer')}</Badge>
                 )}
-                {s.source.kind === 'mock' && <Badge>From a mock interview</Badge>}
+                {s.source.kind === 'mock' && <Badge>{t('From a mock interview')}</Badge>}
               </div>
               <dl className="text-ink-muted flex flex-col gap-1 text-sm">
                 {STORY_PARTS.filter((p) => s[p].trim()).map((p) => (
@@ -314,6 +316,7 @@ function StoryEditor({
   drafting: boolean;
   onDraft: (point: string, notes: string) => void;
 }) {
+  const t = useT();
   const [point, setPoint] = useState(points[0]?.id ?? '');
   const [notes, setNotes] = useState('');
   const [tag, setTag] = useState('');
@@ -342,12 +345,12 @@ function StoryEditor({
       {points.length > 0 && (
         <details className="border-primary/40 rounded-lg border p-4" open={draftOpen}>
           <summary className="cursor-pointer font-semibold">
-            <Sparkles aria-hidden size={16} className="mr-1 inline" /> Draft it from a point in my
-            CV
+            <Sparkles aria-hidden size={16} className="mr-1 inline" />{' '}
+            {t('Draft it from a point in my CV')}
           </summary>
           <div className="mt-3 flex flex-col gap-3">
             <label className="flex flex-col gap-1.5 text-sm font-semibold">
-              Point from your CV
+              {t('Point from your CV')}
               <select
                 className="border-line-strong bg-surface h-11 rounded-sm border px-2 font-normal"
                 value={point}
@@ -367,9 +370,9 @@ function StoryEditor({
               </select>
             </label>
             <TextArea
-              label="Anything to add?"
+              label={t('Anything to add?')}
               optional
-              hint="What happened, what you did, how it turned out — in your own words."
+              hint={t('What happened, what you did, how it turned out — in your own words.')}
               rows={3}
               maxLength={2000}
               value={notes}
@@ -383,19 +386,21 @@ function StoryEditor({
               disabled={!point || drafting}
               onClick={() => onDraft(point, notes)}
             >
-              Draft with AI
+              {t('Draft with AI')}
             </Button>
             <p className="text-ink-muted text-xs">
-              Uses only what your CV point and your notes say; anything missing becomes a question
-              for you. {aiLocked && 'Drafting is part of Premium; writing it yourself is free.'}
+              {t(
+                'Uses only what your CV point and your notes say; anything missing becomes a question for you.',
+              )}{' '}
+              {aiLocked && 'Drafting is part of Premium; writing it yourself is free.'}
             </p>
           </div>
         </details>
       )}
 
       <TextField
-        label="Title"
-        hint="A few words, e.g. “Kept deliveries on time after a depot closed”."
+        label={t('Title')}
+        hint={t('A few words, e.g. “Kept deliveries on time after a depot closed”.')}
         maxLength={120}
         value={draft.title}
         onChange={(e) => set({ title: e.target.value })}
@@ -413,14 +418,17 @@ function StoryEditor({
         />
       ))}
       {questions && (
-        <Banner tone="warning" title="Answer the questions in {{? }} before you use this story.">
-          Replace each one with the real detail, or delete it.
+        <Banner
+          tone="warning"
+          title={t('Answer the questions in {{? }} before you use this story.')}
+        >
+          {t('Replace each one with the real detail, or delete it.')}
         </Banner>
       )}
 
       <div className="flex flex-col gap-2">
         <p className="text-sm font-semibold" id="story-skills-l">
-          Skills it shows
+          {t('Skills it shows')}
         </p>
         <div className="flex flex-wrap gap-1.5" aria-labelledby="story-skills-l">
           {draft.skills.map((k) => (
@@ -436,7 +444,7 @@ function StoryEditor({
         </div>
         <div className="flex gap-2">
           <TextField
-            label="Add a skill"
+            label={t('Add a skill')}
             containerClassName="flex-1"
             maxLength={40}
             value={tag}
@@ -464,25 +472,25 @@ function StoryEditor({
               setTag('');
             }}
           >
-            Add
+            {t('Add')}
           </Button>
         </div>
       </div>
 
       <div className="flex flex-wrap gap-2">
         <Button loading={saving} disabled={saving || !draft.title.trim()} onClick={onSave}>
-          Save story
+          {t('Save story')}
         </Button>
         <Button variant="secondary" onClick={onCancel}>
-          Cancel
+          {t('Cancel')}
         </Button>
       </div>
       <p className="text-ink-muted text-xs">
-        Your stories are used as your own facts in{' '}
+        {t('Your stories are used as your own facts in{v}', { v: ' ' })}
         <Link href="/coach" className="text-primary underline">
-          mock interviews and the coach
+          {t('mock interviews and the coach')}
         </Link>{' '}
-        and in AI letters. Keep them true.
+        {t('and in AI letters. Keep them true.')}
       </p>
     </section>
   );

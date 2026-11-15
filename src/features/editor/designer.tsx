@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { Crown, ImagePlus, Sparkles, Wand2, X } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
@@ -81,6 +82,7 @@ function CandidateCard({
   onUse: (spec: DesignSpecV2) => void;
   onDrop: () => void;
 }) {
+  const t = useT();
   const [spec, setSpec] = useState(c.spec);
   const [passes, setPasses] = useState(0);
   const [status, setStatus] = useState<PreviewStatus | null>(null);
@@ -117,7 +119,7 @@ function CandidateCard({
           {c.name}
           {best && (
             <span className="text-primary ml-2 text-xs font-semibold whitespace-nowrap uppercase">
-              Closest
+              {t('Closest')}
             </span>
           )}
         </p>
@@ -139,7 +141,7 @@ function CandidateCard({
           onClick={() => onUse(spec)}
           aria-label={`Use the ${c.name} design`}
         >
-          Use this
+          {t('Use this')}
         </Button>
       </div>
     </li>
@@ -152,6 +154,7 @@ function CandidateCard({
  * words. Every change is one undo step.
  */
 export function Designer({ editor }: { editor: DocumentEditor }) {
+  const t = useT();
   const { doc, update } = editor;
   const ai = useAi();
   const { ent, refresh } = useEntitlements();
@@ -321,15 +324,15 @@ export function Designer({ editor }: { editor: DocumentEditor }) {
     >
       <div>
         <h3 id={id} className="flex items-center gap-1.5 text-[17px] font-semibold">
-          <Sparkles aria-hidden size={18} className="text-primary" /> Describe the CV you imagine
+          <Sparkles aria-hidden size={18} className="text-primary" />{' '}
+          {t('Describe the CV you imagine')}
         </h3>
         <p className="text-ink-muted text-sm">
-          Columns, colours, headings, photo — in your own words. We design it with your CV.
+          {t('Columns, colours, headings, photo — in your own words. We design it with your CV.')}
           {ent.plan === 'free' && limit > 0 && (
             <>
-              {' '}
-              You have {left} free design{left === 1 ? '' : 's'} to try; downloading it needs
-              Premium.
+              {t('{v} You have {left} free design', { v: ' ', left: left })}
+              {left === 1 ? '' : 's'} {t('to try; downloading it needs Premium.')}
             </>
           )}
         </p>
@@ -342,7 +345,7 @@ export function Designer({ editor }: { editor: DocumentEditor }) {
         }}
       >
         <label htmlFor={`${id}-in`} className="sr-only">
-          Describe the CV you imagine
+          {t('Describe the CV you imagine')}
         </label>
         <textarea
           id={`${id}-in`}
@@ -353,7 +356,7 @@ export function Designer({ editor }: { editor: DocumentEditor }) {
           placeholder={`e.g. ${examples[0]}`}
           className="border-line-strong bg-surface focus-visible:border-primary focus-visible:ring-primary/25 min-h-16 rounded-sm border px-3 py-2 text-base focus-visible:ring-3 focus-visible:outline-none"
         />
-        <div className="flex flex-wrap gap-1.5" aria-label="Examples">
+        <div className="flex flex-wrap gap-1.5" aria-label={t('Examples')}>
           {examples.map((x) => (
             <button
               key={x}
@@ -371,7 +374,7 @@ export function Designer({ editor }: { editor: DocumentEditor }) {
             type="file"
             accept="image/jpeg,image/png,image/webp,image/heic"
             className="sr-only"
-            aria-label="Upload a picture of a CV you like"
+            aria-label={t('Upload a picture of a CV you like')}
             onChange={(e) => {
               pick(e.target.files?.[0]);
               e.target.value = '';
@@ -384,7 +387,7 @@ export function Designer({ editor }: { editor: DocumentEditor }) {
               <span className="max-w-32 truncate">{image.name}</span>
               <button
                 type="button"
-                aria-label="Remove the picture"
+                aria-label={t('Remove the picture')}
                 onClick={() => setImage(null)}
                 className="hover:bg-sunken rounded p-1"
               >
@@ -399,7 +402,7 @@ export function Designer({ editor }: { editor: DocumentEditor }) {
               icon={<ImagePlus aria-hidden size={16} />}
               onClick={() => fileRef.current?.click()}
             >
-              Add a picture of a CV you like
+              {t('Add a picture of a CV you like')}
             </Button>
           )}
           <Button
@@ -421,7 +424,7 @@ export function Designer({ editor }: { editor: DocumentEditor }) {
           action={
             error.signIn ? (
               <ButtonLink size="sm" href={`/signin?next=/cv/${doc.id}`}>
-                Sign in
+                {t('Sign in')}
               </ButtonLink>
             ) : error.premium ? (
               <ButtonLink
@@ -429,7 +432,7 @@ export function Designer({ editor }: { editor: DocumentEditor }) {
                 href={`/premium?next=/cv/${doc.id}`}
                 icon={<Crown aria-hidden size={14} />}
               >
-                See Premium
+                {t('See Premium')}
               </ButtonLink>
             ) : undefined
           }
@@ -438,12 +441,12 @@ export function Designer({ editor }: { editor: DocumentEditor }) {
 
       {busy === 'compose' && (
         <p className="text-ink-muted text-sm" role="status">
-          Designing three versions of your CV…
+          {t('Designing three versions of your CV…')}
         </p>
       )}
       {shown.length > 0 && (
         <div className="flex flex-col gap-2">
-          <ul className="flex flex-col gap-2" aria-label="Designs for you">
+          <ul className="flex flex-col gap-2" aria-label={t('Designs for you')}>
             {shown.map((c, i) => (
               <CandidateCard
                 key={c.key}
@@ -465,10 +468,10 @@ export function Designer({ editor }: { editor: DocumentEditor }) {
               onClick={() => void compose()}
               disabled={busy !== null || !canCompose}
             >
-              Try again
+              {t('Try again')}
             </Button>
             <Button size="sm" variant="ghost" onClick={() => setShown([])}>
-              Close
+              {t('Close')}
             </Button>
           </div>
         </div>
@@ -482,14 +485,14 @@ export function Designer({ editor }: { editor: DocumentEditor }) {
         }}
       >
         <label htmlFor={`${id}-refine`} className="sr-only">
-          Change something about this design
+          {t('Change something about this design')}
         </label>
         <input
           id={`${id}-refine`}
           value={refineText}
           onChange={(e) => setRefineText(e.target.value)}
           maxLength={300}
-          placeholder="Change something, e.g. make the sidebar narrower"
+          placeholder={t('Change something, e.g. make the sidebar narrower')}
           className="border-line-strong bg-surface focus-visible:border-primary focus-visible:ring-primary/25 h-10 min-w-0 flex-1 rounded-sm border px-3 text-[15px] focus-visible:ring-3 focus-visible:outline-none"
         />
         <Button

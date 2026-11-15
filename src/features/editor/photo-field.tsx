@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useEffect, useId, useRef, useState } from 'react';
 import { Eye, EyeOff, ImagePlus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -88,6 +89,7 @@ function Slider({
 }
 
 export function PhotoField({ editor }: { editor: DocumentEditor }) {
+  const t = useT();
   const { doc, update } = editor;
   const id = useId();
   const input = useRef<HTMLInputElement>(null);
@@ -168,13 +170,13 @@ export function PhotoField({ editor }: { editor: DocumentEditor }) {
   return (
     <div className="flex flex-col gap-2">
       <p id={`${id}-label`} className="text-ink text-sm font-semibold">
-        Photo <span className="text-ink-subtle font-normal">(optional)</span>
+        {t('Photo')} <span className="text-ink-subtle font-normal">{t('(optional)')}</span>
       </p>
       <div className="flex items-center gap-4">
         <div className="border-line bg-sunken text-ink-subtle flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-full border">
           {photo ? (
             // eslint-disable-next-line @next/next/no-img-element -- local data URL preview
-            <img src={photo} alt="Your photo" className="size-full object-cover" />
+            <img src={photo} alt={t('Your photo')} className="size-full object-cover" />
           ) : (
             <ImagePlus aria-hidden size={24} />
           )}
@@ -184,7 +186,7 @@ export function PhotoField({ editor }: { editor: DocumentEditor }) {
             size="sm"
             variant="secondary"
             loading={busy}
-            loadingText="Preparing…"
+            loadingText={t('Preparing…')}
             onClick={() => input.current?.click()}
             aria-describedby={`${id}-hint`}
           >
@@ -214,7 +216,7 @@ export function PhotoField({ editor }: { editor: DocumentEditor }) {
                 update((d) => ops.updateBasics(d, { photo: '' }));
               }}
             >
-              Remove
+              {t('Remove')}
             </Button>
           )}
         </div>
@@ -234,15 +236,16 @@ export function PhotoField({ editor }: { editor: DocumentEditor }) {
       </div>
       {photo && crop && (
         <fieldset className="flex flex-col gap-1.5" data-testid="photo-crop">
-          <legend className="text-ink mb-1 text-sm font-semibold">Frame your photo</legend>
+          <legend className="text-ink mb-1 text-sm font-semibold">{t('Frame your photo')}</legend>
           {fromSaved && (
             <p className="text-ink-muted text-sm" data-testid="photo-crop-saved">
-              Framing the saved photo: you can zoom in and move it. To zoom out further, choose the
-              original photo again.
+              {t(
+                'Framing the saved photo: you can zoom in and move it. To zoom out further, choose the original photo again.',
+              )}
             </p>
           )}
           <Slider
-            label="Zoom"
+            label={t('Zoom')}
             value={crop.zoom}
             min={1}
             max={3}
@@ -250,7 +253,7 @@ export function PhotoField({ editor }: { editor: DocumentEditor }) {
             onChange={(zoom) => reframe({ ...crop, zoom })}
           />
           <Slider
-            label="Left–right"
+            label={t('Left–right')}
             value={crop.x}
             min={0}
             max={1}
@@ -258,7 +261,7 @@ export function PhotoField({ editor }: { editor: DocumentEditor }) {
             onChange={(x) => reframe({ ...crop, x })}
           />
           <Slider
-            label="Up–down"
+            label={t('Up–down')}
             value={crop.y}
             min={0}
             max={1}

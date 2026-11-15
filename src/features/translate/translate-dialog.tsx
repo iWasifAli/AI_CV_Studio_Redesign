@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -35,6 +36,7 @@ const where = (id: string) =>
  * saved as a new CV. Names, employers, places, numbers, dates and links are never changed.
  */
 export function TranslateButton({ doc }: { doc: ResumeDocument }) {
+  const t = useT();
   const account = useAccount();
   const { ent, refresh } = useEntitlements();
   const router = useRouter();
@@ -90,7 +92,7 @@ export function TranslateButton({ doc }: { doc: ResumeDocument }) {
   return (
     <>
       <IconButton
-        label="Translate this CV"
+        label={t('Translate this CV')}
         icon={<Languages aria-hidden size={20} />}
         onClick={() => setOpen(true)}
         data-testid="translate-open"
@@ -99,18 +101,18 @@ export function TranslateButton({ doc }: { doc: ResumeDocument }) {
         <Dialog
           open
           onClose={() => setOpen(false)}
-          title="Translate this CV"
+          title={t('Translate this CV')}
           className="w-[min(60rem,96vw)]!"
         >
           {!pieces ? (
             <div className="flex flex-col gap-4">
               <p className="text-ink-muted text-sm">
-                You get a new CV in the language you choose, to check side by side before it’s
-                saved. Your name, employers, places, dates, numbers and links stay exactly as they
-                are. This one stays as it is.
+                {t(
+                  'You get a new CV in the language you choose, to check side by side before it’s saved. Your name, employers, places, dates, numbers and links stay exactly as they are. This one stays as it is.',
+                )}
               </p>
               <label className="flex flex-col gap-1.5 text-sm font-semibold">
-                Translate into
+                {t('Translate into')}
                 <select
                   className="border-line-strong bg-surface min-h-11 rounded-md border px-3 text-[15px] font-normal"
                   value={lang}
@@ -130,7 +132,7 @@ export function TranslateButton({ doc }: { doc: ResumeDocument }) {
                   action={
                     problem.premium ? (
                       <ButtonLink href="/premium" size="sm">
-                        See Premium
+                        {t('See Premium')}
                       </ButtonLink>
                     ) : undefined
                   }
@@ -138,37 +140,40 @@ export function TranslateButton({ doc }: { doc: ResumeDocument }) {
               )}
               {premiumOnly ? (
                 <p className="text-sm">
-                  Translation is part of{' '}
+                  {t('Translation is part of{v}', { v: ' ' })}
                   <Link href="/premium" className="text-primary font-semibold">
-                    Premium
+                    {t('Premium')}
                   </Link>
                   .
                 </p>
               ) : (
                 <div className="flex justify-end gap-2">
                   <Button variant="ghost" onClick={() => setOpen(false)}>
-                    Cancel
+                    {t('Cancel')}
                   </Button>
-                  <Button loading={busy} loadingText="Translating…" onClick={translate}>
-                    Translate
+                  <Button loading={busy} loadingText={t('Translating…')} onClick={translate}>
+                    {t('Translate')}
                   </Button>
                 </div>
               )}
               <p className="text-ink-muted text-xs">
-                Counts as {ent.aiWeights?.translate ?? 2} AI actions. A machine translation is a
-                good start — have a native speaker read it before you send it if you can.
+                {t(
+                  'Counts as {v} AI actions. A machine translation is a good start — have a native speaker read it before you send it if you can.',
+                  { v: ent.aiWeights?.translate ?? 2 },
+                )}
               </p>
             </div>
           ) : (
             <div className="flex flex-col gap-4" data-testid="translate-review">
               {kept > 0 && (
                 <Banner tone="warning" title={`${kept} piece${kept === 1 ? '' : 's'} need you`}>
-                  These couldn’t be translated safely (a name or number would have changed). Write
-                  them yourself, or leave them empty to keep the original.
+                  {t(
+                    'These couldn’t be translated safely (a name or number would have changed). Write them yourself, or leave them empty to keep the original.',
+                  )}
                 </Banner>
               )}
               <div className="text-ink-muted grid grid-cols-2 gap-4 text-xs font-semibold uppercase">
-                <span>Original</span>
+                <span>{t('Original')}</span>
                 <span>{languageOf(lang)?.[2]}</span>
               </div>
               <ol className="flex max-h-[55vh] flex-col gap-3 overflow-y-auto pr-1">
@@ -197,10 +202,10 @@ export function TranslateButton({ doc }: { doc: ResumeDocument }) {
               </ol>
               <div className="flex flex-wrap justify-end gap-2">
                 <Button variant="ghost" onClick={() => setPieces(null)}>
-                  Start again
+                  {t('Start again')}
                 </Button>
                 <Button onClick={create} data-testid="translate-create">
-                  Save as a new CV
+                  {t('Save as a new CV')}
                 </Button>
               </div>
             </div>

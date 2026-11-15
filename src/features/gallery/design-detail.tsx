@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useMemo, useState } from 'react';
@@ -35,6 +36,7 @@ const SAMPLE_LETTER = {
  * the ATS-safe version, the matching cover letter, and one button: "Use this design".
  */
 export function DesignDetail({ id }: { id: DesignId }) {
+  const t = useT();
   const meta = DESIGN_META[id];
   const router = useRouter();
   const params = useSearchParams();
@@ -89,7 +91,7 @@ export function DesignDetail({ id }: { id: DesignId }) {
         href="/templates"
         className="text-primary inline-flex items-center gap-1 self-start font-semibold"
       >
-        <ArrowLeft aria-hidden size={16} /> All designs
+        <ArrowLeft aria-hidden size={16} /> {t('All designs')}
       </Link>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="max-w-2xl">
@@ -98,8 +100,13 @@ export function DesignDetail({ id }: { id: DesignId }) {
           </h1>
           <p className="text-ink-muted mt-2 text-lg">{meta.description}</p>
           <p className="text-ink-muted mt-1 text-sm">
-            {FAMILY_LABEL[meta.family].name} — {FAMILY_LABEL[meta.family].hint.toLowerCase()} ·{' '}
-            {meta.columns} column{meta.columns > 1 ? 's' : ''}
+            {t('{name} — {v} ·{v2} {columns} column', {
+              name: FAMILY_LABEL[meta.family].name,
+              v: FAMILY_LABEL[meta.family].hint.toLowerCase(),
+              v2: ' ',
+              columns: meta.columns,
+            })}
+            {meta.columns > 1 ? 's' : ''}
             {meta.photo ? ' · photo' : ''}
             {onlineSafe(meta)
               ? ' · best for online applications'
@@ -109,8 +116,8 @@ export function DesignDetail({ id }: { id: DesignId }) {
           </p>
           {premium && (
             <p className="bg-accent-soft mt-3 inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm">
-              <Crown aria-hidden size={14} /> A Premium design. You can try it freely; downloading
-              it needs Premium.
+              <Crown aria-hidden size={14} />{' '}
+              {t('A Premium design. You can try it freely; downloading it needs Premium.')}
             </p>
           )}
         </div>
@@ -121,7 +128,7 @@ export function DesignDetail({ id }: { id: DesignId }) {
 
       <div className="flex flex-wrap items-end gap-4">
         <label className="flex flex-col gap-1.5 text-sm font-semibold">
-          Show it with
+          {t('Show it with')}
           <select
             value={show}
             onChange={(e) => setChoice(e.target.value)}
@@ -129,17 +136,17 @@ export function DesignDetail({ id }: { id: DesignId }) {
           >
             {own.map((c) => (
               <option key={c.id} value={`own:${c.id}`}>
-                My CV: {c.label}
+                {t('My CV: {label}', { label: c.label })}
               </option>
             ))}
             {(Object.keys(SAMPLES) as SampleId[]).map((k) => (
               <option key={k} value={`sample:${k}`}>
-                An example {SAMPLES[k].label.toLowerCase()} CV
+                {t('An example {v} CV', { v: SAMPLES[k].label.toLowerCase() })}
               </option>
             ))}
           </select>
         </label>
-        <div role="tablist" aria-label="View" className="flex gap-1">
+        <div role="tablist" aria-label={t('View')} className="flex gap-1">
           {(
             [
               ['design', 'The design'],
@@ -173,8 +180,9 @@ export function DesignDetail({ id }: { id: DesignId }) {
         {view === 'ats' && (
           <>
             <p className="text-ink-muted mb-3 text-sm">
-              One plain column with standard headings, for online application forms and screening
-              software. Turn it on or off any time in the Design Studio.
+              {t(
+                'One plain column with standard headings, for online application forms and screening software. Turn it on or off any time in the Design Studio.',
+              )}
             </p>
             <DocumentPreview doc={ats} debounceMs={0} title={`${meta.name}, ATS-safe version`} />
           </>
@@ -182,15 +190,22 @@ export function DesignDetail({ id }: { id: DesignId }) {
         {view === 'portfolio' && (
           <>
             <p className="text-ink-muted mb-3 text-sm">
-              Your portfolio page (Premium) uses the {THEME_INFO[FAMILY_THEME[meta.family]].name}{' '}
-              theme with this design: {THEME_INFO[FAMILY_THEME[meta.family]].hint.toLowerCase()}.{' '}
+              {t(
+                'Your portfolio page (Premium) uses the {name}{v} theme with this design: {v2}.{v3}',
+                {
+                  name: THEME_INFO[FAMILY_THEME[meta.family]].name,
+                  v: ' ',
+                  v2: THEME_INFO[FAMILY_THEME[meta.family]].hint.toLowerCase(),
+                  v3: ' ',
+                },
+              )}
               <a
                 href={`/portfolio-themes/${FAMILY_THEME[meta.family]}`}
                 target="_blank"
                 rel="noopener"
                 className="text-primary font-semibold underline underline-offset-4"
               >
-                Open a full-size sample
+                {t('Open a full-size sample')}
               </a>
             </p>
             <section

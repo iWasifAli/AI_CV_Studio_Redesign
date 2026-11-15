@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useState, type ReactNode } from 'react';
 import { FileQuestion } from 'lucide-react';
 import { ButtonLink } from '@/components/ui/button';
@@ -27,6 +28,7 @@ export function WithDocument({
 }
 
 export function MissingDocument() {
+  const t = useT();
   return (
     <main
       id="main"
@@ -35,15 +37,16 @@ export function MissingDocument() {
       <span className="bg-sunken text-ink-muted inline-flex size-14 items-center justify-center rounded-full">
         <FileQuestion aria-hidden size={26} />
       </span>
-      <h1 className="font-display text-3xl font-semibold">We can’t find this CV</h1>
+      <h1 className="font-display text-3xl font-semibold">{t('We can’t find this CV')}</h1>
       <p className="text-ink-muted max-w-md">
-        It may have been deleted, or made on another device while you were signed out. Sign in to
-        see the CVs saved to your account.
+        {t(
+          'It may have been deleted, or made on another device while you were signed out. Sign in to see the CVs saved to your account.',
+        )}
       </p>
       <div className="flex gap-3">
-        <ButtonLink href="/documents">Documents</ButtonLink>
+        <ButtonLink href="/documents">{t('Documents')}</ButtonLink>
         <ButtonLink href="/start" variant="secondary">
-          Create a CV
+          {t('Create a CV')}
         </ButtonLink>
       </div>
     </main>
@@ -51,8 +54,9 @@ export function MissingDocument() {
 }
 
 export function StudioLoading() {
+  const t = useT();
   return (
-    <div className="flex min-h-dvh flex-col" aria-busy="true" aria-label="Loading your CV">
+    <div className="flex min-h-dvh flex-col" aria-busy="true" aria-label={t('Loading your CV')}>
       <div className="border-line bg-surface h-16 border-b" />
       <div className="flex flex-1">
         <div className="flex w-full flex-col gap-4 p-5 lg:w-[460px]">

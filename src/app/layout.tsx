@@ -5,6 +5,9 @@ import '@/styles/globals.css';
 import { ToastProvider } from '@/components/ui/toast';
 import { AccountProvider } from '@/features/account/account-context';
 import { ServiceWorker } from '@/features/app/service-worker';
+import { I18nProvider } from '@/i18n/client';
+import { DICTS } from '@/i18n/dicts';
+import { getLang } from '@/i18n/server';
 
 export const metadata: Metadata = {
   title: {
@@ -23,14 +26,17 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const lang = await getLang();
   return (
-    <html lang="en">
+    <html lang={lang}>
       <body>
-        <ToastProvider>
-          <AccountProvider>{children}</AccountProvider>
-          <ServiceWorker />
-        </ToastProvider>
+        <I18nProvider lang={lang} dict={DICTS[lang]}>
+          <ToastProvider>
+            <AccountProvider>{children}</AccountProvider>
+            <ServiceWorker />
+          </ToastProvider>
+        </I18nProvider>
       </body>
     </html>
   );

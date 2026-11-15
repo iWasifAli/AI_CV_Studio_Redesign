@@ -1,3 +1,6 @@
+'use client';
+
+import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { cn } from '@/lib/cn';
 
@@ -18,18 +21,19 @@ export function LogoMark({ size = 28, className }: { size?: number; className?: 
 }
 
 export function Logo({ className, href = '/' }: { className?: string; href?: string }) {
+  const t = useT();
   return (
     <Link
       href={href}
       className={cn('text-ink inline-flex items-center gap-2.5 rounded-sm', className)}
-      aria-label="AI CV Studio — home"
+      aria-label={t('AI CV Studio — home')}
     >
       <LogoMark />
       <span className="font-display text-[19px] leading-none font-semibold tracking-tight whitespace-nowrap">
         <span className="text-primary mr-1 align-[1px] text-[12px] font-bold tracking-[0.08em] uppercase">
-          AI
+          {t('AI')}
         </span>
-        CV Studio
+        {t('CV Studio')}
       </span>
     </Link>
   );

@@ -1,3 +1,4 @@
+import { getT } from '@/i18n/server';
 import Link from 'next/link';
 import { Suspense } from 'react';
 import { InvitedNote } from '@/features/referrals/invited-note';
@@ -53,7 +54,8 @@ const PROMISES = [
   },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const t = await getT();
   return (
     <>
       <section className="relative overflow-hidden">
@@ -64,11 +66,13 @@ export default function HomePage() {
             </Suspense>
             <ContinueCardClient />
             <h1 className="font-display text-ink text-[40px] leading-[1.08] font-semibold tracking-tight sm:text-5xl lg:text-[58px]">
-              Upload your CV, <span className="text-primary italic">see it transformed.</span>
+              {t('Upload your CV,')}{' '}
+              <span className="text-primary italic">{t('see it transformed.')}</span>
             </h1>
             <p className="text-ink-muted max-w-[34rem] text-lg leading-relaxed">
-              Drop the CV you have and see it in a professional design in under a minute — in your
-              own words, with nothing added.
+              {t(
+                'Drop the CV you have and see it in a professional design in under a minute — in your own words, with nothing added.',
+              )}
             </p>
             <div className="w-full max-w-[34rem]">
               <LandingDrop />
@@ -79,14 +83,14 @@ export default function HomePage() {
                 variant="secondary"
                 iconAfter={<ArrowRight aria-hidden size={18} />}
               >
-                No CV yet? Create one
+                {t('No CV yet? Create one')}
               </ButtonLink>
               <ButtonLink href="/templates" variant="ghost">
-                See the designs
+                {t('See the designs')}
               </ButtonLink>
             </div>
             <p className="text-ink-subtle text-sm">
-              No sign-in needed to see the result. Works on your phone.
+              {t('No sign-in needed to see the result. Works on your phone.')}
             </p>
           </div>
           <PaperStack />
@@ -96,7 +100,7 @@ export default function HomePage() {
       <section aria-labelledby="how" className="border-line bg-surface border-y">
         <Container className="py-16 lg:py-20">
           <h2 id="how" className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">
-            Three steps. No experience with CVs needed.
+            {t('Three steps. No experience with CVs needed.')}
           </h2>
           <ol className="mt-10 grid gap-6 md:grid-cols-3">
             {STEPS.map((s, i) => (
@@ -108,7 +112,9 @@ export default function HomePage() {
                   <span className="bg-primary text-on-primary inline-flex size-10 items-center justify-center rounded-full">
                     <s.icon aria-hidden size={20} />
                   </span>
-                  <span className="text-ink-subtle text-sm font-semibold">Step {i + 1}</span>
+                  <span className="text-ink-subtle text-sm font-semibold">
+                    {t('Step {v}', { v: i + 1 })}
+                  </span>
                 </div>
                 <h3 className="text-lg font-semibold">{s.title}</h3>
                 <p className="text-ink-muted">{s.body}</p>
@@ -125,11 +131,12 @@ export default function HomePage() {
               id="every-job"
               className="font-display text-3xl font-semibold tracking-tight sm:text-4xl"
             >
-              Made for every kind of work
+              {t('Made for every kind of work')}
             </h2>
             <p className="text-ink-muted text-lg">
-              Choose yours and we&apos;ll ask the right questions — licences for drivers,
-              registration for nurses, projects for students.
+              {t(
+                'Choose yours and we&apos;ll ask the right questions — licences for drivers, registration for nurses, projects for students.',
+              )}
             </p>
           </div>
           <ul className="mt-8 flex flex-wrap gap-3">
@@ -153,7 +160,7 @@ export default function HomePage() {
             id="promise"
             className="font-display text-3xl font-semibold tracking-tight sm:text-4xl"
           >
-            What we promise
+            {t('What we promise')}
           </h2>
           <ul className="mt-10 grid gap-8 md:grid-cols-3">
             {PROMISES.map((p) => (
@@ -171,14 +178,14 @@ export default function HomePage() {
         <Container className="flex flex-col items-start gap-6 py-16 md:flex-row md:items-center md:justify-between lg:py-20">
           <div className="flex flex-col gap-2">
             <h2 id="cta" className="font-display text-3xl font-semibold tracking-tight">
-              Ready when you are.
+              {t('Ready when you are.')}
             </h2>
             <p className="text-ink-muted text-lg">
-              Start now — you can stop and come back whenever you like.
+              {t('Start now — you can stop and come back whenever you like.')}
             </p>
           </div>
           <ButtonLink href="/start" size="lg" iconAfter={<ArrowRight aria-hidden size={18} />}>
-            Create my CV
+            {t('Create my CV')}
           </ButtonLink>
         </Container>
       </section>

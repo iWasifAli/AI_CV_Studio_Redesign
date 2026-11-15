@@ -1,3 +1,6 @@
+'use client';
+
+import { useT } from '@/i18n/client';
 import type { ReactNode } from 'react';
 import { CircleAlert, CircleCheck, Info, TriangleAlert, X } from 'lucide-react';
 import { cn } from '@/lib/cn';
@@ -40,6 +43,7 @@ export function Banner({
   onDismiss,
   className,
 }: BannerProps) {
+  const tx = useT();
   const t = tones[tone];
   return (
     <div
@@ -56,7 +60,7 @@ export function Banner({
         <button
           type="button"
           onClick={onDismiss}
-          aria-label="Dismiss"
+          aria-label={tx('Dismiss')}
           className="text-ink-muted -m-1 rounded-sm p-1 hover:bg-black/5"
         >
           <X aria-hidden size={16} />

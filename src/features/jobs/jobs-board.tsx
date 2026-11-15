@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
@@ -28,6 +29,7 @@ const fmt = (d: string) =>
 
 /** Job tracker board: one column per stage (stacked on phones), move with a select. */
 export function JobsBoard() {
+  const t = useT();
   const account = useAccount();
   const { ent } = useEntitlements();
   const toast = useToast();
@@ -69,24 +71,25 @@ export function JobsBoard() {
   };
 
   if (account.status === 'loading')
-    return <div className="skeleton h-72 rounded-lg" aria-busy="true" aria-label="Loading" />;
+    return <div className="skeleton h-72 rounded-lg" aria-busy="true" aria-label={t('Loading')} />;
   if (account.status === 'signedOut')
     return (
       <Card className="flex flex-col items-start gap-3 p-6">
         <Lock aria-hidden className="text-primary" />
-        <h2 className="text-xl font-semibold">Sign in to track your applications</h2>
+        <h2 className="text-xl font-semibold">{t('Sign in to track your applications')}</h2>
         <p className="text-ink-muted">
-          Keep every job you’re interested in, where you are with it, and which CV you sent — on any
-          device.
+          {t(
+            'Keep every job you’re interested in, where you are with it, and which CV you sent — on any device.',
+          )}
         </p>
-        <ButtonLink href="/signin?next=/jobs">Sign in or create a free account</ButtonLink>
+        <ButtonLink href="/signin?next=/jobs">{t('Sign in or create a free account')}</ButtonLink>
       </Card>
     );
   if (!data)
     return error ? (
       <Banner tone="error" title={error} />
     ) : (
-      <div className="skeleton h-72 rounded-lg" aria-busy="true" aria-label="Loading" />
+      <div className="skeleton h-72 rounded-lg" aria-busy="true" aria-label={t('Loading')} />
     );
 
   const full = data.max !== -1 && data.jobs.length >= data.max;
@@ -105,7 +108,7 @@ export function JobsBoard() {
               variant="secondary"
               icon={<BarChart3 aria-hidden size={18} />}
             >
-              Your results
+              {t('Your results')}
             </ButtonLink>
           )}
           {!adding && (
@@ -114,7 +117,7 @@ export function JobsBoard() {
               onClick={() => setAdding(true)}
               disabled={full}
             >
-              Add a job
+              {t('Add a job')}
             </Button>
           )}
         </div>
@@ -126,16 +129,16 @@ export function JobsBoard() {
           action={
             ent?.features.sales ? (
               <ButtonLink href="/premium" size="sm">
-                See Premium
+                {t('See Premium')}
               </ButtonLink>
             ) : undefined
           }
         >
-          Remove a job you no longer need to add another.
+          {t('Remove a job you no longer need to add another.')}
         </Banner>
       )}
       {error && (
-        <Banner tone="error" title="That didn’t work" onDismiss={() => setError(null)}>
+        <Banner tone="error" title={t('That didn’t work')} onDismiss={() => setError(null)}>
           {error}
         </Banner>
       )}
@@ -154,10 +157,11 @@ export function JobsBoard() {
       {data.jobs.length === 0 && !adding ? (
         <div className="border-line-strong bg-surface flex flex-col items-center gap-3 rounded-lg border border-dashed px-6 py-14 text-center">
           <Briefcase aria-hidden size={28} className="text-primary" />
-          <h2 className="text-xl font-semibold">No jobs yet</h2>
+          <h2 className="text-xl font-semibold">{t('No jobs yet')}</h2>
           <p className="text-ink-muted max-w-md">
-            Add a job you’re interested in. Paste the advert too — it lets you check how well your
-            CV matches and write a letter for it.
+            {t(
+              'Add a job you’re interested in. Paste the advert too — it lets you check how well your CV matches and write a letter for it.',
+            )}
           </p>
         </div>
       ) : (
@@ -200,7 +204,7 @@ export function JobsBoard() {
                     </p>
                     <NextReminder job={j} />
                     <label className="mt-2 flex items-center gap-2 text-sm">
-                      <span className="text-ink-muted">Move to</span>
+                      <span className="text-ink-muted">{t('Move to')}</span>
                       <select
                         className="border-line-strong bg-surface h-9 min-w-0 flex-1 rounded-sm border px-1.5"
                         value={j.stage}
@@ -216,14 +220,14 @@ export function JobsBoard() {
                     </label>
                     {j.stage === 'closed' && (
                       <label className="mt-2 flex items-center gap-2 text-sm">
-                        <span className="text-ink-muted">Ended</span>
+                        <span className="text-ink-muted">{t('Ended')}</span>
                         <select
                           className="border-line-strong bg-surface h-9 min-w-0 flex-1 rounded-sm border px-1.5"
                           value={j.outcome ?? ''}
                           aria-label={`How it ended: ${j.title}`}
                           onChange={(e) => void move(j, { outcome: e.target.value as JobOutcome })}
                         >
-                          <option value="">Not said</option>
+                          <option value="">{t('Not said')}</option>
                           {JOB_OUTCOMES.map((o) => (
                             <option key={o} value={o}>
                               {OUTCOME_LABEL[o]}
@@ -254,6 +258,7 @@ function AddJob({
   initialUrl?: string;
   canFetch?: boolean;
 }) {
+  const t = useT();
   const [title, setTitle] = useState('');
   const [company, setCompany] = useState('');
   const [location, setLocation] = useState('');
@@ -310,13 +315,13 @@ function AddJob({
 
   return (
     <Card className="p-5">
-      <form onSubmit={submit} className="flex flex-col gap-4" aria-label="Add a job">
+      <form onSubmit={submit} className="flex flex-col gap-4" aria-label={t('Add a job')}>
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Add a job</h2>
+          <h2 className="text-lg font-semibold">{t('Add a job')}</h2>
           <Button
             variant="ghost"
             size="sm"
-            aria-label="Close"
+            aria-label={t('Close')}
             icon={<X aria-hidden size={18} />}
             onClick={onCancel}
           />
@@ -325,11 +330,11 @@ function AddJob({
           <div className="bg-primary-soft/40 flex flex-col gap-2 rounded-lg p-3">
             <div className="flex flex-wrap items-end gap-2">
               <TextField
-                label="Link to the advert"
+                label={t('Link to the advert')}
                 containerClassName="min-w-0 flex-1"
                 type="url"
                 inputMode="url"
-                placeholder="https://"
+                placeholder={t('https://')}
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 onKeyDown={(e) => {
@@ -347,40 +352,40 @@ function AddJob({
                 disabled={reading || !url.trim()}
                 onClick={() => fill()}
               >
-                Fill in from the link
+                {t('Fill in from the link')}
               </Button>
             </div>
             {read ? (
               <p className="text-sm" role="status" data-testid="job-read">
-                Filled in from {read.host}
+                {t('Filled in from {host}', { host: read.host })}
                 {read.via === 'page'
                   ? ' — we couldn’t pick out the advert, so the whole page text is below. Trim it to the advert.'
                   : '. Check it before you save.'}
               </p>
             ) : (
               <p className="text-ink-muted text-sm">
-                Paste a job’s link and we’ll fill in the title, company and advert for you.
+                {t('Paste a job’s link and we’ll fill in the title, company and advert for you.')}
               </p>
             )}
           </div>
         )}
         <div className="grid gap-4 sm:grid-cols-2">
           <TextField
-            label="Job title"
+            label={t('Job title')}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
             maxLength={160}
           />
           <TextField
-            label="Company"
+            label={t('Company')}
             optional
             value={company}
             onChange={(e) => setCompany(e.target.value)}
             maxLength={160}
           />
           <TextField
-            label="Location"
+            label={t('Location')}
             optional
             value={location}
             onChange={(e) => setLocation(e.target.value)}
@@ -388,11 +393,11 @@ function AddJob({
           />
           {!canFetch && (
             <TextField
-              label="Link to the advert"
+              label={t('Link to the advert')}
               optional
               type="url"
               inputMode="url"
-              placeholder="https://"
+              placeholder={t('https://')}
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               maxLength={500}
@@ -400,9 +405,11 @@ function AddJob({
           )}
         </div>
         <TextArea
-          label="The job advert"
+          label={t('The job advert')}
           optional
-          hint="Paste the advert text. It stays private and is used to check your CV against it and to write a letter."
+          hint={t(
+            'Paste the advert text. It stays private and is used to check your CV against it and to write a letter.',
+          )}
           rows={5}
           value={advert}
           onChange={(e) => setAdvert(e.target.value)}
@@ -415,10 +422,10 @@ function AddJob({
         )}
         <div className="flex gap-3">
           <Button type="submit" loading={busy}>
-            Save job
+            {t('Save job')}
           </Button>
           <Button variant="ghost" onClick={onCancel}>
-            Cancel
+            {t('Cancel')}
           </Button>
         </div>
       </form>

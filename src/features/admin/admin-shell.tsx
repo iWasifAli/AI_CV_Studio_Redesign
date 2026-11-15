@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
@@ -29,30 +30,33 @@ const NAV = [
 
 /** Admin layout. The server checks the admin claim on every API call; this only shapes the UI. */
 export function AdminShell({ children }: { children: ReactNode }) {
+  const t = useT();
   const account = useAccount();
   const pathname = usePathname();
   if (account.status === 'loading')
-    return <div className="skeleton m-8 h-64 rounded-lg" aria-busy="true" aria-label="Loading" />;
+    return (
+      <div className="skeleton m-8 h-64 rounded-lg" aria-busy="true" aria-label={t('Loading')} />
+    );
   if (!account.user?.admin)
     return (
       <div className="mx-auto flex max-w-md flex-col items-center gap-4 px-6 py-24 text-center">
         <ShieldAlert aria-hidden size={36} className="text-ink-muted" />
-        <h1 className="font-display text-3xl font-semibold">Administrators only</h1>
+        <h1 className="font-display text-3xl font-semibold">{t('Administrators only')}</h1>
         <p className="text-ink-muted">
           {account.status === 'signedOut'
             ? 'Please sign in with an administrator account.'
             : 'This account is not an administrator.'}
         </p>
         {account.status === 'signedOut' && (
-          <ButtonLink href="/signin?next=/admin">Sign in</ButtonLink>
+          <ButtonLink href="/signin?next=/admin">{t('Sign in')}</ButtonLink>
         )}
       </div>
     );
   return (
     <div className="mx-auto grid w-full max-w-[1280px] gap-6 px-4 py-6 md:grid-cols-[220px_1fr] md:px-8">
-      <nav aria-label="Admin" className="flex gap-1 overflow-x-auto md:flex-col">
+      <nav aria-label={t('Admin')} className="flex gap-1 overflow-x-auto md:flex-col">
         <p className="text-ink-subtle hidden px-3 pb-2 text-xs font-semibold tracking-wide uppercase md:block">
-          Admin Console
+          {t('Admin Console')}
         </p>
         {NAV.map(({ href, label, icon: Icon }) => {
           const active = href === '/admin' ? pathname === href : pathname.startsWith(href);

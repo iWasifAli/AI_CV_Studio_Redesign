@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useCallback, useEffect, useState } from 'react';
 import { Check, X } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
@@ -20,6 +21,7 @@ const STATUS_STYLE: Record<PaymentRequest['status'], string> = {
 };
 
 export function AdminPayments() {
+  const t = useT();
   const toast = useToast();
   const [view, setView] = useState<View>('pending');
   const [items, setItems] = useState<PaymentRequest[] | null>(null);
@@ -77,12 +79,12 @@ export function AdminPayments() {
   return (
     <>
       <AdminHeading
-        title="Payments"
+        title={t('Payments')}
         intro="Check each payment in your bank or wallet app before approving. Approving starts (or extends) Premium straight away."
       />
       <div className="mb-4 max-w-xs">
         <Segmented
-          label="Show"
+          label={t('Show')}
           value={view}
           onChange={(v) => {
             setItems(null);
@@ -97,7 +99,7 @@ export function AdminPayments() {
       {error && (
         <Banner
           tone="error"
-          title="That didn't work"
+          title={t("That didn't work")}
           className="mb-4"
           onDismiss={() => setError(null)}
         >
@@ -139,8 +141,13 @@ export function AdminPayments() {
                   </span>
                 </p>
                 <p className="mt-1">
-                  {r.passLabel} · <strong>PKR {r.pricePkr.toLocaleString()}</strong> ·{' '}
-                  {r.methodLabel} · {r.days} days
+                  {r.passLabel} ·{' '}
+                  <strong>{t('PKR {v}', { v: r.pricePkr.toLocaleString() })}</strong>{' '}
+                  {t('·{v} {methodLabel} · {days} days', {
+                    v: ' ',
+                    methodLabel: r.methodLabel,
+                    days: r.days,
+                  })}
                 </p>
                 {(r.couponCode || r.welcomeDays) && (
                   <p className="text-ink-muted mt-0.5" data-testid="payment-extras">
@@ -152,28 +159,32 @@ export function AdminPayments() {
                 )}
                 {r.phone && (
                   <p className="mt-0.5">
-                    Mobile: <span className="font-mono">{r.phone}</span> ·{' '}
+                    {t('Mobile:')} <span className="font-mono">{r.phone}</span> ·{' '}
                     <a
                       href={`https://wa.me/${r.phone.replace(/\D/g, '').replace(/^0/, '92')}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-primary font-semibold"
                     >
-                      WhatsApp
+                      {t('WhatsApp')}
                     </a>
                   </p>
                 )}
                 {r.reference && (
                   <p className="mt-0.5">
-                    Transaction ID: <span className="font-mono">{r.reference}</span>
+                    {t('Transaction ID:')} <span className="font-mono">{r.reference}</span>
                   </p>
                 )}
                 {r.note && <p className="text-ink-muted mt-0.5">“{r.note}”</p>}
                 <p className="text-ink-muted mt-0.5">
-                  Ordered {when(r.createdAt)}
+                  {t('Ordered {when}', { when: when(r.createdAt) })}
                   {r.decidedAt && ` · ${r.status} ${when(r.decidedAt)} by ${r.decidedBy}`}
                 </p>
-                {r.reason && <p className="text-ink-muted mt-0.5">Reason: {r.reason}</p>}
+                {r.reason && (
+                  <p className="text-ink-muted mt-0.5">
+                    {t('Reason: {reason}', { reason: r.reason })}
+                  </p>
+                )}
               </div>
               {r.status === 'pending' && (
                 <div className="flex gap-2">
@@ -183,7 +194,7 @@ export function AdminPayments() {
                     disabled={busy === r.id}
                     onClick={() => decide(r, 'approve')}
                   >
-                    Approve
+                    {t('Approve')}
                   </Button>
                   <Button
                     size="sm"
@@ -192,7 +203,7 @@ export function AdminPayments() {
                     disabled={busy === r.id}
                     onClick={() => decide(r, 'reject')}
                   >
-                    Reject
+                    {t('Reject')}
                   </Button>
                 </div>
               )}

@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Check, SpellCheck } from 'lucide-react';
@@ -39,6 +40,7 @@ export function ProofreadPanel({
   onShow: (ref: string) => void;
   apply: (fn: (d: ResumeDocument) => ResumeDocument) => void;
 }) {
+  const t = useT();
   const account = useAccount();
   const { ent, refresh } = useEntitlements();
   const [busy, setBusy] = useState(false);
@@ -111,11 +113,12 @@ export function ProofreadPanel({
     >
       <div>
         <h2 id="proof-h" className="flex items-center gap-2 font-semibold">
-          <SpellCheck aria-hidden size={18} className="text-primary" /> Proofread
+          <SpellCheck aria-hidden size={18} className="text-primary" /> {t('Proofread')}
         </h2>
         <p className="text-ink-muted text-sm">
-          AI reads every line of your CV for spelling, grammar and punctuation mistakes. You choose
-          which fixes to make; nothing changes on its own.
+          {t(
+            'AI reads every line of your CV for spelling, grammar and punctuation mistakes. You choose which fixes to make; nothing changes on its own.',
+          )}
         </p>
       </div>
       {!signedIn ? (
@@ -124,15 +127,15 @@ export function ProofreadPanel({
             href={`/signin?next=/cv/${doc.id}?tab=check`}
             className="text-primary font-semibold"
           >
-            Sign in
+            {t('Sign in')}
           </Link>{' '}
-          to proofread your CV.
+          {t('to proofread your CV.')}
         </p>
       ) : premiumOnly ? (
         <p className="text-ink-muted text-sm" data-testid="proofread-premium">
-          Proofreading is part of{' '}
+          {t('Proofreading is part of{v}', { v: ' ' })}
           <Link href="/premium" className="text-primary font-semibold">
-            Premium
+            {t('Premium')}
           </Link>
           .
         </p>
@@ -154,7 +157,7 @@ export function ProofreadPanel({
           action={
             problem.premium ? (
               <ButtonLink href="/premium" size="sm">
-                See Premium
+                {t('See Premium')}
               </ButtonLink>
             ) : undefined
           }
@@ -189,17 +192,17 @@ export function ProofreadPanel({
                   {st === 'open' ? (
                     <div className="flex flex-wrap gap-2">
                       <Button size="sm" onClick={() => fix(n, issue)}>
-                        Fix it
+                        {t('Fix it')}
                       </Button>
                       <Button
                         size="sm"
                         variant="secondary"
                         onClick={() => setState((s) => ({ ...s, [n]: 'left' }))}
                       >
-                        Leave it
+                        {t('Leave it')}
                       </Button>
                       <Button size="sm" variant="ghost" onClick={() => onShow(issue.ref)}>
-                        Show me
+                        {t('Show me')}
                       </Button>
                     </div>
                   ) : (

@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { CheckCircle2, CircleAlert, CirclePlus, FileUp, Sparkles } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
@@ -57,6 +58,7 @@ function keep(r: Saved | null) {
  * the review is kept in this browser.
  */
 export function LinkedinReview() {
+  const t = useT();
   const account = useAccount();
   const { ent, refresh } = useEntitlements();
   const repo = typeof window === 'undefined' ? null : getRepository();
@@ -133,20 +135,24 @@ export function LinkedinReview() {
     return (
       <Banner
         tone="info"
-        title="Sign in to review your LinkedIn profile"
-        action={<ButtonLink href="/signin?next=/linkedin?tab=review">Sign in</ButtonLink>}
+        title={t('Sign in to review your LinkedIn profile')}
+        action={<ButtonLink href="/signin?next=/linkedin?tab=review">{t('Sign in')}</ButtonLink>}
       />
     );
-  if (off) return <Banner tone="info" title="The LinkedIn review is switched off right now." />;
+  if (off)
+    return <Banner tone="info" title={t('The LinkedIn review is switched off right now.')} />;
   if (locked)
     return (
       <Banner
         tone="info"
-        title="The LinkedIn review is part of Premium"
-        action={<ButtonLink href="/premium?next=/linkedin?tab=review">See Premium</ButtonLink>}
+        title={t('The LinkedIn review is part of Premium')}
+        action={
+          <ButtonLink href="/premium?next=/linkedin?tab=review">{t('See Premium')}</ButtonLink>
+        }
       >
-        Upload your LinkedIn profile and get a review of each section, with better text to paste
-        back.
+        {t(
+          'Upload your LinkedIn profile and get a review of each section, with better text to paste back.',
+        )}
       </Banner>
     );
 
@@ -161,13 +167,14 @@ export function LinkedinReview() {
     <>
       <Card className="flex flex-col gap-5 p-5" data-testid="linkedin-review-form">
         <ol className="text-ink-muted flex list-decimal flex-col gap-1 pl-5 text-sm">
-          <li>On LinkedIn, open your own profile.</li>
+          <li>{t('On LinkedIn, open your own profile.')}</li>
           <li>
-            Press <strong className="text-ink">More</strong> (or{' '}
-            <strong className="text-ink">Resources</strong>), then{' '}
-            <strong className="text-ink">Save to PDF</strong>.
+            {t('Press')} <strong className="text-ink">{t('More')}</strong> {t('(or{v}', { v: ' ' })}
+            <strong className="text-ink">{t('Resources')}</strong>
+            {t('), then{v}', { v: ' ' })}
+            <strong className="text-ink">{t('Save to PDF')}</strong>.
           </li>
-          <li>Upload that file here. We read it and don’t keep it.</li>
+          <li>{t('Upload that file here. We read it and don’t keep it.')}</li>
         </ol>
         <div className="flex flex-wrap items-center gap-3">
           <Button
@@ -182,7 +189,7 @@ export function LinkedinReview() {
             type="file"
             accept="application/pdf,.pdf"
             className="sr-only"
-            aria-label="LinkedIn profile PDF"
+            aria-label={t('LinkedIn profile PDF')}
             tabIndex={-1}
             onChange={(e) => {
               setFile(e.target.files?.[0] ?? null);
@@ -195,13 +202,13 @@ export function LinkedinReview() {
         </div>
         {cvs.length > 0 && (
           <label className="flex flex-col gap-1.5 text-sm font-semibold">
-            Compare with my CV
+            {t('Compare with my CV')}
             <select
               className="border-line-strong bg-surface min-h-11 rounded-md border px-3 text-[15px] font-normal"
               value={docId}
               onChange={(e) => setDocId(e.target.value)}
             >
-              <option value="">Don’t compare</option>
+              <option value="">{t('Don’t compare')}</option>
               {cvs.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.role === 'profile' ? 'Career profile' : c.title || c.name || 'Untitled CV'}
@@ -209,15 +216,16 @@ export function LinkedinReview() {
               ))}
             </select>
             <span className="text-ink-muted text-xs font-normal">
-              The review points out what your CV shows that LinkedIn doesn’t, and uses it in the
-              suggested text.
+              {t(
+                'The review points out what your CV shows that LinkedIn doesn’t, and uses it in the suggested text.',
+              )}
             </span>
           </label>
         )}
         <TextField
-          label="The kind of role you want next"
+          label={t('The kind of role you want next')}
           optional
-          hint="For example “transport planning”. Leave empty to review for your current work."
+          hint={t('For example “transport planning”. Leave empty to review for your current work.')}
           value={target}
           maxLength={160}
           onChange={(e) => setTarget(e.target.value)}
@@ -226,23 +234,23 @@ export function LinkedinReview() {
           <Button
             icon={<Sparkles aria-hidden size={18} />}
             loading={busy}
-            loadingText="Reviewing… this takes about 30 seconds"
+            loadingText={t('Reviewing… this takes about 30 seconds')}
             disabled={!file}
             onClick={run}
           >
-            Review my profile
+            {t('Review my profile')}
           </Button>
-          <span className="text-ink-muted text-xs">Uses 1 AI action.</span>
+          <span className="text-ink-muted text-xs">{t('Uses 1 AI action.')}</span>
         </div>
         {error && (
           <Banner
             tone="error"
-            title="That didn’t work"
+            title={t('That didn’t work')}
             onDismiss={() => setError(null)}
             action={
               error.premium ? (
                 <ButtonLink size="sm" href="/premium?next=/linkedin?tab=review">
-                  See Premium
+                  {t('See Premium')}
                 </ButtonLink>
               ) : undefined
             }
@@ -265,7 +273,7 @@ export function LinkedinReview() {
               tabIndex={-1}
               className="font-display scroll-mt-20 text-2xl font-semibold outline-none"
             >
-              Your review
+              {t('Your review')}
             </h2>
             <p className="text-ink-muted text-sm">
               {review.file} ·{' '}
@@ -279,11 +287,12 @@ export function LinkedinReview() {
           {review.overall && <p className="text-[17px] leading-relaxed">{review.overall}</p>}
           {asks > 0 && (
             <Banner tone="warning" title={`${asks} detail${asks > 1 ? 's' : ''} to check`}>
-              Replace or remove the parts in [brackets] before you paste. They mark facts that
-              aren’t in your profile or CV.
+              {t(
+                'Replace or remove the parts in [brackets] before you paste. They mark facts that aren’t in your profile or CV.',
+              )}
             </Banner>
           )}
-          <ul className="flex flex-col gap-4" aria-label="Sections">
+          <ul className="flex flex-col gap-4" aria-label={t('Sections')}>
             {review.sections.map((s, i) => {
               const st = STATUS[s.status];
               const Icon = st.icon;
@@ -303,7 +312,9 @@ export function LinkedinReview() {
                     </div>
                     {s.current && (
                       <div className="bg-sunken rounded-md p-3 text-sm">
-                        <p className="text-ink-muted mb-1 text-xs font-semibold uppercase">Now</p>
+                        <p className="text-ink-muted mb-1 text-xs font-semibold uppercase">
+                          {t('Now')}
+                        </p>
                         <p className="whitespace-pre-line">{s.current}</p>
                       </div>
                     )}
@@ -338,7 +349,7 @@ export function LinkedinReview() {
               setFile(null);
             }}
           >
-            Clear this review
+            {t('Clear this review')}
           </Button>
         </section>
       )}

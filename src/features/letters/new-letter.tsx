@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useMemo, useState, type FormEvent } from 'react';
@@ -26,6 +27,7 @@ import { lettersApi } from './api';
 
 /** /letters/new: pick a letter type, answer its 3–5 questions, then write it with AI or yourself. */
 export function NewLetter() {
+  const tx = useT();
   const params = useSearchParams();
   const type = params.get('type');
   const account = useAccount();
@@ -34,20 +36,20 @@ export function NewLetter() {
     return (
       <Card className="flex flex-col items-start gap-3 p-6">
         <Lock aria-hidden className="text-primary" />
-        <h2 className="text-xl font-semibold">Sign in to write and keep letters</h2>
+        <h2 className="text-xl font-semibold">{tx('Sign in to write and keep letters')}</h2>
         <p className="text-ink-muted">
-          Your letters are kept in your account, in the same design as your CV.
+          {tx('Your letters are kept in your account, in the same design as your CV.')}
         </p>
         <ButtonLink
           href={`/signin?next=${encodeURIComponent(`/letters/new${type ? `?type=${type}` : ''}`)}`}
         >
-          Sign in or create a free account
+          {tx('Sign in or create a free account')}
         </ButtonLink>
       </Card>
     );
   const hidden = new Set(ent?.hiddenLetterTypes ?? []);
   if (ent && !ent.features.letters)
-    return <Banner tone="info" title="Letters are switched off right now." />;
+    return <Banner tone="info" title={tx('Letters are switched off right now.')} />;
   if (isLetterType(type) && !hidden.has(type))
     return <LetterForm key={type} type={LETTER_TYPE[type]} />;
   const groups: [string, LetterType[]][] = [
@@ -84,6 +86,7 @@ export function NewLetter() {
 }
 
 function LetterForm({ type }: { type: LetterType }) {
+  const tx = useT();
   const router = useRouter();
   const { ent } = useEntitlements();
   const repo = typeof window === 'undefined' ? null : getRepository();
@@ -158,19 +161,19 @@ function LetterForm({ type }: { type: LetterType }) {
         href="/letters/new"
         className="text-primary inline-flex items-center gap-1 text-sm font-semibold hover:underline"
       >
-        <ArrowLeft aria-hidden size={16} /> All letter types
+        <ArrowLeft aria-hidden size={16} /> {tx('All letter types')}
       </Link>
       <div>
         <h2 className="font-display text-2xl font-semibold">{type.title}</h2>
         <p className="text-ink-muted">{type.description}</p>
       </div>
       {type.id === 'cover' && (
-        <Banner tone="info" title="Applying for a specific advert?">
-          Save the job in{' '}
+        <Banner tone="info" title={tx('Applying for a specific advert?')}>
+          {tx('Save the job in{v}', { v: ' ' })}
           <Link href="/jobs?new=1" className="text-primary font-semibold">
-            Jobs
+            {tx('Jobs')}
           </Link>{' '}
-          and write the letter there: it’s matched to what the advert asks for.
+          {tx('and write the letter there: it’s matched to what the advert asks for.')}
         </Banner>
       )}
       {type.questions.map((q) =>
@@ -222,7 +225,7 @@ function LetterForm({ type }: { type: LetterType }) {
       )}
       {type.form !== 'statement' && (
         <TextArea
-          label="Who it’s to"
+          label={tx('Who it’s to')}
           hint={`One line each: name, organisation, address. Usually: ${type.to}.`}
           optional
           rows={2}
@@ -232,7 +235,7 @@ function LetterForm({ type }: { type: LetterType }) {
       )}
       {cvs.length > 0 && (
         <label className="flex flex-col gap-1.5 text-sm font-semibold">
-          Design and contact details from
+          {tx('Design and contact details from')}
           <select
             className="border-line-strong bg-surface min-h-11 rounded-md border px-3 text-[15px] font-normal"
             value={sourceId}
@@ -246,7 +249,7 @@ function LetterForm({ type }: { type: LetterType }) {
           </select>
         </label>
       )}
-      <div role="radiogroup" aria-label="Tone" className="flex gap-2">
+      <div role="radiogroup" aria-label={tx('Tone')} className="flex gap-2">
         {(['warm', 'formal'] as const).map((t) => (
           <button
             key={t}
@@ -271,7 +274,7 @@ function LetterForm({ type }: { type: LetterType }) {
           action={
             problem.premium ? (
               <ButtonLink href="/premium" size="sm">
-                See Premium
+                {tx('See Premium')}
               </ButtonLink>
             ) : undefined
           }
@@ -279,7 +282,7 @@ function LetterForm({ type }: { type: LetterType }) {
       )}
       {touched && missing.length > 0 && (
         <p className="text-danger text-sm" role="alert">
-          Answer “{missing[0]!.label}” to continue.
+          {tx('Answer “{label}” to continue.', { label: missing[0]!.label })}
         </p>
       )}
       <div className="flex flex-wrap gap-2">
@@ -292,7 +295,7 @@ function LetterForm({ type }: { type: LetterType }) {
             onClick={() => create(true)}
             title={aiLocked ? 'AI drafts are part of Premium' : undefined}
           >
-            Write it with AI
+            {tx('Write it with AI')}
           </Button>
         )}
         <Button
@@ -303,25 +306,28 @@ function LetterForm({ type }: { type: LetterType }) {
           loading={busy === 'self'}
           onClick={() => create(false)}
         >
-          Write it myself
+          {tx('Write it myself')}
         </Button>
       </div>
       {aiLocked && cvs.length > 0 && (
         <p className="text-ink-muted text-sm">
-          “Write it myself” starts you with a draft made from your answers. AI drafts are part of{' '}
+          {tx(
+            '“Write it myself” starts you with a draft made from your answers. AI drafts are part of{v}',
+            { v: ' ' },
+          )}
           <Link href="/premium" className="text-primary font-semibold">
-            Premium
+            {tx('Premium')}
           </Link>
           .
         </p>
       )}
       {cvs.length === 0 && (
         <p className="text-ink-muted text-sm">
-          Tip:{' '}
+          {tx('Tip:{v}', { v: ' ' })}
           <Link href="/start" className="text-primary font-semibold">
-            create a CV
+            {tx('create a CV')}
           </Link>{' '}
-          first, so the letter uses your name, contact details and design.
+          {tx('first, so the letter uses your name, contact details and design.')}
         </p>
       )}
     </form>

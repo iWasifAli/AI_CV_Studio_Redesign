@@ -1,5 +1,6 @@
 'use client';
 
+import { useT } from '@/i18n/client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Check, MessageSquare, RotateCcw, Trash2 } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
@@ -15,6 +16,7 @@ const when = (iso: string) =>
  * is a comment (the share panel is where comments are turned on).
  */
 export function CommentsPanel({ docId, onShow }: { docId: string; onShow: (ref: string) => void }) {
+  const t = useT();
   const account = useAccount();
   const signedIn = account.status === 'signedIn';
   const [comments, setComments] = useState<OwnerComment[] | null>(null);
@@ -83,7 +85,7 @@ export function CommentsPanel({ docId, onShow }: { docId: string; onShow: (ref: 
             onClick={() => onShow(c.ref)}
             className="text-primary font-semibold underline underline-offset-4"
           >
-            Show me
+            {t('Show me')}
           </button>
         )}
         <button
@@ -93,22 +95,22 @@ export function CommentsPanel({ docId, onShow }: { docId: string; onShow: (ref: 
         >
           {c.status === 'open' ? (
             <>
-              <Check aria-hidden size={14} /> Mark as done
+              <Check aria-hidden size={14} /> {t('Mark as done')}
             </>
           ) : (
             <>
-              <RotateCcw aria-hidden size={14} /> Not done
+              <RotateCcw aria-hidden size={14} /> {t('Not done')}
             </>
           )}
-          <span className="sr-only"> — comment from {c.author}</span>
+          <span className="sr-only"> {t('— comment from {author}', { author: c.author })}</span>
         </button>
         <button
           type="button"
           onClick={() => void remove(c)}
           className="text-ink-muted hover:text-danger inline-flex items-center gap-1 underline underline-offset-4"
         >
-          <Trash2 aria-hidden size={14} /> Delete
-          <span className="sr-only"> the comment from {c.author}</span>
+          <Trash2 aria-hidden size={14} /> {t('Delete')}
+          <span className="sr-only"> {t('the comment from {author}', { author: c.author })}</span>
         </button>
       </div>
     </li>
@@ -124,7 +126,8 @@ export function CommentsPanel({ docId, onShow }: { docId: string; onShow: (ref: 
     >
       <div>
         <h2 id="comments-h" className="flex items-center gap-2 font-semibold">
-          <MessageSquare aria-hidden size={18} className="text-primary" /> Comments from reviewers
+          <MessageSquare aria-hidden size={18} className="text-primary" />{' '}
+          {t('Comments from reviewers')}
         </h2>
         <p className="text-ink-muted text-sm">
           {open.length
@@ -138,16 +141,16 @@ export function CommentsPanel({ docId, onShow }: { docId: string; onShow: (ref: 
         </Banner>
       )}
       {open.length > 0 && (
-        <ul className="flex flex-col gap-3" aria-label="Comments to look at">
+        <ul className="flex flex-col gap-3" aria-label={t('Comments to look at')}>
           {open.map(item)}
         </ul>
       )}
       {done.length > 0 && (
         <details className="text-sm" open={!open.length}>
           <summary className="text-primary cursor-pointer font-semibold">
-            Done ({done.length})
+            {t('Done ({length})', { length: done.length })}
           </summary>
-          <ul className="mt-3 flex flex-col gap-3 text-base" aria-label="Done comments">
+          <ul className="mt-3 flex flex-col gap-3 text-base" aria-label={t('Done comments')}>
             {done.map(item)}
           </ul>
         </details>
