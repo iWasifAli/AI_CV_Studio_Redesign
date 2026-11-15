@@ -4,6 +4,7 @@ import '@fontsource-variable/fraunces';
 import '@/styles/globals.css';
 import { ToastProvider } from '@/components/ui/toast';
 import { AccountProvider } from '@/features/account/account-context';
+import { ServiceWorker } from '@/features/app/service-worker';
 
 export const metadata: Metadata = {
   title: {
@@ -13,6 +14,7 @@ export const metadata: Metadata = {
   description:
     'Tell us what you do, answer a few simple questions, and get a professional CV you can edit and download as a PDF.',
   applicationName: 'AI CV Studio',
+  appleWebApp: { capable: true, title: 'CV Studio', statusBarStyle: 'default' },
 };
 
 export const viewport: Viewport = {
@@ -27,6 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <ToastProvider>
           <AccountProvider>{children}</AccountProvider>
+          <ServiceWorker />
         </ToastProvider>
       </body>
     </html>

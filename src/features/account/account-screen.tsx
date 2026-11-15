@@ -16,6 +16,7 @@ import {
   refreshVerification,
   resendVerification,
 } from './firebase-client';
+import { InstallApp } from '@/features/app/install-app';
 
 export function AccountScreen() {
   const account = useAccount();
@@ -197,6 +198,8 @@ export function AccountScreen() {
       {ent && ent.plan !== 'visitor' && ent.features.reminders && <ReminderEmails />}
 
       {ent && ent.plan !== 'visitor' && <InviteCard />}
+
+      <InstallApp />
 
       <section className="flex flex-wrap gap-3" aria-label="Account actions">
         <ButtonLink href="/documents" variant="secondary">

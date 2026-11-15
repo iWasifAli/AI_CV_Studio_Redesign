@@ -13,3 +13,4 @@ test-results/
 next-env.d.ts
 artifacts/
 e2e/.auth/
+/dist

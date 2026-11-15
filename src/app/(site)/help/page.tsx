@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Container } from '@/components/ui/misc';
 import { getBusinessConfig } from '@/modules/billing/server';
+import { InstallApp } from '@/features/app/install-app';
 
 export const metadata: Metadata = { title: 'Help' };
 
@@ -36,6 +37,9 @@ export default async function HelpPage() {
             <p className="text-ink-muted mt-3">{item.a}</p>
           </details>
         ))}
+      </div>
+      <div className="mt-8">
+        <InstallApp />
       </div>
       {email && (
         <p className="mt-8" data-testid="support-contact">

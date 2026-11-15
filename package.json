@@ -26,7 +26,8 @@
     "check:secrets": "node scripts/check-client-secrets.mjs",
     "ai:eval": "tsx --conditions=react-server scripts/ai-eval.ts",
     "emulators": "firebase emulators:start --only auth --project demo-aicv",
-    "gates:catalogue": "tsx scripts/catalogue-gates.tsx"
+    "gates:catalogue": "tsx scripts/catalogue-gates.tsx",
+    "extension:zip": "mkdir -p dist && rm -f dist/ai-cv-studio-extension.zip && cd extension && zip -qr ../dist/ai-cv-studio-extension.zip manifest.json background.js icons"
   },
   "dependencies": {
     "@fontsource-variable/figtree": "^5.3.0",

@@ -17,6 +17,8 @@ export default defineConfig({
   use: {
     baseURL: `http://localhost:${PORT}`,
     trace: 'retain-on-failure',
+    // The app's service worker would hide requests from page.route(); pwa.spec allows it.
+    serviceWorkers: 'block',
     ...(chromePath ? { launchOptions: { executablePath: chromePath } } : {}),
   },
   projects: [
