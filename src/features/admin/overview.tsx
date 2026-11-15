@@ -36,6 +36,7 @@ type Overview = {
     aiFailures: number;
     aiCallsToday: number;
     aiDailyBudget: number;
+    aiCost?: Record<'month' | 'today', { usd: number; pkr: number; tokens: number }>;
     makeover?: {
       landing: number;
       started: number;
@@ -268,6 +269,14 @@ function Numbers({ n }: { n: Overview['numbers'] }) {
         {budgetUse >= 0.8 && (
           <p className="text-danger mt-1 text-sm font-semibold">
             Over 80% of today’s AI budget is used.
+          </p>
+        )}
+        {n.aiCost && (
+          <p className="mt-3 text-sm" data-testid="ai-cost">
+            AI cost (estimate):{' '}
+            <strong className="tabular-nums">Rs {n.aiCost.month.pkr.toLocaleString()}</strong> in 30
+            days (${n.aiCost.month.usd.toFixed(2)}, {n.aiCost.month.tokens.toLocaleString()} tokens)
+            · today Rs {n.aiCost.today.pkr.toLocaleString()}
           </p>
         )}
       </div>

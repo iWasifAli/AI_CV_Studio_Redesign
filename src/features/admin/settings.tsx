@@ -24,6 +24,7 @@ const AI_WEIGHTS = [
 ] as const;
 import { AdminHeading } from './admin-shell';
 import { adminGet, adminSend } from './api';
+import { TASK_IDS, type TaskId } from '@/modules/ai/schemas';
 
 type ConfigResponse = { version: number; value: BusinessConfig };
 
@@ -35,6 +36,38 @@ const METER_LABEL: Record<Metered, string> = {
   'ats.check': 'ATS checks (-1 = no limit)',
 };
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+/** Every AI task, in plain words, for the per-task switches. */
+const TASK_LABEL: Record<TaskId, string> = {
+  'intake.interpret': 'Start: reading what the person wants',
+  'design.interpret': 'Start: choosing a design from a description',
+  'write.summary': 'Write the profile',
+  'write.improveBullets': 'Improve job points',
+  'write.fromNotes': 'Job points from notes',
+  'write.rewrite': 'AI on selected text',
+  'write.quantify': 'Questions to add numbers',
+  'coach.gap': 'Wording for a gap in work history',
+  'suggest.skills': 'Suggest skills',
+  'import.structure': 'Sort an imported CV (AI import)',
+  'job.match': 'Job match',
+  'job.tailor': 'Tailor a CV to a job',
+  'letter.write': 'Cover letter for a job',
+  'letter.generic': 'Letter library, statements and bios',
+  'quality.atsKeywords': 'ATS check keywords',
+  'quality.proofread': 'Proofread the whole CV',
+  'linkedin.write': 'LinkedIn profile text',
+  'linkedin.review': 'LinkedIn review',
+  'interview.prep': 'Interview questions',
+  'interview.turn': 'Mock interview',
+  'coach.chat': 'Coach chat',
+  'story.draft': 'Story bank drafts',
+  'skills.gap': 'Skill gap plan',
+  'jobs.extract': 'Job from a link',
+  'import.transcribe': 'Read scans and photos of CVs',
+  'makeover.diagnose': 'Makeover polish check',
+  'design.compose': 'AI Designer',
+  'design.refine': 'AI Designer refine',
+};
 
 export function AdminSettings() {
   const toast = useToast();
@@ -769,6 +802,206 @@ export function AdminSettings() {
         </Section>
 
         <Section
+          title="AI tasks"
+          hint="Untick a task to switch off just that AI help; the tool says AI isn’t available and nothing is counted."
+        >
+          <div className="grid gap-x-6 sm:grid-cols-2" data-testid="ai-tasks">
+            {TASK_IDS.map((t) => (
+              <CheckboxField
+                key={t}
+                label={TASK_LABEL[t]}
+                checked={!draft.ai.offTasks.includes(t)}
+                onChange={(v) =>
+                  edit((c) => {
+                    const off = new Set(c.ai.offTasks);
+                    if (v) off.delete(t);
+                    else off.add(t);
+                    c.ai.offTasks = TASK_IDS.filter((x) => off.has(x));
+                  })
+                }
+              />
+            ))}
+          </div>
+        </Section>
+
+        <Section
+          title="AI cost estimate"
+          hint="Prices per million tokens in US dollars (from your AI provider’s price list) and the rupee rate. Used only for the estimate on the Overview."
+        >
+          <div className="grid gap-3 sm:grid-cols-2">
+            {(
+              [
+                ['fastIn', 'Fast model, input'],
+                ['fastOut', 'Fast model, output'],
+                ['smartIn', 'Smart model, input'],
+                ['smartOut', 'Smart model, output'],
+              ] as const
+            ).map(([k, label]) => (
+              <TextField
+                key={k}
+                label={`${label} ($ per million)`}
+                type="number"
+                min={0}
+                step="0.01"
+                value={String(draft.ai.pricing[k])}
+                onChange={(e) =>
+                  edit(
+                    (c) =>
+                      void (c.ai.pricing[k] = Math.min(
+                        100,
+                        Math.max(0, Number(e.target.value) || 0),
+                      )),
+                  )
+                }
+              />
+            ))}
+            <TextField
+              label="Rupees per US dollar"
+              type="number"
+              min={1}
+              value={String(draft.ai.usdToPkr)}
+              onChange={(e) =>
+                edit(
+                  (c) =>
+                    void (c.ai.usdToPkr = Math.min(
+                      10_000,
+                      Math.max(1, Number(e.target.value) || 1),
+                    )),
+                )
+              }
+            />
+          </div>
+        </Section>
+
+        <Section
+          title="Payment emails"
+          hint="Order details, dates and links are filled in automatically. {order} in a subject becomes the order number. Leave a field empty for the standard wording."
+        >
+          {(['approved', 'rejected'] as const).map((k) => (
+            <div key={k} className="flex flex-col gap-2" data-testid={`email-${k}`}>
+              <h3 className="font-semibold">
+                {k === 'approved' ? 'Payment approved' : 'Payment not confirmed'}
+              </h3>
+              <TextField
+                label="Subject"
+                maxLength={160}
+                placeholder={
+                  k === 'approved'
+                    ? 'Premium is active — order {order}'
+                    : 'About your order {order}'
+                }
+                value={draft.emails[k].subject}
+                onChange={(e) => edit((c) => void (c.emails[k].subject = e.target.value))}
+              />
+              <TextArea
+                label="Extra note (optional)"
+                rows={2}
+                maxLength={600}
+                value={draft.emails[k].note}
+                onChange={(e) => edit((c) => void (c.emails[k].note = e.target.value))}
+              />
+              <SampleEmail kind={k} />
+            </div>
+          ))}
+        </Section>
+
+        <Section
+          title="Premium page wording"
+          hint="The headline and the line under it on the Premium page. Prices and limits come from the plans above."
+        >
+          <TextField
+            label="Headline"
+            maxLength={120}
+            value={draft.content.offer.title}
+            onChange={(e) => edit((c) => void (c.content.offer.title = e.target.value))}
+          />
+          <TextArea
+            label="Line under the headline"
+            rows={2}
+            maxLength={400}
+            value={draft.content.offer.intro}
+            onChange={(e) => edit((c) => void (c.content.offer.intro = e.target.value))}
+          />
+        </Section>
+
+        <Section
+          title="Help page questions"
+          hint="Shown on the Help page in this order. Keep answers short and plain."
+        >
+          <ol className="flex flex-col gap-4" data-testid="faq-editor">
+            {draft.content.faq.map((f, i) => (
+              <li key={i} className="border-line flex flex-col gap-2 rounded-md border p-3">
+                <TextField
+                  label={`Question ${i + 1}`}
+                  maxLength={200}
+                  value={f.q}
+                  onChange={(e) => edit((c) => void (c.content.faq[i]!.q = e.target.value))}
+                />
+                <TextArea
+                  label={`Answer ${i + 1}`}
+                  rows={3}
+                  maxLength={1500}
+                  value={f.a}
+                  onChange={(e) => edit((c) => void (c.content.faq[i]!.a = e.target.value))}
+                />
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    disabled={i === 0}
+                    aria-label={`Move question ${i + 1} up`}
+                    onClick={() =>
+                      edit((c) => {
+                        const a = c.content.faq;
+                        [a[i - 1], a[i]] = [a[i]!, a[i - 1]!];
+                      })
+                    }
+                  >
+                    ↑ Up
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    disabled={i === draft.content.faq.length - 1}
+                    aria-label={`Move question ${i + 1} down`}
+                    onClick={() =>
+                      edit((c) => {
+                        const a = c.content.faq;
+                        [a[i], a[i + 1]] = [a[i + 1]!, a[i]!];
+                      })
+                    }
+                  >
+                    ↓ Down
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    icon={<Trash2 aria-hidden size={16} />}
+                    aria-label={`Remove question ${i + 1}`}
+                    onClick={() => edit((c) => void c.content.faq.splice(i, 1))}
+                  >
+                    Remove
+                  </Button>
+                </div>
+              </li>
+            ))}
+          </ol>
+          {draft.content.faq.length < 30 && (
+            <Button
+              size="sm"
+              variant="secondary"
+              icon={<Plus aria-hidden size={16} />}
+              className="self-start"
+              onClick={() =>
+                edit((c) => void c.content.faq.push({ q: 'New question', a: 'The answer.' }))
+              }
+            >
+              Add a question
+            </Button>
+          )}
+        </Section>
+
+        <Section
           title="Letter types"
           hint="Untick a type to stop offering it. Letters already written stay."
         >
@@ -980,5 +1213,41 @@ function Section({
       {hint && <p className="text-ink-muted mt-0.5 mb-3 text-sm">{hint}</p>}
       <div className={hint ? '' : 'mt-3'}>{children}</div>
     </section>
+  );
+}
+
+/** Sends the saved payment email wording to the admin's own address. */
+function SampleEmail({ kind }: { kind: 'approved' | 'rejected' }) {
+  const toast = useToast();
+  const [busy, setBusy] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
+  return (
+    <div className="flex flex-col gap-1">
+      <Button
+        size="sm"
+        variant="secondary"
+        className="self-start"
+        loading={busy}
+        onClick={async () => {
+          setBusy(true);
+          setProblem(null);
+          try {
+            const r = await adminSend<{ to: string }>('/api/admin/notify', 'POST', { kind });
+            toast.show({ tone: 'success', message: `Sample sent to ${r.to}` });
+          } catch (e) {
+            setProblem((e as Error).message);
+          } finally {
+            setBusy(false);
+          }
+        }}
+      >
+        Send me a sample (saved wording)
+      </Button>
+      {problem && (
+        <p role="alert" className="text-danger text-sm">
+          {problem}
+        </p>
+      )}
+    </div>
   );
 }

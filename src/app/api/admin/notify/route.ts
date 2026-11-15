@@ -1,7 +1,10 @@
 import { apiError, readJson } from '@/lib/http';
 import { actor, json, withAdmin } from '@/modules/admin/server';
 import { getBusinessConfig } from '@/modules/billing/server';
+import type { BusinessConfig } from '@/modules/billing/config';
+import type { PaymentRequest } from '@/modules/store/types';
 import {
+  paymentEmail,
   commentEmail,
   contactEmail,
   mailSettings,
@@ -53,6 +56,26 @@ const sampleContact = (to: string) =>
     slug: 'sample',
   });
 
+/** A sample payment email (approved or rejected) with the owner's wording from Settings. */
+const samplePayment = (to: string, status: 'approved' | 'rejected', cfg: BusinessConfig) =>
+  paymentEmail(
+    {
+      id: 'sample',
+      uid: 'sample',
+      email: to,
+      status,
+      orderNo: 'CV-SAMPLE',
+      reference: 'SAMPLE',
+      passLabel: cfg.passes.find((p) => p.active)?.label ?? 'Premium pass',
+    } as unknown as PaymentRequest,
+    {
+      expiresAt: new Date(Date.now() + 30 * 86_400_000).toISOString(),
+      reason: status === 'rejected' ? 'This is a sample — no real order.' : undefined,
+      supportEmail: cfg.support.email,
+      wording: cfg.emails,
+    },
+  )!;
+
 /** POST { to?, kind? } → a test email, or a sample reminder, comment or contact email (kind). */
 export function POST(req: Request) {
   return withAdmin(async (admin, rid) => {
@@ -64,15 +87,23 @@ export function POST(req: Request) {
     const { value: cfg } = await getBusinessConfig();
     const asked = body.ok ? (body.value as { kind?: unknown })?.kind : undefined;
     const kind =
-      asked === 'reminder' || asked === 'comment' || asked === 'contact' ? asked : 'test';
+      asked === 'reminder' ||
+      asked === 'comment' ||
+      asked === 'contact' ||
+      asked === 'approved' ||
+      asked === 'rejected'
+        ? asked
+        : 'test';
     const r = await sendMail(
-      kind === 'reminder'
-        ? sampleReminder(to)
-        : kind === 'comment'
-          ? sampleComment(to)
-          : kind === 'contact'
-            ? sampleContact(to)
-            : testEmail(to),
+      kind === 'approved' || kind === 'rejected'
+        ? samplePayment(to, kind, cfg)
+        : kind === 'reminder'
+          ? sampleReminder(to)
+          : kind === 'comment'
+            ? sampleComment(to)
+            : kind === 'contact'
+              ? sampleContact(to)
+              : testEmail(to),
       cfg.support.email,
     );
     await getUserStore().writeAudit({

@@ -106,6 +106,7 @@ export function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
       expiresAt,
       reason: why,
       supportEmail: cfgNow.support.email,
+      wording: cfgNow.emails,
     });
     const emailed = mail
       ? await sendMail(mail, cfgNow.support.email)

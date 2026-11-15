@@ -1,6 +1,8 @@
 import { LETTER_TYPE_IDS } from '@/modules/letters/types';
 import { z } from 'zod';
 import { DESIGN_IDS } from '@/modules/resume/schema';
+import { TASK_IDS } from '@/modules/ai/schemas';
+import { DEFAULT_FAQ, DEFAULT_OFFER } from '@/modules/content/defaults';
 
 /**
  * Business configuration (docs/product/studio-master-plan.md §3, §4.4). One typed schema shared by
@@ -153,13 +155,53 @@ export const businessConfig = z.object({
       quantify: 1,
       gap: 1,
     }),
+  /** AI controls (spec §15): tasks switched off and prices for the cost estimate. */
+  ai: z
+    .object({
+      /** Tasks switched off (none by default). The tools using them say AI isn't available. */
+      offTasks: z.array(z.enum(TASK_IDS)).max(60).default([]),
+      /** US dollars per million tokens, by model tier (for the estimate only). */
+      pricing: z
+        .object({
+          fastIn: z.number().min(0).max(100),
+          fastOut: z.number().min(0).max(100),
+          smartIn: z.number().min(0).max(100),
+          smartOut: z.number().min(0).max(100),
+        })
+        .default({ fastIn: 0.3, fastOut: 2.5, smartIn: 1.25, smartOut: 10 }),
+      /** Rupees per US dollar, for showing the estimate in rupees. */
+      usdToPkr: z.number().min(1).max(10_000).default(280),
+    })
+    .default({
+      offTasks: [],
+      pricing: { fastIn: 0.3, fastOut: 2.5, smartIn: 1.25, smartOut: 10 },
+      usdToPkr: 280,
+    }),
+  /** Payment emails (spec §15 "Email"): subject ({order} is filled in) and a short extra note. */
+  emails: z
+    .object({
+      approved: z.object({ subject: z.string().max(160), note: z.string().max(600) }),
+      rejected: z.object({ subject: z.string().max(160), note: z.string().max(600) }),
+    })
+    .default({ approved: { subject: '', note: '' }, rejected: { subject: '', note: '' } }),
   /** Content the owner can change without a deploy (spec §15). */
   content: z
     .object({
       /** Letter types not offered (all are on by default). */
       hiddenLetterTypes: z.array(z.enum(LETTER_TYPE_IDS)).max(20).default([]),
+      /** Help page questions and answers, in order. */
+      faq: z
+        .array(
+          z.object({ q: z.string().trim().min(3).max(200), a: z.string().trim().min(3).max(1500) }),
+        )
+        .max(30)
+        .default(DEFAULT_FAQ),
+      /** The Premium page's headline and the line under it. */
+      offer: z
+        .object({ title: z.string().trim().min(3).max(120), intro: z.string().trim().max(400) })
+        .default(DEFAULT_OFFER),
     })
-    .default({ hiddenLetterTypes: [] }),
+    .default({ hiddenLetterTypes: [], faq: DEFAULT_FAQ, offer: DEFAULT_OFFER }),
   announcement: z.object({ enabled: z.boolean(), text: z.string().max(240) }),
   /** How to pay for a pass (manual payments, R1.4). Shown on /premium when sales are on. */
   payments: z
@@ -307,7 +349,13 @@ export const DEFAULT_CONFIG: BusinessConfig = {
     quantify: 1,
     gap: 1,
   },
-  content: { hiddenLetterTypes: [] },
+  ai: {
+    offTasks: [],
+    pricing: { fastIn: 0.3, fastOut: 2.5, smartIn: 1.25, smartOut: 10 },
+    usdToPkr: 280,
+  },
+  emails: { approved: { subject: '', note: '' }, rejected: { subject: '', note: '' } },
+  content: { hiddenLetterTypes: [], faq: DEFAULT_FAQ, offer: DEFAULT_OFFER },
   announcement: { enabled: false, text: '' },
   support: { email: '' },
   coupons: [],

@@ -85,6 +85,11 @@ export const EVENTS = [
   'pack_zip',
   'pack_fail',
   'gap_explain',
+  // AI tokens by model tier, for the cost estimate in the Console.
+  'tok_fast_in',
+  'tok_fast_out',
+  'tok_smart_in',
+  'tok_smart_out',
 ] as const;
 export type MetricEvent = (typeof EVENTS)[number];
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { numberStatus, productNumbers, revealBucket, withUse, type Activity } from './numbers';
+import { aiCost, numberStatus, productNumbers, revealBucket, withUse, type Activity } from './numbers';
 
 const NOW = new Date('2026-11-15T12:00:00Z');
 const daysAgo = (n: number) => new Date(NOW.getTime() - n * 86_400_000).toISOString();
@@ -136,5 +136,23 @@ describe('productNumbers', () => {
     const n = get(productNumbers({}, acts, NOW), 'designerToPremium');
     expect(n.base).toBe(3);
     expect(n.value).toBeCloseTo(1 / 3);
+  });
+});
+
+describe('aiCost', () => {
+  it('prices tokens by tier and converts to rupees', () => {
+    const c = aiCost(
+      {
+        tok_fast_in: 2_000_000,
+        tok_fast_out: 400_000,
+        tok_smart_in: 1_000_000,
+        tok_smart_out: 100_000,
+      },
+      { fastIn: 0.3, fastOut: 2.5, smartIn: 1.25, smartOut: 10 },
+      280,
+    );
+    // 0.6 + 1.0 + 1.25 + 1.0 = 3.85 dollars
+    expect(c).toEqual({ usd: 3.85, pkr: 1078, tokens: 3_500_000 });
+    expect(aiCost({}, { fastIn: 1, fastOut: 1, smartIn: 1, smartOut: 1 }, 280).pkr).toBe(0);
   });
 });

@@ -54,6 +54,35 @@ function parseJson(text: string): unknown {
 const defaultSleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /**
+ * Inside the web server: the Console's per-task switches and the token counters for the AI cost
+ * estimate. Unit tests and scripts (no NEXT_RUNTIME) skip both. Never throws.
+ */
+async function taskSwitchedOff(id: TaskId): Promise<boolean> {
+  if (!process.env.NEXT_RUNTIME) return false;
+  try {
+    const { getBusinessConfig } = await import('@/modules/billing/server');
+    return (await getBusinessConfig()).value.ai.offTasks.includes(id);
+  } catch {
+    return false;
+  }
+}
+async function countTokens(
+  tier: 'fast' | 'smart',
+  u: { inputTokens: number; outputTokens: number },
+) {
+  if (!process.env.NEXT_RUNTIME || (!u.inputTokens && !u.outputTokens)) return;
+  try {
+    const { track } = await import('@/modules/metrics/server');
+    if (u.inputTokens)
+      await track(tier === 'smart' ? 'tok_smart_in' : 'tok_fast_in', u.inputTokens);
+    if (u.outputTokens)
+      await track(tier === 'smart' ? 'tok_smart_out' : 'tok_fast_out', u.outputTokens);
+  } catch {
+    // Counting never affects the answer.
+  }
+}
+
+/**
  * Run one AI task: validate input → call the model (one retry on 429/5xx) → validate output
  * (one repair attempt) → truth guard. Never throws.
  */
@@ -62,6 +91,20 @@ export async function runTask<T extends TaskId>(
   rawInput: unknown,
   attempt: number,
   deps: RunDeps,
+): Promise<RunOk<T> | RunError> {
+  if (await taskSwitchedOff(id)) return { ok: false, code: 'AI_UNAVAILABLE', reason: 'task_off' };
+  const usage = { inputTokens: 0, outputTokens: 0 };
+  const r = await runInner(id, rawInput, attempt, deps, usage);
+  await countTokens((TASKS[id] as { tier: string }).tier === 'smart' ? 'smart' : 'fast', usage);
+  return r;
+}
+
+async function runInner<T extends TaskId>(
+  id: T,
+  rawInput: unknown,
+  attempt: number,
+  deps: RunDeps,
+  usage: { inputTokens: number; outputTokens: number },
 ): Promise<RunOk<T> | RunError> {
   const parsedInput = taskInputs[id].safeParse(rawInput);
   if (!parsedInput.success)
@@ -75,7 +118,6 @@ export async function runTask<T extends TaskId>(
   const task = TASKS[id] as unknown as TaskDef<T>;
   const model = task.tier === 'smart' ? deps.models.smart : deps.models.fast;
   const sleep = deps.sleep ?? defaultSleep;
-  const usage = { inputTokens: 0, outputTokens: 0 };
 
   const baseUser =
     task.user(input) +

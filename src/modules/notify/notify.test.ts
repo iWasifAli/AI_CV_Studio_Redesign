@@ -42,6 +42,20 @@ describe('payment emails', () => {
     expect(m.html).toContain('Amount &lt;wrong&gt;');
   });
 
+  it('uses the owner’s subject and note from the Console, escaped', () => {
+    const wording = {
+      approved: { subject: 'Welcome to Premium ({order})', note: 'Shukriya <3' },
+      rejected: { subject: '', note: 'Call us on 0300' },
+    };
+    const a = paymentEmail(order({}), { wording })!;
+    expect(a.subject).toBe('Welcome to Premium (CV-7KQ2M9)');
+    expect(a.text).toContain('Shukriya <3');
+    expect(a.html).toContain('Shukriya &lt;3');
+    const r = paymentEmail(order({ status: 'rejected' }), { wording })!;
+    expect(r.subject).toBe('About your order CV-7KQ2M9');
+    expect(r.text).toContain('Call us on 0300');
+  });
+
   it('sends nothing without a buyer email or for other statuses', () => {
     expect(paymentEmail(order({ email: null }), {})).toBeNull();
     expect(paymentEmail(order({ status: 'pending' }), {})).toBeNull();

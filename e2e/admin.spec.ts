@@ -253,6 +253,60 @@ test('switching off application packs hides the button and refuses the API', asy
   await expect(page.getByTestId('pack-open')).toHaveCount(0);
 });
 
+test('an AI task switched off in Settings stops that help only, uncounted', async ({
+  page,
+  request,
+  browser,
+}) => {
+  await setConfig(request, { ...BASE, ai: { ...BASE.ai, offTasks: ['coach.gap'] } });
+  await page.request.post('/api/test/setup', { data: { premium: true } });
+  const off = await page.request.post('/api/coach/gap', {
+    data: { reason: 'travel', answer: 'Travelled', length: 'about 9 months' },
+  });
+  expect(off.status()).toBe(503);
+  const ent = (await (await page.request.get('/api/me/entitlements')).json()) as {
+    usage: Record<string, number>;
+  };
+  expect(ent.usage['ai.action'] ?? 0).toBe(0);
+  // Other AI help still works.
+  const proof = await page.request.post('/api/quality/proofread', {
+    data: { document: driver },
+  });
+  expect(proof.status()).toBe(200);
+
+  const { context, page: admin } = await adminPage(browser);
+  await admin.goto('/admin/settings');
+  const box = admin.getByTestId('ai-tasks').getByLabel('Wording for a gap in work history');
+  await expect(box).not.toBeChecked();
+  await admin.goto('/admin');
+  await expect(admin.getByTestId('ai-cost')).toContainText('AI cost (estimate): Rs');
+  await context.close();
+});
+
+test('Help questions and Premium wording are edited in the Console', async ({ browser, page }) => {
+  const { context, page: admin } = await adminPage(browser);
+  await admin.goto('/admin/settings');
+  const faq = admin.getByTestId('faq-editor');
+  await expect(faq.getByLabel('Question 1', { exact: true })).toHaveValue('Do I need an account?');
+  await admin.getByRole('button', { name: 'Add a question' }).click();
+  const n = await faq.getByRole('listitem').count();
+  await faq.getByLabel(`Question ${n}`, { exact: true }).fill('Can I pay with JazzCash?');
+  await faq.getByLabel(`Answer ${n}`, { exact: true }).fill('Yes — see the Premium page for the account details.');
+  await admin.getByRole('button', { name: `Move question ${n} up` }).click();
+  await admin.getByLabel('Headline', { exact: true }).fill('Land the job with every design');
+  await admin.getByRole('button', { name: 'Save changes' }).click();
+  await expect(admin.getByText(/Saved|saved/).first()).toBeVisible();
+
+  await page.goto('/help');
+  const questions = page.locator('summary');
+  await expect(questions.nth(n - 2)).toContainText('Can I pay with JazzCash?');
+  await page.goto('/premium');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+    'Land the job with every design',
+  );
+  await context.close();
+});
+
 test('product numbers show the nine targets and count tools used (spec §17.2)', async ({
   browser,
   page,

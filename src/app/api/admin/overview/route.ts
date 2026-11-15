@@ -2,7 +2,7 @@ import { getBusinessConfig } from '@/modules/billing/server';
 import { monthKey } from '@/modules/billing/gate';
 import { json, withAdmin } from '@/modules/admin/server';
 import { metricsSummary } from '@/modules/metrics/server';
-import { dayOf, productNumbers } from '@/modules/metrics/numbers';
+import { aiCost, dayOf, productNumbers } from '@/modules/metrics/numbers';
 import { getUserStore } from '@/modules/store';
 
 export const runtime = 'nodejs';
@@ -77,6 +77,11 @@ export function GET() {
           polish: n(t, 'polish_ok'),
         },
         aiDailyBudget: Number(process.env.AI_DAILY_BUDGET) || 2000,
+        // Estimated from token counts and the prices in Settings → AI cost estimate.
+        aiCost: {
+          month: aiCost(t, cfg.value.ai.pricing, cfg.value.ai.usdToPkr),
+          today: aiCost(d, cfg.value.ai.pricing, cfg.value.ai.usdToPkr),
+        },
         premiumRequests: n(t, 'premium_request'),
         premiumApproved: n(t, 'premium_approved'),
         premiumRejected: n(t, 'premium_rejected'),

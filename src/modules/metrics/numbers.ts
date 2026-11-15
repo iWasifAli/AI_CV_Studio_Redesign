@@ -265,3 +265,20 @@ export function numberStatus(n: Num): 'ok' | 'below' | 'few' {
   if (n.value === null || n.base < MIN_BASE) return 'few';
   return (n.lower ? n.value <= n.target : n.value >= n.target) ? 'ok' : 'below';
 }
+
+/** AI cost estimate from token counters (spec §15 "AI cost in rupees"). */
+export function aiCost(
+  counts: Record<string, number>,
+  pricing: { fastIn: number; fastOut: number; smartIn: number; smartOut: number },
+  usdToPkr: number,
+) {
+  const c = (k: string) => counts[k] ?? 0;
+  const usd =
+    (c('tok_fast_in') * pricing.fastIn +
+      c('tok_fast_out') * pricing.fastOut +
+      c('tok_smart_in') * pricing.smartIn +
+      c('tok_smart_out') * pricing.smartOut) /
+    1_000_000;
+  const tokens = c('tok_fast_in') + c('tok_fast_out') + c('tok_smart_in') + c('tok_smart_out');
+  return { usd: Math.round(usd * 100) / 100, pkr: Math.round(usd * usdToPkr), tokens };
+}

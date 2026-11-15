@@ -112,30 +112,48 @@ export const SITE = (process.env.PUBLIC_SITE_URL || 'https://aicvstudio.app').re
 const fmtDate = (iso: string) =>
   new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 
+/** The owner's wording for payment emails (Console → Settings → Emails). */
+export type EmailWording = {
+  approved: { subject: string; note: string };
+  rejected: { subject: string; note: string };
+};
+
 /** The buyer's email when their order is approved or rejected. */
 export function paymentEmail(
   p: PaymentRequest,
-  opts: { expiresAt?: string | null; reason?: string; supportEmail?: string },
+  opts: {
+    expiresAt?: string | null;
+    reason?: string;
+    supportEmail?: string;
+    /** The owner's wording from the Console: subject ({order} is filled in) and a short note. */
+    wording?: EmailWording;
+  },
 ): Mail | null {
   if (!p.email) return null;
   const order = p.orderNo ?? p.reference;
+  const w = opts.wording;
+  const subjectOf = (custom: string | undefined, fallback: string) =>
+    (custom?.trim() ? custom.replace(/\{order\}/g, order) : fallback).slice(0, 160);
   const help = opts.supportEmail
     ? `Questions? Reply to this email or write to ${opts.supportEmail}.`
     : 'Questions? Just reply to this email.';
   if (p.status === 'approved') {
     const until = opts.expiresAt ? fmtDate(opts.expiresAt) : '';
+    const note = w?.approved.note.trim() ?? '';
     const lines = [
       `Thank you — we received your payment for order ${order}. Your ${p.passLabel} is now active${until ? ` until ${until}` : ''}.`,
       `Every design, more downloads and AI help are ready for you: ${SITE}/cv`,
+      note,
       help,
-    ];
+    ].filter(Boolean);
     return {
       to: p.email,
-      subject: `Premium is active — order ${order}`,
+      subject: subjectOf(w?.approved.subject, `Premium is active — order ${order}`),
       text: lines.join('\n\n'),
       html: wrapHtml('Your Premium is active', [
         esc(lines[0]!),
         `Every design, more downloads and AI help are ready for you: <a href="${SITE}/cv" style="color:#1e5a55">open your CVs</a>.`,
+        ...(note ? [esc(note)] : []),
         esc(help),
       ]),
     };
@@ -145,11 +163,12 @@ export function paymentEmail(
       `We couldn’t confirm the payment for order ${order}.`,
       opts.reason ? `Reason: ${opts.reason}` : '',
       `If you have paid, please send the payment screenshot with your order number on WhatsApp, or place a new order: ${SITE}/premium`,
+      w?.rejected.note.trim() ?? '',
       help,
     ].filter(Boolean);
     return {
       to: p.email,
-      subject: `About your order ${order}`,
+      subject: subjectOf(w?.rejected.subject, `About your order ${order}`),
       text: lines.join('\n\n'),
       html: wrapHtml('We couldn’t confirm your payment', lines.map(esc)),
     };

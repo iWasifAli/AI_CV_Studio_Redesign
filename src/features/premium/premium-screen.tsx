@@ -169,12 +169,11 @@ export function PremiumScreen() {
           <Sparkles aria-hidden size={16} /> Premium
         </p>
         <h1 className="font-display text-[34px] leading-tight font-semibold tracking-tight sm:text-5xl">
-          Every design, more downloads and AI help
+          {offer.wording.title}
         </h1>
-        <p className="text-ink-muted max-w-2xl text-lg">
-          A one-time pass. It doesn’t renew by itself, so you only pay again if you choose to. Your
-          CVs stay yours whatever you decide.
-        </p>
+        {offer.wording.intro && (
+          <p className="text-ink-muted max-w-2xl text-lg">{offer.wording.intro}</p>
+        )}
       </header>
 
       {isPremium && me?.passExpiresAt && (
