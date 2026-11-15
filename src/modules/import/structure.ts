@@ -177,7 +177,99 @@ function toSection(sec: Structure['sections'][number]): Section | null {
           detail: cut(e.lines.join(' '), 300),
         })),
       };
-    default:
+    default: {
+      // The AI step knows the classic kinds only; a heading we recognise as a newer section type
+      // ("Publications", "Internships", "References"…) becomes that type.
+      const k = headingOf(sec.title)?.kind;
+      if (
+        k === 'publications' ||
+        k === 'courses' ||
+        k === 'memberships' ||
+        k === 'conferences' ||
+        k === 'patents'
+      )
+        return {
+          ...base,
+          kind: k,
+          items: E.map((e) => ({
+            id: newId(),
+            name: cut(e.title, 200),
+            issuer: cut(e.subtitle, 160),
+            date: ymd(e.end) || ymd(e.start),
+            detail: cut(e.lines.join(' '), 300),
+          })),
+        };
+      if (k === 'military' || k === 'internships')
+        return {
+          ...base,
+          kind: k,
+          items: E.map((e) => ({
+            id: newId(),
+            role: cut(e.title, 160),
+            organization: cut(e.subtitle, 160),
+            location: cut(e.place, 120),
+            ...dates(e),
+            bullets: e.lines.slice(0, 40).map((l) => cut(l, 600)),
+          })),
+        };
+      if (k === 'interests')
+        return {
+          ...base,
+          kind: 'interests',
+          items: [
+            {
+              id: newId(),
+              label: '',
+              keywords: E.flatMap((e) => [e.title, ...e.lines])
+                .flatMap((l) => l.split(/\s*[,;·•|]\s*/))
+                .map((x) => cut(x.trim().replace(/\.$/, ''), 160))
+                .filter(Boolean)
+                .slice(0, 60),
+            },
+          ],
+        };
+      if (k === 'achievements')
+        return {
+          ...base,
+          kind: 'achievements',
+          items: E.map((e) => ({
+            id: newId(),
+            title: cut(e.title, 200),
+            subtitle: cut(e.subtitle, 200),
+            date: [e.start, e.end].filter(Boolean).join(' – ').slice(0, 60),
+            bullets: e.lines.slice(0, 40).map((l) => cut(l, 600)),
+          })),
+        };
+      if (k === 'references')
+        return {
+          ...base,
+          kind: 'references',
+          items: E.slice(0, 10).map((e) => ({
+            id: newId(),
+            name: cut(e.title, 120),
+            role: cut(e.subtitle, 160),
+            organization: cut(e.place, 160),
+            contact: cut(e.lines.join(' · '), 200),
+          })),
+        };
+      if (k === 'declaration')
+        return {
+          ...base,
+          kind: 'declaration',
+          items: [
+            {
+              id: newId(),
+              text: cut(
+                E.flatMap((e) => [e.title, ...e.lines])
+                  .filter(Boolean)
+                  .join(' '),
+                800,
+              ),
+              place: '',
+              date: '',
+            },
+          ],
+        };
       return {
         ...base,
         kind: 'custom',
@@ -189,6 +281,7 @@ function toSection(sec: Structure['sections'][number]): Section | null {
           bullets: e.lines.slice(0, 40).map((l) => cut(l, 600)),
         })),
       };
+    }
   }
 }
 

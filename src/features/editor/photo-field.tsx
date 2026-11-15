@@ -1,11 +1,12 @@
 'use client';
 
-import { useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { Eye, EyeOff, ImagePlus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ops } from '@/modules/resume/ops';
 import { getTemplate } from '@/modules/templates/registry';
 import type { DocumentEditor } from './use-document-editor';
+import { loadOriginal, saveOriginal, shrinkForKeeping } from './photo-originals';
 
 const SIZE = 480;
 
@@ -92,12 +93,46 @@ export function PhotoField({ editor }: { editor: DocumentEditor }) {
   const input = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  // The original picture, kept in memory only while this page is open, so the crop can be redone.
+  // The picture the framing is cut from: the original chosen on this device (kept in IndexedDB),
+  // or, without it, the saved photo itself (then zooming in only).
   const original = useRef<ImageBitmap | null>(null);
+  const originalBlob = useRef<Blob | null>(null);
   const [crop, setCrop] = useState<Crop | null>(null);
+  const [fromSaved, setFromSaved] = useState(false);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const photo = doc.basics.photo;
   const supports = getTemplate(doc.design.templateId).photo !== 'none';
   const hidden = doc.design.options.showPhoto === false;
+
+  // Reopened editor: find this photo's original on this device, or frame the saved photo.
+  useEffect(() => {
+    if (!photo || original.current) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const kept = await loadOriginal(photo);
+        const blob = kept?.blob ?? (await (await fetch(photo)).blob());
+        const bitmap = await createImageBitmap(blob);
+        if (cancelled || original.current) return bitmap.close();
+        original.current = bitmap;
+        originalBlob.current = blob;
+        setFromSaved(!kept);
+        setCrop(kept?.crop ?? { zoom: 1, x: 0.5, y: 0.5 });
+      } catch {
+        // No framing controls; the photo still works.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [photo]);
+
+  function keep(url: string, next: Crop) {
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      if (originalBlob.current) void saveOriginal(url, originalBlob.current, next);
+    }, 300);
+  }
 
   async function onFile(file: File) {
     setBusy(true);
@@ -107,8 +142,11 @@ export function PhotoField({ editor }: { editor: DocumentEditor }) {
       const bitmap = await createImageBitmap(file);
       original.current?.close();
       original.current = bitmap;
+      originalBlob.current = await shrinkForKeeping(bitmap);
+      setFromSaved(false);
       setCrop(DEFAULT_CROP);
       const url = cropToDataUrl(bitmap, DEFAULT_CROP);
+      keep(url, DEFAULT_CROP);
       update((d) =>
         ops.setDesign(ops.updateBasics(d, { photo: url }), { options: { showPhoto: true } }),
       );
@@ -123,6 +161,7 @@ export function PhotoField({ editor }: { editor: DocumentEditor }) {
     setCrop(next);
     if (!original.current) return;
     const url = cropToDataUrl(original.current, next);
+    keep(url, next);
     update((d) => ops.updateBasics(d, { photo: url }));
   }
 
@@ -170,6 +209,7 @@ export function PhotoField({ editor }: { editor: DocumentEditor }) {
               onClick={() => {
                 original.current?.close();
                 original.current = null;
+                originalBlob.current = null;
                 setCrop(null);
                 update((d) => ops.updateBasics(d, { photo: '' }));
               }}
@@ -195,6 +235,12 @@ export function PhotoField({ editor }: { editor: DocumentEditor }) {
       {photo && crop && (
         <fieldset className="flex flex-col gap-1.5" data-testid="photo-crop">
           <legend className="text-ink mb-1 text-sm font-semibold">Frame your photo</legend>
+          {fromSaved && (
+            <p className="text-ink-muted text-sm" data-testid="photo-crop-saved">
+              Framing the saved photo: you can zoom in and move it. To zoom out further, choose the
+              original photo again.
+            </p>
+          )}
           <Slider
             label="Zoom"
             value={crop.zoom}
@@ -231,9 +277,7 @@ export function PhotoField({ editor }: { editor: DocumentEditor }) {
             ? 'This design doesn’t show photos. Pick one marked “Photo” in Design to show it.'
             : photo && hidden
               ? 'Your photo is hidden on the CV. Choose “Show on CV” to bring it back.'
-              : photo && !crop
-                ? 'To frame it differently, choose the photo again.'
-                : 'Some countries expect a photo, others prefer none. It’s saved with this CV.'}
+              : 'Some countries expect a photo, others prefer none. It’s saved with this CV.'}
         </p>
       )}
     </div>

@@ -10,6 +10,7 @@ import {
   type Section,
   type SectionKind,
   type SkillGroupItem,
+  type ReferenceItem,
 } from '@/modules/resume/schema';
 
 /**
@@ -116,9 +117,6 @@ add(
   'certifications',
   'certificates',
   'certification',
-  'courses',
-  'training',
-  'professional development',
   'licenses and certifications',
   'licences and certifications',
   'courses and certifications',
@@ -151,27 +149,84 @@ add(
   'voluntary work',
   'community involvement',
 );
+add('awards', 'Awards', 'awards', 'honours', 'honors', 'awards and achievements');
+add('custom', 'Interests');
+add('references', 'References', 'references', 'referees');
 add(
-  'awards',
-  'Awards',
-  'awards',
-  'achievements',
-  'honours',
-  'honors',
-  'awards and achievements',
-  'key achievements',
-  'accomplishments',
+  'publications',
+  'Publications',
+  'publications',
+  'selected publications',
+  'research publications',
+  'papers',
 );
 add(
-  'custom',
+  'courses',
+  'Courses and training',
+  'courses',
+  'training',
+  'professional development',
+  'courses and training',
+  'training courses',
+  'continuing education',
+  'cpd',
+);
+add(
+  'memberships',
+  'Memberships',
+  'memberships',
+  'professional memberships',
+  'affiliations',
+  'professional affiliations',
+  'professional bodies',
+  'associations',
+);
+add(
+  'conferences',
+  'Conferences and talks',
+  'conferences',
+  'talks',
+  'presentations',
+  'speaking',
+  'conferences and talks',
+  'speaking engagements',
+);
+add('patents', 'Patents', 'patents');
+add(
+  'military',
+  'Military service',
+  'military service',
+  'military experience',
+  'armed forces',
+  'service history',
+);
+add(
+  'internships',
+  'Internships',
+  'internships',
+  'internship',
+  'work placements',
+  'placements',
+  'placement',
+);
+add(
+  'interests',
   'Interests',
   'interests',
   'hobbies',
   'hobbies and interests',
   'interests and hobbies',
 );
-add('custom', 'References', 'references', 'referees');
-add('custom', 'Publications', 'publications');
+add(
+  'achievements',
+  'Key achievements',
+  'key achievements',
+  'achievements',
+  'accomplishments',
+  'career highlights',
+  'highlights',
+);
+add('declaration', 'Declaration', 'declaration');
 add(
   'custom',
   'Board & advisory roles',
@@ -190,7 +245,6 @@ add(
   'other information',
   'personal information and interests',
 );
-add('custom', 'Memberships', 'memberships', 'professional memberships', 'affiliations');
 
 export function headingOf(line: string): { kind: Kind; title: string } | null {
   if (line.startsWith(SPACED_MARK)) {
@@ -610,6 +664,40 @@ function credentialItems(lines: { text: string; bullet: boolean }[]): Credential
   return out;
 }
 
+/**
+ * References: "Available on request", or blocks of name, role/organisation and contact lines.
+ * A new reference starts at a name-like line after a contact line (or at the start).
+ */
+function referenceItems(lines: { text: string; bullet: boolean }[]): ReferenceItem[] {
+  const out: ReferenceItem[] = [];
+  const contactLike = (t: string) => EMAIL.test(t) || PHONE.test(t) || /on request/i.test(t);
+  const nameLike = (t: string) =>
+    /^\p{Lu}[\p{L}.'-]+(?:\s+\p{Lu}[\p{L}.'-]+){0,3}$/u.test(t) && !contactLike(t);
+  let cur: ReferenceItem | null = null;
+  for (const { text } of lines) {
+    const t = text.trim();
+    if (!t) continue;
+    if (/^(?:references\s+)?(?:are\s+)?available\s+(?:up)?on\s+request\.?$/i.test(t)) {
+      out.push({ id: newId(), name: '', role: '', organization: '', contact: t.slice(0, 200) });
+      cur = null;
+      continue;
+    }
+    if (!cur || (nameLike(t) && (cur.contact || cur.role))) {
+      cur = { id: newId(), name: t.slice(0, 120), role: '', organization: '', contact: '' };
+      out.push(cur);
+      continue;
+    }
+    if (contactLike(t)) cur.contact = (cur.contact ? `${cur.contact} · ${t}` : t).slice(0, 200);
+    else if (!cur.role) {
+      const [role, org] = t.split(/\s*[,·|]\s*|\s+at\s+|\s+[—–-]\s+/);
+      cur.role = (role ?? t).slice(0, 160);
+      if (org) cur.organization = org.slice(0, 160);
+    } else if (!cur.organization) cur.organization = t.slice(0, 160);
+    else cur.contact = (cur.contact ? `${cur.contact} · ${t}` : t).slice(0, 200);
+  }
+  return out.slice(0, 10);
+}
+
 function customSection(title: string, lines: { text: string; bullet: boolean }[]): Section {
   return {
     id: newId(),
@@ -782,6 +870,8 @@ export function parseCv(
     switch (h.kind) {
       case 'experience':
       case 'volunteering':
+      case 'military':
+      case 'internships':
         section = {
           id: newId(),
           kind: h.kind,
@@ -823,12 +913,79 @@ export function parseCv(
       case 'certifications':
       case 'licences':
       case 'awards':
+      case 'publications':
+      case 'courses':
+      case 'memberships':
+      case 'conferences':
+      case 'patents':
         section = {
           id: newId(),
           kind: h.kind,
           title,
           hidden: false,
           items: credentialItems(lines),
+        };
+        break;
+      case 'interests':
+        section = {
+          id: newId(),
+          kind: 'interests',
+          title,
+          hidden: false,
+          items: [
+            {
+              id: newId(),
+              label: '',
+              keywords: lines
+                .flatMap((l) => l.text.split(/\s*[,;·•|]\s*/))
+                .map((x) => x.trim().replace(/\.$/, ''))
+                .filter((x) => x && x.length <= 160)
+                .slice(0, 60),
+            },
+          ],
+        };
+        break;
+      case 'achievements':
+        section = {
+          id: newId(),
+          kind: 'achievements',
+          title,
+          hidden: false,
+          items: lines.slice(0, 40).map((l) => ({
+            id: newId(),
+            title: l.text.slice(0, 200),
+            subtitle: '',
+            date: '',
+            bullets: [],
+          })),
+        };
+        break;
+      case 'references':
+        section = {
+          id: newId(),
+          kind: 'references',
+          title,
+          hidden: false,
+          items: referenceItems(dropRunning(b.lines).map((text) => ({ text, bullet: false }))),
+        };
+        break;
+      case 'declaration':
+        section = {
+          id: newId(),
+          kind: 'declaration',
+          title,
+          hidden: false,
+          items: [
+            {
+              id: newId(),
+              text: lines
+                .map((l) => l.text)
+                .join(' ')
+                .slice(0, 800),
+              place: '',
+              date: '',
+            },
+          ],
         };
         break;
       default:

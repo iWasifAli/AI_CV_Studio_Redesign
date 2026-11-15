@@ -264,3 +264,73 @@ describe('real files', () => {
     ]);
   });
 });
+
+describe('newer section types', () => {
+  it('reads publications, courses, memberships, talks, military, internships, interests, achievements, references and a declaration', () => {
+    const { doc } = parseCv([
+      'Amina Khan',
+      'Research Engineer',
+      'amina@example.com',
+      'Internships',
+      'Data Intern',
+      'Acme Labs · Lahore',
+      'Jun 2019 – Aug 2019',
+      '• Cleaned survey data for the analytics team',
+      'Publications',
+      'Fast joins on sparse graphs · Journal of Data · 2021',
+      'Courses and training',
+      'Advanced SQL · Coursera · 2022',
+      'Memberships',
+      'British Computer Society · 2020',
+      'Military service',
+      'Signals Officer',
+      'Pakistan Army',
+      'Jan 2010 – Dec 2012',
+      '• Ran field communications for 200 staff',
+      'Key achievements',
+      'Cut report run time from hours to minutes',
+      'Interests',
+      'Chess, hiking, Urdu poetry',
+      'References',
+      'Dr Sara Malik',
+      'Head of Research, Acme Labs',
+      'sara.malik@example.com',
+      'Declaration',
+      'I confirm the information above is true.',
+    ]);
+    const kinds = doc.sections.map((s) => s.kind);
+    for (const k of [
+      'internships',
+      'publications',
+      'courses',
+      'memberships',
+      'military',
+      'achievements',
+      'interests',
+      'references',
+      'declaration',
+    ])
+      expect(kinds, k).toContain(k);
+    const ref = doc.sections.find((s) => s.kind === 'references')!.items[0] as {
+      name: string;
+      role: string;
+      organization: string;
+      contact: string;
+    };
+    expect(ref).toMatchObject({
+      name: 'Dr Sara Malik',
+      role: 'Head of Research',
+      organization: 'Acme Labs',
+      contact: 'sara.malik@example.com',
+    });
+    const mil = doc.sections.find((s) => s.kind === 'military')!.items[0] as {
+      role: string;
+      organization: string;
+    };
+    expect(mil.role).toBe('Signals Officer');
+    const interests = doc.sections.find((s) => s.kind === 'interests')!.items[0] as {
+      keywords: string[];
+    };
+    expect(interests.keywords).toEqual(['Chess', 'hiking', 'Urdu poetry']);
+  });
+});

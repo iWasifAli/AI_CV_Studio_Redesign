@@ -42,10 +42,14 @@ describe('tidyImport (real CV case, 2026-11-13)', () => {
     expect(titles.filter((x) => x === 'Other')).toHaveLength(1);
     const bullets = (title: string) =>
       (t.sections.find((s) => s.title === title)!.items[0] as { bullets: string[] }).bullets;
-    expect(bullets('Personal details')).toEqual([
-      'Nationality: Pakistani',
-      'Date of Birth: 09.08.1987',
-    ]);
+    const pd = t.sections.find((s) => s.title === 'Personal details')!;
+    expect(pd.kind).toBe('personalDetails');
+    expect((pd.items as { label: string; value: string }[]).map((i) => [i.label, i.value])).toEqual(
+      [
+        ['Nationality', 'Pakistani'],
+        ['Date of Birth', '09.08.1987'],
+      ],
+    );
     expect(bullets('Other')).toEqual([
       'Enterprise backend systems | SQL Server optimization | Telecom workflows | Automation',
     ]);

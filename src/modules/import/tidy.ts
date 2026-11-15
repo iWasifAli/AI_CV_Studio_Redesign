@@ -3,7 +3,7 @@ import type { ResumeDocument, Section } from '@/modules/resume/schema';
 /**
  * Last step of every import (AI or rules): lines the structurer could not place are kept, but
  *  - all "Other" lines go in one section at the end (never between the profile and the jobs);
- *  - personal details (nationality, date of birth…) get their own "Personal details" section;
+ *  - personal details (nationality, date of birth…) become a "Personal details" section (label: value);
  *  - contact lines that only repeat the phone, email, location or a link already in the header
  *    ("Phone / WhatsApp: +92 …") are dropped, since nothing is lost.
  * Nothing else changes; no line is rewritten.
@@ -78,7 +78,24 @@ export function tidyImport(doc: ResumeDocument): ResumeDocument {
     ...doc,
     sections: [
       ...doc.sections.filter((s) => !isOther(s)),
-      ...(personal.length ? [section('Personal details', personal, 'pd')] : []),
+      ...(personal.length
+        ? [
+            {
+              id: id('pd'),
+              kind: 'personalDetails' as const,
+              title: 'Personal details',
+              hidden: false,
+              items: personal.slice(0, 20).map((l, i) => {
+                const m = /^([^:：]{1,60})\s*[:：-]\s*(.*)$/.exec(l);
+                return {
+                  id: id(`pd-${i}`),
+                  label: (m?.[1] ?? '').trim().slice(0, 60),
+                  value: (m ? m[2]! : l).trim().slice(0, 200),
+                };
+              }),
+            },
+          ]
+        : []),
       ...(rest.length ? [section('Other', rest, 'other')] : []),
     ],
   };

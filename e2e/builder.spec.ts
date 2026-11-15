@@ -201,6 +201,11 @@ test('a photo can be added, shown in photo designs, hidden, and removed', async 
   await expect(previewFrame(page).locator('.cv-page .cv-portrait img')).toHaveCount(0);
   await page.getByTestId('photo-visibility').click();
   await expect(previewFrame(page).locator('.cv-page .cv-portrait img')).toHaveCount(1);
+  // After a reload the framing is still available (the original is kept on this device).
+  await page.reload();
+  await expect(page.getByTestId('photo-crop')).toBeVisible();
+  await expect(page.getByTestId('photo-crop-saved')).toHaveCount(0);
+  await expect(page.getByTestId('photo-crop').getByLabel('Zoom')).toHaveValue('2');
 
   await page.goto(page.url().replace(/\/guided$/, ''));
   await page.getByRole('tab', { name: 'Design' }).click();

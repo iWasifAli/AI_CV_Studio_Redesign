@@ -25,5 +25,5 @@ describe('shared daily AI budget', () => {
     // Within 20 s the cached number is used; after that the new total is read.
     expect(await m.aiCallsToday(t0 + 5_000)).toBe(4);
     expect(await m.aiCallsToday(t0 + 25_000)).toBe(5);
-  });
+  }, 20_000); // dynamic imports are slow when the whole suite runs on 2 CPUs
 });
