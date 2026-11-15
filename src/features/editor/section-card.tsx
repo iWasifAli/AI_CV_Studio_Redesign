@@ -15,6 +15,7 @@ import { useState } from 'react';
 import { IconButton } from '@/components/ui/icon-button';
 import { Menu } from '@/components/ui/menu';
 import { useToast } from '@/components/ui/toast';
+import { touchDragHandlers } from './touch-drag';
 import { cn } from '@/lib/cn';
 import { ops } from '@/modules/resume/ops';
 import type { Preset } from '@/modules/resume/presets';
@@ -68,6 +69,7 @@ export function SectionCard({ editor, section, index, count, preset, expanded, t
     <section
       aria-labelledby={titleId}
       data-section={section.id}
+      data-section-index={index}
       onDragOver={(e) => {
         if (!e.dataTransfer.types.includes(SECTION_MIME)) return;
         e.preventDefault();
@@ -85,6 +87,7 @@ export function SectionCard({ editor, section, index, count, preset, expanded, t
         'border-line bg-surface shadow-1 rounded-lg border',
         section.hidden && 'opacity-70',
         over === 'section' && 'ring-primary ring-2',
+        'data-[touch-over]:ring-primary data-[touch-over]:ring-2',
       )}
     >
       <header className="border-line flex items-center gap-1 border-b py-1 pr-1 pl-1">
@@ -94,10 +97,13 @@ export function SectionCard({ editor, section, index, count, preset, expanded, t
             e.dataTransfer.setData(SECTION_MIME, section.id);
             e.dataTransfer.effectAllowed = 'move';
           }}
+          {...touchDragHandlers('data-section-index', (to) =>
+            update((d) => ops.moveSectionTo(d, section.id, to)),
+          )}
           title="Drag to move this section"
           aria-hidden
           data-drag-section={section.id}
-          className="text-ink-subtle hover:text-ink inline-flex h-10 w-7 shrink-0 cursor-grab items-center justify-center"
+          className="text-ink-subtle hover:text-ink inline-flex h-10 w-7 shrink-0 cursor-grab touch-none items-center justify-center"
         >
           <GripVertical size={18} />
         </span>
@@ -174,6 +180,7 @@ export function SectionCard({ editor, section, index, count, preset, expanded, t
             <li
               key={item.id}
               id={`item-${item.id}`}
+              {...{ [`data-item-index-${section.id}`]: i }}
               onDragOver={(e) => {
                 if (!e.dataTransfer.types.includes(ITEM_MIME)) return;
                 e.preventDefault();
@@ -192,6 +199,7 @@ export function SectionCard({ editor, section, index, count, preset, expanded, t
               className={cn(
                 'border-line border-b last:border-b-0',
                 over === i && 'bg-primary-soft/50',
+                'data-[touch-over]:bg-primary-soft/50',
               )}
             >
               <div className="flex items-center gap-1 pr-1">
@@ -202,10 +210,13 @@ export function SectionCard({ editor, section, index, count, preset, expanded, t
                       e.dataTransfer.setData(ITEM_MIME, item.id);
                       e.dataTransfer.effectAllowed = 'move';
                     }}
+                    {...touchDragHandlers(`data-item-index-${section.id}`, (to) =>
+                      update((d) => ops.moveItemTo(d, section.id, item.id, to)),
+                    )}
                     title="Drag to reorder"
                     aria-hidden
                     data-drag-item={item.id}
-                    className="text-ink-subtle hover:text-ink -mr-2 ml-1 inline-flex h-10 w-6 shrink-0 cursor-grab items-center justify-center"
+                    className="text-ink-subtle hover:text-ink -mr-2 ml-1 inline-flex h-10 w-6 shrink-0 cursor-grab touch-none items-center justify-center"
                   >
                     <GripVertical size={16} />
                   </span>

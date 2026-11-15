@@ -66,6 +66,7 @@ test('a declaration can be signed by drawing, and the signature prints under it'
     .click();
   await page.getByLabel('Statement').fill('I confirm that the information above is true.');
   const pad = page.getByTestId('signature-pad');
+  await pad.scrollIntoViewIfNeeded();
   const box = (await pad.boundingBox())!;
   await page.mouse.move(box.x + 30, box.y + box.height * 0.6);
   await page.mouse.down();

@@ -60,6 +60,42 @@ test('drag a section to a new place', async ({ page }) => {
   await expect.poll(order).toEqual([last, ...before.slice(0, -1)]);
 });
 
+test('drag a section with a finger (touch), not only a mouse', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 2600 });
+  await seedDocument(page, driver);
+  await page.goto(`/cv/${driver.id}`);
+  const order = () =>
+    page
+      .locator('section[data-section]')
+      .evaluateAll((els) => els.map((e) => e.getAttribute('data-section')));
+  await expect(page.locator('section[data-section]').first()).toBeVisible();
+  const before = await order();
+  const last = before[before.length - 1]!;
+  await page.evaluate(
+    ({ last, first }) => {
+      const grip = document.querySelector(`[data-drag-section="${last}"]`)!;
+      const target = document.querySelector(`section[data-section="${first}"] header`)!;
+      const g = grip.getBoundingClientRect();
+      const t = target.getBoundingClientRect();
+      const ev = (type: string, x: number, y: number) =>
+        grip.dispatchEvent(
+          new PointerEvent(type, {
+            bubbles: true,
+            pointerType: 'touch',
+            pointerId: 7,
+            clientX: x,
+            clientY: y,
+          }),
+        );
+      ev('pointerdown', g.x + 5, g.y + 5);
+      ev('pointermove', t.x + 40, t.y + 10);
+      ev('pointerup', t.x + 40, t.y + 10);
+    },
+    { last, first: before[0]! },
+  );
+  await expect.poll(order).toEqual([last, ...before.slice(0, -1)]);
+});
+
 test('Premium: rewrite only the selected words', async ({ page }) => {
   await seedDocument(page, driver);
   await page.goto(`/cv/${driver.id}`);
