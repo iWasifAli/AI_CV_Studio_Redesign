@@ -1278,6 +1278,25 @@ The owner asked (2026-11-15) for the remaining spec features before R10. Picked 
   - CI with the fix: green, and the version history passes against real Firestore.
   - Production after deploy: an AI action counted (1 → 2).
 
+## R11 — finishing the spec (2026-11-15)
+
+Everything below is built with unit and browser tests; each was deployed only after CI passed.
+
+- **Product numbers (spec §17.2)** — Console → Overview shows the nine numbers with their targets: makeover completion, time to reveal, reveal → account, reveal → download in 24 h, designer match, designer → Premium, tools per active user, week-4 return, free → Premium. Per-account activity (`activity/{uid}`) keeps only dates and tool names, never content; it is deleted with the account. Numbers based on fewer than 5 accounts or makeovers say "Not enough data yet".
+- **Application pack (§10.1)** — "Download as one file" on the download page, the job kit and saved letters: CV + letter + up to 8 certificates (PDF/PNG/JPG, checked by content, 5 MB each, 15 MB together, never stored) as one merged PDF or a numbered ZIP. Counts as one PDF download. Switch: **Application pack**.
+- **Fit to pages (§9.2)** — Design Studio: page target 1 page / 2 pages / no limit. Spacing changes first; if still too long, content cuts are *suggested* (leave out a section, keep the first points of long jobs, leave out jobs over 15 years old, shorten the profile) and only made with "Do this". Undo puts any change back.
+- **Explain a gap (§9.3)** — Check tab lists breaks of over six months. The person says what it was for (and optionally a few words); simple wording without AI, or AI wording (`coach.gap`, fact-guarded; health details never go on the CV). "Add as a career break" puts it among the jobs by date. Switch: **Explain a gap**.
+- **Personal statement and professional bio (§10.1)** — two new types in the letter library ("Statements and bios"): no recipient, greeting or sign-off; a titled page in the CV's design; bio length and voice are choices. `letter.generic@3` has a statement mode.
+- **Console content and AI controls (§15)** — per-task AI switches (Settings → AI tasks; a switched-off task returns "AI unavailable" and counts nothing); token counters and an **AI cost estimate in rupees** on the Overview (prices editable); Help questions and the Premium page headline editable; payment email subject and a note (with sample sends).
+- **Installable web app (§11.5)** — manifest, icons, a service worker (pages network-first and kept for offline use, built files cache-first, never the API), an offline page listing the CVs on the device, "Install the app" on Account and Help.
+- **Browser extension** — `extension/` (Manifest V3, only `activeTab` and `contextMenus`): one click opens `/jobs?new=1&url=…`. `npm run extension:zip` builds the ZIP; publishing is owner to-do 11.
+- **Community designs (R10)** — off by default (switch **Community designs**). People share a saved design; Console → **Design review** shows it on three sample CVs with the automatic checks; approve, decline with a reason, feature or take down (audited). Approved designs appear in the Design Studio, previewed on the person's own CV.
+- **Translate a CV (§10.1)** — editor bar → Translate: 9 languages, reviewed side by side, saved as a new CV. Names, employers, places, numbers, dates, emails and links are replaced by tokens before the model sees the text and restored after; a piece whose tokens came back wrong keeps the original for the person to write. 2 AI actions, Premium. Right-to-left languages are not offered.
+- **Email signature and business card (§10.1)** — Presence → "Email signature and business card": a signature (inline-styled, copied as rich text) and an 85 × 55 mm two-sided card PDF with a QR code to the portfolio, in the CV's colour and fonts.
+- **Company brief (§10.2)** — on each job: what the company does and values (from the advert and pasted pages only), what the role needs, how the CV fits (cited CV lines), questions to ask; kept on the job.
+- **Career paths (§10.3)** — Skill plan page: near and stretch roles with what you have, what you'd need and a first step; "Plan the skills for this role" fills the skill plan.
+- **Bug fixed:** a settings save reached pages only after up to a minute (pages and API routes are separate module copies; the config cache now lives on `globalThis`).
+
 ## Owner to-do (when you have time)
 
 1. ~~Payments and sales~~: done on 2026-11-12.
@@ -1290,7 +1309,8 @@ The owner asked (2026-11-15) for the remaining spec features before R10. Picked 
 8. ~~Firestore rules~~: published 2026-11-13 (owner: this site is the only product in the project). They replaced the old Flutter app's rules, which let browsers write to `users` and `paymentRequests`; the old version stays in the console's rules history. The live site was checked afterwards.
 9. **Makeover acceptance with real CVs:** try 40 real CVs (10 Word, 10 PDFs from other builders, 10 two-column, 5 scans, 5 phone photos) on `/makeover` and note any wrong or missing text.
 10. **R7 human checks:** the 30-person blind design preference test (target 60%) and an outside reviewer's rubric scores for the 22 new designs (minimum 8.5).
-11. **Later:** publishing the browser extension to the Chrome Web Store (R10).
+11. **Browser extension:** `npm run extension:zip` → upload `dist/ai-cv-studio-extension.zip` to the Chrome Web Store (steps in `extension/README.md`).
+17. **Community designs:** switch on in Admin → Settings when you want people to share designs; review them in Admin → Design review.
 12. **Reminder email on staging (R9 acceptance):** sign in once on https://aicvstudio-staging--ai-cv-studio.europe-west4.hosted.app and press Admin → Settings → **Send a sample reminder email** (or add a reminder for today on a job), then check the inbox. Production delivery was verified on 2026-11-14.
 13. **Comment notice email:** check the inbox of aicvstudio.app@gmail.com for "New comment on Nisar Ahmad — imported" (sent 2026-11-14 ~08:10 PKT during the R9.7 live check), or press Admin → Settings → **Send a sample comment email**.
 14. **Portfolio contact message:** check the inbox of your sign-in address for "Message from Claude test visitor through your portfolio page" (sent 2026-11-14 during the R9.8 live check), or press Admin → Settings → **Send a sample portfolio message**.
@@ -1299,14 +1319,8 @@ The owner asked (2026-11-15) for the remaining spec features before R10. Picked 
 
 ## Next action (exact)
 
-1. R9 "Coach" is complete: all ten parts are live (R9.1 mock interview to R9.10 application analytics). R9 acceptance (spec §16):
-   - the coach passes its 20 scripted tasks (R9.2);
-   - the mock interview evaluation passes (R9.1);
-   - crafted coach requests can't exceed plan limits (R9.2 e2e);
-   - reminder emails were delivered in production (R9.6). Staging delivery is owner to-do 12.
-2. After R9 (owner's choice, 2026-11-15): the spec features that were not built yet, by value. **Done and live:** version history, proofreading the whole CV, quantify prompts, and the usage-counter fix.
-3. **Next: German.** The owner wants the whole app in German (not translation of CVs), and German CVs supported properly; Urdu is not wanted. A plan comes first: language files for every screen, email and help page; a language switch; German CV conventions (headings, dates, photo and personal details).
-4. Still open from the spec (lower value): personal statement / bio, document set export (one PDF), business card and email signature, company brief, career paths, explain a gap, fit-to-pages targets, product numbers on the dashboard, and Console content editing. R10 (installable app, browser extension, community designs, card gateway) after that.
+1. All spec features up to R10 are built (see R11 above), except German (deferred by the owner) and the card gateway (waits for business registration).
+2. **Next: templates (owner request, 2026-11-15).** Raise every existing design to 9.5/10, then build the 20 graphic designs from the owner's reference collection (`AI_CV_Studio_Graphic_Collection`), compared screenshot by screenshot, and add **Dual CV export**: a Creative PDF and an ATS PDF from the same CV.
 
 ## Deployment (2026-11-12)
 
