@@ -326,10 +326,81 @@ export const RUNTIME_JS = String.raw`(function (planPages) {
     } catch (e) {}
   }
 
+  // Drag on the page (spec §9.1), switched on by the editor (cv:enable-drag): a section by its
+  // heading, an entry by its first block, dropped before or after another of the same kind.
+  // The editor makes the move (one undo step); the page is rebuilt from the document.
+  var dragOn = false, drag = null, dragged = false, marker = null;
+  function dragTargets(d) {
+    if (d.kind === 'sec') return Array.prototype.slice.call(document.querySelectorAll('[data-cv-pages] [data-sec]'));
+    var sec = d.ref.split('/')[0];
+    return Array.prototype.slice.call(document.querySelectorAll('[data-cv-pages] .b-entry[data-ref^="' + sec + '/"]'));
+  }
+  function nearest(d, x, y) {
+    var best = null, dist = 1e9;
+    dragTargets(d).forEach(function (el) {
+      var key = d.kind === 'sec' ? el.getAttribute('data-sec') : el.getAttribute('data-ref');
+      if (key === d.ref) return;
+      var r = el.getBoundingClientRect();
+      var mid = r.top + r.height / 2;
+      var dd = Math.abs(y - mid) + (x < r.left || x > r.right ? 400 : 0);
+      if (dd < dist) { dist = dd; best = { el: el, key: key, after: y > mid, r: r }; }
+    });
+    return dist < 300 ? best : null;
+  }
+  document.addEventListener('pointerdown', function (ev) {
+    if (!dragOn || ev.button !== 0) return;
+    var t = ev.target;
+    if (!t || !t.closest || t.isContentEditable) return;
+    var sec = t.closest('[data-sec]');
+    var ent = sec ? null : t.closest('.b-entry[data-ref]');
+    if (!sec && !ent) return;
+    drag = sec ? { kind: 'sec', ref: sec.getAttribute('data-sec'), x: ev.clientX, y: ev.clientY, active: false }
+               : { kind: 'item', ref: ent.getAttribute('data-ref'), x: ev.clientX, y: ev.clientY, active: false };
+  });
+  document.addEventListener('pointermove', function (ev) {
+    if (!drag) return;
+    if (!drag.active && Math.abs(ev.clientY - drag.y) + Math.abs(ev.clientX - drag.x) < 10) return;
+    if (!drag.active) {
+      var gs = window.getSelection && window.getSelection();
+      if (gs) gs.removeAllRanges();
+      document.body.style.userSelect = 'none';
+    }
+    drag.active = true;
+    ev.preventDefault();
+    document.documentElement.style.cursor = 'grabbing';
+    var n = nearest(drag, ev.clientX, ev.clientY);
+    drag.target = n;
+    if (!marker) {
+      marker = document.createElement('div');
+      marker.setAttribute('data-cv-drop', '');
+      marker.style.cssText = 'position:fixed;height:3px;background:#1e5a55;border-radius:2px;pointer-events:none;z-index:99';
+      document.body.appendChild(marker);
+    }
+    if (n) {
+      marker.style.display = 'block';
+      marker.style.left = n.r.left + 'px';
+      marker.style.width = n.r.width + 'px';
+      marker.style.top = (n.after ? n.r.bottom : n.r.top) - 1 + 'px';
+    } else marker.style.display = 'none';
+  });
+  document.addEventListener('pointerup', function () {
+    if (!drag) return;
+    var d = drag;
+    drag = null;
+    document.documentElement.style.cursor = '';
+    document.body.style.userSelect = '';
+    if (marker) { marker.remove(); marker = null; }
+    if (!d.active) return;
+    dragged = true;
+    if (d.target)
+      window.parent.postMessage({ type: 'cv:move', kind: d.kind, ref: d.ref, to: d.target.key, after: d.target.after }, '*');
+  });
+
   // Click: jump to the field. The clicked element's own text goes with it, so the editor can offer
   // to edit it in place (cv:edit) when that text is exactly one field.
   var editSeq = 0;
   document.addEventListener('click', function (ev) {
+    if (dragged) { dragged = false; ev.preventDefault(); return; }
     var t = ev.target;
     if (t && t.closest && t.closest('a')) ev.preventDefault();
     if (t && t.isContentEditable) return;
@@ -354,6 +425,7 @@ export const RUNTIME_JS = String.raw`(function (planPages) {
   });
   window.addEventListener('message', function (ev) {
     var d = ev.data;
+    if (ev.source === window.parent && d && d.type === 'cv:enable-drag') { dragOn = true; return; }
     if (ev.source !== window.parent || !d || d.type !== 'cv:edit') return;
     var el = document.querySelector('[data-cv-edit="' + d.token + '"]');
     if (!el) return;

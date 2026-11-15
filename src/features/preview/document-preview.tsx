@@ -27,6 +27,8 @@ type Props = {
     can: (ref: string, text: string) => boolean;
     commit: (ref: string, original: string, text: string) => void;
   };
+  /** Drag on the page: a section (by its heading) or an entry dropped before/after another. */
+  onMove?: (m: { kind: 'sec' | 'item'; ref: string; to: string; after: boolean }) => void;
   className?: string;
   title?: string;
   /** Illustration only (gallery, thumbnails): hidden from assistive tech and not focusable. */
@@ -51,6 +53,7 @@ export function DocumentPreview({
   onStatus,
   onSelect,
   inlineEdit,
+  onMove,
   className,
   title = 'CV preview',
   decorative = false,
@@ -88,9 +91,9 @@ export function DocumentPreview({
   // re-activated without reloading (e.g. undo back to the previous version).
   const slotResult = useRef<[PreviewStatus | null, PreviewStatus | null]>([null, null]);
   const [pages, setPages] = useState(1);
-  const cbs = useRef({ onStatus, onSelect, inlineEdit });
+  const cbs = useRef({ onStatus, onSelect, inlineEdit, onMove });
   useEffect(() => {
-    cbs.current = { onStatus, onSelect, inlineEdit };
+    cbs.current = { onStatus, onSelect, inlineEdit, onMove };
   });
 
   const page = PAGE_DIMENSIONS[doc.design.pageSize];
@@ -152,6 +155,8 @@ export function DocumentPreview({
         activeRef.current = idx;
         setActive(idx);
         cbs.current.onStatus?.(result);
+        if (cbs.current.onMove)
+          frames.current[idx]?.contentWindow?.postMessage({ type: 'cv:enable-drag' }, '*');
       } else if (e.data.type === 'cv:select' && typeof e.data.ref === 'string') {
         const text = typeof e.data.text === 'string' ? e.data.text : '';
         const edit = cbs.current.inlineEdit;
@@ -161,6 +166,18 @@ export function DocumentPreview({
             '*',
           );
         cbs.current.onSelect?.(e.data.ref, text);
+      } else if (
+        e.data.type === 'cv:move' &&
+        (e.data.kind === 'sec' || e.data.kind === 'item') &&
+        typeof e.data.ref === 'string' &&
+        typeof e.data.to === 'string'
+      ) {
+        cbs.current.onMove?.({
+          kind: e.data.kind,
+          ref: e.data.ref,
+          to: e.data.to,
+          after: !!e.data.after,
+        });
       } else if (e.data.type === 'cv:edit-done' && e.data.changed) {
         // That frame's page was edited in place, so it no longer matches its HTML: never reuse it.
         const s = slotsRef.current;

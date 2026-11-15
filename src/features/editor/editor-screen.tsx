@@ -90,6 +90,25 @@ export function EditorScreen({ initial }: { initial: ResumeDocument }) {
       }, `inline.${ref}.${Date.now()}`);
     },
   };
+  // Drag on the page: before/after the target, as one undo step.
+  const onMove = (m: { kind: 'sec' | 'item'; ref: string; to: string; after: boolean }) => {
+    const place = (from: number, t: number) =>
+      from < t ? (m.after ? t : t - 1) : m.after ? t + 1 : t;
+    update((d) => {
+      if (m.kind === 'sec') {
+        const from = d.sections.findIndex((s) => s.id === m.ref);
+        const t = d.sections.findIndex((s) => s.id === m.to);
+        return from < 0 || t < 0 ? d : ops.moveSectionTo(d, m.ref, place(from, t));
+      }
+      const [sid, iid] = m.ref.split('/');
+      const [tsid, tid] = m.to.split('/');
+      if (!sid || !iid || sid !== tsid) return d;
+      const items = d.sections.find((s) => s.id === sid)?.items ?? [];
+      const from = items.findIndex((i) => i.id === iid);
+      const t = items.findIndex((i) => i.id === tid);
+      return from < 0 || t < 0 ? d : ops.moveItemTo(d, sid, iid, place(from, t));
+    }, `move.${Date.now()}`);
+  };
   const compact = () => update((d) => ops.setDesign(d, { density: 'compact' }));
   // Links from the CV check open the editor at a field: /cv/:id?focus=<sectionId>/<itemId>.
   const focus = params.get('focus');
@@ -218,6 +237,7 @@ export function EditorScreen({ initial }: { initial: ResumeDocument }) {
                 onStatus={setStatus}
                 onSelect={onSelect}
                 inlineEdit={inlineEdit}
+                onMove={onMove}
                 title="Preview of your CV. Click any part to edit it."
               />
             </div>

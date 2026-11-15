@@ -50,3 +50,34 @@ describe('update your profile too', () => {
     expect(profileChanges(cv, now, changedProfile)).toEqual([]);
   });
 });
+
+describe('new entries', () => {
+  it('offers an entry added in a CV to the profile, and adds it there', async () => {
+    const { FIXTURES } = await import('./fixtures');
+    const profile = structuredClone(FIXTURES.driver);
+    const before = structuredClone(profile);
+    const now = structuredClone(profile);
+    const exp = now.sections.find((s) => s.kind === 'experience')!;
+    (exp.items as unknown[]).push({
+      id: 'new-job',
+      role: 'Night Driver',
+      organization: 'Moonlight Couriers',
+      location: '',
+      start: '2015-01',
+      end: '2016-01',
+      current: false,
+      bullets: ['Night routes'],
+    });
+    const changes = profileChanges(before, now, profile);
+    expect(changes).toEqual([
+      expect.objectContaining({ kind: 'item', itemId: 'new-job', label: 'Night Driver' }),
+    ]);
+    const updated = applyToProfile(profile, changes);
+    const items = updated.sections.find((s) => s.id === exp.id)!.items as { id: string }[];
+    expect(items.at(-1)!.id).toBe('new-job');
+    // Removing an entry from a CV is tailoring, not a fact to sync.
+    const fewer = structuredClone(profile);
+    fewer.sections.find((s) => s.kind === 'experience')!.items.pop();
+    expect(profileChanges(profile, fewer, profile)).toEqual([]);
+  });
+});

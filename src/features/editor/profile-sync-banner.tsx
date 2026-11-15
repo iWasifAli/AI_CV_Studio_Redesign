@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/toast';
-import { applyToProfile, profileChanges } from '@/modules/resume/profile-sync';
+import { applyToProfile, describeChange, profileChanges } from '@/modules/resume/profile-sync';
 import type { ResumeDocument } from '@/modules/resume/schema';
 import { getRepository } from '@/modules/storage/repository';
 
@@ -59,10 +59,10 @@ export function ProfileSyncBanner({ doc }: { doc: ResumeDocument }) {
         </div>
       }
     >
-      You changed {n === 1 ? 'a fact' : `${n} facts`} that {n === 1 ? 'is' : 'are'} also in your
-      career profile
-      {changes[0] ? ` (“${changes[0].from.slice(0, 40)}” → “${changes[0].to.slice(0, 40)}”)` : ''}.
-      Every new CV starts from the profile.
+      {changes.every((c) => c.kind === 'item')
+        ? `You added ${n === 1 ? 'an entry' : `${n} entries`} that your career profile doesn’t have`
+        : `You changed ${n === 1 ? 'something' : `${n} things`} that your career profile also has`}
+      {changes[0] ? ` (${describeChange(changes[0])})` : ''}. Every new CV starts from the profile.
     </Banner>
   );
 }

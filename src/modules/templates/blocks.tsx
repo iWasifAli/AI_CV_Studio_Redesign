@@ -14,12 +14,15 @@ export function Block({
   className,
   refId,
   kind,
+  section,
   children,
 }: {
   keep: Keep;
   className: string;
   refId?: string;
   kind?: string;
+  /** Section id on a heading block: the handle for dragging the section on the page. */
+  section?: string;
   children: ReactNode;
 }) {
   return (
@@ -28,6 +31,7 @@ export function Block({
       data-keep={keep}
       className={kind ? `${className} k-${kind}` : className}
       data-ref={refId}
+      data-sec={section}
     >
       {children}
     </div>
@@ -144,7 +148,13 @@ function sectionBlocksRaw(
 ): ReactNode[] {
   const out: ReactNode[] = [];
   out.push(
-    <Block kind={section.kind} key={`${section.id}-h`} keep="with-next" className="b-heading">
+    <Block
+      kind={section.kind}
+      key={`${section.id}-h`}
+      keep="with-next"
+      className="b-heading"
+      section={section.id}
+    >
       {hooks.heading(section)}
     </Block>,
   );

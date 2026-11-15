@@ -9,7 +9,15 @@ import type { ResumeDocument } from './schema';
 export type ProfileChange =
   | { kind: 'basics'; key: (typeof BASICS)[number]; from: string; to: string }
   | { kind: 'field'; sectionId: string; itemId: string; key: string; from: string; to: string }
-  | { kind: 'line'; sectionId: string; itemId: string; key: string; from: string; to: string };
+  | { kind: 'line'; sectionId: string; itemId: string; key: string; from: string; to: string }
+  /** A whole new entry (a job, a qualification…) added to a section the profile also has. */
+  | {
+      kind: 'item';
+      sectionId: string;
+      itemId: string;
+      item: Record<string, unknown>;
+      label: string;
+    };
 
 const BASICS = ['name', 'email', 'phone', 'location'] as const;
 const SKIP = new Set(['id', 'current', 'levels', 'level']);
@@ -35,7 +43,15 @@ export function profileChanges(
     for (const it of s.items as Rec[]) {
       const was = itemOf(before, s.id, String(it.id));
       const prof = itemOf(profile, s.id, String(it.id));
-      if (!was || !prof) continue; // new in this CV, or not in the profile
+      // New in this CV, in a section the profile has too, with something written in it. (Entries
+      // removed from a CV are not offered: leaving things out is how a CV is tailored.)
+      if (!was && !prof && profile.sections.some((p) => p.id === s.id)) {
+        const label = firstText(it);
+        if (label)
+          out.push({ kind: 'item', sectionId: s.id, itemId: String(it.id), item: it, label });
+        continue;
+      }
+      if (!was || !prof) continue;
       for (const [key, v] of Object.entries(it)) {
         if (SKIP.has(key)) continue;
         const w = was[key];
@@ -72,6 +88,23 @@ export function profileChanges(
   return out;
 }
 
+function firstText(it: Rec): string {
+  for (const k of ['role', 'qualification', 'name', 'title', 'language', 'label', 'text']) {
+    const v = it[k];
+    if (typeof v === 'string' && v.trim()) return v.trim();
+  }
+  for (const v of Object.values(it))
+    if (Array.isArray(v) && typeof v[0] === 'string' && v[0].trim()) return v[0].trim();
+  return '';
+}
+
+/** Short words for the banner: what changed. */
+export function describeChange(c: ProfileChange): string {
+  return c.kind === 'item'
+    ? `new entry “${c.label.slice(0, 40)}”`
+    : `“${c.from.slice(0, 40)}” → “${c.to.slice(0, 40)}”`;
+}
+
 /** The profile with those changes made (a new object; untouched if nothing applies). */
 export function applyToProfile(
   profile: ResumeDocument,
@@ -82,6 +115,12 @@ export function applyToProfile(
   for (const c of changes) {
     if (c.kind === 'basics') {
       if (p.basics[c.key] === c.from) p.basics[c.key] = c.to;
+      continue;
+    }
+    if (c.kind === 'item') {
+      const sec = p.sections.find((x) => x.id === c.sectionId);
+      if (sec && !sec.items.some((i) => i.id === c.itemId))
+        (sec.items as unknown[]).push(structuredClone(c.item));
       continue;
     }
     const it = itemOf(p, c.sectionId, c.itemId);

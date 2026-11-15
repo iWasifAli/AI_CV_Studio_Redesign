@@ -60,6 +60,53 @@ test('drag a section to a new place', async ({ page }) => {
   await expect.poll(order).toEqual([last, ...before.slice(0, -1)]);
 });
 
+test('drag a section on the page itself', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 2600 });
+  await seedDocument(page, driver);
+  await page.goto(`/cv/${driver.id}`);
+  const order = () =>
+    page
+      .locator('section[data-section]')
+      .evaluateAll((els) => els.map((e) => e.getAttribute('data-section')));
+  await expect(page.locator('section[data-section]').first()).toBeVisible();
+  const before = await order();
+  const frame = page.frameLocator('iframe[data-active][title^="Preview of your CV"]');
+  const last = before[before.length - 1]!;
+  await expect(frame.locator(`[data-cv-pages] [data-sec="${last}"]`)).toBeVisible();
+  // Pointer events inside the page (the preview frame is scaled, so they are sent in its own
+  // coordinates).
+  await frame.locator('body').evaluate(
+    (_b, { last, first }) => {
+      const src = document.querySelector(
+        `[data-cv-pages] [data-sec="${last}"] h2, [data-cv-pages] [data-sec="${last}"]`,
+      )!;
+      const dst = document
+        .querySelector(`[data-cv-pages] [data-sec="${first}"]`)!
+        .getBoundingClientRect();
+      const s = src.getBoundingClientRect();
+      const fire = (target: EventTarget, type: string, x: number, y: number) =>
+        target.dispatchEvent(
+          new PointerEvent(type, {
+            bubbles: true,
+            button: 0,
+            pointerType: 'mouse',
+            clientX: x,
+            clientY: y,
+          }),
+        );
+      fire(src, 'pointerdown', s.x + 5, s.y + 5);
+      fire(document, 'pointermove', s.x + 5, s.y - 40);
+      fire(document, 'pointermove', dst.x + 20, dst.y + 2);
+      fire(document, 'pointerup', dst.x + 20, dst.y + 2);
+    },
+    { last, first: before[0]! },
+  );
+  await expect.poll(order).toEqual([before[before.length - 1], ...before.slice(0, -1)]);
+  // One undo step puts it back.
+  await page.keyboard.press('Control+z');
+  await expect.poll(order).toEqual(before);
+});
+
 test('drag a section with a finger (touch), not only a mouse', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 2600 });
   await seedDocument(page, driver);
