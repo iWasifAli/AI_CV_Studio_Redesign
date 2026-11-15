@@ -1,6 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { HeaderPicture, HeadingPicture, LayoutPicture } from './studio-pictures';
+import { type ReactNode, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Bookmark, Minimize2, RotateCcw, ShieldCheck, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAccount } from '@/features/account/account-context';
@@ -66,13 +67,49 @@ function Choice<T extends string | number>({
   value,
   options,
   onChange,
+  picture,
 }: {
   label: string;
   value: T;
   options: Opt<T>[];
   onChange: (v: T) => void;
+  /** Picture tiles (level 2): a small drawing of each choice above its label. */
+  picture?: (v: T) => ReactNode;
 }) {
   const id = useId();
+  if (picture)
+    return (
+      <div className="flex flex-col gap-1.5">
+        <p id={id} className="text-sm font-semibold">
+          {label}
+        </p>
+        <div
+          role="radiogroup"
+          aria-labelledby={id}
+          className="grid grid-cols-[repeat(auto-fill,minmax(5.5rem,1fr))] gap-1.5"
+          data-testid="picture-tiles"
+        >
+          {options.map((o) => (
+            <button
+              key={String(o.value)}
+              type="button"
+              role="radio"
+              aria-checked={o.value === value}
+              onClick={() => onChange(o.value)}
+              className={cn(
+                'text-ink-muted flex flex-col items-center gap-1 rounded-lg border p-1.5 text-center text-xs leading-tight',
+                o.value === value
+                  ? 'border-primary bg-primary-soft text-primary font-semibold'
+                  : 'border-line-strong bg-surface hover:bg-sunken',
+              )}
+            >
+              {picture(o.value)}
+              <span>{o.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
   return (
     <div className="flex flex-col gap-1.5">
       <p id={id} className="text-sm font-semibold">
@@ -467,6 +504,7 @@ export function DesignStudio({
           value={spec.layout.type}
           options={opts(LAYOUTS, LAYOUT_LABEL)}
           onChange={(v) => edit((s) => void (s.layout.type = v))}
+          picture={(v) => <LayoutPicture value={v} />}
         />
         {sideLayout && (
           <>
@@ -506,6 +544,7 @@ export function DesignStudio({
             'in-sidebar': 'Beside the side column',
           })}
           onChange={(v) => edit((s) => void (s.header.style = v))}
+          picture={(v) => <HeaderPicture value={v} />}
         />
         {(spec.header.style === 'band' || spec.header.style === 'in-sidebar') && (
           <Choice
@@ -631,6 +670,7 @@ export function DesignStudio({
             filled: 'Coloured box',
           })}
           onChange={(v) => edit((s) => void (s.headings.style = v))}
+          picture={(v) => <HeadingPicture value={v} />}
         />
         <Choice
           label="Letters"
@@ -700,6 +740,16 @@ export function DesignStudio({
               keepBase: v === 'tags' || v === 'inline',
             })
           }
+        />
+        <Choice
+          label="Short items per row (languages, certificates, licences)"
+          value={spec.lists.compactColumns}
+          options={[
+            { value: 1 as const, label: 'One' },
+            { value: 2 as const, label: 'Two' },
+            { value: 3 as const, label: 'Three' },
+          ]}
+          onChange={(v) => edit((s) => void (s.lists.compactColumns = v))}
         />
       </Group>
 

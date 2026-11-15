@@ -18,6 +18,8 @@ import type { SavedLetter } from '@/modules/letters/schema';
 import { LETTER_TYPE } from '@/modules/letters/types';
 import { createDocument } from '@/modules/resume/create';
 import type { ResumeDocument } from '@/modules/resume/schema';
+import { ops } from '@/modules/resume/ops';
+import type { DesignSpecV2 } from '@/modules/design/spec';
 import { getRepository } from '@/modules/storage/repository';
 import { lettersApi } from './api';
 import { ScaledPage, resolvePage } from './scaled-page';
@@ -25,7 +27,7 @@ import { PackButton } from '@/features/export/pack-dialog';
 
 type Editable = Pick<
   SavedLetter,
-  'to' | 'subject' | 'greeting' | 'paragraphs' | 'closing' | 'documentId' | 'answers'
+  'to' | 'subject' | 'greeting' | 'paragraphs' | 'closing' | 'documentId' | 'designId' | 'answers'
 >;
 const editable = (l: SavedLetter): Editable => ({
   to: l.to,
@@ -34,6 +36,7 @@ const editable = (l: SavedLetter): Editable => ({
   paragraphs: l.paragraphs,
   closing: l.closing,
   documentId: l.documentId,
+  designId: l.designId ?? '',
   answers: l.answers,
 });
 const key = (e: Editable) => JSON.stringify(e);
@@ -97,14 +100,31 @@ function Editor({ initial }: { initial: SavedLetter }) {
   const cvs = useMemo(() => repo?.list() ?? [], [repo]);
   // The design and contact details come from the chosen CV, or a plain page with the account name.
   const statement = type.form === 'statement';
+  // Saved designs ("My designs", spec §7.4): a letter can use one instead of the CV's own design.
+  const [savedDesigns, setSavedDesigns] = useState<
+    { id: string; name: string; spec: DesignSpecV2 }[]
+  >([]);
+  useEffect(() => {
+    if (account.status !== 'signedIn') return;
+    let live = true;
+    fetch('/api/designs', { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : { designs: [] }))
+      .then((j: { designs: typeof savedDesigns }) => live && setSavedDesigns(j.designs ?? []))
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [account.status]);
   const design: ResumeDocument = useMemo(() => {
-    const doc = draft.documentId ? repo?.get(draft.documentId) : null;
-    if (doc) return doc;
-    const blank = createDocument('general');
-    blank.basics.name = account.user?.name ?? '';
-    blank.basics.email = account.user?.email ?? '';
-    return blank;
-  }, [draft.documentId, repo, account.user]);
+    let doc = draft.documentId ? repo?.get(draft.documentId) : null;
+    if (!doc) {
+      doc = createDocument('general');
+      doc.basics.name = account.user?.name ?? '';
+      doc.basics.email = account.user?.email ?? '';
+    }
+    const mine = draft.designId ? savedDesigns.find((d) => d.id === draft.designId) : null;
+    return mine ? ops.setSpec(doc, mine.spec) : doc;
+  }, [draft.documentId, draft.designId, savedDesigns, repo, account.user]);
   const html = useMemo(
     () =>
       typeof window === 'undefined'
@@ -304,6 +324,24 @@ function Editor({ initial }: { initial: SavedLetter }) {
               {cvs.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.role === 'profile' ? 'Career profile' : c.title || c.name || 'Untitled CV'}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+        {savedDesigns.length > 0 && (
+          <label className="flex flex-col gap-1.5 text-sm font-semibold">
+            Design
+            <select
+              className="border-line-strong bg-surface min-h-11 rounded-md border px-3 text-[15px] font-normal"
+              value={draft.designId}
+              onChange={(e) => setDraft({ ...draft, designId: e.target.value })}
+              data-testid="letter-design"
+            >
+              <option value="">{draft.documentId ? 'The CV’s design' : 'Plain'}</option>
+              {savedDesigns.map((d) => (
+                <option key={d.id} value={d.id}>
+                  My design: {d.name}
                 </option>
               ))}
             </select>

@@ -121,3 +121,44 @@ describe('section headings', () => {
     expect(f?.ref).toBe(exp.id);
   });
 });
+
+describe('country-specific advice (doc.market)', () => {
+  const withDetails = (market?: string) => {
+    const d = structuredClone(F.FIXTURES.engineer) as ResumeDocument;
+    d.market = market;
+    d.basics.photo = 'data:image/jpeg;base64,AAAA';
+    d.design.options.showPhoto = true;
+    d.sections.push({
+      id: 'pd',
+      kind: 'personalDetails',
+      title: 'Personal details',
+      hidden: false,
+      items: [
+        { id: 'p1', label: 'Date of birth', value: '9 August 1987' },
+        { id: 'p2', label: 'Nationality', value: 'Pakistani' },
+      ],
+    });
+    return healthCheck(d).findings.map((f) => f.id);
+  };
+  it('UK: date of birth and photo are flagged', () => {
+    expect(withDetails('GB')).toEqual(
+      expect.arrayContaining(['personal-details', 'photo-country']),
+    );
+  });
+  it('Germany: date of birth, nationality and a photo are normal', () => {
+    const ids = withDetails('DE');
+    expect(ids).not.toContain('personal-details');
+    expect(ids).not.toContain('photo-country');
+  });
+  it('Germany: religion and marital status are still flagged', () => {
+    const d = structuredClone(F.FIXTURES.engineer) as ResumeDocument;
+    d.market = 'DE';
+    d.basics.summary += ' Marital status: married.';
+    expect(healthCheck(d).findings.map((f) => f.id)).toContain('personal-details');
+  });
+  it('no country chosen: general advice, no photo warning', () => {
+    const ids = withDetails(undefined);
+    expect(ids).toContain('personal-details');
+    expect(ids).not.toContain('photo-country');
+  });
+});

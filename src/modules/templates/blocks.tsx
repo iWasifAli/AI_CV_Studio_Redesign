@@ -53,6 +53,12 @@ export type TemplateHooks = {
   summary: (text: string) => ReactNode;
   /** Skills render one item per tag/line, so big groups may be split across pages at item boundaries. */
   splitSkills?: boolean;
+  /**
+   * Compact grid (Design Studio "compactColumns"): one-line items (languages, certificates,
+   * licences, awards…) laid out n to a row. Each row is one block, so pagination stays exact; in a
+   * narrow side column the row's grid falls back to one column (CSS).
+   */
+  compactColumns?: 1 | 2 | 3;
 };
 
 function Bullets({ items, plain }: { items: string[]; plain?: boolean }) {
@@ -172,6 +178,32 @@ function sectionBlocksRaw(
             cont: k > 0,
           });
       } else items.push({ e, cont: false });
+    }
+    const cols = !isSkills ? (hooks.compactColumns ?? 1) : 1;
+    if (cols > 1 && items.length > 1) {
+      const rows: REntry[][] = [];
+      for (let k = 0; k < items.length; k += cols)
+        rows.push(items.slice(k, k + cols).map((it) => it.e));
+      rows.forEach((row, i) =>
+        out.push(
+          <Block
+            kind={section.kind}
+            key={`${row[0]!.ref}-row`}
+            keep={listKeep(i, rows.length)}
+            className={classes('b-compact', 'b-compact-row', i === 0 && 'b-first')}
+            refId={row[0]!.ref}
+          >
+            <div className="cv-compact-grid" style={{ ['--cols' as string]: cols }}>
+              {row.map((e) => (
+                <div key={e.ref} data-ref={e.ref}>
+                  {hooks.compactItem(e, section)}
+                </div>
+              ))}
+            </div>
+          </Block>,
+        ),
+      );
+      return out;
     }
     const n = items.length;
     // Split chunks may break between any two chunks (never leaving the last chunk alone).

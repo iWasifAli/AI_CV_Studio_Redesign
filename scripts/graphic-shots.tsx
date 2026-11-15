@@ -152,6 +152,14 @@ for (const id of ids)
     doc = ops.useDesign(doc, id);
     // ATS=1: the plain one-column ATS version (Dual CV Export).
     if (process.env.ATS === '1') doc = ops.setSpec(doc, { ...specOf(doc.design), atsSafe: true });
+    // COMPACT=2|3: short items n to a row (Design Studio "compactColumns").
+    if (process.env.COMPACT) {
+      const sp = specOf(doc.design);
+      doc = ops.setSpec(doc, {
+        ...sp,
+        lists: { ...sp.lists, compactColumns: Number(process.env.COMPACT) as 2 | 3 },
+      });
+    }
     const html = buildDocumentHtml(doc, { fonts: { kind: 'inline', read } });
     const name = `${id}-${f}`;
     const { pdf, pages, overflow, nearlyFits, fitted } = await renderPdfFromHtml(browser, html);

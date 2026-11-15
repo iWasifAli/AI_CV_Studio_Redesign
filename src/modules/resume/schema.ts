@@ -273,6 +273,15 @@ export const resumeDocument = z.object({
   title: text(120),
   presetId: z.enum(PRESET_IDS),
   locale: z.string().max(35).default('en-GB'),
+  /**
+   * Country the person is applying in (ISO 3166 alpha-2, '' = not said). Drives country-specific
+   * advice (photo, date of birth) and, later, CV conventions.
+   */
+  market: z
+    .string()
+    .regex(/^[A-Z]{2}$/)
+    .optional()
+    .catch(undefined),
   createdAt: z.string(),
   updatedAt: z.string(),
   parentId: z.string().optional(),

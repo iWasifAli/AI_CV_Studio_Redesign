@@ -27,6 +27,9 @@ const WEAK_OPENINGS =
 const FIRST_PERSON = /(^|\s)(I|my|me)\s/;
 const PERSONAL_DETAILS =
   /\b(date of birth|d\.o\.b|dob|marital status|religion|cnic|national id(entity)? (card )?(no|number)|passport (no|number)|father'?s name|blood group|nationality)\b/i;
+/** Details that are never needed, even where a date of birth and nationality are customary. */
+const SENSITIVE_DETAILS =
+  /\b(marital status|religion|cnic|national id(entity)? (card )?(no|number)|passport (no|number)|father'?s name|blood group|familienstand|konfession|religion)\b/i;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const PLACEHOLDER = /\{\{\?[^}]*\}\}/;
 
@@ -382,15 +385,41 @@ export function healthCheck(
       examples: unusual.map((s) => s.title),
     });
 
+  // Personal details and photos: the advice depends on where the person applies (doc.market,
+  // chosen in the editor; without it the advice stays general). In Germany, Austria and Switzerland a date of birth, nationality and a photo are
+  // still common; in the UK, Ireland, the US, Canada and Australia they are discouraged.
+  const country = doc.market ?? '';
+  const dach = ['DE', 'AT', 'CH', 'LI', 'LU'].includes(country);
+  const strict = ['GB', 'UK', 'IE', 'US', 'CA', 'AU', 'NZ'].includes(country);
   const personal = allText.match(PERSONAL_DETAILS);
-  if (personal)
+  const sensitive = allText.match(SENSITIVE_DETAILS);
+  if (dach) {
+    if (sensitive)
+      f.push({
+        id: 'personal-details',
+        severity: 'improve',
+        title: 'Leave out religion, marital status and ID numbers',
+        detail:
+          'In German-speaking countries a date of birth and nationality are still common on a CV, but religion, marital status and ID or passport numbers are not needed. Leave them out unless the job asks.',
+        examples: [sensitive[0]],
+      });
+  } else if (personal)
     f.push({
       id: 'personal-details',
       severity: 'improve',
       title: 'Consider removing personal details',
-      detail:
-        'Most employers don’t need your date of birth, marital status, religion or ID numbers at this stage, and leaving them out protects you. Include them only if the job asks.',
+      detail: strict
+        ? 'Employers here don’t expect your date of birth, nationality, marital status, religion or ID numbers, and leaving them out protects you from unfair treatment. Include them only if the job asks.'
+        : 'Most employers don’t need your date of birth, marital status, religion or ID numbers at this stage, and leaving them out protects you. Include them only if the job or the country’s custom asks for them.',
       examples: [personal[0]],
+    });
+  if (strict && b.photo && doc.design.options.showPhoto !== false)
+    f.push({
+      id: 'photo-country',
+      severity: 'improve',
+      title: 'A photo is unusual here',
+      detail:
+        'In the UK, Ireland, the US, Canada and Australia most employers prefer CVs without a photo, to avoid unfair judgements. You can hide it with “Hide on CV” and keep it for other applications.',
     });
 
   if (opts.pages && opts.pages > 2)

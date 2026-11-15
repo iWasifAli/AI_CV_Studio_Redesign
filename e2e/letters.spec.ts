@@ -47,6 +47,24 @@ test.describe('free account', () => {
       [],
     );
 
+    // One of "My designs" can style the letter instead of the CV's own design (spec §7.4).
+    const saved = await page.request.post('/api/designs', {
+      data: { name: 'Plum letters', spec: { color: { accent: '#7a1f6b' } } },
+    });
+    expect(saved.ok()).toBe(true);
+    await page.reload();
+    const pick = page.getByTestId('letter-design');
+    await expect(pick.getByRole('option', { name: 'My design: Plum letters' })).toBeAttached();
+    await pick.selectOption({ label: 'My design: Plum letters' });
+    await expect
+      .poll(() =>
+        page
+          .frameLocator('iframe[title="Letter preview"]')
+          .locator('h1')
+          .evaluate((h) => getComputedStyle(h).color),
+      )
+      .toBe('rgb(122, 31, 107)');
+
     // Edit, save, and the preview follows.
     await page.getByLabel('Greeting').fill('Dear Sara,');
     await expect(page.getByRole('button', { name: 'Download PDF' })).toBeDisabled();

@@ -35,6 +35,8 @@ export const savedLetterInput = z.object({
   tone: z.enum(['warm', 'formal']).default('warm'),
   /** CV whose design and contact details the letter uses. */
   documentId: z.string().max(64).default(''),
+  /** One of the account's saved designs ("My designs") to use instead of the CV's own design. */
+  designId: z.string().max(64).default(''),
   /** Optional link to a tracked job. */
   jobId: z.string().max(64).default(''),
 });

@@ -71,6 +71,15 @@ test('the studio is behind the switch; adjusting detaches, undo re-attaches', as
     .getByRole('radio', { name: 'Coloured box' })
     .click();
 
+  // Level 2 shows picture tiles for layout, header and heading styles.
+  await expect(studio.getByTestId('picture-tiles')).toHaveCount(3);
+  // Short items two to a row (compact grid).
+  await studio.getByText('Bullets, dates and skills', { exact: true }).click();
+  const perRow = studio.getByRole('radiogroup', { name: /Short items per row/ });
+  await perRow.getByRole('radio', { name: 'Two' }).click();
+  await expect(perRow.getByRole('radio', { name: 'Two' })).toHaveAttribute('aria-checked', 'true');
+  await page.keyboard.press('Control+z');
+
   await page.keyboard.press('Control+z');
   await page.keyboard.press('Control+z');
   await expect(page.getByTestId('studio-base')).toContainText('Based on');

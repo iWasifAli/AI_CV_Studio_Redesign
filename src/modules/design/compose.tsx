@@ -177,6 +177,7 @@ function makeHooks(s: DesignSpecV2): TemplateHooks {
   };
   return {
     splitSkills: s.lists.skills.style === 'tags' || s.lists.skills.style === 'columns',
+    compactColumns: s.lists.compactColumns,
     heading: (sec) => (
       <h2 className="g-h">
         {(s.headings.style === 'icon' || s.icons.sections) && <Icon kind={sec.kind} />}
@@ -582,6 +583,8 @@ html[data-fit-compact] .g-header--band,html[data-fit-compact] .g-header--in-side
 .b-entry.b-first,.b-summary.b-first,.b-skills.b-first,.b-compact.b-first{padding-top:1pt}
 .b-bullet{padding-top:1.5pt}
 .b-compact{padding-top:3pt}
+.cv-compact-grid{display:grid;grid-template-columns:repeat(var(--cols,2),minmax(0,1fr));column-gap:6mm}
+.cv-aside .cv-compact-grid,.cv-third .cv-compact-grid{grid-template-columns:minmax(0,1fr);row-gap:3pt}
 .b-skills{padding-top:4pt}
 .g-row{display:flex;justify-content:space-between;align-items:baseline;gap:1em}
 .g-title{font-size:1.05em;font-weight:700;color:var(--ink);font-family:var(--font-body)}

@@ -7,6 +7,7 @@ import { getPreset } from '@/modules/resume/presets';
 import { ops } from '@/modules/resume/ops';
 import { newId } from '@/modules/resume/create';
 import type { ResumeDocument } from '@/modules/resume/schema';
+import { MARKETS } from '@/modules/resume/markets';
 import { PhotoField } from './photo-field';
 import type { DocumentEditor } from './use-document-editor';
 
@@ -69,6 +70,25 @@ export function BasicsForm({
         value={b.location}
         onChange={(e) => set({ location: e.target.value }, 'location')}
       />
+      <label className="col-span-2 flex flex-col gap-1.5 text-sm font-semibold">
+        Where you’re applying
+        <span className="text-ink-muted font-normal">
+          For advice that fits the country (photo, date of birth). Optional.
+        </span>
+        <select
+          className="border-line-strong bg-surface min-h-11 rounded-md border px-3 text-[15px] font-normal"
+          value={doc.market ?? ''}
+          onChange={(e) => update((d) => ({ ...d, market: e.target.value || undefined }), 'market')}
+          data-testid="market"
+        >
+          <option value="">Not saying / several countries</option>
+          {MARKETS.map((m) => (
+            <option key={m.code} value={m.code}>
+              {m.name}
+            </option>
+          ))}
+        </select>
+      </label>
       <div className="col-span-2">
         <PhotoField editor={editor} />
       </div>
