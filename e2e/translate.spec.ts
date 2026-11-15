@@ -19,8 +19,8 @@ test('Premium: translate a CV, review it beside the original, save it as a new C
   const summary = review.getByRole('textbox', { name: /^Translation of: / }).nth(1);
   await expect(summary).toHaveValue(/^\[GE\] /);
   await page.getByTestId('translate-create').click();
+  await expect(page).not.toHaveURL(new RegExp(driver.id));
   await expect(page).toHaveURL(/\/cv\/[\w-]+$/);
-  expect(page.url()).not.toContain(driver.id);
   await expect(page.getByRole('textbox', { name: 'CV name' })).toHaveValue(/\(Deutsch\)$/);
   await expect(page.getByLabel('Full name')).toHaveValue(driver.basics.name);
 });

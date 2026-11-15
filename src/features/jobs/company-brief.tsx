@@ -173,13 +173,15 @@ export function CompanyBrief({ job, onJobChange }: { job: Job; onJobChange: (j: 
           className="self-start"
           disabled={!source || short}
           loading={busy}
-          title={short ? 'Paste the job advert first' : undefined}
+          title={short ? 'Add the job advert first' : undefined}
           onClick={make}
         >
           {b ? 'Make it again' : 'Make the brief'}
         </Button>
       )}
-      {short && <p className="text-ink-muted text-xs">Paste the job advert first.</p>}
+      {short && (
+        <p className="text-ink-muted text-xs">Add the job advert to this job to make a brief.</p>
+      )}
     </Card>
   );
 }
