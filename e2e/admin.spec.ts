@@ -297,7 +297,7 @@ test('Help questions and Premium wording are edited in the Console', async ({ br
   await admin.getByRole('button', { name: `Move question ${n} up` }).click();
   await admin.getByLabel('Headline', { exact: true }).fill('Land the job with every design');
   await admin.getByRole('button', { name: 'Save changes' }).click();
-  await expect(admin.getByText(/Saved|saved/).first()).toBeVisible();
+  await expect(admin.getByText(/^Saved as version/)).toBeVisible();
 
   await page.goto('/help');
   const questions = page.locator('summary');
