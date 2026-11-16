@@ -52,6 +52,7 @@ export const EVENTS = [
   'job_url_structured',
   'job_url_ai',
   'job_url_page',
+  'job_text',
   'job_url_fail',
   // R9.6 Reminders
   'reminder_set',

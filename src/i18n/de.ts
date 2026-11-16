@@ -1260,11 +1260,13 @@ export const de: Dict = {
   Feedback: 'Rückmeldung',
   'File type': 'Dateityp',
   'Filing & records': 'Ablage & Akten',
+  'Fill in from the advert text': 'Aus dem Anzeigentext ausfüllen',
   'Fill in from the link': 'Aus dem Link übernehmen',
   'Fill in the gaps for truer numbers': 'Lücken füllen für genauere Zahlen',
   'Fill in what you can. Anything you leave empty will not appear on your CV.':
     'Füllen Sie aus, was Sie können. Leere Felder erscheinen nicht in Ihrem Lebenslauf.',
   'Filled in from {host}': 'Übernommen von {host}',
+  'Filled in from the advert text': 'Aus dem Anzeigentext ausgefüllt',
   Filters: 'Filter',
   'Final preview': 'Endgültige Vorschau',
   'Final preview of your CV': 'Endgültige Vorschau Ihres Lebenslaufs',
@@ -3805,10 +3807,12 @@ export const de: Dict = {
   'Your mobile number': 'Ihre Mobilnummer',
   'your name': 'Ihren Namen',
   'Your name': 'Ihr Name',
+  'Your new CV': 'Ihr neuer Lebenslauf',
   'Your new CV in the {name} design': 'Ihr neuer Lebenslauf im Design {name}',
   'Your new CV is kept while you sign in or create an account.':
     'Ihr neuer Lebenslauf bleibt erhalten, während Sie sich anmelden oder ein Konto erstellen.',
   'Your order is waiting for payment check': 'Ihre Bestellung wartet auf die Zahlungsprüfung',
+  'Your original': 'Ihr Original',
   'Your original can’t be shown here, but its text was read.':
     'Ihr Original kann hier nicht angezeigt werden, aber sein Text wurde gelesen.',
   'Your original CV': 'Ihr ursprünglicher Lebenslauf',

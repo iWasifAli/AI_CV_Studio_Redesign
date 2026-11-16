@@ -116,3 +116,32 @@ test.describe('visitor', () => {
     expect(r.status()).toBe(401);
   });
 });
+
+test('a job site that can’t be read: plain message, then fill in from the pasted advert text', async ({
+  page: p,
+}) => {
+  await p.goto('/jobs?new=1');
+  const form = p.getByRole('form', { name: 'Add a job' });
+  await form
+    .getByLabel('Link to the advert')
+    .fill('https://www.glassdoor.com/Job/islamabad-jobs-SRCH_IL.0,9_IC3139539.htm');
+  await form.getByRole('button', { name: 'Fill in from the link' }).click();
+  await expect(form.getByRole('alert')).toContainText('list of jobs, not one job');
+  await expect(form.getByRole('alert')).toContainText('Fill in from the advert text');
+
+  await form
+    .getByLabel('The job advert')
+    .fill(
+      [
+        'Senior Software Developer',
+        'Acme Digital – Islamabad',
+        'You will design and build web services in C# and SQL Server with a small product team.',
+        'Essential: five years of experience with .NET and relational databases in production.',
+        'Apply with your CV and a short note about a system you are proud of.',
+      ].join('\n'),
+    );
+  await form.getByTestId('job-fill-from-text').click();
+  await expect(form.getByTestId('job-read')).toContainText('Filled in from the advert text');
+  await expect(form.getByLabel('Job title')).toHaveValue('Senior Software Developer');
+  await expect(form.getByLabel('Company')).toHaveValue('Acme Digital');
+});

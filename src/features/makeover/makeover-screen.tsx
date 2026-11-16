@@ -1,5 +1,6 @@
 'use client';
 import { browserRegion } from '@/modules/resume/region';
+import { Segmented } from '@/components/ui/segmented';
 
 import { useT } from '@/i18n/client';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -605,7 +606,10 @@ export function MakeoverScreen() {
   );
 }
 
-/** Before/after: the original under the new CV, with a slider to reveal one or the other. */
+/**
+ * The new CV, whole. The original can be looked at instead with one tap ("Your original"), never
+ * mixed with the new one on the same page (owner, 2026-11-17: half-and-half was hard to read).
+ */
 function Compare({
   file,
   lines,
@@ -618,10 +622,23 @@ function Compare({
   watermark: boolean;
 }) {
   const tx = useT();
-  const [pos, setPos] = useState(file ? 50 : 100);
+  const [showOriginal, setShowOriginal] = useState(false);
   const hasBefore = !!file;
   return (
     <div className="flex flex-col gap-3">
+      {hasBefore && (
+        <div data-testid="compare-toggle" className="self-start">
+          <Segmented
+            label={tx('Show')}
+            value={showOriginal ? 'before' : 'after'}
+            onChange={(v) => setShowOriginal(v === 'before')}
+            options={[
+              { value: 'after', label: 'Your new CV' },
+              { value: 'before', label: 'Your original' },
+            ]}
+          />
+        </div>
+      )}
       <div className="bg-sunken relative overflow-hidden rounded-lg p-3 sm:p-4">
         <div className="relative">
           <DocumentPreview
@@ -642,10 +659,9 @@ function Compare({
               </span>
             </div>
           )}
-          {hasBefore && pos < 100 && (
+          {hasBefore && showOriginal && (
             <div
-              className="absolute inset-x-0 top-0 z-10 aspect-[210/297] overflow-hidden shadow-md"
-              style={{ clipPath: `inset(0 ${pos}% 0 0)` }}
+              className="bg-surface absolute inset-x-0 top-0 z-10 aspect-[210/297] overflow-hidden shadow-md"
               data-testid="before-layer"
             >
               <BeforeView file={file} lines={lines} />
@@ -653,22 +669,6 @@ function Compare({
           )}
         </div>
       </div>
-      {hasBefore && (
-        <label className="flex items-center gap-3 text-sm font-semibold">
-          <span className="w-16 shrink-0">{tx('Before')}</span>
-          <input
-            type="range"
-            min={0}
-            max={100}
-            value={pos}
-            onChange={(e) => setPos(Number(e.target.value))}
-            className="accent-primary min-h-11 flex-1"
-            aria-label={tx('Compare your original CV with the new one')}
-            data-testid="compare-slider"
-          />
-          <span className="w-16 shrink-0 text-right">{tx('After')}</span>
-        </label>
-      )}
       {!hasBefore && (
         <p className="text-ink-muted flex items-center gap-1.5 text-sm">
           <Sparkles aria-hidden size={15} /> {tx('Your words, in a new design.')}

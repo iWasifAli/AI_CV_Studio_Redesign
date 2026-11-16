@@ -63,6 +63,12 @@ export const jobsApi = {
       method: 'POST',
       body: JSON.stringify({ url }),
     }).then((r) => r.job),
+  /** The job read from advert text the person pasted (title, company, place; nothing fetched). */
+  fromText: (text: string, url = '') =>
+    call<{ job: JobFromUrl }>('/api/jobs/fetch', {
+      method: 'POST',
+      body: JSON.stringify({ text, url }),
+    }).then((r) => r.job),
   update: (id: string, patch: Partial<JobInput>) =>
     call<{ job: Job }>(`/api/jobs/${id}`, { method: 'PUT', body: JSON.stringify(patch) }).then(
       (r) => r.job,

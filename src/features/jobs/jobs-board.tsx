@@ -291,9 +291,34 @@ function AddJob({
       setAdvert(job.advert);
       setRead({ host: new URL(job.url).hostname.replace(/^www\./, ''), via: job.via });
     } catch (err) {
+      // Show where to go next: the advert text box.
+      setPasteHelp(true);
       setError(err instanceof JobsError ? err.message : 'That didn’t work. Please try again.');
     } finally {
       setReading(false);
+    }
+  };
+  // When a site can't be read: fill the form from the advert text the person pasted instead.
+  const [pasteHelp, setPasteHelp] = useState(false);
+  const [readingText, setReadingText] = useState(false);
+  const fillFromText = async () => {
+    setReadingText(true);
+    setError(null);
+    try {
+      const job = await jobsApi.fromText(
+        advert,
+        /^https?:\/\//i.test(url.trim()) ? url.trim() : '',
+      );
+      if (job.title) setTitle(job.title);
+      if (job.company) setCompany(job.company);
+      if (job.location) setLocation(job.location);
+      if (job.advert) setAdvert(job.advert);
+      setRead({ host: '', via: job.via });
+      setPasteHelp(false);
+    } catch (err) {
+      setError(err instanceof JobsError ? err.message : 'That didn’t work. Please try again.');
+    } finally {
+      setReadingText(false);
     }
   };
   const started = useRef(false);
@@ -362,7 +387,9 @@ function AddJob({
             </div>
             {read ? (
               <p className="text-sm" role="status" data-testid="job-read">
-                {t('Filled in from {host}', { host: read.host })}
+                {read.host
+                  ? t('Filled in from {host}', { host: read.host })
+                  : t('Filled in from the advert text')}
                 {read.via === 'page'
                   ? ' — we couldn’t pick out the advert, so the whole page text is below. Trim it to the advert.'
                   : '. Check it before you save.'}
@@ -415,11 +442,25 @@ function AddJob({
           hint={t(
             'Paste the advert text. It stays private and is used to check your CV against it and to write a letter.',
           )}
-          rows={5}
+          rows={pasteHelp ? 8 : 5}
           value={advert}
           onChange={(e) => setAdvert(e.target.value)}
           maxLength={20000}
+          autoFocus={pasteHelp}
         />
+        {canFetch && (
+          <Button
+            variant="secondary"
+            size="sm"
+            className="self-start"
+            loading={readingText}
+            disabled={readingText || advert.trim().length < 80}
+            onClick={fillFromText}
+            data-testid="job-fill-from-text"
+          >
+            {t('Fill in from the advert text')}
+          </Button>
+        )}
         {error && (
           <p role="alert" className="text-danger text-sm">
             {t(error)}

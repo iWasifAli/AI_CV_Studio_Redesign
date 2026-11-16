@@ -7,7 +7,8 @@ import { getBusinessConfig } from '@/modules/billing/server';
 import { currentUser } from '@/modules/identity/session';
 import { fetchJobPage } from '@/modules/jobs/fetch';
 import { fromExtract, fromPlainPage, fromPosting, type JobFromUrl } from '@/modules/jobs/from-url';
-import { PageError, readPage } from '@/modules/jobs/page';
+import { PageError, readPage, type PageInfo } from '@/modules/jobs/page';
+import { PASTE_HINT, routeJobLink } from '@/modules/jobs/sites';
 import { jobAllowance } from '@/modules/jobs/server';
 import { aiBudgetSpent, track } from '@/modules/metrics/server';
 import { getUserStore } from '@/modules/store';
@@ -37,10 +38,22 @@ export async function POST(req: Request) {
     });
   const body = await readJson(req, 4 * 1024);
   if (!body.ok) return apiError(body.code, 'Invalid request.', rid);
-  const url = String((body.value as { url?: unknown } | null)?.url ?? '')
+  const b = (body.value ?? {}) as { url?: unknown; text?: unknown };
+  const pasted = typeof b.text === 'string' ? b.text.trim().slice(0, 14_000) : '';
+  const given = String(b.url ?? '')
     .trim()
     .slice(0, 500);
-  if (!url) return apiError('INVALID_INPUT', 'Paste the link to the job advert.', rid);
+  if (!given && !pasted) return apiError('INVALID_INPUT', 'Paste the link to the job advert.', rid);
+  if (!given && pasted.length < 80)
+    return apiError('INVALID_INPUT', 'Paste the whole advert text (at least a few lines).', rid);
+  // Job sites: a search page with one job open becomes that job's page; lists and sites that
+  // don't allow reading get a plain message pointing to pasting the advert text.
+  const route = pasted ? null : routeJobLink(given);
+  if (route?.kind === 'refuse') {
+    await track('job_url_fail');
+    return apiError('UNPROCESSABLE', route.message, rid, { reason: route.reason });
+  }
+  const url = route?.url ?? given;
 
   const [{ max }, existing] = await Promise.all([
     jobAllowance(user),
@@ -58,15 +71,27 @@ export async function POST(req: Request) {
   if (!limiter(user.uid).ok)
     return apiError('RATE_LIMITED', 'Too many links at once. Please wait a minute.', rid);
 
+  // Advert text pasted by the person: read it like a page, nothing is fetched.
+  if (pasted) {
+    const info = { title: '', siteName: '', text: pasted, posting: null };
+    const job = await readWithAi(info, given, user.uid, cfg);
+    if (job === 'not_a_job')
+      return apiError(
+        'UNPROCESSABLE',
+        'That text doesn’t look like a job advert. Paste the advert itself.',
+        rid,
+        { reason: 'not_a_job' },
+      );
+    await track('job_text');
+    return NextResponse.json({ job: job ?? fromPlainPage(given, info) }, noStore);
+  }
+
   let page;
   try {
     page = await fetchJobPage(url);
   } catch (e) {
     await track('job_url_fail');
-    const msg =
-      e instanceof PageError
-        ? e.message
-        : 'The page couldn’t be read. Paste the advert text instead.';
+    const msg = e instanceof PageError ? e.message : `The page couldn’t be read. ${PASTE_HINT}`;
     return apiError(
       e instanceof PageError && e.code === 'BAD_URL' ? 'INVALID_INPUT' : 'UNPROCESSABLE',
       msg,
@@ -81,7 +106,7 @@ export async function POST(req: Request) {
     await track('job_url_fail');
     return apiError(
       'UNPROCESSABLE',
-      'That page has no advert text we can read (it may need JavaScript or a sign-in). Paste the advert text instead.',
+      `That page has no advert text we can read (it may need JavaScript or a sign-in). ${PASTE_HINT}`,
       rid,
       { reason: 'empty' },
     );
@@ -89,39 +114,17 @@ export async function POST(req: Request) {
 
   let job: JobFromUrl | null = fromPosting(page.url, info);
   if (!job) {
-    const { provider } = getAiProvider();
-    const aiOk =
-      provider &&
-      cfg.features.ai &&
-      sharedAiLimiter()(`joburl:${user.uid}`).ok &&
-      !(await aiBudgetSpent());
-    if (aiOk) {
-      const r = await runTask(
-        'jobs.extract',
-        {
-          url: page.url,
-          pageTitle: info.title,
-          siteName: info.siteName,
-          text: info.text.slice(0, 14_000),
-        },
-        0,
-        { provider, models: aiModels(), timeoutMs: 20_000 },
+    const r = await readWithAi(info, page.url, user.uid, cfg);
+    if (r === 'not_a_job') {
+      await track('job_url_fail');
+      return apiError(
+        'UNPROCESSABLE',
+        `That page doesn’t look like one job advert. ${PASTE_HINT}`,
+        rid,
+        { reason: 'not_a_job' },
       );
-      await track(r.ok ? 'ai_ok' : 'ai_fail');
-      if (r.ok) {
-        job = fromExtract(page.url, info, r.result);
-        if (!job) {
-          await track('job_url_fail');
-          return apiError(
-            'UNPROCESSABLE',
-            'That page doesn’t look like one job advert. Open the job itself and copy its link, or paste the advert text.',
-            rid,
-            { reason: 'not_a_job' },
-          );
-        }
-      }
     }
-    job ??= fromPlainPage(page.url, info);
+    job = r ?? fromPlainPage(page.url, info);
   }
   await track(
     job.via === 'structured'
@@ -131,4 +134,34 @@ export async function POST(req: Request) {
         : 'job_url_page',
   );
   return NextResponse.json({ job }, noStore);
+}
+
+/** The fast AI reads the text as data; every value is checked against it (null: no AI today). */
+async function readWithAi(
+  info: PageInfo,
+  url: string,
+  uid: string,
+  cfg: Awaited<ReturnType<typeof getBusinessConfig>>['value'],
+): Promise<JobFromUrl | 'not_a_job' | null> {
+  const { provider } = getAiProvider();
+  const aiOk =
+    provider &&
+    cfg.features.ai &&
+    sharedAiLimiter()(`joburl:${uid}`).ok &&
+    !(await aiBudgetSpent());
+  if (!aiOk) return null;
+  const r = await runTask(
+    'jobs.extract',
+    {
+      url: url || 'https://pasted.text',
+      pageTitle: info.title,
+      siteName: info.siteName,
+      text: info.text.slice(0, 14_000),
+    },
+    0,
+    { provider, models: aiModels(), timeoutMs: 20_000 },
+  );
+  await track(r.ok ? 'ai_ok' : 'ai_fail');
+  if (!r.ok) return null;
+  return fromExtract(url, info, r.result) ?? 'not_a_job';
 }

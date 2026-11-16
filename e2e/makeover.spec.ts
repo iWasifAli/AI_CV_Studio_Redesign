@@ -81,17 +81,19 @@ test.describe('visitor', () => {
     // The first (pre-selected) design is a free one for a visitor.
     await expect(options.first()).toHaveAttribute('aria-checked', 'true');
 
-    // Before/after: the original PDF page sits under the new CV, revealed by the slider.
-    await expect(page.getByTestId('compare-slider')).toBeVisible();
+    // The new CV is shown whole; the original is one tap away, never mixed with the new one.
+    await expect(page.getByTestId('before-layer')).toHaveCount(0);
+    const toggle = page.getByTestId('compare-toggle');
+    await toggle.getByRole('radio', { name: 'Your original' }).click();
     await expect(page.getByTestId('before-layer')).toBeVisible();
-    // The original is really on top on the left half (not hidden under the preview frame).
+    await page.getByTestId('before-layer').scrollIntoViewIfNeeded();
     const onTop = await page.getByTestId('before-layer').evaluate((el) => {
       const r = el.getBoundingClientRect();
-      const hit = document.elementFromPoint(r.left + r.width * 0.2, r.top + r.height * 0.3);
+      const hit = document.elementFromPoint(r.left + r.width * 0.5, r.top + r.height * 0.3);
       return !!hit && el.contains(hit);
     });
     expect(onTop).toBe(true);
-    await page.getByTestId('compare-slider').fill('100');
+    await toggle.getByRole('radio', { name: 'Your new CV' }).click();
     await expect(page.getByTestId('before-layer')).toHaveCount(0);
 
     await options.nth(2).click();
@@ -235,6 +237,7 @@ test.describe('free account', () => {
     await page.getByTestId('makeover-file').setInputFiles(join(FIX, 'scan-photo.png'));
     await expect(page.getByTestId('makeover-done')).toBeVisible({ timeout: 30_000 });
     await expect(page.getByText('Please check names and numbers')).toBeVisible();
+    await page.getByTestId('compare-toggle').getByRole('radio', { name: 'Your original' }).click();
     await expect(page.getByTestId('before-layer')).toBeVisible();
   });
 
