@@ -28,8 +28,16 @@ The main development thread wrote and owns this workflow, the contract and the r
    - Gather 6–10 candidate ideas, each with links to the references and the specific idea that makes each one exceptional.
 4. **Filter against uniqueness** (strict).
    - The concept must differ in **layout architecture, graphical language, composition, hierarchy or content presentation**. Colour, gradient, font, icons, decorative shapes, sidebar side or spacing do not count.
+   - **The whole template must be new, not only its header** (owner, 2026-11-16). Judge three zones separately against every existing design and past proposal:
+     1. **Header / identity:** name, role, photo, contact, key numbers.
+     2. **Body:** column arrangement, how sections are introduced, how entries, dates and bullets are set, how skills and lists are shown.
+     3. **Continuation pages:** what carries the design onto page 2 and later.
+
+     The **body must always be structurally new**, plus at least one other zone. A new header over an existing body is a **header variant**:
+     - Record it in the registry with `"kind": "header-variant"`, so it can later be offered as an option on an existing building block.
+     - Never propose it as a new design.
    - Compare with every existing design (its `structure` in the registry) and every past proposal, approved or rejected. A rejected concept under a new name is a repeat.
-   - Give each candidate a `structureKey`: a few words naming its architecture, for example "masthead grid with numbered pull-quote column". Run `npx tsx scripts/scout-registry.tsx --check` after adding candidates; it fails on repeats.
+   - Give each candidate a `structureKey`: a few words naming its architecture **for the whole page (header + body)**, for example "masthead grid with numbered pull-quote column". Run `npx tsx scripts/scout-registry.tsx --check` after adding candidates; it fails on repeats.
 5. **Choose at most 2.** Each must plausibly reach 9.5/10 and be buildable by contract Route 1 or Route 2.
 6. **Build each in the engine** on branch `scout/<date>`, following `TEMPLATE_CONTRACT.md`. Status stays `draft`. Run `npm run design:check -- <id>`, then `npx tsx scripts/design-preview.tsx <id> docs/catalogue/scout/<date>/<id>`.
 7. **Write the proposal** in `docs/catalogue/scout/<date>/<id>.md`:
@@ -37,7 +45,7 @@ The main development thread wrote and owns this workflow, the contract and the r
    - **B. References:** links, and the idea taken from each. Inspiration only.
    - **C. Preview:** the contact sheet and page images.
    - **D. Engine plan:** route, blocks or new module, spec values, risks.
-   - **E. Uniqueness:** the nearest existing design, its distinctness number, and what is structurally new.
+   - **E. Uniqueness:** the nearest existing design, its distinctness number, and what is structurally new, **zone by zone**: the nearest header, the nearest body and the nearest continuation page, each with what differs. If the body's nearest match is an existing design's body, the proposal fails step 4.
    - **F. Scores:** the scout's own rubric scores, with honest weaknesses.
 8. **Review.** Start the reviewer as a separate agent. For each proposal it records `APPROVE` or `REJECT` with reasons in the registry (`decision`). It is highly selective; "it's nice" is not enough.
 9. **Implement approved proposals.** Loop at most 5 rounds:
@@ -82,6 +90,7 @@ The main development thread wrote and owns this workflow, the contract and the r
 **Caps:**
 - Any visible defect (overlap, clipping, broken word, empty column, an orphan heading) caps the score at 8.
 - A concept that is only a re-decoration of an existing design caps originality at 5.
+- A new header over an existing body (a header variant) caps originality at 6. The reviewer judges originality from the whole page, not from page 1's header.
 
 "Tests pass" is never evidence of visual quality.
 

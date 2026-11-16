@@ -100,4 +100,4 @@ Every design keeps the engine's plain ATS version, made automatically by `atsSaf
 
 ## 7. Originality and sources
 
-References are inspiration only. Never reproduce a specific published template, its artwork, its name or its branding. A proposal must describe what is taken as an idea (for example, "a magazine masthead grid") and how our composition differs. Colour, font, icons, decorative shapes, sidebar side and spacing never make a concept new (see the uniqueness rule in `SCOUT_WORKFLOW.md`).
+References are inspiration only. Never reproduce a specific published template, its artwork, its name or its branding. A proposal must describe what is taken as an idea (for example, "a magazine masthead grid") and how our composition differs. Colour, font, icons, decorative shapes, sidebar side and spacing never make a concept new, and neither does a new header alone. The body must be structurally new too (see the whole-template rule in `SCOUT_WORKFLOW.md`).
