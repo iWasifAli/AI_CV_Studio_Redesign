@@ -50,14 +50,31 @@ export function invalidateConfigCache() {
   box.__cvStudioConfig = null;
 }
 
-export async function planFor(
+/**
+ * The person's plan. Read once per request: the same session object asks for it in the design
+ * check and the allowance check (gap audit G-10: each database read costs ~0.2 s on production).
+ */
+const planOnce = new WeakMap<
+  SessionUser,
+  Promise<{ plan: PlanId; passExpiresAt: string | null }>
+>();
+export function planFor(
   user: SessionUser | null,
 ): Promise<{ plan: PlanId; passExpiresAt: string | null }> {
-  if (!user) return { plan: 'visitor', passExpiresAt: null };
-  const pass = await getUserStore().getPass(user.uid);
-  if (pass && pass.expiresAt > new Date().toISOString())
-    return { plan: 'premium', passExpiresAt: pass.expiresAt };
-  return { plan: 'free', passExpiresAt: pass?.expiresAt ?? null };
+  if (!user) return Promise.resolve({ plan: 'visitor', passExpiresAt: null });
+  let p = planOnce.get(user);
+  if (!p) {
+    p = getUserStore()
+      .getPass(user.uid)
+      .then((pass) =>
+        pass && pass.expiresAt > new Date().toISOString()
+          ? { plan: 'premium' as const, passExpiresAt: pass.expiresAt }
+          : { plan: 'free' as const, passExpiresAt: pass?.expiresAt ?? null },
+      );
+    p.catch(() => planOnce.delete(user));
+    planOnce.set(user, p);
+  }
+  return p;
 }
 
 /**
@@ -107,10 +124,14 @@ export async function reserve(
   weight = 1,
 ): Promise<{ decision: Decision; release: () => Promise<void>; plan: PlanId }> {
   const noop = async () => {};
-  const [{ value: cfg }, { plan }] = await Promise.all([getBusinessConfig(), planFor(user)]);
-  if (!user) return { decision: canUse('visitor', cfg, cap, 0), release: noop, plan };
   const month = monthKey();
-  const usage = await getUserStore().getUsage(user.uid, month);
+  // Settings, plan and this month's usage are read side by side, not one after another.
+  const [{ value: cfg }, { plan }, usage] = await Promise.all([
+    getBusinessConfig(),
+    planFor(user),
+    user ? getUserStore().getUsage(user.uid, month) : Promise.resolve({} as Record<string, number>),
+  ]);
+  if (!user) return { decision: canUse('visitor', cfg, cap, 0), release: noop, plan };
   const pre = canUse(plan, cfg, cap, usage[cap] ?? 0);
   if (!pre.ok) return { decision: pre, release: noop, plan };
   const limit = cfg.plans[plan].limits[cap];

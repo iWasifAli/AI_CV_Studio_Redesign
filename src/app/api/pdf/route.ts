@@ -1,3 +1,4 @@
+import { after } from 'next/server';
 import { safeParseResumeDocument } from '@/modules/resume/schema';
 import { pdfFilename } from '@/modules/export/filename';
 import { renderResumePdf } from '@/modules/export/pdf';
@@ -80,9 +81,11 @@ export async function POST(req: Request) {
   try {
     const { pdf, pages, timing } = await renderResumePdf(parsed.data);
     mark('pdf');
-    await track('pdf_ok');
-    if (user) await notePdf(user.uid);
-    mark('count');
+    // Counting is bookkeeping: it runs after the PDF is on its way (it cost ~0.9 s before).
+    after(async () => {
+      await track('pdf_ok');
+      if (user) await notePdf(user.uid);
+    });
     return new Response(Buffer.from(pdf), {
       status: 200,
       headers: {
