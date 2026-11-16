@@ -164,7 +164,13 @@ export const RUNTIME_JS = String.raw`(function (planPages) {
     for (var i = 0; i < els.length; i++) {
       var e = els[i];
       e.style.fontSize = '';
-      e.classList.remove('cv-may-wrap');
+      if (e.classList.contains('cv-may-wrap')) {
+        // Start clean: hints from an earlier pass would let it wrap without looking broken.
+        e.classList.remove('cv-may-wrap');
+        var hints = e.querySelectorAll('wbr');
+        for (var h = 0; h < hints.length; h++) hints[h].remove();
+        e.normalize();
+      }
       if (!brokenPart(e)) continue;
       var base = parseFloat(getComputedStyle(e).fontSize);
       var floor = e.classList.contains('cv-contact-text') ? 0.8 : e.hasAttribute('data-fit') ? 0.72 : 0.55;
@@ -654,7 +660,10 @@ export const RUNTIME_JS = String.raw`(function (planPages) {
       overflow: r.overflow,
       fitted: fitted,
       grown: grown,
-      nearlyFits: r.pages > 1 && r.lastFill < 0.25
+      nearlyFits: r.pages > 1 && r.lastFill < 0.25,
+      // An email too long for its column even at the smallest size breaks over two lines: the
+      // editor says so before the person sends it (gap audit G-02 follow-up).
+      emailWraps: !!document.querySelector('[data-cv-pages] .cv-contact--email .cv-may-wrap')
     };
     window.__CV_READY__ = result;
     document.documentElement.setAttribute('data-cv-ready', String(r.pages));

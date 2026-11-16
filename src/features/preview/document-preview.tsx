@@ -7,7 +7,13 @@ import { buildDocumentHtml } from '@/modules/templates/build-document';
 import { PAGE_DIMENSIONS } from '@/modules/templates/design';
 import { cn } from '@/lib/cn';
 
-export type PreviewStatus = { pages: number; overflow: number; nearlyFits: boolean };
+export type PreviewStatus = {
+  pages: number;
+  overflow: number;
+  nearlyFits: boolean;
+  /** The email had to break over two lines in this design. */
+  emailWraps?: boolean;
+};
 
 type Props = {
   doc: ResumeDocument;

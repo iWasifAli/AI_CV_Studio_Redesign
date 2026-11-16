@@ -150,7 +150,7 @@ export function normalise(input: DesignSpecV2, doc?: ResumeDocument): Normalised
   if (doc && !skillLevels && (s.lists.skills.style === 'bars' || s.lists.skills.style === 'dots')) {
     s.lists.skills.style = 'tags';
     unmet.push(
-      'Skill bars and dots need skill levels, which this CV does not have, so tags are used. Add levels to your skills to use them.',
+      'Skill bars and dots need skill levels, which this CV does not have yet, so your skills show as tags for now. The design keeps the bars: they appear as soon as you add levels.',
     );
   }
   if (doc && !languageLevels && s.lists.languages.style !== 'text') {

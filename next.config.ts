@@ -1,4 +1,17 @@
+import { execSync } from 'node:child_process';
 import type { NextConfig } from 'next';
+
+/** The commit being built, for /api/health (gap audit G-17); empty when the build has no git. */
+const BUILD_SHA = (() => {
+  if (process.env.GIT_SHA) return process.env.GIT_SHA;
+  try {
+    return execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] })
+      .toString()
+      .trim();
+  } catch {
+    return '';
+  }
+})();
 
 const securityHeaders = [
   { key: 'X-Content-Type-Options', value: 'nosniff' },
@@ -16,6 +29,7 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  env: { BUILD_SHA },
   reactStrictMode: true,
   poweredByHeader: false,
   output: 'standalone',

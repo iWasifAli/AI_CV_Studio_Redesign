@@ -12,7 +12,14 @@ export async function GET() {
   return NextResponse.json(
     {
       status: 'ok',
-      version: process.env.VERCEL_GIT_COMMIT_SHA ?? process.env.GIT_SHA ?? 'dev',
+      // The built commit when the build had git; otherwise the hosting revision (Cloud Run sets
+      // K_REVISION on every running server), so production never reports "dev" (gap audit G-17).
+      version:
+        process.env.BUILD_SHA ||
+        process.env.GIT_SHA ||
+        process.env.K_REVISION ||
+        process.env.VERCEL_GIT_COMMIT_SHA ||
+        'dev',
       checks: { chromium, ai },
     },
     { headers: { 'Cache-Control': 'no-store' } },

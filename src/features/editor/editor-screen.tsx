@@ -54,6 +54,13 @@ export function PreviewStatusLine({
           </button>
         </span>
       )}
+      {status.emailWraps && (
+        <span className="basis-full" data-testid="email-wraps">
+          {tx(
+            'Your email is too long for this design’s side column, so it breaks onto two lines. Designs with contact details across the top keep it whole.',
+          )}
+        </span>
+      )}
     </div>
   );
 }

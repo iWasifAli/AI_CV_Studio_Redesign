@@ -2617,6 +2617,8 @@ export const de: Dict = {
   'Single column with a clean accent line. Calm, clear and easy for anyone to read.':
     'Eine Spalte mit klarer Akzentlinie. Ruhig, klar und für alle gut lesbar.',
   Situation: 'Situation',
+  'Skill bars and dots need skill levels, which this CV does not have yet, so your skills show as tags for now. The design keeps the bars: they appear as soon as you add levels.':
+    'Balken und Punkte für Kenntnisse brauchen Kenntnisstufen, die dieser Lebenslauf noch nicht hat. Ihre Kenntnisse erscheinen deshalb vorerst als Schlagwörter. Das Design behält die Balken: Sie erscheinen, sobald Sie Stufen hinzufügen.',
   'Skill gap and learning plan': 'Kompetenzlücken und Lernplan',
   'Skill gap plan': 'Plan für Kompetenzlücken',
   'skill group': 'Kenntnisgruppe',
@@ -3651,6 +3653,8 @@ export const de: Dict = {
   'Your documents': 'Ihre Dokumente',
   'Your email': 'Ihre E-Mail-Adresse',
   'Your email is split over two lines': 'Ihre E-Mail-Adresse ist auf zwei Zeilen verteilt',
+  'Your email is too long for this design’s side column, so it breaks onto two lines. Designs with contact details across the top keep it whole.':
+    'Ihre E-Mail-Adresse ist für die Seitenspalte dieses Designs zu lang und wird auf zwei Zeilen umgebrochen. Designs mit Kontaktdaten oben zeigen sie vollständig.',
   'Your experience': 'Ihre Erfahrung',
   'Your first story': 'Ihre erste Geschichte',
   'Your former manager or teacher': 'Ihre frühere Vorgesetzte oder Lehrkraft',
