@@ -46,8 +46,11 @@ export type StatementConfig = {
 /** Statement size steps down with its length, so a long profile still fits the front page. */
 export function statementScale(text: string): number {
   const n = text.length;
-  return n <= 150 ? 1 : n <= 240 ? 0.92 : n <= 340 ? 0.84 : n <= 460 ? 0.74 : 0.64;
+  return n <= 90 ? 1.22 : n <= 150 ? 1 : n <= 240 ? 0.92 : n <= 340 ? 0.84 : n <= 460 ? 0.74 : 0.64;
 }
+
+/** Keeps a one-letter word with the next one, so a statement line never ends on "I" or "a". */
+const bind = (t: string) => t.replace(/ ([IAa]) /g, ' $1\u00a0');
 
 function QuoteMark(): ReactNode {
   return (
@@ -90,7 +93,7 @@ export function statementTemplate(c: StatementConfig): CatalogueTemplate {
                 className={`st-quote st-quote--${c.quote}`}
                 style={{ ['--qs' as string]: statementScale(text) }}
               >
-                {text}
+                {bind(text)}
               </p>
               {stats && c.numbers === 'ruled' && <KeyNumbers model={model} className="st-stats" />}
             </div>
@@ -114,13 +117,13 @@ export function statementTemplate(c: StatementConfig): CatalogueTemplate {
   }
 
   const FRAME: Record<StatementConfig['frame'], string> = {
-    rect: '.st-photo{width:100%;height:46mm;border-radius:.8mm}',
-    arch: '.st-photo{width:100%;height:50mm;border-radius:26mm 26mm .8mm .8mm}',
+    rect: '.st-photo{width:100%;flex:1 1 0;min-height:34mm;max-height:62mm;border-radius:.8mm}',
+    arch: '.st-photo{width:100%;flex:1 1 0;min-height:40mm;max-height:64mm;border-radius:26mm 26mm .8mm .8mm}',
     circle:
       '.st-photo{width:40mm;height:40mm;border-radius:50%;box-shadow:0 0 0 1.4mm #fff,0 0 0 2mm var(--g-hot)}',
-    tall: '.st-photo{width:100%;height:58mm;border-radius:0;border-bottom:1.6mm solid var(--g-hot)}',
+    tall: '.st-photo{width:100%;flex:1 1 0;min-height:44mm;max-height:70mm;border-radius:0;border-bottom:1.6mm solid var(--g-hot)}',
     stamp:
-      '.st-photo{width:100%;height:46mm;border-radius:0;outline:.4mm solid var(--g-ink);outline-offset:1.4mm;margin:1.4mm 0}',
+      '.st-photo{width:100%;flex:1 1 0;min-height:34mm;max-height:62mm;border-radius:0;outline:.4mm solid var(--g-ink);outline-offset:1.4mm;margin:1.4mm 0}',
   };
   const QUOTE: Record<StatementConfig['quote'], string> = {
     marks: '.st-qm{display:block;width:12mm;height:9mm;color:var(--g-hot);margin-bottom:3mm}',
@@ -131,7 +134,7 @@ export function statementTemplate(c: StatementConfig): CatalogueTemplate {
   const css = `
 ${GRAPHIC_BASE_CSS}
 :root{--g-display:var(--font-heading);--g-ink:${c.ink};--g-soft:${c.soft};--g-hot:var(--accent-raw);--g-on-hot:var(--on-accent-raw);--g-hot-text:var(--accent);
-  --g-rule:#d3d8de;--g-track:#dde3e8;--g-chip:var(--g-soft);--g-chip-ink:var(--ink);--side-w:62mm;--st-cap:56mm;
+  --g-rule:#d3d8de;--g-track:#dde3e8;--g-chip:var(--accent-soft);--g-chip-ink:var(--ink);--side-w:62mm;--st-cap:56mm;
   --margin:calc(13mm * var(--fit-margin));--ink:#15202c;--ink-2:#3a4552;--ink-3:#5d6875}
 .cv-top--header{margin-bottom:calc(6mm * var(--fit-gap))}
 .st-mast{display:flex;align-items:flex-end;justify-content:space-between;gap:8mm;border-top:2.2mm solid var(--g-ink);padding:5mm 0 4.2mm;border-bottom:.35mm solid var(--g-ink)}
@@ -140,16 +143,16 @@ ${GRAPHIC_BASE_CSS}
 .st-name .g-last,.st-name .g-stop{color:var(--g-hot-text)}
 .st-role{flex:none;max-width:62mm;text-align:right;display:flex;flex-direction:column;gap:1mm;font-size:7.4pt;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);padding-bottom:1mm}
 .st-role strong{color:var(--ink);font-weight:800}
-.st-front{display:flex;align-items:flex-start;gap:9mm;padding-top:calc(6mm * var(--fit-gap));${capLeft ? 'flex-direction:row-reverse;' : ''}}
+.st-front{display:flex;align-items:stretch;gap:9mm;padding-top:calc(6mm * var(--fit-gap));${capLeft ? 'flex-direction:row-reverse;' : ''}}
 .st-say{flex:1;min-width:0;display:flex;flex-direction:column}
 .st-kicker{font-size:6.8pt;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--g-hot-text);margin-bottom:3mm}
 .st-quote{font-family:var(--g-display);font-weight:600;font-size:calc(17pt * var(--qs,1) * (.86 + .14 * var(--fit-gap)));line-height:1.28;letter-spacing:-.018em;color:var(--g-ink);text-wrap:pretty}
 ${QUOTE[c.quote]}
 .st-cap{flex:none;width:var(--st-cap);display:flex;flex-direction:column;gap:4mm;align-items:${capLeft ? 'flex-start' : 'flex-start'}}
 ${FRAME[c.frame]}
-.cv-portrait--initials.st-photo{background:var(--g-ink);color:#fff;font-family:var(--g-display);font-weight:800;font-size:46pt;letter-spacing:-.04em;line-height:1}
+.cv-portrait--initials.st-photo{background:var(--g-soft);color:var(--g-ink);box-shadow:inset 0 0 0 .5mm var(--g-ink);font-family:var(--g-display);font-weight:800;font-size:46pt;letter-spacing:-.04em;line-height:1}
 .st-head .st-mast .cv-portrait--initials.st-photo--mast{font-size:19pt}
-.st-head .st-mast .st-photo--mast{flex:none;width:22mm;height:22mm;margin:0 0 .6mm;outline:0;border-bottom:0;box-shadow:none}
+.st-head .st-mast .st-photo--mast{flex:none;width:22mm;height:22mm;min-height:0;max-height:none;margin:0 0 .6mm;outline:0;border-bottom:0;box-shadow:none}
 .st-dateline{margin-top:calc(5mm * var(--fit-gap));border-top:.35mm solid var(--g-ink);border-bottom:.35mm solid var(--g-ink);padding:2.3mm 0 2.1mm;font-size:.86em}
 .st-head--quiet .st-dateline{margin-top:0;border-top:0}
 .st-dateline .cv-contacts{column-gap:6.5mm;row-gap:1.2mm;margin-left:0}
@@ -187,6 +190,8 @@ html[data-fit-compact] .st-front{padding-top:4mm}
 .cv-main > .b-heading:first-child,.cv-aside > .b-heading:first-child{padding-top:0}
 .b-heading .g-h{border-top:.7mm solid var(--g-ink);padding-top:2mm}
 .cv-aside .g-h{font-size:8pt}
+/* Rotated markers stay whole inside the column edge. */
+.g-h--square .g-h-m{margin-left:.45mm;margin-top:-.1em}
 .b-entry{padding-top:calc(var(--item-gap) * 1.1)}
 .cv-main .b-entry .g-entry{padding-left:24mm}
 .cv-main .b-entry .g-when{position:absolute;left:0;top:.25em;width:21mm;margin:0;font-size:.72em;line-height:1.35;white-space:normal}
