@@ -105,10 +105,17 @@ export function assessReadBack(
         },
   );
 
-  // 2. Contact details are found as text.
+  // 2. Contact details are found as text. Strict on the email (gap audit G-02): software that
+  // reads line by line needs the whole address on one line, so an address that only comes back
+  // split over two lines is reported as such, never as a pass.
+  const email = src.basics.email.trim().toLowerCase();
+  const emailSplit =
+    !!email &&
+    !lines.some((l) => l.toLowerCase().includes(email)) &&
+    squash(joined).includes(squash(norm(email)));
   const missingContact = [
     src.basics.name && !squash(joined).includes(squash(norm(src.basics.name))) ? 'your name' : '',
-    src.basics.email && !(report.email && squash(joined).includes(squash(norm(src.basics.email))))
+    email && !emailSplit && !(report.email && squash(joined).includes(squash(norm(email))))
       ? 'email'
       : '',
     src.basics.phone && !report.phone ? 'phone number' : '',
@@ -133,12 +140,22 @@ export function assessReadBack(
             fix: switchFix ?? 'Write them as plain text, one item each.',
             where: switchFix ? 'design' : 'basics/contact',
           }
-        : {
-            id: 'contact',
-            title: 'Name and contact details found',
-            status: 'pass',
-            detail: 'Your name, email and phone number read as plain text.',
-          },
+        : emailSplit
+          ? {
+              id: 'contact',
+              title: 'Your email is split over two lines',
+              status: 'needs-work',
+              detail:
+                'In this design the address is too long for its column, so it breaks in two. Software that reads line by line may store it wrongly.',
+              fix: 'For online applications, download the ATS PDF (one plain column), or choose a design with your contact details across the top.',
+              where: 'design',
+            }
+          : {
+              id: 'contact',
+              title: 'Name and contact details found',
+              status: 'pass',
+              detail: 'Your name, email and phone number read as plain text.',
+            },
   );
 
   // 3. Every employer and job title comes back.

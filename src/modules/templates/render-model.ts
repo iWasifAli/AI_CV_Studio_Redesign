@@ -337,6 +337,8 @@ function monthOf(v: string): number | null {
   return m ? Number(m[1]) * 12 + (m[2] ? Number(m[2]) - 1 : 0) : null;
 }
 
+const PART_TIME = /\b(part[- ]?time|volunteer|intern(ship)?|placement|weekend|saturday)\b/i;
+
 /** The key numbers strip: the person's own figures, then counts from the CV (never guesses). */
 export function keyNumbers(
   doc: ResumeDocument,
@@ -350,10 +352,18 @@ export function keyNumbers(
   const today = now.getUTCFullYear() * 12 + now.getUTCMonth();
   const spans: [number, number][] = [];
   let roles = 0;
+  // Paid work only (gap audit G-03): volunteering, internships and part-time jobs are real, but
+  // counting them as "years of experience" overstates it in the largest type on the page.
   for (const s of doc.sections) {
-    if (s.hidden || !['experience', 'internships', 'military', 'volunteering'].includes(s.kind))
-      continue;
-    for (const it of s.items as { start: string; end: string; current: boolean }[]) {
+    if (s.hidden || !['experience', 'military'].includes(s.kind)) continue;
+    for (const it of s.items as {
+      start: string;
+      end: string;
+      current: boolean;
+      role?: string;
+      title?: string;
+    }[]) {
+      if (PART_TIME.test(`${it.role ?? ''} ${it.title ?? ''}`)) continue;
       const st = monthOf(it.start);
       if (st === null) continue;
       roles++;
@@ -370,7 +380,11 @@ export function keyNumbers(
     if (b >= from) covered += b - from + 1;
     reach = Math.max(reach, b);
   }
-  const years = Math.floor(covered / 12);
+  // The person's own words come first: a profile that says "14 years of experience" is the figure.
+  const said = /\b(\d{1,2})\+?\s*(?:years|yrs)\b/i.exec(
+    `${doc.basics.headline} ${doc.basics.summary}`,
+  );
+  const years = said ? Number(said[1]) : Math.floor(covered / 12);
   const count = (kinds: string[]) =>
     doc.sections
       .filter((s) => !s.hidden && kinds.includes(s.kind))

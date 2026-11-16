@@ -64,6 +64,10 @@ jobs:
         run: npm run gates:catalogue
         env:
           CHROME_EXECUTABLE_PATH: /usr/bin/google-chrome
+      - name: Composition gates (broken words, art under text, page fill, entry splits)
+        run: npm run gates:composition
+        env:
+          CHROME_EXECUTABLE_PATH: /usr/bin/google-chrome
       - if: always()
         uses: actions/upload-artifact@v4
         with:

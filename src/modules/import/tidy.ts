@@ -61,7 +61,18 @@ export function tidyImport(doc: ResumeDocument): ResumeDocument {
     }[])
       for (const l of [it.title, it.subtitle, it.date, ...(it.bullets ?? [])])
         if (l?.trim()) lines.push(l.trim());
-  const keep = lines.filter((l) => !repeatsContact(l, doc));
+  // A monogram ("DO", "DO/") or a stray fragment from a designed PDF is not content (gap audit
+  // G-08): the rules path dropped these, the AI path did not, so it is done here for both.
+  const mono = doc.basics.name
+    .split(/\s+/)
+    .filter((w) => /^\p{L}/u.test(w))
+    .map((w) => w[0]!.toUpperCase())
+    .join('');
+  const fragment = (l: string) => {
+    const t = l.replace(/[^\p{L}\p{N}]/gu, '');
+    return t.length < 3 || (mono.length >= 2 && t.toUpperCase() === mono);
+  };
+  const keep = lines.filter((l) => !repeatsContact(l, doc) && !fragment(l));
   const personal = keep.filter((l) => PERSONAL.test(l));
   const rest = keep.filter((l) => !PERSONAL.test(l));
   const id = (p: string) => `${p}-${others[0]!.id}`.slice(0, 64);

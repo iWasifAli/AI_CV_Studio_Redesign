@@ -74,7 +74,7 @@ export async function POST(req: Request) {
 
   inFlight++;
   try {
-    const { pdf, pages } = await renderResumePdf(parsed.data);
+    const { pdf, pages, timing } = await renderResumePdf(parsed.data);
     await track('pdf_ok');
     if (user) await notePdf(user.uid);
     return new Response(Buffer.from(pdf), {
@@ -85,6 +85,8 @@ export async function POST(req: Request) {
         'Cache-Control': 'no-store',
         'x-page-count': String(pages),
         'x-request-id': rid,
+        // Where the time goes on the server: page build, browser start (0 when warm), rendering.
+        'Server-Timing': `build;dur=${timing.build}, browser;dur=${timing.browser}, render;dur=${timing.render}`,
       },
     });
   } catch (err) {

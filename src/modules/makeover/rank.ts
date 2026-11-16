@@ -236,5 +236,10 @@ export function rankDesigns(s: ContentStats, enabled: DesignId[], count = 6): Ra
       }
     }
   }
-  return pick.sort((a, b) => b.score - a.score);
+  pick.sort((a, b) => b.score - a.score);
+  // The pre-selected design is never a Creative one (gap audit G-09): most CVs go to online forms,
+  // and the gallery itself says to send those the ATS version. It stays in the strip, just not first.
+  const safe = pick.findIndex((r) => !isGraphic(r.id));
+  if (safe > 0) pick.unshift(...pick.splice(safe, 1));
+  return pick;
 }

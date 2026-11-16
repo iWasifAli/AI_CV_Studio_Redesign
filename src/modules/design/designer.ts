@@ -2,6 +2,7 @@ import type { DesignId, DesignSpec, ResumeDocument } from '@/modules/resume/sche
 import { currentDesignId, designSpec, migrateV1 } from './catalogue';
 import { DESIGNS } from './designs';
 import { parseSpec, type DesignSpecV2 } from './spec';
+import { holdToRequests, requestsIn, type Ask } from './requests';
 import { applyFlat, toFlat, type FieldName } from './vocab';
 
 /**
@@ -22,6 +23,8 @@ export type Candidate = {
   name: string;
   explanation: string;
   unmet: string[];
+  /** Requests from the description this candidate carries out (gap audit G-01). */
+  done: string[];
   spec: DesignSpecV2;
   /** The catalogue design it starts from (or is, when nothing was changed). */
   startFrom: DesignId;
@@ -55,26 +58,43 @@ const same = (a: DesignSpecV2, b: DesignSpecV2) => JSON.stringify(a) === JSON.st
  * A model candidate as a Design Spec: the catalogue design it starts from (with the person's own
  * paper size and colour), plus the changed fields. Unchanged → still that catalogue design.
  */
-export function candidateSpec(c: ComposeCandidate, current: DesignSpec): Candidate {
+export function candidateSpec(
+  c: ComposeCandidate,
+  current: DesignSpec,
+  ctx: { asks?: Ask[]; doc?: ResumeDocument } = {},
+): Candidate {
   const start = designSpec(c.startFrom, current);
   const { spec } = applyFlat(start, c.choices);
-  const out = same(spec, start) ? start : detach(spec, c.startFrom);
+  let out = same(spec, start) ? start : detach(spec, c.startFrom);
   out.page = { ...out.page, size: current.pageSize };
+  const own = c.unmet.map((u) => u.trim()).filter(Boolean);
+  // Every request in the description is carried out or named (gap audit G-01).
+  const held = holdToRequests(out, ctx.asks ?? [], ctx.doc, c.startFrom);
+  out = held.spec;
+  const extra = held.unmet.filter(
+    (u) => !own.some((o) => o.toLowerCase().includes(u.split(/[:\s]/)[0]!.toLowerCase())),
+  );
   return {
     name: c.name.trim() || 'Your design',
     explanation: c.explanation.trim(),
-    unmet: c.unmet.map((u) => u.trim()).filter(Boolean),
+    unmet: [...own, ...extra],
+    done: held.done,
     spec: out,
     startFrom: c.startFrom,
   };
 }
 
 /** Candidates, first one first, without duplicates. */
-export function candidateSpecs(list: ComposeCandidate[], current: DesignSpec): Candidate[] {
+export function candidateSpecs(
+  list: ComposeCandidate[],
+  current: DesignSpec,
+  ctx: { description?: string; doc?: ResumeDocument } = {},
+): Candidate[] {
+  const asks = ctx.description ? requestsIn(ctx.description) : [];
   const seen = new Set<string>();
   const out: Candidate[] = [];
   for (const c of list) {
-    const cand = candidateSpec(c, current);
+    const cand = candidateSpec(c, current, { asks, doc: ctx.doc });
     const key = JSON.stringify({ ...cand.spec, origin: undefined });
     if (seen.has(key)) continue;
     seen.add(key);

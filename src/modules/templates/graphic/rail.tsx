@@ -144,6 +144,10 @@ ${GRAPHIC_BASE_CSS}
 .cv-foot{color:var(--g-on-hot);bottom:3.6mm;z-index:2;font-weight:700}
 .rl-foot{position:absolute;left:0;right:0;bottom:0;height:var(--foot);background:var(--g-hot)}
 .cv-body{flex-direction:row-reverse;font-size:.9em}
+/* Where the rail has ended, later pages use the full width with a strip of its colour (gap audit G-07). */
+.cv-page.cv-page--wide::before{width:4mm;top:0}
+.cv-page.cv-page--wide{padding-left:calc(4mm + var(--margin))}
+.cv-page.cv-page--wide .cv-main{padding-left:0}
 .cv-aside{width:var(--rail);padding:0 var(--rail-pad);color:#fff;--ink:#fff;--ink-2:rgba(255,255,255,.86);--ink-3:rgba(255,255,255,.68);--g-hot-text:var(--g-hot);--g-track:rgba(255,255,255,.22);--g-chip:rgba(255,255,255,.12);--g-chip-ink:#fff;--g-ring-hole:#fff;--g-ring-ink:var(--g-ink)}
 .cv-main{padding:0 var(--margin) 0 var(--gap)}
 .cv-top--header{margin:calc(-10mm * var(--fit-margin)) calc(-1 * var(--margin)) 9mm 0}
@@ -162,6 +166,7 @@ html[data-fit-compact] .rl-name{margin-top:4mm;font-size:calc(40pt * var(--ns,1)
 .rl-name .g-last{color:var(--g-hot-text)${heavy ? '' : ';font-style:italic'}}
 .rl-role{position:relative;margin-top:5.5mm;font-size:8pt;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--g-ink)}
 .cv-top--running{margin:0 calc(-1 * var(--margin)) 6mm var(--rail)}
+.cv-page--wide .cv-top--running{margin-left:0;margin-right:0}
 .rl-run{padding:0 var(--margin) 3mm var(--gap);display:flex;justify-content:space-between;align-items:baseline;gap:4mm;border-bottom:.4mm solid var(--g-rule)}
 .rl-run strong{font-family:var(--g-display);font-weight:${heavy ? 800 : 600};font-size:14pt;letter-spacing:-.02em;color:var(--g-ink)}
 .rl-run span{font-size:7pt;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
@@ -189,7 +194,6 @@ html[data-fit-compact] .rl-name{margin-top:4mm;font-size:calc(40pt * var(--ns,1)
     tags: c.tags,
     photo: 'optional',
     contactsIn: 'aside',
-    keepColumns: true,
     AsideContact: (p) => (
       <>
         <h2 className="rl-ah">

@@ -117,7 +117,9 @@ export const RUNTIME_JS = String.raw`(function (planPages) {
   // then may the browser break it. Breaks after a hyphen, @, dot or slash are fine.
   var FIT_SELECTOR = '.cv-top h1, [data-fit-name], [data-fit], .cv-contact-text';
   function brokenPart(el) {
-    var right = el.getBoundingClientRect().right + 1;
+    // Measured against the column too: a line that may not wrap (an email) grows its own box.
+    var col = el.closest('.cv-aside, .cv-third, .cv-main, .cv-top, .cv-page');
+    var right = Math.min(el.getBoundingClientRect().right, col ? col.getBoundingClientRect().right : Infinity) + 1;
     var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
     var n;
     while ((n = walker.nextNode())) {
@@ -140,11 +142,29 @@ export const RUNTIME_JS = String.raw`(function (planPages) {
     }
     return false;
   }
-  function fitWords(scope) {
-    var els = scope.querySelectorAll(FIT_SELECTOR);
+  // Break hints after the separators of an address that can't fit on one line.
+  function addBreakHints(el) {
+    if (el.querySelector('wbr')) return;
+    var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    var nodes = [], n;
+    while ((n = walker.nextNode())) nodes.push(n);
+    for (var i = 0; i < nodes.length; i++) {
+      var parts = (nodes[i].textContent || '').split(/(?<=[@\/.\-_])(?=[^\s])/);
+      if (parts.length < 2) continue;
+      var frag = document.createDocumentFragment();
+      for (var k = 0; k < parts.length; k++) {
+        frag.appendChild(document.createTextNode(parts[k]));
+        if (k < parts.length - 1) frag.appendChild(document.createElement('wbr'));
+      }
+      nodes[i].parentNode.replaceChild(frag, nodes[i]);
+    }
+  }
+  function fitWords(scope, selector) {
+    var els = scope.querySelectorAll(selector || FIT_SELECTOR);
     for (var i = 0; i < els.length; i++) {
       var e = els[i];
       e.style.fontSize = '';
+      e.classList.remove('cv-may-wrap');
       if (!brokenPart(e)) continue;
       var base = parseFloat(getComputedStyle(e).fontSize);
       var floor = e.classList.contains('cv-contact-text') ? 0.8 : e.hasAttribute('data-fit') ? 0.72 : 0.55;
@@ -152,13 +172,23 @@ export const RUNTIME_JS = String.raw`(function (planPages) {
         e.style.fontSize = (base * k).toFixed(2) + 'px';
         if (!brokenPart(e)) break;
       }
+      // Still too wide at the smallest size: an unbroken email would run off the column, so it
+      // may now break at its separators (and the ATS check says so).
+      if (brokenPart(e) && getComputedStyle(e).whiteSpace === 'nowrap') {
+        e.classList.add('cv-may-wrap');
+        addBreakHints(e);
+      }
     }
   }
   // The header is copied into a measuring page; its fitted sizes are copied back by position.
   var FIT_COPY = 'h1, [data-fit-name], [data-fit], .cv-contact-text';
   function copyFit(from, to) {
     var a = from.querySelectorAll(FIT_COPY), b = to.querySelectorAll(FIT_COPY);
-    for (var i = 0; i < a.length && i < b.length; i++) b[i].style.fontSize = a[i].style.fontSize;
+    for (var i = 0; i < a.length && i < b.length; i++) {
+      b[i].style.fontSize = a[i].style.fontSize;
+      b[i].classList.toggle('cv-may-wrap', a[i].classList.contains('cv-may-wrap'));
+      if (a[i].classList.contains('cv-may-wrap')) addBreakHints(b[i]);
+    }
   }
   function blocksOf(flow) {
     return flow ? Array.prototype.slice.call(flow.querySelectorAll(':scope > [data-block]')) : [];
@@ -579,7 +609,9 @@ export const RUNTIME_JS = String.raw`(function (planPages) {
     applyFit(null);
     var r = layout(st);
     var fitted = 0;
-    if (r.pages > 1 && r.lastFill < LAST_PAGE_MAX_FILL) {
+    // Two pages that could be one are worth trying a little harder (gap audit G-06: a graduate CV
+    // with a third of page 2 used stayed on two pages).
+    if (r.pages > 1 && r.lastFill < (r.pages === 2 ? 0.4 : LAST_PAGE_MAX_FILL)) {
       var compactOk = canCompact();
       for (var i = 0; i < FIT_STEPS.length; i++) {
         if (FIT_STEPS[i].compact && !compactOk) continue;
@@ -611,6 +643,10 @@ export const RUNTIME_JS = String.raw`(function (planPages) {
       r = layout(st);
     }
     numberSections();
+    // Contact details placed outside the measured blocks (side-column contact boxes) get the same
+    // fit as the rest: an email shrinks to stay on one line (gap audit G-02).
+    var pagesEl = document.querySelector('[data-cv-pages]');
+    if (pagesEl) fitWords(pagesEl, '.cv-contact--email .cv-contact-text, .cv-contact--phone .cv-contact-text');
     tidyContactLines();
     clearArt();
     var result = {

@@ -688,7 +688,8 @@ ${s.entries.layout === 'dates-left' || s.entries.layout === 'timeline-dots' ? '.
   if (k === 'corner-shapes')
     // Corner shapes stay inside the page margins, so they never sit under text (audit F-09).
     out.push(`.g-decor-c1{position:absolute;right:calc(var(--margin) * -1.25);top:calc(var(--margin) * -1.25);width:calc(var(--margin) * 2.2);height:calc(var(--margin) * 2.2);border-radius:50%;background:var(--accent);opacity:${a * 2}}
-.g-decor-c2{position:absolute;left:calc(var(--margin) * -1.1);bottom:calc(var(--margin) * -1.1);width:calc(var(--margin) * 1.6);height:calc(var(--margin) * 1.6);background:var(--accent);opacity:${a * 1.5};transform:rotate(20deg)}`);
+.g-decor-c2{position:absolute;left:calc(var(--margin) * -1.1);bottom:calc(var(--margin) * -1.1);width:calc(var(--margin) * 1.6);height:calc(var(--margin) * 1.6);background:var(--accent);opacity:${a * 1.5};transform:rotate(20deg)}
+.cv-page--rest .g-decor-c2{display:none}`);
   if (k === 'frame')
     out.push(
       '.g-decor-frame{position:absolute;inset:5mm;border:.8pt solid var(--accent-line);border-radius:3pt}',

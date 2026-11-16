@@ -128,6 +128,11 @@ function CandidateCard({
             ? t('The closest design from our catalogue: {name}.', { name: c.name })
             : c.explanation}
         </p>
+        {c.done.length > 0 && (
+          <p className="text-ink-muted text-xs" data-testid="designer-done">
+            {t('Done from your description: {list}.', { list: c.done.join(', ') })}
+          </p>
+        )}
         {c.unmet.map((u) => (
           <p
             key={u}
@@ -224,7 +229,10 @@ export function Designer({ editor }: { editor: DocumentEditor }) {
         );
         return;
       }
-      const list = candidateSpecs(json.result.candidates, doc.design);
+      const list = candidateSpecs(json.result.candidates, doc.design, {
+        description: text,
+        doc,
+      });
       setShown(list.map((c, i) => ({ ...c, key: `${attempt.current}-${i}` })));
       refresh();
     } catch {
@@ -251,6 +259,7 @@ export function Designer({ editor }: { editor: DocumentEditor }) {
         name: meta.name,
         explanation: meta.description,
         unmet: [],
+        done: [],
         spec: designSpec(near, doc.design),
         startFrom: near,
         key: `${key}-fallback`,

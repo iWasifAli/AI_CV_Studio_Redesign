@@ -194,6 +194,10 @@ ${GRAPHIC_BASE_CSS}
 .bd-art--quarter{width:37mm;height:37mm;border-top-right-radius:100%;background:rgba(255,255,255,.07)}
 .bd-art--svg{height:80mm}
 .cv-body{flex-direction:row-reverse;font-size:.9em}
+/* Where the rail has ended, later pages use the full width with a strip of its colour (gap audit G-07). */
+.cv-page.cv-page--wide::before{width:4mm}
+.cv-page.cv-page--wide{padding-left:calc(4mm + var(--margin))}
+.cv-page.cv-page--wide .cv-main{padding-left:0}
 .cv-aside{width:var(--rail);padding:0 var(--rail-pad);color:#fff;--ink:#fff;--ink-2:rgba(255,255,255,.86);--ink-3:rgba(255,255,255,.68);--g-hot-text:var(--g-hot);--g-track:rgba(255,255,255,.2);--g-chip:rgba(255,255,255,.12);--g-chip-ink:#fff;--g-ring-hole:var(--g-ink);--g-ring-ink:#fff;--g-head:#fff}
 .cv-main{padding-left:var(--gap)}
 .cv-top--header{margin-top:calc(-10mm * var(--fit-margin))}
@@ -223,6 +227,7 @@ ${
 }
 .cv-top--header{margin-bottom:2mm}
 .cv-top--running{margin-left:var(--rail)}
+.cv-page--wide .cv-top--running{margin-left:0}
 .bd-run{padding:0 0 3mm var(--gap);display:flex;justify-content:space-between;align-items:baseline;gap:4mm;border-bottom:.4mm solid var(--g-rule);margin-bottom:4mm}
 .bd-run strong{font-family:var(--g-display);font-weight:800;font-size:13pt;letter-spacing:-.03em;${c.caps ? 'text-transform:uppercase;' : ''}}
 .bd-run span{font-size:7pt;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
@@ -250,7 +255,6 @@ ${
     tags: c.tags,
     photo: 'optional',
     contactsIn: 'aside',
-    keepColumns: true,
     AsideContact: (p) => (
       <>
         <h2 className={`g-h g-h--${c.marker === 'number' ? 'bar' : c.marker}`}>

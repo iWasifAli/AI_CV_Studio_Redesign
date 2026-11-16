@@ -45,12 +45,12 @@ const PROMISES = [
   {
     icon: FileCheck2,
     title: 'Readable by hiring systems',
-    body: 'Every design keeps real, selectable text in a sensible order, so applicant tracking systems can read it.',
+    body: 'Every design keeps real, selectable text, and each one comes with a plain one-column ATS version for online application forms.',
   },
   {
     icon: Sparkles,
-    title: 'Yours, on your device',
-    body: 'Your CV is saved in your browser, and you can download a backup at any time.',
+    title: 'Yours, wherever you are',
+    body: 'Without an account your CV stays in this browser; signed in, it is saved to your account too. You can download a backup at any time.',
   },
 ];
 

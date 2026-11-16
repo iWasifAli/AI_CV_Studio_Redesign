@@ -8,6 +8,8 @@ import { COMPACT_KINDS, type CompactKind, type DesignSpecV2 } from './spec';
 export type Normalised = { spec: DesignSpecV2; unmet: string[] };
 
 const SIDE_LAYOUTS = new Set(['sidebar-left', 'sidebar-right', 'two-equal', 'rails']);
+/** A rail with less than this much text (all its sections together) isn't worth a column. */
+const RAIL_MIN_CHARS = 150;
 /** Longest section (characters) that may sit in a narrow column. */
 export const NARROW_MAX_CHARS = 600;
 
@@ -87,6 +89,41 @@ export function normalise(input: DesignSpecV2, doc?: ResumeDocument): Normalised
       if (moved.length)
         unmet.push(`${moved.join(', ')} moved to the main column: too long for a narrow column.`);
       s.placement[col] = keep;
+    }
+    // Three columns where one rail would hold almost nothing (gap audit G-11: one certification
+    // in a column of its own): its sections join the other rail and the page has two columns.
+    if (L.type === 'rails' && doc) {
+      const fill = (col: 'side' | 'third') =>
+        s.placement[col].reduce((n, k) => n + (chars[k] ?? 0), 0);
+      if (Math.min(fill('side'), fill('third')) < RAIL_MIN_CHARS) {
+        // First share the sections that have content between the two rails, biggest first.
+        const all = [...s.placement.side, ...s.placement.third];
+        const filled = all.filter((k) => (chars[k] ?? 0) > 0).sort((a, b) => chars[b]! - chars[a]!);
+        const side: CompactKind[] = [];
+        const third: CompactKind[] = [];
+        let a = 0;
+        let b = 0;
+        for (const k of filled)
+          if (a <= b) {
+            side.push(k);
+            a += chars[k]!;
+          } else {
+            third.push(k);
+            b += chars[k]!;
+          }
+        const empty = all.filter((k) => !filled.includes(k));
+        if (Math.min(a, b) >= RAIL_MIN_CHARS) {
+          s.placement.side = [...side, ...empty];
+          s.placement.third = third;
+        } else {
+          // Not enough short content for two rails: two columns.
+          L.type = 'sidebar-right';
+          s.placement.side = all;
+          s.placement.third = [];
+          if (a + b > 0)
+            unmet.push('Three columns became two: there was too little for both side columns.');
+        }
+      }
     }
     // Widths: side 24–40%; rails 20–27% each with main at least 46%.
     if (L.type === 'rails') L.sideWidthPct = Math.min(27, Math.max(20, L.sideWidthPct));

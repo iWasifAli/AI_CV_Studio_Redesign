@@ -384,7 +384,12 @@ export function ContactList({
               {c.label && c.kind === 'link' ? (
                 <span className="cv-contact-label">{c.label}: </span>
               ) : null}
-              {c.href ? <a href={c.href}>{breakable(c.text)}</a> : breakable(c.text)}
+              {/* Emails and phone numbers get no break hints (Chrome breaks at <wbr> even in
+                  nowrap): the page shrinks them to fit and adds hints only if still too wide. */}
+              {(() => {
+                const body = c.kind === 'email' || c.kind === 'phone' ? c.text : breakable(c.text);
+                return c.href ? <a href={c.href}>{body}</a> : body;
+              })()}
             </span>
           </li>
         ))}

@@ -123,3 +123,29 @@ describe('keyword stems', () => {
     expect(cvHasTerm(cv, 'data science')).toBe(false);
   });
 });
+
+describe('ATS check: email on one line (gap audit G-02)', () => {
+  it('fails when the address only comes back split over two lines', () => {
+    // As a narrow side column prints it: one contact item per line, the address in two parts.
+    const b = driver.basics;
+    const at = b.email.indexOf('@');
+    const split = [
+      b.name,
+      b.headline,
+      b.phone,
+      b.email.slice(0, at + 1),
+      b.email.slice(at + 1),
+      b.location,
+      ...plainLines(driver).slice(3),
+    ];
+    const c = assessReadBack(driver, split, { pages: 1 }).find((x) => x.id === 'contact')!;
+    expect(c.status).toBe('needs-work');
+    expect(c.title).toBe('Your email is split over two lines');
+  });
+  it('passes when it is on one line', () => {
+    const c = assessReadBack(driver, plainLines(driver), { pages: 1 }).find(
+      (x) => x.id === 'contact',
+    )!;
+    expect(c.status).toBe('pass');
+  });
+});

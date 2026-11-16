@@ -64,6 +64,10 @@ h1,h2,h3{text-wrap:balance}
 .cv-contact{padding-left:1.4em;position:relative}
 .cv-sep{position:absolute;left:0;width:1.4em;text-align:center;color:var(--accent-line)}
 .cv-contact--line-start{padding-left:0}
+/* An email or phone number stays on one line (gap audit G-02): the page shrinks it to fit first,
+   and only an address too long even then may break, at its dots and @. */
+.cv-contact--email .cv-contact-text,.cv-contact--phone .cv-contact-text{white-space:nowrap}
+.cv-contact--email .cv-contact-text.cv-may-wrap,.cv-contact--phone .cv-contact-text.cv-may-wrap{white-space:normal}
 .cv-contact--line-start .cv-sep{display:none}
 [data-ref]{cursor:default}
 @media screen{ .cv-page{box-shadow:0 1px 3px rgba(27,31,36,.08),0 10px 30px -12px rgba(27,31,36,.25)} }

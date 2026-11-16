@@ -93,10 +93,18 @@ export async function chromiumAvailable(): Promise<boolean> {
   }
 }
 
-export async function renderResumePdf(
-  doc: ResumeDocument,
-): Promise<{ pdf: Uint8Array; pages: number; overflow: number }> {
+export async function renderResumePdf(doc: ResumeDocument): Promise<{
+  pdf: Uint8Array;
+  pages: number;
+  overflow: number;
+  /** Milliseconds per stage, for the Server-Timing header (gap audit G-10). */
+  timing: { build: number; browser: number; render: number };
+}> {
+  const t0 = Date.now();
   const html = buildDocumentHtml(doc, { fonts: { kind: 'inline', read: readFontBase64 } });
+  const t1 = Date.now();
   const browser = await getBrowser();
-  return renderPdfFromHtml(browser, html);
+  const t2 = Date.now();
+  const r = await renderPdfFromHtml(browser, html);
+  return { ...r, timing: { build: t1 - t0, browser: t2 - t1, render: Date.now() - t2 } };
 }

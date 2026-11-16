@@ -68,3 +68,28 @@ describe('tidyImport (real CV case, 2026-11-13)', () => {
     expect(tidyImport(base)).toBe(base);
   });
 });
+
+describe('tidyImport: monograms and fragments (gap audit G-08)', () => {
+  it('drops an "Other" section that only holds the monogram', () => {
+    const doc: ResumeDocument = {
+      ...structuredClone(FIXTURES.engineer),
+      sections: [...structuredClone(FIXTURES.engineer.sections), other('m', ['DO'])],
+    };
+    expect(doc.basics.name).toBe('Daniel Okafor');
+    const t = tidyImport(doc);
+    expect(t.sections.some((s) => s.kind === 'custom')).toBe(false);
+  });
+  it('keeps real lines next to the monogram', () => {
+    const doc: ResumeDocument = {
+      ...structuredClone(FIXTURES.engineer),
+      sections: [
+        ...structuredClone(FIXTURES.engineer.sections),
+        other('m', ['DO', 'Volunteer first-aider at weekend events']),
+      ],
+    };
+    const t = tidyImport(doc);
+    const o = t.sections.filter((s) => s.kind === 'custom');
+    expect(JSON.stringify(o)).toContain('Volunteer first-aider');
+    expect(JSON.stringify(o)).not.toContain('"DO"');
+  });
+});

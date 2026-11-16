@@ -50,7 +50,9 @@ describe('rankDesigns', () => {
         traits.some((t) => t.bold),
         id,
       ).toBe(true);
-      expect([...r].sort((a, b) => b.score - a.score)).toEqual(r);
+      // Best first, except that a Creative design never takes the first place (G-09).
+      const rest = r.slice(1);
+      expect([...rest].sort((a, b) => b.score - a.score)).toEqual(rest);
     }
   });
 
@@ -145,5 +147,16 @@ describe('design strip (audit R-03, R-05)', () => {
     const short = contentStats(FIXTURES.graduate, 'student', false);
     expect(short.pages).toBeLessThan(1.5);
     expect(rankDesigns(short, all).some((x) => family.get(x.id) === 'compact')).toBe(false);
+  });
+});
+
+describe('first pick (gap audit G-09)', () => {
+  it('is never a Creative graphic design', () => {
+    const all = DESIGNS.map((d) => d.id);
+    const family = new Map(DESIGNS.map((d) => [d.id, d.family]));
+    for (const doc of Object.values(FIXTURES)) {
+      const r = rankDesigns(contentStats(doc, detectProfile(doc, now).presetId, false), all);
+      expect(family.get(r[0]!.id)).not.toBe('graphic');
+    }
   });
 });

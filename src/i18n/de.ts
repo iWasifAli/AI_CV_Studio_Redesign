@@ -1010,6 +1010,7 @@ export const de: Dict = {
   Done: 'Fertig',
   'Done ({length})': 'Erledigt ({length})',
   'Done comments': 'Erledigte Kommentare',
+  'Done from your description: {list}.': 'Aus Ihrer Beschreibung umgesetzt: {list}.',
   Download: 'Herunterladen',
   'Download a backup': 'Sicherung herunterladen',
   'Download a backup to keep your CVs safe.':
@@ -1175,6 +1176,8 @@ export const de: Dict = {
     'Alle Lebenslauf-Designs, mehr Downloads und ehrliche KI-Schreibhilfe – ein einmaliger Pass, kein Abo.',
   'Every design keeps real, selectable text in a sensible order, so applicant tracking systems can read it.':
     'Jedes Design behält echten, markierbaren Text in sinnvoller Reihenfolge, damit Bewerbermanagementsysteme ihn lesen können.',
+  'Every design keeps real, selectable text, and each one comes with a plain one-column ATS version for online application forms.':
+    'Jedes Design behält echten, markierbaren Text, und zu jedem gibt es eine schlichte, einspaltige ATS-Version für Online-Bewerbungsformulare.',
   'Every design, more downloads and AI help': 'Alle Designs, mehr Downloads und KI-Hilfe',
   'Every design, more downloads and AI help are ready for you:':
     'Alle Designs, mehr Downloads und KI-Hilfe stehen für Sie bereit:',
@@ -1303,6 +1306,8 @@ export const de: Dict = {
   'For example: looked after my father after his operation':
     'Zum Beispiel: habe meinen Vater nach seiner Operation gepflegt',
   'For job': 'Für Stelle',
+  'For online applications, download the ATS PDF (one plain column), or choose a design with your contact details across the top.':
+    'Laden Sie für Online-Bewerbungen das ATS-PDF (eine einfache Spalte) herunter oder wählen Sie ein Design mit den Kontaktdaten oben.',
   'For people who can’t see it.': 'Für Menschen, die es nicht sehen können.',
   'For the job you want: the skills your CV already shows, what’s missing, and what to learn first.':
     'Für die Wunschstelle: die Kenntnisse, die Ihr Lebenslauf schon zeigt, was fehlt und was Sie zuerst lernen sollten.',
@@ -1480,6 +1485,8 @@ export const de: Dict = {
   'in the address bar or the browser menu. On iPhone and iPad, use Safari:':
     'in der Adressleiste oder im Browsermenü. Auf iPhone und iPad verwenden Sie Safari:',
   'In the Community gallery': 'In der Community-Galerie',
+  'In this design the address is too long for its column, so it breaks in two. Software that reads line by line may store it wrongly.':
+    'In diesem Design ist die Adresse zu lang für ihre Spalte und wird umgebrochen. Software, die zeilenweise liest, speichert sie womöglich falsch.',
   'In this order': 'In dieser Reihenfolge',
   'In your CV ({length})': 'In Ihrem Lebenslauf ({length})',
   'Include the letter': 'Anschreiben beifügen',
@@ -3463,6 +3470,8 @@ export const de: Dict = {
     'vor dem Senden Ihres Lebenslaufs durch Ihre echten Angaben.',
   'Within reach': 'In Reichweite',
   Without: 'Ohne',
+  'Without an account your CV stays in this browser; signed in, it is saved to your account too. You can download a backup at any time.':
+    'Ohne Konto bleibt Ihr Lebenslauf in diesem Browser; angemeldet wird er auch in Ihrem Konto gespeichert. Sie können jederzeit eine Sicherung herunterladen.',
   'Without an account, only in this browser. With an account, also in your account, with the last 10 versions of each CV so you can go back. Signing out removes your CVs from that device; they stay in your account.':
     'Ohne Konto nur in diesem Browser. Mit Konto auch in Ihrem Konto, mit den letzten 10 Versionen jedes Lebenslaufs, damit Sie zurückgehen können. Beim Abmelden werden Ihre Lebensläufe von diesem Gerät entfernt; in Ihrem Konto bleiben sie erhalten.',
   'Without an account, your CVs are saved only in this browser. With an account, they are also saved in your account on our servers (Google Cloud, through Firebase), together with the last 10 versions of each CV, so you can use them on any device and get back an earlier version.':
@@ -3641,6 +3650,7 @@ export const de: Dict = {
   'Your details and skills in a side column': 'Ihre Angaben und Kenntnisse in einer Seitenspalte',
   'Your documents': 'Ihre Dokumente',
   'Your email': 'Ihre E-Mail-Adresse',
+  'Your email is split over two lines': 'Ihre E-Mail-Adresse ist auf zwei Zeilen verteilt',
   'Your experience': 'Ihre Erfahrung',
   'Your first story': 'Ihre erste Geschichte',
   'Your former manager or teacher': 'Ihre frühere Vorgesetzte oder Lehrkraft',
@@ -3736,6 +3746,7 @@ export const de: Dict = {
   'Your words, in a new design.': 'Ihre Worte, in einem neuen Design.',
   'Yours sincerely,': 'Mit freundlichen Grüßen',
   'Yours, on your device': 'Ihre Daten, auf Ihrem Gerät',
+  'Yours, wherever you are': 'Ihrer, wo immer Sie sind',
   'ZIP of separate files': 'ZIP mit einzelnen Dateien',
   Zoom: 'Zoom',
 };
