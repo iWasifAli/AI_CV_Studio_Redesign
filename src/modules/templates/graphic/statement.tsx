@@ -67,6 +67,8 @@ export function statementTemplate(c: StatementConfig): CatalogueTemplate {
     const text = summary?.text?.trim() ?? '';
     const where = model.contacts.find((x) => x.kind === 'location')?.text;
     const stats = model.stats.length >= 2;
+    // The place sits in the byline; the dateline carries the other details once.
+    const line = where ? model.contacts.filter((x) => x.kind !== 'location') : model.contacts;
     return (
       <header className={classes('st-head', !text && 'st-head--quiet')}>
         <div className="st-mast">
@@ -77,35 +79,36 @@ export function statementTemplate(c: StatementConfig): CatalogueTemplate {
               {where && <span>{where}</span>}
             </p>
           )}
+          {!text && <Portrait model={model} className="st-photo st-photo--mast" />}
         </div>
-        <div className="st-front">
-          <div className="st-say">
-            {text && (
-              <>
-                <p className="st-kicker">{summary?.title || t('Profile')}</p>
-                {c.quote === 'marks' && <QuoteMark />}
-                <p
-                  className={`st-quote st-quote--${c.quote}`}
-                  style={{ ['--qs' as string]: statementScale(text) }}
-                >
-                  {text}
-                </p>
-              </>
-            )}
-            {stats && c.numbers === 'ruled' && <KeyNumbers model={model} className="st-stats" />}
+        {text ? (
+          <div className="st-front">
+            <div className="st-say">
+              <p className="st-kicker">{summary?.title || t('Profile')}</p>
+              {c.quote === 'marks' && <QuoteMark />}
+              <p
+                className={`st-quote st-quote--${c.quote}`}
+                style={{ ['--qs' as string]: statementScale(text) }}
+              >
+                {text}
+              </p>
+              {stats && c.numbers === 'ruled' && <KeyNumbers model={model} className="st-stats" />}
+            </div>
+            <div className="st-cap">
+              <Portrait model={model} className="st-photo" />
+              {stats && c.numbers === 'column' && (
+                <KeyNumbers model={model} className="st-stats st-stats--col" />
+              )}
+            </div>
           </div>
-          <div className="st-cap">
-            <Portrait model={model} className="st-photo" />
-            {model.contacts.length > 0 && (
-              <div className="st-contacts">
-                <ContactList contacts={model.contacts} icons stacked />
-              </div>
-            )}
-            {stats && c.numbers === 'column' && (
-              <KeyNumbers model={model} className="st-stats st-stats--col" />
-            )}
+        ) : (
+          stats && <KeyNumbers model={model} className="st-stats st-stats--row" />
+        )}
+        {line.length > 0 && (
+          <div className="st-dateline">
+            <ContactList contacts={line} icons />
           </div>
-        </div>
+        )}
       </header>
     );
   }
@@ -128,7 +131,7 @@ export function statementTemplate(c: StatementConfig): CatalogueTemplate {
   const css = `
 ${GRAPHIC_BASE_CSS}
 :root{--g-display:var(--font-heading);--g-ink:${c.ink};--g-soft:${c.soft};--g-hot:var(--accent-raw);--g-on-hot:var(--on-accent-raw);--g-hot-text:var(--accent);
-  --g-rule:#d3d8de;--g-track:#dde3e8;--g-chip:var(--g-soft);--g-chip-ink:var(--ink);--side-w:56mm;--st-cap:54mm;
+  --g-rule:#d3d8de;--g-track:#dde3e8;--g-chip:var(--g-soft);--g-chip-ink:var(--ink);--side-w:62mm;--st-cap:56mm;
   --margin:calc(13mm * var(--fit-margin));--ink:#15202c;--ink-2:#3a4552;--ink-3:#5d6875}
 .cv-top--header{margin-bottom:calc(6mm * var(--fit-gap))}
 .st-mast{display:flex;align-items:flex-end;justify-content:space-between;gap:8mm;border-top:2.2mm solid var(--g-ink);padding:5mm 0 4.2mm;border-bottom:.35mm solid var(--g-ink)}
@@ -137,25 +140,26 @@ ${GRAPHIC_BASE_CSS}
 .st-name .g-last,.st-name .g-stop{color:var(--g-hot-text)}
 .st-role{flex:none;max-width:62mm;text-align:right;display:flex;flex-direction:column;gap:1mm;font-size:7.4pt;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);padding-bottom:1mm}
 .st-role strong{color:var(--ink);font-weight:800}
-.st-front{display:flex;gap:9mm;padding-top:calc(6mm * var(--fit-gap));${capLeft ? 'flex-direction:row-reverse;' : ''}}
-.st-head--quiet .st-front{padding-top:4mm}
+.st-front{display:flex;align-items:flex-start;gap:9mm;padding-top:calc(6mm * var(--fit-gap));${capLeft ? 'flex-direction:row-reverse;' : ''}}
 .st-say{flex:1;min-width:0;display:flex;flex-direction:column}
 .st-kicker{font-size:6.8pt;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--g-hot-text);margin-bottom:3mm}
 .st-quote{font-family:var(--g-display);font-weight:600;font-size:calc(17pt * var(--qs,1) * (.86 + .14 * var(--fit-gap)));line-height:1.28;letter-spacing:-.018em;color:var(--g-ink);text-wrap:pretty}
 ${QUOTE[c.quote]}
 .st-cap{flex:none;width:var(--st-cap);display:flex;flex-direction:column;gap:4mm;align-items:${capLeft ? 'flex-start' : 'flex-start'}}
-.st-head--quiet .st-cap{flex-direction:row;width:auto;flex:1;align-items:center}
-.st-head--quiet .st-say{display:none}
-.st-head--quiet .st-photo{width:30mm;height:30mm}
 ${FRAME[c.frame]}
 .cv-portrait--initials.st-photo{background:var(--g-soft);color:var(--g-ink);font-family:var(--g-display);font-weight:800;font-size:30pt;letter-spacing:-.04em}
-.st-contacts{font-size:.86em;border-top:.35mm solid var(--g-ink);padding-top:2.6mm;width:100%}
-.st-contacts .cv-icon{color:var(--g-hot-text)}
-.st-contacts .cv-contact{line-height:1.35}
+.st-head .st-mast .st-photo--mast{flex:none;width:22mm;height:22mm;margin:0 0 .6mm;outline:0;border-bottom:0;box-shadow:none}
+.st-dateline{margin-top:calc(5mm * var(--fit-gap));border-top:.35mm solid var(--g-ink);border-bottom:.35mm solid var(--g-ink);padding:2.3mm 0 2.1mm;font-size:.86em}
+.st-head--quiet .st-dateline{margin-top:0;border-top:0}
+.st-dateline .cv-contacts{column-gap:6.5mm;row-gap:1.2mm;margin-left:0}
+.st-dateline .cv-contact{padding-left:0}
+.st-dateline .cv-icon{color:var(--g-hot-text)}
 .st-stats{margin-top:auto;padding-top:5mm}
-.st-say .st-stats{border-top:.35mm solid var(--g-rule);margin-top:6mm;padding-top:4mm}
+.st-say .st-stats{border-top:.35mm solid var(--g-ink);margin-top:6mm;padding-top:4mm}
 .st-say .g-stat{border-left:.9mm solid var(--g-hot);padding-left:3mm}
-.st-stats--col{display:flex;flex-direction:column;gap:3mm;margin:0;padding:3mm 0 0;border-top:.35mm solid var(--g-rule);width:100%}
+.st-stats--col{display:flex;flex-direction:column;gap:3mm;margin:0;padding:3mm 0 0;border-top:.35mm solid var(--g-ink);width:100%}
+.st-stats--row{margin-top:4mm}
+.st-stats--row .g-stat{border-left:.9mm solid var(--g-hot);padding-left:3mm}
 .st-stats--col .g-stat{display:flex;align-items:baseline;gap:3mm}
 .st-stats--col .g-stat-v{font-size:17pt;min-width:15mm}
 .st-stats--col .g-stat-l{margin:0}
