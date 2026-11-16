@@ -53,8 +53,9 @@ test('300 cards: fast first cards, smooth scrolling, bounded previews and memory
       if (running) requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
-    const end = document.documentElement.scrollHeight;
-    while (window.scrollY + window.innerHeight < end - 10) {
+    // Down to the bottom; stop when the page no longer moves (or after 400 steps).
+    for (let i = 0, last = -1; i < 400 && window.scrollY !== last; i++) {
+      last = window.scrollY;
       window.scrollBy(0, 300);
       await new Promise((r) => setTimeout(r, 120));
     }
