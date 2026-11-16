@@ -142,6 +142,9 @@ export const de: Dict = {
     '{v} Downloads · {v2} Importe ·{v3} {v4} KI-Aktionen',
   '{v} Questions about a payment? Email{v2}': '{v} Fragen zu einer Zahlung? Schreiben Sie an{v2}',
   '{v} You have {left} free design': '{v} Sie haben {left} kostenloses Design',
+  '{v0} live · {v1} draft · {v2} retired': '{v0} live · {v1} Entwurf · {v2} eingestellt',
+  '{v0} selected': '{v0} ausgewählt',
+  '{v0} status': '{v0} Status',
   '{v0} the link to {title}': '{v0} den Link zu {title}',
   '{v0} tier': 'Stufe {v0}',
   '{v0} used': '{v0} verbraucht',
@@ -304,6 +307,7 @@ export const de: Dict = {
   'About the words:': 'Zu den Worten:',
   'About you': 'Über Sie',
   'About your order {order}': 'Zu Ihrer Bestellung {order}',
+  Academic: 'Akademisch',
   'Academic & warm': 'Akademisch & warm',
   'Accent colour': 'Akzentfarbe',
   Accept: 'Annehmen',
@@ -358,6 +362,7 @@ export const de: Dict = {
   'Add selected': 'Ausgewählte hinzufügen',
   'Add some experience to your CV first.':
     'Fügen Sie Ihrem Lebenslauf zuerst Berufserfahrung hinzu.',
+  'Add tag': 'Schlagwort hinzufügen',
   'Add the full advert in “The job” and save. It’s what we compare your CV with.':
     'Fügen Sie die vollständige Anzeige unter „Die Stelle“ ein und speichern Sie. Damit vergleichen wir Ihren Lebenslauf.',
   'Add the job advert first': 'Fügen Sie zuerst die Stellenanzeige ein',
@@ -372,6 +377,7 @@ export const de: Dict = {
   'Add what you did': 'Ergänzen Sie, was Sie getan haben',
   'Add your experience step by step.': 'Fügen Sie Ihre Erfahrung Schritt für Schritt hinzu.',
   'Add your name.': 'Geben Sie Ihren Namen an.',
+  'added {v0}': 'hinzugefügt {v0}',
   'Added {v0}': 'Hinzugefügt {v0}',
   'Added as a career break in Experience. Undo takes it out.':
     'Als berufliche Auszeit unter „Berufserfahrung“ hinzugefügt. Rückgängig entfernt sie wieder.',
@@ -658,6 +664,7 @@ export const de: Dict = {
   'Careful tasks (coach, match, letters, reviews)':
     'Sorgfältige Aufgaben (Coach, Abgleich, Briefe, Prüfungen)',
   'Cash handling': 'Kassenführung',
+  Catalogue: 'Katalog',
   Centre: 'Mitte',
   'Centred letter-spaced name, black ink and small-capital headings. For formal applications.':
     'Zentrierter, gesperrter Name, schwarze Schrift und Überschriften in Kapitälchen. Für förmliche Bewerbungen.',
@@ -727,6 +734,9 @@ export const de: Dict = {
     'Wählen Sie Ihren Beruf, und wir stellen die richtigen Fragen – Führerscheine für Fahrer, Zulassungen für Pflegekräfte, Projekte für Studierende.',
   'Choose…': 'Auswählen …',
   'Choosing designs for you': 'Designs werden für Sie ausgewählt',
+  Chosen: 'Gewählt',
+  'Chosen, then changed to another design within 5 minutes':
+    'Gewählt und innerhalb von 5 Minuten gegen ein anderes Design getauscht',
   Classic: 'Klassisch',
   'Classroom management': 'Klassenführung',
   Clean: 'Klar',
@@ -735,6 +745,7 @@ export const de: Dict = {
   'Clean, one column, navy': 'Klar, einspaltig, Marineblau',
   'Clean, two columns, navy': 'Klar, zweispaltig, Marineblau',
   Clear: 'Leeren',
+  'Clear selection': 'Auswahl aufheben',
   'Clear the conversation?': 'Unterhaltung löschen?',
   'Clear this review': 'Diese Prüfung löschen',
   'Clearing your browser data removes them.':
@@ -842,6 +853,7 @@ export const de: Dict = {
   'Could be better': 'Könnte besser sein',
   'Could be stronger': 'Könnte stärker sein',
   'Could not load settings': 'Einstellungen konnten nicht geladen werden',
+  'Could not load the designs': 'Die Designs konnten nicht geladen werden',
   'Could not load the overview': 'Übersicht konnte nicht geladen werden',
   'Couldn’t cancel. Please reload and try again.':
     'Stornieren nicht möglich. Bitte laden Sie neu und versuchen Sie es erneut.',
@@ -1023,7 +1035,9 @@ export const de: Dict = {
   'Download Word (.docx)': 'Word herunterladen (.docx)',
   'Download your CV': 'Ihren Lebenslauf herunterladen',
   'Download ZIP': 'ZIP herunterladen',
+  Downloaded: 'Heruntergeladen',
   'Downloading a PDF or Word file:': 'Eine PDF- oder Word-Datei herunterladen:',
+  Draft: 'Entwurf',
   'Draft it from a point in my CV': 'Aus einem Punkt meines Lebenslaufs entwerfen',
   'Draft ready. Read it through and make it yours.':
     'Entwurf fertig. Lesen Sie ihn durch und machen Sie ihn zu Ihrem.',
@@ -1150,6 +1164,7 @@ export const de: Dict = {
   'Educational technology': 'Bildungstechnologie',
   'Electrician, plumber, builder, mechanic': 'Elektriker, Installateur, Bau, Mechaniker',
   'Electronic patient records': 'Elektronische Patientenakte',
+  Elegant: 'Elegant',
   'Elegant and refined': 'Elegant und edel',
   'Elegant serif, centred name': 'Elegante Serifenschrift, zentrierter Name',
   Email: 'E-Mail',
@@ -1248,6 +1263,7 @@ export const de: Dict = {
   Finished: 'Abgeschlossen',
   'First aid': 'Erste Hilfe',
   'First design': 'Erstes Design',
+  'First job': 'Erster Job',
   'First person (I)': 'Ich-Form',
   'First step:': 'Erster Schritt:',
   'first, so the letter uses your name, contact details and design.':
@@ -1323,6 +1339,8 @@ export const de: Dict = {
   'Framing the saved photo: you can zoom in and move it. To zoom out further, choose the original photo again.':
     'Gespeichertes Foto zuschneiden: Sie können hineinzoomen und es verschieben. Um weiter herauszuzoomen, wählen Sie das Originalfoto erneut.',
   Free: 'Kostenlos',
+  'Free accounts and visitors can still preview Premium designs but download only free ones.':
+    'Kostenlose Konten und Besucher können Premium-Designs ansehen, aber nur kostenlose herunterladen.',
   'Free and Premium': 'Kostenlos und Premium',
   'Free and Premium compared': 'Kostenlos und Premium im Vergleich',
   'Fresh and friendly, ticks for bullets': 'Frisch und freundlich, Häkchen als Aufzählungszeichen',
@@ -1560,6 +1578,7 @@ export const de: Dict = {
     'Bewahren Sie hier Ihre gesamte Erfahrung auf – auch Dinge, die Sie in manchen Lebensläufen weglassen. Neue und zugeschnittene Lebensläufe sind Kopien davon, also aktualisieren Sie Fakten zuerst hier.',
   'Keep all your experience in one master record, then make a CV for each job from it.':
     'Bewahren Sie Ihre gesamte Erfahrung in einem Hauptdatensatz auf und erstellen Sie daraus für jede Stelle einen Lebenslauf.',
+  'Keep at least one design free and live.': 'Lassen Sie mindestens ein Design kostenlos und live.',
   'Keep at least one design free and shown.':
     'Mindestens ein Design muss kostenlos und sichtbar bleiben.',
   'Keep every job you’re interested in, where you are with it, and which CV you sent — on any device.':
@@ -1602,6 +1621,7 @@ export const de: Dict = {
   'Leave out': 'Weglassen',
   Left: 'Links',
   'Left as it is.': 'Unverändert gelassen.',
+  'Left quickly': 'Schnell gewechselt',
   'Left–right': 'Links–rechts',
   Length: 'Länge',
   'Lesson planning': 'Unterrichtsplanung',
@@ -1724,6 +1744,7 @@ export const de: Dict = {
   'Midnight blue with confetti accents and a portrait offset on a pink block; a playful cover for visual artists and storytellers.':
     'Mitternachtsblau mit Konfetti-Akzenten und einem versetzten Porträt auf pinkem Block; ein verspieltes Cover für Bildende Kunst und Erzählende.',
   'Military service': 'Wehrdienst',
+  Minimal: 'Minimalistisch',
   'Minimal editorial': 'Minimal redaktionell',
   'Minimal, section names in a margin': 'Minimalistisch, Abschnittsnamen am Rand',
   'Missed: {v}': 'Verfehlt: {v}',
@@ -1815,6 +1836,7 @@ export const de: Dict = {
   'No CVs yet': 'Noch keine Lebensläufe',
   'No design matches all of these. Try fewer filters.':
     'Kein Design erfüllt all das. Versuchen Sie weniger Filter.',
+  'No design matches.': 'Kein Design passt.',
   'No earlier versions yet. They appear here as you edit this CV over time.':
     'Noch keine früheren Versionen. Sie erscheinen hier, während Sie diesen Lebenslauf mit der Zeit bearbeiten.',
   'No file chosen': 'Keine Datei ausgewählt',
@@ -2074,6 +2096,7 @@ export const de: Dict = {
   'Photo position': 'Position des Fotos',
   'Photo shape': 'Form des Fotos',
   'Photo sidebar': 'Foto-Seitenleiste',
+  'Photo-led': 'Mit Foto im Fokus',
   'Pick a design': 'Design wählen',
   'Pick a job you track or type a role. You’ll see the skills your CV already shows — with the lines that show them — what’s missing, and the few things to learn first.':
     'Wählen Sie eine verfolgte Stelle oder geben Sie eine Stelle ein. Sie sehen die Kenntnisse, die Ihr Lebenslauf schon zeigt – mit den Zeilen, die sie belegen –, was fehlt und die wenigen Dinge, die Sie zuerst lernen sollten.',
@@ -2214,6 +2237,7 @@ export const de: Dict = {
   'Preview of your CV. Click any part to edit it.':
     'Vorschau Ihres Lebenslaufs. Klicken Sie auf einen Teil, um ihn zu bearbeiten.',
   'Preview your portfolio page': 'Vorschau Ihrer Portfolio-Seite',
+  Previewed: 'Vorschau angesehen',
   'Price (PKR)': 'Preis (PKR)',
   'Prices per million tokens in US dollars (from your AI provider’s price list) and the rupee rate. Used only for the estimate on the Overview.':
     'Preise pro Million Tokens in US-Dollar (aus der Preisliste Ihres KI-Anbieters) und der Rupien-Kurs. Nur für die Schätzung in der Übersicht.',
@@ -2338,6 +2362,7 @@ export const de: Dict = {
   'Remove Premium from this account?': 'Premium von diesem Konto entfernen?',
   'Remove question {v0}': 'Frage {v0} entfernen',
   'Remove section': 'Abschnitt entfernen',
+  'Remove tag': 'Schlagwort entfernen',
   'Remove the picture': 'Bild entfernen',
   'Remove this job': 'Diese Stelle entfernen',
   'Remove this number': 'Diese Zahl entfernen',
@@ -2378,6 +2403,9 @@ export const de: Dict = {
   Results: 'Ergebnisse',
   'Results you are proud of — e.g. “Cut delivery complaints by half”':
     'Ergebnisse, auf die Sie stolz sind – z. B. „Lieferbeschwerden halbiert“',
+  Retired: 'Eingestellt',
+  'Retired designs are hidden from the gallery, suggestions and the AI Designer; CVs that already use one keep it and can still download it.':
+    'Eingestellte Designs werden in der Galerie, in Vorschlägen und im KI-Designer ausgeblendet; Lebensläufe, die eines bereits nutzen, behalten es und können es weiter herunterladen.',
   'Review my LinkedIn profile': 'Mein LinkedIn-Profil prüfen',
   'Review my profile': 'Mein Profil prüfen',
   'Review payments': 'Zahlungen prüfen',
@@ -2480,6 +2508,8 @@ export const de: Dict = {
   'See your CV as a website': 'Ihren Lebenslauf als Website ansehen',
   'See your results': 'Ihre Ergebnisse ansehen',
   'See yours in new designs': 'Ihren in neuen Designs ansehen',
+  'Select {v0}': '{v0} auswählen',
+  'Select all shown': 'Alle angezeigten auswählen',
   'Selection:': 'Auswahl:',
   Send: 'Senden',
   'Send {first} a message. They’ll reply by email.':
@@ -2496,6 +2526,7 @@ export const de: Dict = {
   'Send reset link': 'Link zum Zurücksetzen senden',
   'Send the link again': 'Link erneut senden',
   'Send within a day of the interview.': 'Innerhalb eines Tages nach dem Gespräch senden.',
+  Senior: 'Erfahren',
   Sent: 'Gesendet',
   'Sent a test email': 'Test-E-Mail gesendet',
   'Sent with “{title}”{v}': 'Gesendet mit „{title}“{v}',
@@ -2505,6 +2536,8 @@ export const de: Dict = {
   'Service, rank and duties — e.g. “Corporal, Royal Logistic Corps”':
     'Dienst, Dienstgrad und Aufgaben – z. B. „Obergefreiter, Logistikbataillon“',
   'Set it up': 'Einrichten',
+  'Set status': 'Status setzen',
+  'Set tier': 'Stufe setzen',
   'Set up my page': 'Meine Seite einrichten',
   'Set up my profile': 'Mein Profil einrichten',
   'Set up your career profile': 'Richten Sie Ihr Karriereprofil ein',
@@ -2526,6 +2559,7 @@ export const de: Dict = {
   'Share with the community': 'Mit der Community teilen',
   'Share your link. When a friend who joins with it buys their first Premium pass, you get':
     'Teilen Sie Ihren Link. Wenn eine darüber beigetretene Person ihren ersten Premium-Pass kauft, erhalten Sie',
+  'Shared by people': 'Von Nutzern geteilt',
   'Shared CVs and portfolios opened': 'Geöffnete geteilte Lebensläufe und Portfolios',
   'Shared with': 'Geteilt mit',
   'Shared with the community': 'Mit der Community geteilt',
@@ -2707,6 +2741,9 @@ export const de: Dict = {
   Statement: 'Erklärung',
   'Statements and bios': 'Motivationsschreiben und Kurzbiografien',
   'Static card': 'Statische Karte',
+  Status: 'Status',
+  'Status, tier and tags for each design are set in':
+    'Status, Stufe und Schlagwörter jedes Designs legen Sie fest unter',
   'Step {current} of {total}': 'Schritt {current} von {total}',
   'Step {v}': 'Schritt {v}',
   'Still stuck? Email us at': 'Kommen Sie nicht weiter? Schreiben Sie uns an',
@@ -2758,6 +2795,8 @@ export const de: Dict = {
   Switches: 'Schalter',
   'System design': 'Systemdesign',
   'Tabs and stepper': 'Reiter und Schrittanzeige',
+  Tag: 'Schlagwort',
+  Tags: 'Schlagwörter',
   'Tailor a CV to a job': 'Lebenslauf auf eine Stelle zuschneiden',
   'Tailor your CV to a job': 'Ihren Lebenslauf auf eine Stelle zuschneiden',
   'Tailored copies made for each job are counted together, so you can see whether tailoring helps.':
@@ -2983,6 +3022,8 @@ export const de: Dict = {
   'This CV was not found.': 'Dieser Lebenslauf wurde nicht gefunden.',
   'This design doesn’t show photos. Pick one marked “Photo” in Design to show it.':
     'Dieses Design zeigt keine Fotos. Wählen Sie unter „Design“ eines mit der Markierung „Foto“, um es anzuzeigen.',
+  'This design has been retired — you can keep it or choose another.':
+    'Dieses Design wurde eingestellt – Sie können es behalten oder ein anderes wählen.',
   'This email address doesn’t look right.': 'Diese E-Mail-Adresse sieht nicht richtig aus.',
   'This email address looks incomplete': 'Diese E-Mail-Adresse wirkt unvollständig',
   'This email is already registered with a password. Sign in with your password instead.':
@@ -3036,6 +3077,7 @@ export const de: Dict = {
   'Tick the CVs you used or plan to use. Only ticked CVs are linked to this job.':
     'Haken Sie die Lebensläufe an, die Sie verwendet haben oder verwenden möchten. Nur angehakte Lebensläufe sind mit dieser Stelle verknüpft.',
   tier: 'Stufe',
+  Tier: 'Stufe',
   'Tighter spacing and thin lines between sections, for a lot of detail on one page.':
     'Engere Abstände und dünne Linien zwischen Abschnitten, für viele Details auf einer Seite.',
   'Time management': 'Zeitmanagement',
@@ -3164,7 +3206,7 @@ export const de: Dict = {
   'Unmarked new facts: {v}': 'Unmarkierte neue Fakten: {v}',
   'Unmet: {v}': 'Nicht erfüllt: {v}',
   'Unpaid work and community roles': 'Unbezahlte Arbeit und Engagement in der Gemeinschaft',
-  'Unsaved changes': 'Ungespeicherte Änderungen',
+  'Unsaved changes': 'Nicht gespeicherte Änderungen',
   'Untick a task to switch off just that AI help; the tool says AI isn’t available and nothing is counted.':
     'Entfernen Sie den Haken bei einer Aufgabe, um nur diese KI-Hilfe abzuschalten; das Werkzeug meldet dann, dass KI nicht verfügbar ist, und es wird nichts gezählt.',
   'Untick a type to stop offering it. Letters already written stay.':

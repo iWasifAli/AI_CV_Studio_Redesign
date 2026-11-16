@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { DESIGN_IDS } from '@/modules/resume/schema';
 import { TASK_IDS } from '@/modules/ai/schemas';
 import { DEFAULT_FAQ, DEFAULT_OFFER } from '@/modules/content/defaults';
+import { DESIGN_STATUSES, DESIGN_TAGS, normaliseEntry } from '@/modules/design/lifecycle';
 
 /**
  * Business configuration (docs/product/studio-master-plan.md §3, §4.4). One typed schema shared by
@@ -64,12 +65,23 @@ export const businessConfig = z.object({
   /** Design catalogue: availability and tier per design. */
   designs: z
     .array(
-      z.object({
-        id: z.enum(DESIGN_IDS),
-        enabled: z.boolean(),
-        tier: z.enum(['free', 'premium']),
-        isNew: z.boolean().default(false),
-      }),
+      z
+        .object({
+          id: z.enum(DESIGN_IDS),
+          enabled: z.boolean(),
+          tier: z.enum(['free', 'premium']),
+          isNew: z.boolean().default(false),
+          /** draft / live / retired (catalogue lifecycle); older configs only had `enabled`. */
+          status: z.enum(DESIGN_STATUSES).optional(),
+          /** Mood and occasion tags shown as gallery filters. */
+          tags: z.array(z.enum(DESIGN_TAGS)).max(DESIGN_TAGS.length).optional(),
+          /** Date the design entered the catalogue (YYYY-MM-DD), for "Newest". */
+          addedAt: z
+            .string()
+            .regex(/^\d{4}-\d{2}-\d{2}$/)
+            .optional(),
+        })
+        .transform(normaliseEntry),
     )
     .min(1),
   /** Premium passes (manual payment, R1.4). */
@@ -356,7 +368,9 @@ export const DEFAULT_CONFIG: BusinessConfig = {
       maxStories: 50,
     },
   },
-  designs: DESIGN_IDS.map((id) => ({ id, enabled: true, tier: 'free' as const, isNew: false })),
+  designs: DESIGN_IDS.map((id) =>
+    normaliseEntry({ id, enabled: true, tier: 'free' as const, isNew: false }),
+  ),
   passes: [
     { id: 'month', label: '1 month', days: 30, pricePkr: 499, active: true },
     { id: 'quarter', label: '3 months', days: 90, pricePkr: 1299, active: true },
@@ -452,7 +466,9 @@ export function withAllDesigns(cfg: BusinessConfig): BusinessConfig {
     ...cfg,
     designs: [
       ...cfg.designs,
-      ...missing.map((id) => ({ id, enabled: false, tier: 'premium' as const, isNew: true })),
+      ...missing.map((id) =>
+        normaliseEntry({ id, enabled: false, tier: 'premium' as const, isNew: true }),
+      ),
     ],
   };
 }

@@ -82,6 +82,7 @@ export function DesignPanel({
   const current = currentDesignId(d);
   const meta = current ? DESIGN_META[current] : null;
   const [family, setFamily] = useState<Family | 'all'>('all');
+  const retired = !!current && ent?.designs.find((x) => x.id === current)?.status === 'retired';
   const available = DESIGNS.filter(
     (t) => t.id === current || !ent || ent.designs.find((x) => x.id === t.id)?.enabled !== false,
   );
@@ -124,6 +125,14 @@ export function DesignPanel({
         />
       )}
       <Group title={tx('Look')} hint={tx('Your words stay the same — only the design changes.')}>
+        {retired && (
+          <p
+            data-testid="design-retired"
+            className="bg-sunken text-ink-muted rounded-lg px-3 py-2 text-sm"
+          >
+            {tx('This design has been retired — you can keep it or choose another.')}
+          </p>
+        )}
         <div role="group" aria-label={tx('Design families')} className="flex flex-wrap gap-1.5">
           {(['all', ...FAMILIES] as const).map((f) => (
             <button

@@ -1,5 +1,6 @@
 'use client';
 
+import { designLabel } from '@/modules/design/lifecycle';
 import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useEffect, useId, useMemo, useState } from 'react';
@@ -7,7 +8,6 @@ import { ArrowRight, Crown } from 'lucide-react';
 import { Segmented } from '@/components/ui/segmented';
 import { isPremiumDesign, useEntitlements } from '@/features/account/entitlements';
 import { DocumentPreview } from '@/features/preview/document-preview';
-import { designSpec } from '@/modules/design/catalogue';
 import {
   DESIGNS,
   FAMILIES,
@@ -38,12 +38,9 @@ export function inDesign(doc: ResumeDocument, id: DesignId, sample?: string): Re
   return ops.useDesign(base, id);
 }
 
-/** Single-column designs (incl. timeline): position-sorted text keeps the section order. */
+/** "ATS-friendly" designs read cleanly as they are; the others come with a plain ATS version. */
 export function onlineSafe(d: DesignMeta): boolean {
-  // Graphic designs are made for people to look at; their ATS PDF is the online version.
-  if (d.family === 'graphic') return false;
-  const t = designSpec(d.id, FIXTURES.teacher.design).layout.type;
-  return t === 'single' || t === 'timeline';
+  return designLabel(d) === 'ats';
 }
 
 /** "Show with": the person's own CVs on this device, then the samples. */

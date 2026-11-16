@@ -127,6 +127,8 @@ export const taskInputs = {
     current: z.record(z.string(), z.unknown()).default({}),
     currentDesign: z.enum(DESIGN_IDS).optional(),
     hasImage: z.boolean().default(false),
+    /** Catalogue designs not offered right now (draft or retired); set by the server. */
+    hidden: z.array(z.enum(DESIGN_IDS)).max(DESIGN_IDS.length).default([]),
   }),
   'design.refine': z.object({
     instruction: short(300).min(2),

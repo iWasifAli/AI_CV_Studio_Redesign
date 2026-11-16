@@ -88,12 +88,20 @@ export function candidateSpec(
 export function candidateSpecs(
   list: ComposeCandidate[],
   current: DesignSpec,
-  ctx: { description?: string; doc?: ResumeDocument } = {},
+  ctx: { description?: string; doc?: ResumeDocument; offered?: (id: DesignId) => boolean } = {},
 ): Candidate[] {
   const asks = ctx.description ? requestsIn(ctx.description) : [];
   const seen = new Set<string>();
   const out: Candidate[] = [];
-  for (const c of list) {
+  for (const raw of list) {
+    // A design that is not offered (retired or draft) is never named as the starting point.
+    const c =
+      ctx.offered && !ctx.offered(raw.startFrom)
+        ? {
+            ...raw,
+            startFrom: nearestCatalogue(designSpec(raw.startFrom, current), current, ctx.offered),
+          }
+        : raw;
     const cand = candidateSpec(c, current, { asks, doc: ctx.doc });
     const key = JSON.stringify({ ...cand.spec, origin: undefined });
     if (seen.has(key)) continue;
@@ -104,11 +112,16 @@ export function candidateSpecs(
 }
 
 /** The catalogue design most like a spec (most flat fields in common): the safe fallback. */
-export function nearestCatalogue(spec: DesignSpecV2, current: DesignSpec): DesignId {
+export function nearestCatalogue(
+  spec: DesignSpecV2,
+  current: DesignSpec,
+  offered: (id: DesignId) => boolean = () => true,
+): DesignId {
   const want = toFlat(spec);
   let best: DesignId = 'clarity';
   let bestScore = -1;
   for (const d of DESIGNS) {
+    if (!offered(d.id)) continue;
     const f = toFlat(designSpec(d.id, current));
     let score = 0;
     for (const k of Object.keys(want) as FieldName[])

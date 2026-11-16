@@ -1,9 +1,10 @@
+import { isLive } from '@/modules/design/lifecycle';
 import { NextResponse } from 'next/server';
 import { apiError, clientKey, readJson, requestId } from '@/lib/http';
 import { aiModels, getAiProvider } from '@/modules/ai/config';
 import { sharedAiLimiter } from '@/modules/ai/limits';
 import { runTask } from '@/modules/ai/run';
-import { denialCode, reserve } from '@/modules/billing/server';
+import { denialCode, getBusinessConfig, reserve } from '@/modules/billing/server';
 import { currentUser } from '@/modules/identity/session';
 import { sniff } from '@/modules/import/extract';
 import { aiBudgetSpent, track } from '@/modules/metrics/server';
@@ -83,10 +84,13 @@ export async function POST(req: Request) {
       reason: gate.decision.reason,
     });
 
+  // Retired and draft designs are never offered as a starting point.
+  const { value: cfg } = await getBusinessConfig();
+  const notOffered = cfg.designs.filter((d) => !isLive(d)).map((d) => d.id);
   const started = Date.now();
   const r = await runTask(
     'design.compose',
-    { ...input, hasImage: !!files },
+    { ...input, hasImage: !!files, hidden: notOffered },
     Math.max(0, Math.min(3, Math.floor(Number(attempt) || 0))),
     { provider, models: aiModels(), ...(files ? { files } : {}), timeoutMs: 45_000 },
   );

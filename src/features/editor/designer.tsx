@@ -7,6 +7,8 @@ import { Banner } from '@/components/ui/banner';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { deviceId, useAi } from '@/features/ai/client';
 import { remaining, useEntitlements } from '@/features/account/entitlements';
+import { isLive } from '@/modules/design/lifecycle';
+import type { DesignId } from '@/modules/resume/schema';
 import { DocumentPreview, type PreviewStatus } from '@/features/preview/document-preview';
 import { designSpec } from '@/modules/design/catalogue';
 import { DESIGN_META } from '@/modules/design/designs';
@@ -165,6 +167,8 @@ export function Designer({ editor }: { editor: DocumentEditor }) {
   const { doc, update } = editor;
   const ai = useAi();
   const { ent, refresh } = useEntitlements();
+  // Retired and draft designs are never offered (CVs that already use one keep it).
+  const offered = (id: DesignId) => !ent || isLive(ent.designs.find((x) => x.id === id));
   const id = useId();
   const [text, setText] = useState('');
   const [image, setImage] = useState<{ name: string; data: string; url: string } | null>(null);
@@ -232,6 +236,7 @@ export function Designer({ editor }: { editor: DocumentEditor }) {
       const list = candidateSpecs(json.result.candidates, doc.design, {
         description: text,
         doc,
+        offered,
       });
       setShown(list.map((c, i) => ({ ...c, key: `${attempt.current}-${i}` })));
       refresh();
@@ -250,7 +255,7 @@ export function Designer({ editor }: { editor: DocumentEditor }) {
     setShown((list) => {
       const i = list.findIndex((c) => c.key === key);
       if (i < 0) return list;
-      const near = nearestCatalogue(list[i]!.spec, doc.design);
+      const near = nearestCatalogue(list[i]!.spec, doc.design, offered);
       const meta = DESIGN_META[near];
       if (list.some((c) => c.fallback && c.startFrom === near))
         return list.filter((c) => c.key !== key);

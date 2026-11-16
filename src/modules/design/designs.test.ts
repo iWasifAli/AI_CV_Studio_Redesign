@@ -103,7 +103,7 @@ describe('R7 catalogue', () => {
     };
     const cfg = parseConfig(old);
     expect(cfg.designs).toHaveLength(DESIGN_IDS.length);
-    expect(cfg.designs.find((d) => d.id === 'mosaic')).toEqual({
+    expect(cfg.designs.find((d) => d.id === 'mosaic')).toMatchObject({
       id: 'mosaic',
       enabled: false,
       tier: 'premium',

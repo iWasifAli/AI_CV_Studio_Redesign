@@ -1,5 +1,5 @@
-import { AdminDesignReview } from '@/features/admin/design-review';
+import { AdminDesigns } from '@/features/admin/designs-page';
 
 export default function Page() {
-  return <AdminDesignReview />;
+  return <AdminDesigns />;
 }

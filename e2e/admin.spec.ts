@@ -4,6 +4,8 @@ import { expect, test } from './support/test';
 import { apiSignUp, makeAdmin, setConfig, uniqueEmail, EMULATOR, PASSWORD } from './support/auth';
 import { DEFAULT_CONFIG } from '../src/modules/billing/config';
 import { driver } from '../src/modules/resume/fixtures';
+import { ops } from '../src/modules/resume/ops';
+import { seedDocument } from './support/seed';
 
 /**
  * R1.3 — Admin Console. Runs in its own Playwright project after all other specs, because it
@@ -78,12 +80,17 @@ test('admin changes settings; the gate follows; history records and restores', a
 
   await page.getByRole('link', { name: 'Settings' }).click();
   await page.getByLabel('Free: PDF downloads per month').fill('0');
-  await page.getByLabel('Vivid tier').selectOption('premium');
   await page.getByLabel('Show the announcement').check();
   await page.getByLabel('Message').fill('Welcome to the new studio');
   await expect(page.getByText('Unsaved changes')).toBeVisible();
   await page.getByRole('button', { name: 'Save changes' }).click();
-  await expect(page.getByText(/Saved as version \d+ \(4 changes\)/)).toBeVisible();
+  await expect(page.getByText(/Saved as version \d+ \(3 changes\)/)).toBeVisible();
+
+  // Design tiers are set in Admin → Designs.
+  await page.getByRole('link', { name: 'Designs' }).click();
+  await page.getByLabel('Vivid tier').selectOption('premium');
+  await page.getByTestId('catalogue-save').click();
+  await expect(page.getByText(/Saved as version \d+ \(1 change\)/)).toBeVisible();
 
   // The free account (request fixture) now sees the new rules from the server.
   const ent = (await (await request.get('/api/me/entitlements')).json()) as {
@@ -109,7 +116,8 @@ test('admin changes settings; the gate follows; history records and restores', a
   await expect(audit).toContainText('plans.free.limits.pdf.download: 30 → 0');
   const versions = page.getByTestId('config-versions');
   page.once('dialog', (d) => void d.accept());
-  await versions.getByRole('button', { name: 'Restore' }).first().click();
+  // Restore the version before both saves (the list is newest first).
+  await versions.getByRole('button', { name: 'Restore' }).nth(1).click();
   await expect(page.getByText(/restored as version/)).toBeVisible();
   await expect(audit).toContainText('Restored settings');
   const after = (await (await request.get('/api/me/entitlements')).json()) as {
@@ -117,6 +125,58 @@ test('admin changes settings; the gate follows; history records and restores', a
   };
   expect(after.limits['pdf.download']).toBe(30);
   await context.close();
+});
+
+test('Admin → Designs: search, bulk tags, retire; a retired design is hidden but CVs keep it', async ({
+  browser,
+  page,
+  request,
+}) => {
+  const { context, page: admin } = await adminPage(browser);
+  await admin.goto('/admin/designs');
+  const table = admin.getByTestId('design-catalogue');
+  await admin.getByTestId('catalogue-search').fill('terra');
+  await expect(table.locator('tbody tr')).toHaveCount(1);
+  await admin.getByLabel('Terra status').selectOption('retired');
+  // Bulk: two designs gain the "Academic" tag in one step.
+  await admin.getByTestId('catalogue-search').fill('');
+  await admin.getByLabel('Select Neon').check();
+  await admin.getByLabel('Select Ruby').check();
+  await admin.getByTestId('bulk-add-tag').selectOption('academic');
+  await admin.getByTestId('catalogue-save').click();
+  await expect(admin.getByText(/Saved as version \d+ \(\d+ changes?\)/)).toBeVisible();
+  await admin.getByTestId('catalogue-status-filter').selectOption('retired');
+  await expect(table.locator('tbody tr')).toHaveCount(1);
+  await admin.getByTestId('catalogue-status-filter').selectOption('all');
+  await admin.getByTestId('catalogue-tag-filter').selectOption('academic');
+  await expect(table.getByTestId('catalogue-row-neon')).toBeVisible();
+  await expect(table.getByTestId('catalogue-row-ruby')).toBeVisible();
+
+  const cfg = (await (await context.request.get('/api/admin/config')).json()) as {
+    value: { designs: { id: string; status: string; enabled: boolean; tags: string[] }[] };
+  };
+  expect(cfg.value.designs.find((d) => d.id === 'terra')).toMatchObject({
+    status: 'retired',
+    enabled: false,
+  });
+  expect(cfg.value.designs.find((d) => d.id === 'neon')?.tags).toContain('academic');
+  // The save is audited.
+  await admin.goto('/admin/history');
+  await expect(admin.getByTestId('audit-log')).toContainText('Saved settings');
+  await context.close();
+
+  // Hidden from the gallery …
+  await page.goto('/templates');
+  await expect(page.locator('main ul > li[data-design="neon"]')).toHaveCount(1);
+  await expect(page.locator('main ul > li[data-design="terra"]')).toHaveCount(0);
+  // … but a CV already in Terra keeps it, says so, and still downloads.
+  const cv = ops.useDesign({ ...driver, id: 'retired-terra' }, 'terra');
+  await seedDocument(page, cv);
+  await page.goto(`/cv/${cv.id}`);
+  await page.getByRole('tab', { name: 'Design' }).click();
+  await expect(page.getByTestId('design-retired')).toBeVisible();
+  const pdf = await request.post('/api/pdf', { data: { document: cv } });
+  expect(pdf.status()).toBe(200);
 });
 
 test('the support email set in Settings appears on Help and Terms', async ({ browser, page }) => {

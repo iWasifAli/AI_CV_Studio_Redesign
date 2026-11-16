@@ -1,3 +1,4 @@
+import { keepsWorking } from '@/modules/design/lifecycle';
 import type { DesignId } from '@/modules/resume/schema';
 import type { BusinessConfig, Metered, PlanId } from './config';
 
@@ -22,7 +23,8 @@ const NOUN: Record<Metered, string> = {
 
 export function canUseDesign(plan: PlanId, cfg: BusinessConfig, id: DesignId): Decision {
   const d = cfg.designs.find((x) => x.id === id);
-  if (!d || !d.enabled)
+  // Retired designs keep working for CVs that already use them (they are only hidden from choice).
+  if (!d || !keepsWorking(d))
     return { ok: false, reason: 'disabled', message: 'This design is not available right now.' };
   if (d.tier === 'premium' && plan !== 'premium')
     return { ok: false, reason: 'premium', message: 'This design is part of Premium.' };

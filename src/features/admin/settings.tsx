@@ -1,7 +1,6 @@
 'use client';
 
 import { useT } from '@/i18n/client';
-import { DESIGN_META, FAMILY_LABEL } from '@/modules/design/designs';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
@@ -39,7 +38,6 @@ const METER_LABEL: Record<Metered, string> = {
   'design.ai': 'AI designs (Designer)',
   'ats.check': 'ATS checks (-1 = no limit)',
 };
-const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 /** Every AI task, in plain words, for the per-task switches. */
 const TASK_LABEL: Record<TaskId, string> = {
@@ -108,11 +106,6 @@ export function AdminSettings() {
       return next;
     });
 
-  const editDesign = (i: number, fn: (d: BusinessConfig['designs'][number]) => void) =>
-    edit((c) => {
-      const d = c.designs[i];
-      if (d) fn(d);
-    });
   const editPass = (i: number, fn: (p: BusinessConfig['passes'][number]) => void) =>
     edit((c) => {
       const p = c.passes[i];
@@ -271,7 +264,7 @@ export function AdminSettings() {
         <Section
           title={tx('Designs')}
           hint={tx(
-            'Hide a design, or make it Premium. Free accounts and visitors can still preview Premium designs but download only free ones.',
+            'Free accounts and visitors can still preview Premium designs but download only free ones.',
           )}
         >
           {!freeEnabled && (
@@ -281,48 +274,13 @@ export function AdminSettings() {
               className="mb-3"
             />
           )}
-          <ul className="divide-line divide-y">
-            {draft.designs.map((d, i) => (
-              <li
-                key={d.id}
-                className="flex flex-wrap items-center gap-x-6 gap-y-1 py-2"
-                data-testid={`design-row-${d.id}`}
-              >
-                <span className="w-40">
-                  <span className="block font-semibold">{cap(d.id)}</span>
-                  <span className="text-ink-muted block text-xs">
-                    {FAMILY_LABEL[DESIGN_META[d.id].family].name}
-                  </span>
-                </span>
-                <CheckboxField
-                  label={tx('Shown')}
-                  checked={d.enabled}
-                  onChange={(v) => editDesign(i, (d) => void (d.enabled = v))}
-                />
-                <label className="flex items-center gap-2 text-[15px]">
-                  <span className="sr-only">
-                    {cap(d.id)} {tx('tier')}
-                  </span>
-                  <select
-                    className="border-line-strong bg-surface h-10 rounded-sm border px-2"
-                    value={d.tier}
-                    aria-label={tx('{v0} tier', { v0: cap(d.id) })}
-                    onChange={(e) =>
-                      editDesign(i, (d) => void (d.tier = e.target.value as 'free' | 'premium'))
-                    }
-                  >
-                    <option value="free">{tx('Free')}</option>
-                    <option value="premium">{tx('Premium')}</option>
-                  </select>
-                </label>
-                <CheckboxField
-                  label={tx('Mark as new')}
-                  checked={d.isNew}
-                  onChange={(v) => editDesign(i, (d) => void (d.isNew = v))}
-                />
-              </li>
-            ))}
-          </ul>
+          <p className="text-[15px]">
+            {tx('Status, tier and tags for each design are set in')}{' '}
+            <a href="/admin/designs" className="text-primary font-semibold underline">
+              {tx('Designs')}
+            </a>
+            .
+          </p>
         </Section>
 
         <Section
