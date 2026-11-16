@@ -1,6 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import type { Browser, Page } from '@playwright/test';
 import { expect, test } from './support/test';
+import { EMULATOR } from './support/auth';
 
 /**
  * R1.1 — accounts and cloud documents, against the Firebase Auth emulator and the server's
@@ -103,6 +104,52 @@ test('wrong password shows a plain message; reset does not reveal accounts', asy
   await page.getByLabel('Email').fill(uniqueEmail('nobody'));
   await page.getByRole('button', { name: 'Send reset link' }).click();
   await expect(page.getByText(/If an account exists for this email/)).toBeVisible();
+});
+
+test('forgot password: our own reset page, then back to sign in with the new password', async ({
+  page,
+  request,
+  isMobile,
+}) => {
+  test.skip(isMobile, 'Covered on desktop');
+  const email = uniqueEmail('reset');
+  await request.post(
+    `${EMULATOR}/identitytoolkit.googleapis.com/v1/accounts:signUp?key=emulator-key`,
+    { data: { email, password: PASSWORD, returnSecureToken: true } },
+  );
+  await page.goto('/signin');
+  await page.getByRole('button', { name: 'Forgot your password?' }).click();
+  await page.getByLabel('Email').fill(email);
+  await page.getByRole('button', { name: 'Send reset link' }).click();
+  await expect(page.getByText(/If an account exists for this email/)).toBeVisible();
+
+  // The link from the email (the Auth emulator keeps it), opened on our own page.
+  const codes = (await (
+    await request.get(`${EMULATOR}/emulator/v1/projects/demo-aicv/oobCodes`)
+  ).json()) as {
+    oobCodes: { email: string; requestType: string; oobCode: string; oobLink: string }[];
+  };
+  const link = codes.oobCodes
+    .filter((c) => c.email === email && c.requestType === 'PASSWORD_RESET')
+    .at(-1)!;
+  expect(link.oobLink).toContain(encodeURIComponent('/signin?reset=1'));
+  await page.goto(`/auth/action?mode=resetPassword&oobCode=${link.oobCode}`);
+  await expect(page.getByText(`For ${email}`)).toBeVisible();
+  const fresh = 'Brand-New-Pass-7!';
+  await page.getByLabel('New password').fill(fresh);
+  await page.getByLabel('Confirm password').fill(fresh);
+  await page.getByRole('button', { name: 'Save new password' }).click();
+
+  await expect(page).toHaveURL(/\/signin\?reset=1/);
+  await expect(page.getByText('Your password has been changed.')).toBeVisible();
+  await page.getByLabel('Email').fill(email);
+  await page.getByLabel('Password', { exact: true }).fill(fresh);
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await expect(page).not.toHaveURL(/\/signin/);
+
+  // The same link cannot be used twice.
+  await page.goto(`/auth/action?mode=resetPassword&oobCode=${link.oobCode}`);
+  await expect(page.getByText(/expired or was already used/)).toBeVisible();
 });
 
 test('a CV made before signing in moves into the account and appears on another device', async ({

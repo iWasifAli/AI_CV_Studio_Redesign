@@ -102,10 +102,42 @@ export async function signInWithGoogle() {
 export async function sendReset(email: string) {
   const auth = await getClientAuth();
   const { sendPasswordResetEmail } = await import('firebase/auth');
-  await sendPasswordResetEmail(auth, email.trim()).catch((e: { code?: string }) => {
-    // Do not reveal whether an account exists.
-    if (e.code !== 'auth/user-not-found') throw e;
+  // After the new password is set, "Continue" brings the person back to our sign-in page.
+  const back = { url: `${window.location.origin}/signin?reset=1` };
+  const send = (settings?: typeof back) =>
+    sendPasswordResetEmail(auth, email.trim(), settings).catch((e: { code?: string }) => {
+      // Do not reveal whether an account exists.
+      if (e.code !== 'auth/user-not-found') throw e;
+    });
+  // A domain not on the project's allowed list refuses the continue link: send without it then.
+  await send(back).catch((e: { code?: string }) => {
+    if (e.code === 'auth/unauthorized-continue-uri' || e.code === 'auth/invalid-continue-uri')
+      return send();
+    throw e;
   });
+}
+
+/**
+ * Links from Firebase emails (reset password, verify email, undo an email change), handled on
+ * our own page (/auth/action) instead of Firebase's default one.
+ */
+export type ActionMode = 'resetPassword' | 'verifyEmail' | 'recoverEmail';
+export async function checkResetCode(code: string): Promise<string> {
+  const auth = await getClientAuth();
+  const { verifyPasswordResetCode } = await import('firebase/auth');
+  return verifyPasswordResetCode(auth, code);
+}
+export async function confirmReset(code: string, password: string) {
+  const auth = await getClientAuth();
+  const { confirmPasswordReset } = await import('firebase/auth');
+  await confirmPasswordReset(auth, code, password);
+}
+export async function applyEmailAction(code: string): Promise<string | null> {
+  const auth = await getClientAuth();
+  const { applyActionCode, checkActionCode } = await import('firebase/auth');
+  const info = await checkActionCode(auth, code);
+  await applyActionCode(auth, code);
+  return info.data.email ?? null;
 }
 
 export async function resendVerification() {

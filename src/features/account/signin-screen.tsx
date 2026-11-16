@@ -62,7 +62,11 @@ export function SignInScreen() {
   const [adult, setAdult] = useState(false);
   const [busy, setBusy] = useState<'email' | 'google' | null>(null);
   const [error, setError] = useState('');
-  const [notice, setNotice] = useState('');
+  const [notice, setNotice] = useState(
+    params.get('reset') === '1'
+      ? t('Your password has been changed. Sign in with your new password.')
+      : '',
+  );
 
   const rulesOk = PASSWORD_RULES.every((r) => r.test(password));
   const done = async () => {

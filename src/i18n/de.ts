@@ -705,6 +705,7 @@ export const de: Dict = {
   'Checked against “{sourceTitle}” on{v} {v2}': 'Abgeglichen mit „{sourceTitle}“ am{v} {v2}',
   'Checking email…': 'E-Mail wird geprüft …',
   'Checking your lines…': 'Ihre Zeilen werden geprüft …',
+  'Checking your link…': 'Ihr Link wird geprüft …',
   'Chips and badges': 'Chips und Abzeichen',
   'Choose a CV for the coach to read.': 'Wählen Sie einen Lebenslauf, den der Coach lesen soll.',
   'Choose a CV to compare with.': 'Wählen Sie einen Lebenslauf zum Vergleichen.',
@@ -1303,6 +1304,7 @@ export const de: Dict = {
   Font: 'Schrift',
   'Food hygiene': 'Lebensmittelhygiene',
   Footer: 'Fußzeile',
+  'For {email}': 'Für {email}',
   'For a job you want: the skills your CV already shows, what’s missing, and what to learn first.':
     'Für eine Wunschstelle: die Kenntnisse, die Ihr Lebenslauf schon zeigt, was fehlt und was Sie zuerst lernen sollten.',
   'For a kind of role, or a saved job': 'Für eine Art von Stelle oder eine gespeicherte Stelle',
@@ -1401,6 +1403,7 @@ export const de: Dict = {
   'Go back to this version? Your CV as it is now is kept in History first, and Undo works too.':
     'Zu dieser Version zurückkehren? Ihr aktueller Lebenslauf wird vorher im Verlauf gespeichert, und Rückgängig funktioniert auch.',
   'Go to': 'Gehe zu',
+  'Go to sign in': 'Zur Anmeldung',
   'Go to the home page': 'Zur Startseite',
   'Go to your jobs': 'Zu Ihren Stellen',
   Good: 'Gut',
@@ -1843,6 +1846,7 @@ export const de: Dict = {
   'New here?': 'Neu hier?',
   'New letter': 'Neuer Brief',
   'New pass': 'Neuer Pass',
+  'New password': 'Neues Passwort',
   'New point': 'Neuer Punkt',
   'New question': 'Neue Frage',
   'New questions': 'Neue Fragen',
@@ -2494,6 +2498,7 @@ export const de: Dict = {
   'Save job': 'Stelle speichern',
   'Save letter': 'Brief speichern',
   'Save my notes': 'Meine Notizen speichern',
+  'Save new password': 'Neues Passwort speichern',
   'Save story': 'Geschichte speichern',
   'Save the design first, then share it.':
     'Speichern Sie das Design zuerst und teilen Sie es dann.',
@@ -2586,6 +2591,7 @@ export const de: Dict = {
   'Service or unit': 'Truppenteil oder Einheit',
   'Service, rank and duties — e.g. “Corporal, Royal Logistic Corps”':
     'Dienst, Dienstgrad und Aufgaben – z. B. „Obergefreiter, Logistikbataillon“',
+  'Set a new password': 'Neues Passwort festlegen',
   'Set it up': 'Einrichten',
   'Set status': 'Status setzen',
   'Set tier': 'Stufe setzen',
@@ -3094,6 +3100,9 @@ export const de: Dict = {
   'This is switched off right now.': 'Das ist gerade abgeschaltet.',
   'This is your career profile': 'Das ist Ihr Karriereprofil',
   'This letter type isn’t available right now.': 'Diese Briefart ist gerade nicht verfügbar.',
+  'This link has expired or was already used. Ask for a new one from the sign-in page.':
+    'Dieser Link ist abgelaufen oder wurde bereits verwendet. Fordern Sie auf der Anmeldeseite einen neuen an.',
+  'This link is not one we recognise.': 'Diesen Link erkennen wir nicht.',
   'This makeover has expired. Please upload again.':
     'Diese Neugestaltung ist abgelaufen. Bitte laden Sie die Datei erneut hoch.',
   'this month': 'diesen Monat',
@@ -3755,6 +3764,9 @@ export const de: Dict = {
   'Your details and skills in a side column': 'Ihre Angaben und Kenntnisse in einer Seitenspalte',
   'Your documents': 'Ihre Dokumente',
   'Your email': 'Ihre E-Mail-Adresse',
+  'Your email address has been changed back. If you did not ask for the change, set a new password now.':
+    'Ihre E-Mail-Adresse wurde zurückgesetzt. Falls Sie die Änderung nicht veranlasst haben, legen Sie jetzt ein neues Passwort fest.',
+  'Your email address is confirmed.': 'Ihre E-Mail-Adresse ist bestätigt.',
   'Your email breaks onto two lines in this design':
     'Ihre E-Mail-Adresse wird in diesem Design auf zwei Zeilen umgebrochen',
   'Your email is split over two lines': 'Ihre E-Mail-Adresse ist auf zwei Zeilen verteilt',
@@ -3811,6 +3823,8 @@ export const de: Dict = {
   'Your page (for the QR code)': 'Ihre Seite (für den QR-Code)',
   'Your page is live': 'Ihre Seite ist online',
   'Your page:': 'Ihre Seite:',
+  'Your password has been changed. Sign in with your new password.':
+    'Ihr Passwort wurde geändert. Melden Sie sich mit Ihrem neuen Passwort an.',
   'Your PDF is downloading': 'Ihre PDF wird heruntergeladen',
   'Your photo': 'Ihr Foto',
   'Your photo is hidden on the CV. Choose “Show on CV” to bring it back.':
