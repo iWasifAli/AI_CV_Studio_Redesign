@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { editPrompt } from '@/modules/resume/instruction-edit';
 import { join } from 'node:path';
 import { profileDigest } from '@/modules/jobs/digest';
 import { LINKEDIN_SAMPLES } from '@/modules/linkedin/samples';
@@ -237,6 +238,10 @@ describe('mock provider', () => {
       reason: 'Caring for family',
       answer: 'Looked after my father',
       length: 'about 8 months',
+    },
+    'cv.edit': {
+      instruction: 'Make my profile shorter and put Education first',
+      cv: editPrompt(F.driver),
     },
     'write.rewrite': {
       text: 'delivered parcels to costumers',

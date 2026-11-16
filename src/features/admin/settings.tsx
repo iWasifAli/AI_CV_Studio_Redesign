@@ -47,6 +47,7 @@ const TASK_LABEL: Record<TaskId, string> = {
   'write.improveBullets': 'Improve job points',
   'write.fromNotes': 'Job points from notes',
   'write.rewrite': 'AI on selected text',
+  'cv.edit': 'Edit the CV by instruction',
   'write.quantify': 'Questions to add numbers',
   'coach.gap': 'Wording for a gap in work history',
   'translate.document': 'Translate a CV',

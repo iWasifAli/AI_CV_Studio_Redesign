@@ -540,6 +540,7 @@ export const de: Dict = {
   'Applied {v0}': 'Beworben {v0}',
   'Applied on': 'Beworben am',
   Apply: 'Bewerben',
+  'Apply the ticked changes': 'Angehakte Änderungen übernehmen',
   'Applying for a specific advert?': 'Bewerben Sie sich auf eine bestimmte Anzeige?',
   Approve: 'Freigeben',
   Approved: 'Freigegeben',
@@ -547,6 +548,7 @@ export const de: Dict = {
   'Ask a former manager or teacher to be your referee.':
     'Bitten Sie eine frühere Vorgesetzte oder Lehrkraft um eine Referenz.',
   'Ask again': 'Erneut fragen',
+  'Ask AI to edit your CV': 'KI bitten, Ihren Lebenslauf zu bearbeiten',
   'Ask anything about your CV and applications, and let the coach set up the next step for you.':
     'Fragen Sie alles zu Ihrem Lebenslauf und Ihren Bewerbungen, und lassen Sie den Coach den nächsten Schritt für Sie vorbereiten.',
   'Ask anything about your CV, jobs or interviews…':
@@ -1161,9 +1163,11 @@ export const de: Dict = {
   'Early career, sales and hospitality': 'Berufseinstieg, Verkauf und Gastgewerbe',
   Edit: 'Bearbeiten',
   'Edit “{title}”': '„{title}“ bearbeiten',
+  'Edit by instruction': 'Bearbeiten nach Anweisung',
   'Edit profile': 'Profil bearbeiten',
   'Edit story': 'Geschichte bearbeiten',
   'Edit the cover letter': 'Anschreiben bearbeiten',
+  'Edit the CV by instruction': 'Lebenslauf nach Anweisung bearbeiten',
   'Edit your CV': 'Ihren Lebenslauf bearbeiten',
   'Editing: {title}': 'Bearbeiten: {title}',
   Editor: 'Editor',
@@ -1570,6 +1574,8 @@ export const de: Dict = {
     'Er wurde möglicherweise gelöscht oder gehört zu einem anderen Konto. Ihre gespeicherten Lebensläufe finden Sie unter Dokumente.',
   'It may have been deleted, or made on another device while you were signed out. Sign in to see the CVs saved to your account.':
     'Er wurde möglicherweise gelöscht oder auf einem anderen Gerät erstellt, während Sie abgemeldet waren. Melden Sie sich an, um die in Ihrem Konto gespeicherten Lebensläufe zu sehen.',
+  'It points to something that is not in this CV.':
+    'Er verweist auf etwas, das nicht in diesem Lebenslauf steht.',
   'It suggests clearer, more professional wording for what you have already written. It never adds jobs, dates, qualifications or numbers you did not give us. When a sentence would be stronger with a detail only you know, it asks you instead of guessing — those parts are highlighted until you fill them in. You can turn AI help off on the privacy page.':
     'Sie schlägt klarere, professionellere Formulierungen für das vor, was Sie bereits geschrieben haben. Sie fügt nie Stellen, Daten, Abschlüsse oder Zahlen hinzu, die Sie uns nicht genannt haben. Wenn ein Satz mit einem Detail stärker wäre, das nur Sie kennen, fragt sie nach, statt zu raten – diese Stellen bleiben markiert, bis Sie sie ausfüllen. Sie können die KI-Hilfe auf der Datenschutzseite abschalten.',
   'Its own colours': 'Eigene Farben',
@@ -1639,6 +1645,7 @@ export const de: Dict = {
   'Leave out': 'Weglassen',
   Left: 'Links',
   'Left as it is.': 'Unverändert gelassen.',
+  'Left out a suggestion:': 'Ein Vorschlag wurde weggelassen:',
   'Left quickly': 'Schnell gewechselt',
   'Left–right': 'Links–rechts',
   Length: 'Länge',
@@ -1730,6 +1737,7 @@ export const de: Dict = {
   'Make it from': 'Erstellen aus',
   'Make it shorter': 'Kürzer fassen',
   'Make my plan': 'Meinen Plan erstellen',
+  'Make my profile shorter': 'Mein Profil kürzer machen',
   'Make shorter': 'Kürzer fassen',
   'Make the brief': 'Unternehmensprofil erstellen',
   'Make them': 'Erstellen',
@@ -1848,6 +1856,7 @@ export const de: Dict = {
   'No accounts yet.': 'Noch keine Konten.',
   'No admin changes yet.': 'Noch keine Admin-Änderungen.',
   'No applications sent yet': 'Noch keine Bewerbungen gesendet',
+  'No change was needed or possible.': 'Keine Änderung war nötig oder möglich.',
   'No changes needed — these lines already read well.':
     'Keine Änderungen nötig – diese Zeilen lesen sich bereits gut.',
   'no CV ticked, so': 'kein Lebenslauf angehakt, daher',
@@ -1980,12 +1989,18 @@ export const de: Dict = {
     'Eine Sache pro Zeile. Zum Beispiel: Täglich 120 Pakete im Norden Londons zugestellt.',
   'One thing per line. Short, clear sentences work best.':
     'Eine Sache pro Zeile. Kurze, klare Sätze funktionieren am besten.',
+  'Only a single point or skill can be removed.':
+    'Nur ein einzelner Punkt oder eine Fähigkeit kann entfernt werden.',
+  'Only a text can be rewritten.': 'Nur ein Text kann umgeschrieben werden.',
   'Only add a missing word if it’s true for you. Employers check.':
     'Fügen Sie ein fehlendes Wort nur hinzu, wenn es auf Sie zutrifft. Arbeitgeber prüfen nach.',
   'Only answer what’s true. Leave a question empty if you don’t know.':
     'Beantworten Sie nur, was stimmt. Lassen Sie eine Frage leer, wenn Sie es nicht wissen.',
   'Only on your page, not on the CV. For example “What I’m looking for” or “How I work”.':
     'Nur auf Ihrer Seite, nicht im Lebenslauf. Zum Beispiel „Was ich suche“ oder „Wie ich arbeite“.',
+  'Only sections can be hidden or shown.': 'Nur Abschnitte können aus- oder eingeblendet werden.',
+  'Only sections can be moved.': 'Nur Abschnitte können verschoben werden.',
+  'Only sections can be renamed.': 'Nur Abschnitte können umbenannt werden.',
   'Only the design is shared — never your CV or its content. We check every design before others can see it.':
     'Es wird nur das Design geteilt – nie Ihr Lebenslauf oder sein Inhalt. Wir prüfen jedes Design, bevor andere es sehen können.',
   'only the part you asked about (for example one job’s bullet points) is sent to Gemini to create a suggestion.':
@@ -2198,6 +2213,8 @@ export const de: Dict = {
   'point has': 'Punkt hat',
   'Point of sale systems': 'Kassensysteme',
   'Point updated. Undo puts it back.': 'Punkt aktualisiert. Rückgängig stellt ihn wieder her.',
+  'Points and skills can only be added to a list.':
+    'Punkte und Fähigkeiten können nur einer Liste hinzugefügt werden.',
   'points have': 'Punkte haben',
   'Points with a number (how many, how often, what changed) stand out. We ask; you answer with what’s true; only your answer is added.':
     'Punkte mit einer Zahl (wie viele, wie oft, was sich geändert hat) fallen auf. Wir fragen; Sie antworten mit dem, was stimmt; nur Ihre Antwort wird übernommen.',
@@ -2301,6 +2318,7 @@ export const de: Dict = {
   'Provider {mode} · {fast}': 'Anbieter {mode} · {fast}',
   Publications: 'Veröffentlichungen',
   'Published in or by': 'Veröffentlicht in oder von',
+  'Put Education above Work history': 'Ausbildung über die Berufserfahrung setzen',
   'Put your CV': 'Legen Sie Ihren Lebenslauf',
   'Putting it together…': 'Wird zusammengestellt …',
   'QR code': 'QR-Code',
@@ -2393,6 +2411,7 @@ export const de: Dict = {
   'Remove the picture': 'Bild entfernen',
   'Remove this job': 'Diese Stelle entfernen',
   'Remove this number': 'Diese Zahl entfernen',
+  Removed: 'Entfernt',
   'Removed Premium': 'Premium entfernt',
   'Rename {v0}': '{v0} umbenennen',
   'Rename section': 'Abschnitt umbenennen',
@@ -2437,6 +2456,7 @@ export const de: Dict = {
   'Review my profile': 'Mein Profil prüfen',
   'Review payments': 'Zahlungen prüfen',
   'Reviewing… this takes about 30 seconds': 'Wird geprüft … das dauert etwa 30 Sekunden',
+  'Rewrite my points in the past tense': 'Meine Punkte in der Vergangenheitsform schreiben',
   'Rewrite the selected words': 'Markierte Worte umschreiben',
   'Right column': 'Rechte Spalte',
   'Robert Hale': 'Robert Hale',
@@ -2502,6 +2522,8 @@ export const de: Dict = {
     'Sagen Sie kurz, warum – damit der Designer Bescheid weiß.',
   'Say what job you want and any style you like. We set up the right sections and a matching design — you can change everything later.':
     'Sagen Sie, welche Stelle Sie möchten und welcher Stil Ihnen gefällt. Wir richten die passenden Abschnitte und ein passendes Design ein – Sie können später alles ändern.',
+  'Say what to change. You will see every change before it is made.':
+    'Sagen Sie, was geändert werden soll. Sie sehen jede Änderung, bevor sie übernommen wird.',
   'Say what you do, how long you have done it, and what you are looking for.':
     'Sagen Sie, was Sie tun, wie lange Sie es schon tun und was Sie suchen.',
   'Say what you want and see it on your own CV.':
@@ -2807,6 +2829,7 @@ export const de: Dict = {
   Style: 'Stil',
   Subject: 'Betreff',
   Subtitle: 'Untertitel',
+  'Suggest changes': 'Änderungen vorschlagen',
   'Suggest skills': 'Kenntnisse vorschlagen',
   'Suggest skills for me': 'Kenntnisse für mich vorschlagen',
   'Suggest wording': 'Formulierung vorschlagen',
@@ -2990,6 +3013,7 @@ export const de: Dict = {
   'The person you’re contacting': 'Die Person, die Sie kontaktieren',
   'The photo from your CV': 'Das Foto aus Ihrem Lebenslauf',
   'The picture didn’t upload.': 'Das Bild wurde nicht hochgeladen.',
+  'The place to move it to is not in this CV.': 'Die Zielstelle ist nicht in diesem Lebenslauf.',
   'The plan couldn’t be made just now. Please try again.':
     'Der Plan konnte gerade nicht erstellt werden. Bitte versuchen Sie es erneut.',
   'the project name': 'den Projektnamen',
@@ -3022,6 +3046,8 @@ export const de: Dict = {
   'The translation didn’t work just now. Please try again.':
     'Die Übersetzung hat gerade nicht geklappt. Bitte versuchen Sie es erneut.',
   'The two passwords don’t match.': 'Die beiden Passwörter stimmen nicht überein.',
+  'The Word file has the same words and your colour in a simple, editable one-column layout, not the layout of this design. Use it when an employer asks for Word or you want to edit the text elsewhere.':
+    'Die Word-Datei enthält dieselben Inhalte und Ihre Farbe in einem einfachen, bearbeitbaren einspaltigen Layout, nicht im Layout dieses Designs. Nutzen Sie sie, wenn ein Arbeitgeber Word verlangt oder Sie den Text anderswo bearbeiten möchten.',
   'Their role': 'Ihre Funktion',
   'Their words': 'Ihre Worte',
   Theme: 'Stil',
@@ -3700,6 +3726,8 @@ export const de: Dict = {
   'Your CV as a web page': 'Ihr Lebenslauf als Webseite',
   'Your CV as a web page with its own address, to put on applications and your email signature. Choose what shows, and turn it off at any time.':
     'Ihr Lebenslauf als Webseite mit eigener Adresse, für Bewerbungen und Ihre E-Mail-Signatur. Wählen Sie, was angezeigt wird, und schalten Sie sie jederzeit ab.',
+  'Your CV changed since these were suggested. Ask again to apply them.':
+    'Ihr Lebenslauf hat sich seit diesen Vorschlägen geändert. Fragen Sie erneut, um sie zu übernehmen.',
   'Your CV in the {name} design': 'Ihr Lebenslauf im Design {name}',
   'Your CV is about you, so we keep as little of it as possible. This page describes the current version of AI CV Studio.':
     'Ihr Lebenslauf handelt von Ihnen, deshalb speichern wir so wenig wie möglich davon. Diese Seite beschreibt die aktuelle Version von AI CV Studio.',

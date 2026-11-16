@@ -163,9 +163,9 @@
   {
     "a": "heritage",
     "b": "regent",
-    "decision": "awaiting",
-    "decidedOn": "",
-    "reason": "Awaiting owner. Differ only in header and decoration (flagged once decoration counted for less, 2026-11-16)."
+    "decision": "accepted",
+    "decidedOn": "2026-11-17",
+    "reason": "Kept (owner delegated the decision, 2026-11-17). On the page they differ more than the signature shows: Heritage has a monogram, centred serif name and centred ruled section titles; Regent a bold capital name and left ruled titles. Recheck with 30 days of usage, together with Regent\u2013Counsel, the closest classic pair by eye."
   },
   {
     "a": "blueprint",

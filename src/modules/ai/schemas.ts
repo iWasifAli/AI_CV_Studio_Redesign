@@ -37,6 +37,7 @@ export const TASK_IDS = [
   'write.improveBullets',
   'write.fromNotes',
   'write.rewrite',
+  'cv.edit',
   'write.quantify',
   'coach.gap',
   'translate.document',
@@ -163,6 +164,12 @@ export const taskInputs = {
     tone: z.enum(['formal', 'friendly']).default('formal'),
     /** The whole field the selection is in (facts may come from it too). */
     context: z.string().max(3000).default(''),
+  }),
+  /** Edit the CV by instruction (gap audit S-01): the instruction and the CV's editable parts. */
+  'cv.edit': z.object({
+    instruction: z.string().trim().min(3).max(600),
+    /** From `editPrompt(doc)`: sections, fields and lists with their ids. */
+    cv: z.string().min(20).max(40_000),
   }),
   /** Company brief (spec §10.2): the advert, text the person pasted from the company, the CV. */
   'job.brief': z.object({
@@ -428,6 +435,26 @@ export const taskOutputs = {
   'write.improveBullets': z.object({ bullets: z.array(z.string().min(1).max(260)).min(1).max(12) }),
   'write.fromNotes': z.object({ bullets: z.array(z.string().min(1).max(260)).min(1).max(8) }),
   'write.rewrite': z.object({ text: z.string().min(1).max(2000) }),
+  'cv.edit': z.object({
+    /** Small named changes; the person reviews each one before it is applied. */
+    changes: z
+      .array(
+        z.object({
+          op: z.enum(['set', 'remove', 'add', 'move', 'rename', 'hide', 'show']),
+          /** A field, list or section id from the CV text. */
+          target: z.string().min(3).max(200),
+          /** New text (set, add, rename); empty otherwise. */
+          text: z.string().max(1500).default(''),
+          /** move: the section id to place it above, or "end". */
+          before: z.string().max(200).default(''),
+          /** Why, in a few plain words. */
+          why: z.string().max(200).default(''),
+        }),
+      )
+      .max(30),
+    /** Parts of the instruction that were not done, each with the reason. */
+    notDone: z.array(z.string().min(3).max(300)).max(6).default([]),
+  }),
   'job.brief': z.object({
     /** What the company does, from the advert and the pasted pages only. */
     company: z.string().min(3).max(500),

@@ -23,6 +23,7 @@ const CONTENT: ReadonlySet<string> = new Set([
   'write.summary',
   'write.improveBullets',
   'write.rewrite',
+  'cv.edit',
   'write.quantify',
   'write.fromNotes',
   'suggest.skills',

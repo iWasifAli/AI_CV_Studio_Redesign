@@ -14,6 +14,7 @@ import { NeedsInputHint } from '@/features/ai/suggestion';
 import { BasicsForm } from './basics-form';
 import { KIND_INFO } from './item-fields';
 import { SectionCard } from './section-card';
+import { EditByInstruction } from './edit-by-instruction';
 import type { DocumentEditor } from './use-document-editor';
 
 export type ContentPanelHandle = { reveal: (ref: string) => void };
@@ -112,6 +113,7 @@ export const ContentPanel = forwardRef<ContentPanelHandle, { editor: DocumentEdi
 
     return (
       <div className="flex flex-col gap-4">
+        <EditByInstruction editor={editor} />
         <Collapsible title={t('About you')} id="editor-basics">
           <BasicsForm editor={editor} />
         </Collapsible>

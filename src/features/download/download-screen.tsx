@@ -331,6 +331,11 @@ export function DownloadScreen({ doc: initialDoc }: { doc: ResumeDocument }) {
                 >
                   {t('Download Word (.docx)')}
                 </Button>
+                <p className="text-ink-muted max-w-md text-sm" data-testid="word-hint">
+                  {t(
+                    'The Word file has the same words and your colour in a simple, editable one-column layout, not the layout of this design. Use it when an employer asks for Word or you want to edit the text elsewhere.',
+                  )}
+                </p>
                 {account.status === 'signedIn' && !lockedDesign && (
                   <PackButton cv={doc} label={t('CV with certificates (one PDF or ZIP)')} />
                 )}
