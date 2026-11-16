@@ -1,0 +1,17 @@
+[
+  {
+    "a": "column",
+    "b": "press",
+    "reason": "Existing pair at the start of the catalogue task (2026-11-16). Differ only in header and heading case. Owner to decide: keep both, or retire one."
+  },
+  {
+    "a": "brief",
+    "b": "clarity",
+    "reason": "Existing pair (2026-11-16). Differ only in heading style and decoration. Owner to decide."
+  },
+  {
+    "a": "column",
+    "b": "ledger",
+    "reason": "Existing pair (2026-11-16). Differ only in heading style and decoration (Ledger has its signature artwork). Owner to decide."
+  }
+]

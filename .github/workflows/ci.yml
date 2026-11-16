@@ -68,6 +68,8 @@ jobs:
         run: npm run gates:composition
         env:
           CHROME_EXECUTABLE_PATH: /usr/bin/google-chrome
+      - name: Distinctness gate (no two live designs too alike)
+        run: npm run catalogue:distinct
       - if: always()
         uses: actions/upload-artifact@v4
         with:
