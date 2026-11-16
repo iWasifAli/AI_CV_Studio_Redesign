@@ -93,3 +93,15 @@ This section answers the verification report. Commits `f023531` and the one afte
 | Test that failed at midnight UTC | The daily AI budget test now runs at a fixed time | — |
 
 **Still open:** a full re-score of all designs against 9.5 (needs the independent reviewer); continuation pages that look plain (D-05); photo-led designs without a photo (D-06); the data controller's legal name and the log and backup retention period on the privacy page (the owner's information); a script-source CSP; a Lighthouse run.
+
+## After the third verification (16 November 2026)
+
+The third verification found nothing unfixed on the points it could test. It said the designs had not been looked at by eye since the changes. This round started with that: all 52 designs, pages 1 and 2, rendered to PDF with the engineer CV, and reviewed on contact sheets.
+
+| Item | Change | Checked |
+|---|---|---|
+| D-05: plain continuation pages | Found in the visual pass: designs with a banner or a filled side column (Atelier, Meridian, Summit, Pulse, Spark, Aura, Matrix, Milestone and others) dropped to a plain white page 2. Now: a header banner continues as a slim band carrying the running header in white (or a 3 mm stripe when the design has no running header). A filled side column that has ended stays as a 4 mm strip in its colour at the page edge. Clean designs (Clarity, Linea, Heritage…) keep their plain continuation pages on purpose | Page 2 of all 32 core designs reviewed on contact sheets; Atelier, Meridian, Summit, Pulse, Spark, Aura, Matrix and Milestone checked close up |
+| D-06: photo-led designs without a photo | Lens, Aura and Cameo now show the person's initials in the photo's place, in the photo's shape, one size smaller, so the long-name check still passes: a deep-colour monogram in a tinted circle where the photo has a ring, white initials on a deep-colour square where it doesn't. New design setting `header.photo.fallback` (`none` or `initials`) | Reviewed by eye; composition and catalogue gates pass (one Lens failure on the 49-character name, fixed by the smaller monogram) |
+| Visual pass | No other defects found on the 52 designs' first two pages with this CV. This is my own review, not an independent score | — |
+
+**Still open:** an independent re-score of all 52 designs by eye (the reviewer's point stands: the original scores are out of date); D-01, the ten engines behind the 32 core designs; the privacy page's controller name and retention period (owner's information); a script-source CSP; Lighthouse.

@@ -134,7 +134,11 @@ function Photo({ model, s }: { model: RenderModel; s: DesignSpecV2 }) {
     <Portrait
       model={model}
       className={`g-photo g-photo--${s.header.photo.shape} g-photo--${s.header.photo.size}`}
-      fallback={s.header.style === 'monogram' ? 'initials' : 'none'}
+      fallback={
+        s.header.style === 'monogram' || s.header.photo.fallback === 'initials'
+          ? 'initials'
+          : 'none'
+      }
     />
   );
 }
@@ -436,6 +440,11 @@ function css(s: DesignSpecV2, d: ResolvedDesign): string {
       if (third)
         out.push(`.cv-has-third .cv-page:not(.cv-page--wide)::after{content:'';position:absolute;top:0;bottom:0;right:${L.sideBleed ? '0' : 'var(--margin)'};width:${w};background:${fill};z-index:0}
 .cv-has-third .cv-third{padding-right:${L.sideBleed ? '0' : '3mm'};padding-top:2mm}`);
+      // Continuation pages where the side column has ended keep its colour as a strip at the page
+      // edge, so page 2 still looks like this design (audit D-05).
+      out.push(
+        `.cv-has-aside .cv-page.cv-page--wide::before{content:'';position:absolute;top:0;bottom:0;${sideLeft ? 'left' : 'right'}:0;width:4mm;background:${fill};z-index:0}`,
+      );
       if (L.sideFill === 'solid') out.push('.cv-aside,.cv-third{--ink-3:var(--ink-2)}');
       // The page number sits bottom right: on a deep right-hand column it is drawn light.
       if (deep && L.type !== 'sidebar-left')
@@ -496,7 +505,8 @@ html[data-fit-compact] .g-header--band,html[data-fit-compact] .g-header--in-side
 .g-align--center .cv-contacts{justify-content:center;margin-left:0}
 .g-align--center .cv-contact:first-child{padding-left:0}
 .g-mono{display:inline-flex;width:15mm;height:15mm;margin-bottom:3mm;border-radius:50%;border:1.2pt solid var(--accent);align-items:center;justify-content:center;font-family:var(--font-heading);font-size:1.25em;color:var(--accent);letter-spacing:.04em}
-.g-portrait-initials,.cv-portrait--initials{background:var(--accent-soft);color:var(--accent);font-family:var(--font-heading);font-size:1.6em}`);
+.g-portrait-initials,.cv-portrait--initials{background:var(--accent-soft);color:var(--accent);font-family:var(--font-heading);font-size:1.6em}
+.g-photo.cv-portrait--initials{width:${PHOTO_MM[H.photo.size === 'L' ? 'M' : H.photo.size]}mm;height:${PHOTO_MM[H.photo.size === 'L' ? 'M' : H.photo.size]}mm;font-weight:var(--heading-weight);font-size:${H.photo.size === 'S' ? '1.5em' : '2.1em'};letter-spacing:.02em;${H.photo.ring ? 'background:var(--accent-tint);color:var(--accent-deep)' : 'background:var(--accent-deep);color:#fff'}}`);
   if (H.style === 'centered')
     out.push(
       '.g-header--centered{text-align:center}.g-header--centered .g-hrow{flex-direction:column}.g-header--centered .cv-contacts{justify-content:center;margin-left:0}.g-header--centered .cv-contact:first-child{padding-left:0}',
@@ -519,6 +529,16 @@ html[data-fit-compact] .g-header--band,html[data-fit-compact] .g-header--in-side
 .g-header--band .cv-icon,.g-header--in-sidebar .cv-icon{color:var(--accent-bright)}
 .g-header--band .cv-sep,.g-header--in-sidebar .cv-sep{color:rgba(255,255,255,.5)}
 .g-photo-at--overlap .g-photo{margin-bottom:-12mm;box-shadow:0 0 0 2.4pt #fff}`);
+    // Continuation pages (audit D-05): the running header becomes a slim band in the header's
+    // colour; without a running header, a 3 mm stripe of it runs across the top.
+    if (s.furniture.runningHeader)
+      out.push(`.cv-page--rest .cv-top--running{position:relative;z-index:1;margin:calc(-1 * var(--margin)) calc(-1 * var(--margin)) 5mm;padding:calc(var(--margin) * .55) var(--margin) calc(var(--margin) * .45);background:${bandBg}}
+.cv-page--rest .g-running,.cv-page--rest .g-running strong{color:#fff}
+.cv-page--rest .g-running span{color:rgba(255,255,255,.85)}`);
+    else
+      out.push(
+        `.cv-page.cv-page--rest{background-image:${H.band === 'gradient' ? 'linear-gradient(120deg,var(--accent-deep),var(--accent))' : 'linear-gradient(var(--accent-deep),var(--accent-deep))'};background-size:100% 3mm;background-repeat:no-repeat}`,
+      );
   }
   if (H.style === 'split')
     out.push(
@@ -724,7 +744,7 @@ export function composeTemplate(s: DesignSpecV2): TemplateDefinition {
         : undefined,
     AsideTop: sidePhoto
       ? ({ model }) =>
-          model.photo ? (
+          model.photo || (s.header.photo.fallback === 'initials' && model.initials) ? (
             <div className="g-aside-photo">
               <Photo model={model} s={s} />
             </div>

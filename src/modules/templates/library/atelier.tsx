@@ -82,7 +82,8 @@ function Header({ model }: TemplateComponentProps) {
 
 const css = `
 :root{--side-w:50mm;--side-pad:6mm;--gap:8mm}
-.cv-page--wide::before{display:none}
+/* Where the side column has ended, its colour stays as a strip at the edge (audit D-05). */
+.cv-page.cv-page--wide::before{width:4mm}
 .cv-page--wide .a-running{margin-left:0}
 .cv-page::before{content:'';position:absolute;top:0;bottom:0;left:0;width:calc(var(--margin) + var(--side-w) + var(--side-pad));background:var(--accent-deep)}
 .cv-body{flex-direction:row-reverse}

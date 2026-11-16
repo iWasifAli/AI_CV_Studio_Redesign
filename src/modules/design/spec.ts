@@ -195,6 +195,9 @@ export const designSpecV2 = z.object({
             'header-right',
           ),
           ring: flag(false),
+          /** No photo yet: show the initials in the photo's place, so a photo-led design keeps its
+           * shape (audit D-06), or leave the place out. */
+          fallback: pick(['none', 'initials'] as const, 'none'),
         })
         .default({
           show: true,
@@ -202,6 +205,7 @@ export const designSpecV2 = z.object({
           size: 'M',
           position: 'header-right',
           ring: false,
+          fallback: 'none',
         }),
     })
     .default({
@@ -211,7 +215,14 @@ export const designSpecV2 = z.object({
       name: { size: 'L', case: 'normal', weight: 700, twoTone: false, trackingEm: 0 },
       headline: 'below',
       contact: { layout: 'inline', icons: true },
-      photo: { show: true, shape: 'rounded', size: 'M', position: 'header-right', ring: false },
+      photo: {
+        show: true,
+        shape: 'rounded',
+        size: 'M',
+        position: 'header-right',
+        ring: false,
+        fallback: 'none',
+      },
     }),
   headings: z
     .object({

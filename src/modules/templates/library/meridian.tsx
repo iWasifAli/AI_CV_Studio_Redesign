@@ -97,6 +97,10 @@ const css = `
 .m-header .cv-sep{color:rgba(255,255,255,.45)}
 .m-header .cv-contacts-wrap{overflow:hidden}
 .cv-top--running{padding-bottom:4pt}
+/* Continuation pages keep the banner as a slim band with the running header (audit D-05). */
+.cv-page--rest .cv-top--running{position:relative;z-index:1;margin:calc(-1 * var(--margin)) calc(-1 * var(--margin)) 4mm;padding:calc(var(--margin) * .5) var(--margin) calc(var(--margin) * .4);background:linear-gradient(100deg,var(--accent-deep),var(--accent))}
+.cv-page--rest .m-running{color:#fff;max-width:none}
+.cv-page--rest .m-running span{color:rgba(255,255,255,.85)}
 .cv-has-aside .m-running{max-width:calc(69% - var(--gutter))}
 .m-running{font-family:var(--font-heading);font-weight:var(--heading-weight);color:var(--accent);font-size:1.05em}
 .m-running span{font-family:var(--font-body);font-weight:400;color:var(--ink-3);font-size:.85em;margin-left:.6em}

@@ -156,9 +156,13 @@ test('the hourly sender emails due reminders once, in one digest, with a way to 
   await expect(box).not.toBeChecked();
   await box.check();
   await expect(box).toBeChecked();
-  expect(
-    ((await (await request.get('/api/me/reminders')).json()) as { emails: boolean }).emails,
-  ).toBe(true);
+  // The box ticks at once and saves in the background: wait for the saved value.
+  await expect
+    .poll(
+      async () =>
+        ((await (await request.get('/api/me/reminders')).json()) as { emails: boolean }).emails,
+    )
+    .toBe(true);
 });
 
 test('another account cannot touch my reminders', async ({ request, browser }) => {
