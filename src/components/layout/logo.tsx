@@ -26,14 +26,15 @@ export function Logo({ className, href = '/' }: { className?: string; href?: str
     <Link
       href={href}
       className={cn('text-ink inline-flex items-center gap-2.5 rounded-sm', className)}
-      aria-label={t('AI CV Studio — home')}
     >
       <LogoMark />
       <span className="font-display text-[19px] leading-none font-semibold tracking-tight whitespace-nowrap">
-        <span className="text-primary mr-1 align-[1px] text-[12px] font-bold tracking-[0.08em] uppercase">
+        {/* The visible words are the link's name, so speech users can say what they see. */}
+        <span className="text-primary align-[1px] text-[12px] font-bold tracking-[0.08em] uppercase">
           {t('AI')}
-        </span>
+        </span>{' '}
         {t('CV Studio')}
+        <span className="sr-only">{t(', home')}</span>
       </span>
     </Link>
   );

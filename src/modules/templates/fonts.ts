@@ -99,6 +99,37 @@ export const FONT_PAIRS: Record<FontPairId, FontPair> = {
     headingFallback: SANS,
     bodyFallback: SANS,
   },
+  // Three more pairs from the bundled families, so designs don't share one look (audit D-02).
+  editorial: {
+    id: 'editorial',
+    label: 'Editorial',
+    heading: 'Source Serif 4',
+    body: 'Inter',
+    headingWeight: 700,
+    bodyScale: 0.97,
+    headingFallback: SERIF,
+    bodyFallback: SANS,
+  },
+  bold: {
+    id: 'bold',
+    label: 'Bold',
+    heading: 'Inter Tight',
+    body: 'Source Sans 3',
+    headingWeight: 800,
+    bodyScale: 1.04,
+    headingFallback: SANS,
+    bodyFallback: SANS,
+  },
+  rounded: {
+    id: 'rounded',
+    label: 'Rounded',
+    heading: 'Nunito Sans',
+    body: 'Nunito Sans',
+    headingWeight: 800,
+    bodyScale: 0.98,
+    headingFallback: SANS,
+    bodyFallback: SANS,
+  },
 };
 
 export type FontSource =

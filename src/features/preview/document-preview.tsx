@@ -111,7 +111,13 @@ export function DocumentPreview({
         });
         const s = slotsRef.current;
         const a = activeRef.current;
-        if (s[a] === html) return; // already showing this exact document
+        if (s[a] === html) {
+          // Already showing this exact document. Mark it newest, so a build still running in the
+          // other frame (an edit that was undone, e.g. ATS-safe on then off) can't replace it
+          // when it reports back.
+          slotSeq.current[a] = ++seq.current;
+          return;
+        }
         const target = s[a] === null ? a : 1 - a;
         slotSeq.current[target] = ++seq.current;
         const ready = slotResult.current[target];

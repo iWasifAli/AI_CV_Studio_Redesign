@@ -29,6 +29,12 @@ const escapeHtml = (s: string) =>
  * The headline as a continuation page's running header shows it: one short line (audit F-29).
  * Cut at a word, at most 52 characters; the full headline stays on page 1.
  */
+/**
+ * Compact grids keep their own spacing on a short CV: they are built for dense CVs (and not
+ * suggested for short ones), and opening their cells up split role and dates in the read-back.
+ */
+const NO_GROW = new Set<string>(['grid', 'mosaic', 'tiles', 'matrix']);
+
 export function runningHeadline(h: string, max = 52): string {
   const t = h.replace(/\s+/g, ' ').trim();
   if (t.length <= max) return t;
@@ -140,7 +146,7 @@ export function buildDocumentHtml(input: ResumeDocument, opts: BuildOptions): st
   const title = model.name ? `${model.name} — CV` : 'CV';
 
   return `<!DOCTYPE html>
-<html lang="${escapeHtml(doc.locale.split('-')[0] || 'en')}" data-template="${template.id}" data-photo="${model.photo ? '1' : '0'}"${template.keepColumns ? ' data-keep-columns=""' : ''}>
+<html lang="${escapeHtml(doc.locale.split('-')[0] || 'en')}" data-template="${template.id}" data-photo="${model.photo ? '1' : '0'}"${template.keepColumns ? ' data-keep-columns=""' : ''}${NO_GROW.has(doc.design.v2?.designId ?? '') ? ' data-no-grow=""' : ''}>
 <head>
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="${escapeHtml(csp)}">

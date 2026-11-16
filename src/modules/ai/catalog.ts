@@ -99,6 +99,9 @@ export const FONT_CATALOG: Record<FontPairId, string> = {
   humanist: 'Lora + Nunito Sans — warm, friendly, approachable',
   executive: 'Cormorant Garamond headings — elegant, refined, luxurious',
   technical: 'IBM Plex Sans — precise, engineering',
+  editorial: 'Source Serif headings + Inter — crisp, editorial, confident',
+  bold: 'Heavy Inter Tight headings + Source Sans — strong, direct',
+  rounded: 'Nunito Sans — soft, rounded, approachable',
 };
 
 export function catalogForPrompt(): string {

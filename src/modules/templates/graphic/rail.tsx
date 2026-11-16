@@ -1,3 +1,4 @@
+import type { FontPairId } from '@/modules/resume/schema';
 /**
  * "Portfolio" family: a header split between a full-height portrait block and a soft panel with
  * the name, then a dark column (numbered headings: contact, skills, honours) beside the main
@@ -23,7 +24,7 @@ export type RailConfig = {
   description: string;
   style: string;
   tags: string[];
-  fontPair: 'modern' | 'humanist' | 'technical' | 'classic' | 'executive';
+  fontPair: FontPairId;
   ink: string;
   soft: string;
   photo: 'block' | 'arch' | 'inset' | 'circle' | 'split';

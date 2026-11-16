@@ -12,6 +12,7 @@ export const de: Dict = {
   '— you have 1 saved job waiting': '– 1 gespeicherte Stelle wartet auf Sie',
   ', and Premium starts as soon as we’ve checked it.':
     ', und Premium beginnt, sobald wir sie geprüft haben.',
+  ', home': ', Startseite',
   ', or get Premium to keep more': ', oder holen Sie sich Premium, um mehr zu behalten',
   ', then': ', dann',
   ', your letter': ', Ihr Anschreiben',
@@ -898,6 +899,7 @@ export const de: Dict = {
   'Creative, marketing and customer-facing roles': 'Kreative, Marketing- und Kundenrollen',
   'creative: made to be seen by people; download its ATS PDF for online forms':
     'kreativ: gemacht für Menschen; für Online-Formulare die ATS-PDF herunterladen',
+  'Crisp and editorial': 'Klar und redaktionell',
   'Ctrl K': 'Strg K',
   Current: 'Aktuell',
   'Custom designs are part of Premium': 'Eigene Designs sind Teil von Premium',
@@ -2377,6 +2379,7 @@ export const de: Dict = {
   Role: 'Position',
   'Roles your CV already points to, what you have for each, what you’d still need, and a first step. Nothing is added to your CV.':
     'Stellen, auf die Ihr Lebenslauf bereits hinweist, was Sie dafür mitbringen, was Ihnen noch fehlt und ein erster Schritt. Ihrem Lebenslauf wird nichts hinzugefügt.',
+  Rounded: 'Abgerundet',
   'Rounded cards, ticks and a soft side panel. Friendly and fresh.':
     'Abgerundete Karten, Häkchen und eine sanfte Seitenfläche. Freundlich und frisch.',
   'Route planning': 'Routenplanung',
@@ -2637,6 +2640,7 @@ export const de: Dict = {
   'So we can match your payment and reach you if needed.':
     'Damit wir Ihre Zahlung zuordnen und Sie bei Bedarf erreichen können.',
   'Social media': 'Soziale Medien',
+  'Soft and approachable': 'Weich und zugänglich',
   'Soft sidebar': 'Sanfte Seitenleiste',
   'Software Engineer': 'Softwareentwickler',
   'Some changes could not be saved yet. We will keep trying.':
@@ -2715,6 +2719,7 @@ export const de: Dict = {
   'Strategic planning': 'Strategische Planung',
   Strength: 'Stärke',
   Strengths: 'Stärken',
+  'Strong and direct': 'Kräftig und direkt',
   'Strong answer': 'Starke Antwort',
   'Strong sidebar': 'Kräftige Seitenleiste',
   'Student or first job': 'Studium oder erste Stelle',

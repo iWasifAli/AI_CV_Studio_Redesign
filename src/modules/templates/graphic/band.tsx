@@ -1,3 +1,4 @@
+import type { FontPairId } from '@/modules/resume/schema';
 /**
  * "Rail" family: a dark, full-height column on the left carries the monogram, a framed portrait,
  * contact details, skill meters and recognition; the light main column opens with a huge
@@ -26,7 +27,7 @@ export type BandConfig = {
   description: string;
   style: string;
   tags: string[];
-  fontPair: 'modern' | 'humanist' | 'technical' | 'classic' | 'executive';
+  fontPair: FontPairId;
   ink: string;
   soft: string;
   photo: 'notch' | 'circle' | 'tall' | 'slant' | 'square';

@@ -314,8 +314,38 @@ const M = (
   // Every design has its own typeface — the one its thumbnail shows — and picking the design
   // applies it (the person can change it afterwards). Classic designs default to the elegant
   // serif pair, the others to the friendly pair with serif headings.
-  fontPair: o.fontPair ?? (family === 'classic' ? 'executive' : 'humanist'),
+  fontPair: o.fontPair ?? FONT_FOR[id] ?? (family === 'classic' ? 'executive' : 'humanist'),
 });
+
+/**
+ * Each design's own typeface pair (audit D-02: 28 designs fell back to the same pair). Chosen for
+ * character: quiet designs get the plain sans pairs, warm ones Lora or Nunito, editorial ones a
+ * serif heading.
+ */
+const FONT_FOR: Partial<Record<string, FontPairId>> = {
+  clarity: 'modern',
+  linea: 'technical',
+  margin: 'humanist',
+  brief: 'bold',
+  meridian: 'editorial',
+  harbor: 'humanist',
+  summit: 'bold',
+  column: 'editorial',
+  milestone: 'rounded',
+  pathway: 'humanist',
+  route: 'technical',
+  sprout: 'rounded',
+  spark: 'bold',
+  pulse: 'modern',
+  halo: 'humanist',
+  lens: 'editorial',
+  cameo: 'executive',
+  aura: 'rounded',
+  grid: 'technical',
+  mosaic: 'editorial',
+  tiles: 'rounded',
+  matrix: 'technical',
+};
 
 /** Every catalogue design, in gallery order (by family, safest first). */
 export const DESIGNS: DesignMeta[] = [

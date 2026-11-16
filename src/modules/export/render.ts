@@ -1,6 +1,12 @@
 import type { Browser } from 'puppeteer-core';
 
-export type CvReady = { pages: number; overflow: number; nearlyFits: boolean; fitted?: number };
+export type CvReady = {
+  pages: number;
+  overflow: number;
+  nearlyFits: boolean;
+  fitted?: number;
+  grown?: number;
+};
 
 /** Print a self-contained CV document (fonts inlined) to PDF. No network access is allowed. */
 export async function renderPdfFromHtml(

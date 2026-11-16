@@ -249,7 +249,7 @@ export const FIELDS = {
     path: 'type.pair',
     kind: 'enum',
     values: FONT_PAIR_IDS,
-    say: 'fonts: modern (clean sans), classic (serif headings), humanist (friendly), executive (elegant serif), technical (precise)',
+    say: 'fonts: modern (clean sans), classic (serif headings), humanist (friendly), executive (elegant serif), technical (precise), editorial (serif headings, crisp sans text), bold (heavy sans headings), rounded (soft rounded sans)',
   },
   textSize: {
     path: 'type.basePt',

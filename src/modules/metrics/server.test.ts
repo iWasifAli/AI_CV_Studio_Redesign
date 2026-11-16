@@ -5,12 +5,15 @@ vi.mock('@/lib/firebase-admin', () => ({ adminDb: () => null }));
 
 describe('shared daily AI budget', () => {
   afterEach(() => {
+    vi.useRealTimers();
     delete (globalThis as { __cvStudioStore?: unknown }).__cvStudioStore;
     delete process.env.AI_DAILY_BUDGET;
     vi.resetModules();
   });
 
   it('counts AI calls from every instance (shared counters), with a short cache', async () => {
+    // Midday, so the test never straddles midnight UTC (it failed when run at 00:00).
+    vi.useFakeTimers({ now: new Date('2026-06-15T12:00:00Z'), toFake: ['Date'] });
     const store = new MemoryUserStore();
     (globalThis as { __cvStudioStore?: unknown }).__cvStudioStore = store;
     process.env.AI_DAILY_BUDGET = '5';

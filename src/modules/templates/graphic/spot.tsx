@@ -1,3 +1,4 @@
+import type { FontPairId } from '@/modules/resume/schema';
 /**
  * "Spotlight" family: a deep colour header with the name set huge, a framed portrait standing on
  * the key-numbers band, then a main column with a timeline and a side column with contact
@@ -38,7 +39,7 @@ export type SpotConfig = {
   skills: SkillLook;
   /** Side column left or right of the timeline. */
   side: 'right' | 'left';
-  fontPair: 'modern' | 'humanist' | 'technical' | 'classic' | 'executive';
+  fontPair: FontPairId;
   /** Name case: shouting capitals or normal. */
   caps: boolean;
   /** Mark after the last name. */

@@ -35,6 +35,9 @@ const FONT_DESCRIPTIONS: Record<(typeof FONT_PAIR_IDS)[number], string> = {
   humanist: 'Friendly and warm',
   executive: 'Elegant and refined',
   technical: 'Precise and orderly',
+  editorial: 'Crisp and editorial',
+  bold: 'Strong and direct',
+  rounded: 'Soft and approachable',
 };
 
 function Group({

@@ -331,6 +331,19 @@ export const RUNTIME_JS = String.raw`(function (planPages) {
     { gap: 0.5, margin: 0.8, lh: 0.07, fs: 0.95, compact: true }
   ];
   var LAST_PAGE_MAX_FILL = 0.3;
+  // The other way (audit D-03): a one-page CV that fills less than this opens up, step by step,
+  // while it still fits one page with a line to spare and stays below GROW_TARGET full. Bounded:
+  // at most 2.6× the spacing, +0.15 line height and 4% larger text (larger text made employer
+  // names wrap in narrow columns, so they read back badly).
+  var GROW_BELOW = 0.7;
+  var GROW_TARGET = 0.92;
+  var GROW_STEPS = [
+    { gap: 1.25, margin: 1, lh: -0.03 },
+    { gap: 1.5, margin: 1, lh: -0.06, fs: 1.02 },
+    { gap: 1.8, margin: 1, lh: -0.09, fs: 1.04 },
+    { gap: 2.2, margin: 1, lh: -0.12, fs: 1.04 },
+    { gap: 2.6, margin: 1, lh: -0.15, fs: 1.04 }
+  ];
   // A tighter fit is only accepted with about one line to spare on every page (see layout()).
   var FIT_RESERVE = 14;
   function applyFit(f) {
@@ -544,6 +557,22 @@ export const RUNTIME_JS = String.raw`(function (planPages) {
     }
   }
 
+  // Where the first entry starts on page one, as a share of the page height.
+  function firstEntryAt() {
+    var pg = document.querySelector('[data-cv-pages] .cv-page');
+    var e = pg && pg.querySelector('.b-entry');
+    if (!e) return 0;
+    var pr = pg.getBoundingClientRect();
+    return (e.getBoundingClientRect().top - pr.top) / pr.height;
+  }
+
+  // Larger text must never break a word (the side columns are narrow).
+  function wordsBroken() {
+    var blocks = document.querySelectorAll('[data-cv-pages] [data-block]');
+    for (var i = 0; i < blocks.length; i++) if (brokenPart(blocks[i])) return true;
+    return false;
+  }
+
   function paginate() {
     var st = capture();
     if (!st) return;
@@ -567,6 +596,20 @@ export const RUNTIME_JS = String.raw`(function (planPages) {
         r = layout(st);
       }
     }
+    var grown = 0;
+    if (r.pages === 1 && r.overflow === 0 && r.lastFill < GROW_BELOW && !document.documentElement.hasAttribute('data-no-grow')) {
+      // The first job stays in the top 40% of page one (where a reader looks first), or no lower
+      // than it already was.
+      var entryLimit = Math.max(0.4, firstEntryAt());
+      for (var g = 0; g < GROW_STEPS.length; g++) {
+        applyFit(GROW_STEPS[g]);
+        var u = layout(st, FIT_RESERVE);
+        if (u.pages !== 1 || u.overflow !== 0 || u.lastFill > GROW_TARGET || firstEntryAt() > entryLimit || wordsBroken()) break;
+        grown = g + 1;
+      }
+      applyFit(grown ? GROW_STEPS[grown - 1] : null);
+      r = layout(st);
+    }
     numberSections();
     tidyContactLines();
     clearArt();
@@ -574,6 +617,7 @@ export const RUNTIME_JS = String.raw`(function (planPages) {
       pages: r.pages,
       overflow: r.overflow,
       fitted: fitted,
+      grown: grown,
       nearlyFits: r.pages > 1 && r.lastFill < 0.25
     };
     window.__CV_READY__ = result;

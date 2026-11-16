@@ -1,3 +1,4 @@
+import type { FontPairId } from '@/modules/resume/schema';
 /**
  * Plain data about the graphic designs (no React): names, look, signature colour, type and the
  * kinds of work they suit. Shared by the design catalogue, the AI's design choices and ranking.
@@ -13,7 +14,7 @@ export type GraphicMeta = {
   mood: string;
   family: GraphicFamily;
   accent: string;
-  fontPair: 'modern' | 'humanist' | 'technical' | 'classic' | 'executive';
+  fontPair: FontPairId;
   fit: Partial<Record<PresetId, number>>;
 };
 
@@ -28,7 +29,7 @@ export const GRAPHIC_META = {
     mood: 'graphic, bold dark header, arched photo, big name, key numbers band, teal, creative, education, tech',
     family: 'spot',
     accent: '#00d3c4',
-    fontPair: 'modern',
+    fontPair: 'bold',
     fit: { ...creative, teacher: 0.8 },
   },
   coral: {
@@ -39,7 +40,7 @@ export const GRAPHIC_META = {
     mood: 'graphic, warm coral and plum, rounded photo, number cards, marketing, sales, strategy',
     family: 'spot',
     accent: '#fc725e',
-    fontPair: 'humanist',
+    fontPair: 'rounded',
     fit: { ...creative, office: 0.6 },
   },
   ocean: {
@@ -72,7 +73,7 @@ export const GRAPHIC_META = {
     mood: 'graphic, pink and berry, hexagon photo, number cards, bold, content, media, hospitality',
     family: 'spot',
     accent: '#f27dc6',
-    fontPair: 'humanist',
+    fontPair: 'bold',
     fit: { ...creative, retail: 0.8 },
   },
   citrus: {
@@ -105,7 +106,7 @@ export const GRAPHIC_META = {
     mood: 'graphic, wine and rose, tall arched photo, pills, motion, media, marketing, creative lead',
     family: 'band',
     accent: '#ff5b84',
-    fontPair: 'humanist',
+    fontPair: 'editorial',
     fit: { ...creative, retail: 0.7 },
   },
   blueprint: {
@@ -138,7 +139,7 @@ export const GRAPHIC_META = {
     mood: 'graphic, violet and lavender, big photo block, healthcare, clinical, care, numbered column, footer band',
     family: 'rail',
     accent: '#9d77d3',
-    fontPair: 'modern',
+    fontPair: 'editorial',
     fit: { healthcare: 0.9, teacher: 0.7, ...creative },
   },
   terra: {
@@ -193,7 +194,7 @@ export const GRAPHIC_META = {
     mood: 'graphic, magazine cover, electric blue, tilted photo, designer, creative, tech',
     family: 'cover',
     accent: '#3f9cff',
-    fontPair: 'modern',
+    fontPair: 'technical',
     fit: { ...creative },
   },
   solar: {
@@ -204,7 +205,7 @@ export const GRAPHIC_META = {
     mood: 'graphic, gold and brown, sun rays, round photo, research, science, academic, education',
     family: 'cover',
     accent: '#f4b94c',
-    fontPair: 'humanist',
+    fontPair: 'bold',
     fit: { teacher: 0.8, ...creative, healthcare: 0.5 },
   },
   ultraviolet: {
@@ -226,7 +227,7 @@ export const GRAPHIC_META = {
     mood: 'graphic, teal and mint, bubbles, organic photo frame, digital, UX, research, wellbeing',
     family: 'cover',
     accent: '#58d7aa',
-    fontPair: 'humanist',
+    fontPair: 'rounded',
     fit: { ...creative, healthcare: 0.6 },
   },
   chromatic: {

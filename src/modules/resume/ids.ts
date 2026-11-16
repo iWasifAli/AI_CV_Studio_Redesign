@@ -62,6 +62,15 @@ export const SPEC_DESIGN_IDS = [
 ] as const;
 /** Every catalogue design: the 10 hand-crafted ones, then the spec-only ones. */
 export const DESIGN_IDS = [...TEMPLATE_IDS, ...SPEC_DESIGN_IDS] as const;
-export const FONT_PAIR_IDS = ['modern', 'classic', 'humanist', 'executive', 'technical'] as const;
+export const FONT_PAIR_IDS = [
+  'modern',
+  'classic',
+  'humanist',
+  'executive',
+  'technical',
+  'editorial',
+  'bold',
+  'rounded',
+] as const;
 export const DENSITIES = ['compact', 'balanced', 'airy'] as const;
 export const PAGE_SIZES = ['A4', 'Letter'] as const;
