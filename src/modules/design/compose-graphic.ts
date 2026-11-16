@@ -5,7 +5,6 @@
  * a data file; no layout code is written for it.
  */
 import { bandTemplate } from '@/modules/templates/graphic/band';
-import { bentoTemplate } from '@/modules/templates/graphic/bento';
 import { coverTemplate } from '@/modules/templates/graphic/cover';
 import { railTemplate } from '@/modules/templates/graphic/rail';
 import { spotTemplate } from '@/modules/templates/graphic/spot';
@@ -81,19 +80,6 @@ export function graphicConfig(s: DesignSpecV2, g: GraphicSpec) {
           stop: g.stop,
         },
       } as const;
-    case 'bento':
-      return {
-        layout: g.layout,
-        cfg: {
-          ...base,
-          frame: g.frame,
-          art: g.art,
-          numbers: g.numbers,
-          corners: g.corners,
-          caps: g.caps,
-          stop: g.stop,
-        },
-      } as const;
     case 'statement':
       return {
         layout: g.layout,
@@ -121,8 +107,6 @@ export function composeGraphic(s: DesignSpecV2, g: GraphicSpec): TemplateDefinit
           ? railTemplate(c.cfg)
           : c.layout === 'cover'
             ? coverTemplate(c.cfg)
-            : c.layout === 'bento'
-              ? bentoTemplate(c.cfg)
-              : statementTemplate(c.cfg);
+            : statementTemplate(c.cfg);
   return { ...t, id: 'custom' };
 }

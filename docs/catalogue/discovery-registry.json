@@ -1162,30 +1162,8 @@
         "placement": "caption-right",
         "photo": "rect",
         "sideFill": "none",
-        "container": "numbers:ruled",
+        "container": "numbers:column",
         "skills": "segments",
-        "headingCase": "normal"
-      }
-    },
-    {
-      "id": "tessera",
-      "name": "Tessera",
-      "family": "Graphic",
-      "look": "Modular tiles",
-      "description": "A header built as a grid of tiles: name, portrait, contact and key numbers each in their own block, with section names in label tiles down the left gutter.",
-      "status": "draft",
-      "label": "Creative",
-      "structure": {
-        "layout": "bento-labelled",
-        "header": "bento-tiles",
-        "headings": "label-tile",
-        "entries": "dates-pill",
-        "decoration": "orbit+bar+round",
-        "placement": "single",
-        "photo": "fill",
-        "sideFill": "none",
-        "container": "numbers:accent",
-        "skills": "bars",
         "headingCase": "normal"
       }
     }
@@ -1219,7 +1197,7 @@
           "idea": "one modular grid governing every element"
         }
       ],
-      "status": "proposed",
+      "status": "rejected",
       "nearestExisting": "pulse / press (by eye); aurora 0.848 (tool)",
       "scores": {
         "visual": 8.8,
@@ -1230,6 +1208,21 @@
         "professional": 8.8,
         "engine": 9.2,
         "print": 9
+      },
+      "decision": {
+        "by": "reviewer agent (main-development-thread authority)",
+        "date": "2026-11-16",
+        "reason": "Only the header is new: below the bento tiles the page is the existing label-column body (Press/Column/Ledger) re-decorated with pill labels; the tile header is a common web-portfolio look. Typical CV spills to a ~30%-full page 2 (label gutter wastes width); sparse page is a big empty tile; key-number tiles are mostly empty fill; orbit art barely visible. Reviewer scores avg 7.69 — no credible path to 9.5."
+      },
+      "reviewScores": {
+        "visual": 7.5,
+        "originality": 7,
+        "graphical": 7.5,
+        "typography": 8,
+        "layout": 7.5,
+        "professional": 8,
+        "engine": 8.5,
+        "print": 7.5
       }
     },
     {
@@ -1255,7 +1248,7 @@
           "idea": "rules as structure; asymmetric text block against a narrow column"
         }
       ],
-      "status": "proposed",
+      "status": "incomplete",
       "nearestExisting": "folio / press (by eye); coral 0.848 (tool)",
       "scores": {
         "visual": 9,
@@ -1266,6 +1259,42 @@
         "professional": 9.3,
         "engine": 9.2,
         "print": 9
+      },
+      "decision": {
+        "by": "reviewer agent (main-development-thread authority)",
+        "date": "2026-11-16",
+        "reason": "APPROVE: changes content presentation, not decoration — the person's own profile becomes the hero pull-quote under a ruled masthead beside a captioned portrait column; no existing design does this. Suits senior and conservative fields the colour-field graphic designs do not. Initial score 8.25 with fixable polish issues."
+      },
+      "implementation": {
+        "branch": "scout/2026-11-16",
+        "designId": "byline",
+        "finalScore": 9.04,
+        "rounds": [
+          {
+            "round": 1,
+            "average": 9.04
+          },
+          {
+            "round": 2,
+            "average": 8.63,
+            "note": "capped by clipped section markers"
+          },
+          {
+            "round": 3,
+            "average": 9
+          },
+          {
+            "round": 4,
+            "average": 9.04
+          }
+        ],
+        "blockers": [
+          "Originality ~8.7: only the header is new; the body (hanging dates, kicker rules, list column) is close to Linea/Folio/Press — needs an editorial body structure of its own (e.g. run-in dates, a caption-style aside continuing the photo-credit idea).",
+          "Graphical quality ~8.8: diamond markers and tinted chips are generic against the masthead; replace with small-caps kickers and run-in or ruled skill lists.",
+          "Layout ~8.9: on dense and long-profile CVs the header takes 50-60% of page 1 so only one job fits and the main column ends early.",
+          "Graphite / no-photo initials block is heavy; short profiles centred leave the PROFILE kicker floating.",
+          "CI: removing the rejected bento block shifts the seeded random-spec sequence and contrast.test.ts now hits a pre-existing composer weakness (accent side heading on a soft side fill at 4.43-4.45:1, non-graphic specs). Not caused by Byline, but the branch is not green until it is fixed."
+        ]
       }
     },
     {
@@ -1389,5 +1418,9 @@
       }
     }
   ],
-  "learnings": []
+  "learnings": [
+    "2026-11-16: a new header over an existing body column is not a new structure (Tessera rejected: bento tiles over the label-column body). The reviewer judges the whole page, not the masthead.",
+    "2026-11-16: changing content presentation (the person's own profile lifted into a hero pull-quote) is what got approved; but four review rounds converged on ~9.0 because the body stayed conventional. Next time design the body structure with the same care as the header before building.",
+    "2026-11-16: gaps still open — no design yet with an editorial/structural body of its own among graphic designs; professions still thin: healthcare, trades and academic-graphic. Engine traps found: the Tailwind Prettier plugin strips leading spaces inside className template literals (use classes()); data-design graphic designs were invisible to Instant Makeover's graphic rule (fixed in the open PR)."
+  ]
 }

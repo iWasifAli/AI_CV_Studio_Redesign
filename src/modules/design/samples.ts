@@ -139,19 +139,17 @@ const hex = (r: () => number) =>
 
 export function randomGraphic(r: () => number) {
   const one = <T>(a: readonly T[]) => a[Math.floor(r() * a.length)]!;
-  const layout = one(['poster', 'band', 'rail', 'cover', 'bento', 'statement'] as const);
+  const layout = one(['poster', 'band', 'rail', 'cover', 'statement'] as const);
   const b = GRAPHIC_BLOCKS[layout] as {
     frame: readonly string[];
     art: readonly string[];
     numbers?: readonly string[];
-    corners?: readonly string[];
   };
   return {
     layout,
     frame: one(b.frame),
     art: one(b.art),
     ...(b.numbers ? { numbers: one(b.numbers) } : {}),
-    ...(b.corners ? { corners: one(b.corners) } : {}),
     marker: one(MARKS),
     skills: one(METERS),
     side: r() < 0.5 ? 'left' : 'right',
@@ -232,18 +230,16 @@ export function enumSweep(): { label: string; spec: DesignSpecV2 }[] {
     ink: '#14263b',
     soft: '#e8f0f8',
   };
-  for (const layout of ['poster', 'band', 'rail', 'cover', 'bento', 'statement'] as const) {
+  for (const layout of ['poster', 'band', 'rail', 'cover', 'statement'] as const) {
     const b = GRAPHIC_BLOCKS[layout] as {
       frame: readonly string[];
       art: readonly string[];
       numbers?: readonly string[];
-      corners?: readonly string[];
     };
     const first = {
       frame: b.frame[0],
       art: b.art[0],
       ...(b.numbers ? { numbers: b.numbers[0] } : {}),
-      ...(b.corners ? { corners: b.corners[0] } : {}),
     };
     for (const frame of b.frame)
       add(`${layout} frame ${frame}`, { graphic: { ...g, layout, ...first, frame } });
@@ -251,8 +247,6 @@ export function enumSweep(): { label: string; spec: DesignSpecV2 }[] {
       add(`${layout} art ${art}`, { graphic: { ...g, layout, ...first, art } });
     for (const numbers of b.numbers ?? [])
       add(`${layout} numbers ${numbers}`, { graphic: { ...g, layout, ...first, numbers } });
-    for (const corners of b.corners ?? [])
-      add(`${layout} corners ${corners}`, { graphic: { ...g, layout, ...first, corners } });
     for (const marker of MARKS)
       add(`${layout} marker ${marker}`, { graphic: { ...g, layout, ...first, marker } });
     for (const skills of METERS)

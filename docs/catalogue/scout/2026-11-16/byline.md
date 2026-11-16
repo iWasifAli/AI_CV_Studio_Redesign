@@ -58,3 +58,15 @@ Pages: [short](byline/byline-short-p1.png) · [typical](byline/byline-typical-p1
 | **Average** | **9.06** | |
 
 **Weaknesses:** sparse CV (name + phone only) looks empty — a masthead, an initials square and a phone number; the aside's skill chips can wrap long skills onto two lines; the continuation header is minimal.
+
+## G. Implementation rounds (after approval)
+
+| Round | Changes | Reviewer average | Lowest criteria |
+|---|---|---|---|
+| Review | — (approval review) | 8.25 | typography, layout, print capped at 8 |
+| 1 | Contacts moved to a full-width dateline; quiet masthead for CVs without a profile; wider list column; near-black rules; edge cases (680-character and one-line profiles, Letter, themes) | 9.04 | graphical 8.8, layout 8.8 |
+| 2 | Column top rules aligned; key numbers as a ruled caption column under the portrait; initials block; square chips; even list rows | 8.63 | graphical 8.0 and print 8.0 (clipped section markers) |
+| 3 | Portrait flexes to balance the statement; whole markers; chips follow the accent; one-letter words bound to the next word | 9.0 | originality 8.8, graphical 8.7, layout 8.9 |
+| 4 | Long profiles become statement + standfirst; statement held to the main column width; short statements centred | 9.04 | originality 8.7, graphical 8.8, layout 8.9 |
+
+Status: **incomplete**. Every gate passes and the design looks professional, but the review converged at about 9.0. The reviewers named the limiting factor as the concept, not the polish: only the header is new, and the body is a conventional editorial column. See the blockers in the registry and in the day's report. Final page renders, edge cases and A4/Letter PDFs are in `byline/`, `byline/edge/` and `byline/pdf/`.
