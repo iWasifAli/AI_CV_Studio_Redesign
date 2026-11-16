@@ -41,6 +41,34 @@ export const THRESHOLD = 0.25;
 
 /** Signature of a graphic layout from its building blocks. */
 export function graphicSignature(g: GraphicSpec): Signature {
+  if (g.layout === 'bento')
+    return {
+      layout: 'bento-labelled',
+      header: 'bento-tiles',
+      headings: 'label-tile',
+      entries: 'dates-pill',
+      decoration: [g.art, g.marker, g.corners].join('+'),
+      placement: 'single',
+      photo: g.frame,
+      sideFill: 'none',
+      container: `numbers:${g.numbers}`,
+      skills: g.skills,
+      headingCase: g.caps ? 'upper' : 'normal',
+    };
+  if (g.layout === 'statement')
+    return {
+      layout: `statement-${g.side}`,
+      header: 'masthead-statement',
+      headings: 'kicker-rule',
+      entries: 'dates-hanging',
+      decoration: [g.art, g.marker].join('+'),
+      placement: `caption-${g.side}`,
+      photo: g.frame,
+      sideFill: 'none',
+      container: `numbers:${g.numbers}`,
+      skills: g.skills,
+      headingCase: g.caps ? 'upper' : 'normal',
+    };
   const side = 'side' in g ? g.side : 'rail';
   const rail = g.layout === 'band' || g.layout === 'rail';
   return {

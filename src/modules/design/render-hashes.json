@@ -154,5 +154,11 @@
   "tiles/engineer": "15282a3a8fee9c65",
   "matrix/driver": "5e94eb2f94ba311f",
   "matrix/teacher": "557a3092f4822b5a",
-  "matrix/engineer": "e457e0d8f6ca9056"
+  "matrix/engineer": "e457e0d8f6ca9056",
+  "tessera/driver": "807d38a974b0d11e",
+  "tessera/teacher": "33fd15e045d77b6d",
+  "tessera/engineer": "9cb2d0321ed0f99a",
+  "byline/driver": "454d0f7014c87b03",
+  "byline/teacher": "7540191e19adc111",
+  "byline/engineer": "9809b12537456ad4"
 }

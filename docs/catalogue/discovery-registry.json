@@ -1144,8 +1144,250 @@
         "skills": "segments",
         "headingCase": "upper"
       }
+    },
+    {
+      "id": "byline",
+      "name": "Byline",
+      "family": "Graphic",
+      "look": "Editorial statement",
+      "description": "An editorial front page: a ruled masthead with the name, then your own profile set large as a pull-quote statement beside a captioned portrait and contact column.",
+      "status": "draft",
+      "label": "Creative",
+      "structure": {
+        "layout": "statement-right",
+        "header": "masthead-statement",
+        "headings": "kicker-rule",
+        "entries": "dates-hanging",
+        "decoration": "marks+square",
+        "placement": "caption-right",
+        "photo": "rect",
+        "sideFill": "none",
+        "container": "numbers:ruled",
+        "skills": "segments",
+        "headingCase": "normal"
+      }
+    },
+    {
+      "id": "tessera",
+      "name": "Tessera",
+      "family": "Graphic",
+      "look": "Modular tiles",
+      "description": "A header built as a grid of tiles: name, portrait, contact and key numbers each in their own block, with section names in label tiles down the left gutter.",
+      "status": "draft",
+      "label": "Creative",
+      "structure": {
+        "layout": "bento-labelled",
+        "header": "bento-tiles",
+        "headings": "label-tile",
+        "entries": "dates-pill",
+        "decoration": "orbit+bar+round",
+        "placement": "single",
+        "photo": "fill",
+        "sideFill": "none",
+        "container": "numbers:accent",
+        "skills": "bars",
+        "headingCase": "normal"
+      }
     }
   ],
-  "proposals": [],
+  "proposals": [
+    {
+      "id": "tessera",
+      "date": "2026-11-16",
+      "name": "Tessera",
+      "concept": "Bento header: name, portrait, contact and each key number in separate tiles on a 4-column grid; one body column with section names as label tiles in a left gutter; no side column.",
+      "structureKey": "modular bento tile masthead over a gutter-labelled single column",
+      "references": [
+        {
+          "title": "Banani — Bento grid",
+          "url": "https://banani.co/definitions/bento-grid",
+          "idea": "modules of different sizes on one grid; size = priority"
+        },
+        {
+          "title": "Framer — Bento CV",
+          "url": "https://framer.com/templates/bento-cv/",
+          "idea": "a personal profile told in tiles (web)"
+        },
+        {
+          "title": "Contra — Joobin Job Seeker bento design",
+          "url": "https://contra.com/p/WMeOrBkc-joobin-job-seeker-bento-design",
+          "idea": "bento tiles for job-seeker data"
+        },
+        {
+          "title": "Smashing — Lessons from Swiss style",
+          "url": "https://smashingmagazine.com/2009/07/lessons-from-swiss-style-graphic-design",
+          "idea": "one modular grid governing every element"
+        }
+      ],
+      "status": "proposed",
+      "nearestExisting": "pulse / press (by eye); aurora 0.848 (tool)",
+      "scores": {
+        "visual": 8.8,
+        "originality": 9,
+        "graphical": 8.8,
+        "typography": 8.8,
+        "layout": 9,
+        "professional": 8.8,
+        "engine": 9.2,
+        "print": 9
+      }
+    },
+    {
+      "id": "byline",
+      "date": "2026-11-16",
+      "name": "Byline",
+      "concept": "Editorial front page: ruled masthead with the name; the person's own profile lifted into a large pull-quote statement beside a captioned portrait + contact column; kicker-ruled sections, hanging-margin dates, narrow list column.",
+      "structureKey": "ruled editorial masthead with hoisted pull-quote statement and captioned portrait column",
+      "references": [
+        {
+          "title": "We and the Color — editorial InDesign CV",
+          "url": "https://weandthecolor.com/resume-layout-strategy-why-this-minimalist-indesign-template-is-not-your-ordinary-cv/207469",
+          "idea": "career as a feature story; serif heads over sans body"
+        },
+        {
+          "title": "Pepper IT — annual reports that get read",
+          "url": "https://www.pepperit.com.au/?p=15584",
+          "idea": "by-the-numbers row beside commentary"
+        },
+        {
+          "title": "Smashing — Lessons from Swiss style",
+          "url": "https://smashingmagazine.com/2009/07/lessons-from-swiss-style-graphic-design",
+          "idea": "rules as structure; asymmetric text block against a narrow column"
+        }
+      ],
+      "status": "proposed",
+      "nearestExisting": "folio / press (by eye); coral 0.848 (tool)",
+      "scores": {
+        "visual": 9,
+        "originality": 9,
+        "graphical": 8.8,
+        "typography": 9.2,
+        "layout": 9,
+        "professional": 9.3,
+        "engine": 9.2,
+        "print": 9
+      }
+    },
+    {
+      "id": "numbers-hero",
+      "date": "2026-11-16",
+      "name": "By the numbers",
+      "concept": "Annual-report hero: three key figures set huge as the page opener, the name as a running masthead above.",
+      "structureKey": "annual report key figures hero with name as running masthead",
+      "references": [
+        {
+          "title": "Pepper IT — annual reports",
+          "url": "https://www.pepperit.com.au/?p=15584",
+          "idea": "by-the-numbers spread"
+        }
+      ],
+      "status": "rejected",
+      "decision": {
+        "by": "scout (not shortlisted)",
+        "date": "2026-11-16",
+        "reason": "Depends on key numbers: sparse and early-career CVs have none, so the hero would be empty or need invented figures (contract forbids). Overlaps the number bands of poster/band designs."
+      }
+    },
+    {
+      "id": "spine",
+      "date": "2026-11-16",
+      "name": "Spine",
+      "concept": "Name set rotated 90° as a full-height typographic spine down the page edge beside one column.",
+      "structureKey": "rotated full height name spine beside a single column",
+      "references": [
+        {
+          "title": "CreativePro — Putting some spine in design",
+          "url": "https://creativepro.com/dot-font-putting-some-spine-in-design/",
+          "idea": "type on a spine"
+        }
+      ],
+      "status": "rejected",
+      "decision": {
+        "by": "scout (not shortlisted)",
+        "date": "2026-11-16",
+        "reason": "Deferred: rotated name breaks the top-third and PDF read-back gates and hurts ATS; revisit if the engine gains a rotated-text-safe extraction path."
+      }
+    },
+    {
+      "id": "career-gantt",
+      "date": "2026-11-16",
+      "name": "Career strip",
+      "concept": "Header with a horizontal Gantt strip plotting each role's dates across the career span.",
+      "structureKey": "career gantt strip header plotting role dates",
+      "references": [
+        {
+          "title": "Pepper IT — illustrated timelines",
+          "url": "https://www.pepperit.com.au/?p=15584",
+          "idea": "timelines as data graphics"
+        }
+      ],
+      "status": "rejected",
+      "decision": {
+        "by": "scout (not shortlisted)",
+        "date": "2026-11-16",
+        "reason": "Needs date parsing across locales and free-text dates; duplicates the work history; risk of misdrawn spans. Not buildable to 9.5 today."
+      }
+    },
+    {
+      "id": "contents-index",
+      "date": "2026-11-16",
+      "name": "Contents",
+      "concept": "Magazine contents page as header: numbered index of the CV's sections with page references.",
+      "structureKey": "table of contents index header with page references",
+      "references": [
+        {
+          "title": "Swiss editorial practice",
+          "url": "https://smashingmagazine.com/2009/07/lessons-from-swiss-style-graphic-design",
+          "idea": "index / contents grids"
+        }
+      ],
+      "status": "rejected",
+      "decision": {
+        "by": "scout (not shortlisted)",
+        "date": "2026-11-16",
+        "reason": "Page numbers are only known after pagination; a contents list without them is filler on a 1–2 page CV."
+      }
+    },
+    {
+      "id": "duotone-diptych",
+      "date": "2026-11-16",
+      "name": "Diptych",
+      "concept": "Top half of page one a full-bleed duotone portrait with the name overprinted.",
+      "structureKey": "full bleed duotone portrait half page with overprinted name",
+      "references": [
+        {
+          "title": "Editorial portrait openers (general practice)",
+          "url": "https://weandthecolor.com/resume-layout-strategy-why-this-minimalist-indesign-template-is-not-your-ordinary-cv/207469",
+          "idea": "portrait-led cover"
+        }
+      ],
+      "status": "rejected",
+      "decision": {
+        "by": "scout (not shortlisted)",
+        "date": "2026-11-16",
+        "reason": "Text over photo fails the art-under-text gate; half a page lost before the first job (62% budget); weak without a photo."
+      }
+    },
+    {
+      "id": "swiss-poster",
+      "date": "2026-11-16",
+      "name": "Swiss poster",
+      "concept": "Giant name across the full width with a hairline 4-column info row beneath, then a ruled grid body.",
+      "structureKey": "swiss poster masthead with hairline info row over ruled grid",
+      "references": [
+        {
+          "title": "Dribbble — Müller-Brockmann layout exploration",
+          "url": "https://dribbble.com/shots/17771651-Josef-M-ller-Brockmann-Layout-Exploration",
+          "idea": "Swiss poster grid"
+        }
+      ],
+      "status": "rejected",
+      "decision": {
+        "by": "scout (not shortlisted)",
+        "date": "2026-11-16",
+        "reason": "Too close to Press / Ledger / Linea once colour and type are set aside: a typographic header over a label or split column."
+      }
+    }
+  ],
   "learnings": []
 }

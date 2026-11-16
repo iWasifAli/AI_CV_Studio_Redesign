@@ -136,6 +136,17 @@ export const GRAPHIC_BLOCKS = {
     frame: ['tilt', 'ring', 'diamond', 'blob', 'offset'],
     art: ['hatch', 'grid', 'rays', 'confetti', 'bubbles'],
   },
+  bento: {
+    frame: ['fill', 'circle', 'arch', 'cut', 'pill'],
+    art: ['orbit', 'grid', 'quarter', 'stripes', 'none'],
+    numbers: ['accent', 'ink', 'outline'],
+    corners: ['round', 'soft', 'square'],
+  },
+  statement: {
+    frame: ['rect', 'arch', 'circle', 'tall', 'stamp'],
+    art: ['marks', 'bar', 'drop'],
+    numbers: ['ruled', 'column'],
+  },
 } as const;
 const G = GRAPHIC_BLOCKS;
 const tones = { ink: hex6, soft: hex6 };
@@ -178,6 +189,29 @@ export const graphicSpec = z.discriminatedUnion('layout', [
     layout: z.literal('cover'),
     frame: z.enum(G.cover.frame),
     art: z.enum(G.cover.art),
+    ...looks,
+    side: z.enum(['left', 'right']),
+    caps: z.boolean(),
+    stop: z.string().max(2),
+    ...tones,
+  }),
+  z.object({
+    layout: z.literal('bento'),
+    frame: z.enum(G.bento.frame),
+    art: z.enum(G.bento.art),
+    numbers: z.enum(G.bento.numbers),
+    corners: z.enum(G.bento.corners),
+    ...looks,
+    caps: z.boolean(),
+    stop: z.string().max(2),
+    ...tones,
+  }),
+  z.object({
+    layout: z.literal('statement'),
+    frame: z.enum(G.statement.frame),
+    /** How the statement opens: quote marks, an accent bar or a drop initial. */
+    art: z.enum(G.statement.art),
+    numbers: z.enum(G.statement.numbers),
     ...looks,
     side: z.enum(['left', 'right']),
     caps: z.boolean(),

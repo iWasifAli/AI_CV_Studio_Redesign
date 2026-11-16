@@ -1,0 +1,52 @@
+{
+  "id": "byline",
+  "name": "Byline",
+  "style": "Editorial statement",
+  "description": "An editorial front page: a ruled masthead with the name, then your own profile set large as a pull-quote statement beside a captioned portrait and contact column.",
+  "family": "graphic",
+  "fontPair": "editorial",
+  "accent": "#c2410c",
+  "fit": {
+    "executive": 0.9,
+    "office": 0.8,
+    "teacher": 0.7,
+    "healthcare": 0.6,
+    "general": 0.6,
+    "tech": 0.5
+  },
+  "photo": true,
+  "tags": ["elegant", "senior", "photo-led"],
+  "fallback": "neon",
+  "status": "draft",
+  "addedAt": "2026-11-16",
+  "spec": {
+    "layout": {
+      "type": "sidebar-right"
+    },
+    "placement": {
+      "side": ["skills", "languages", "certifications", "licences", "awards"]
+    },
+    "header": {
+      "style": "band",
+      "photo": {
+        "show": true
+      }
+    },
+    "color": {
+      "mode": "accent"
+    },
+    "graphic": {
+      "layout": "statement",
+      "frame": "rect",
+      "art": "marks",
+      "numbers": "ruled",
+      "side": "right",
+      "marker": "square",
+      "skills": "segments",
+      "caps": false,
+      "stop": "",
+      "ink": "#1c1917",
+      "soft": "#f5efe6"
+    }
+  }
+}
