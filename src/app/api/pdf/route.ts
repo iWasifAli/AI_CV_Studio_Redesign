@@ -45,13 +45,17 @@ export async function POST(req: Request) {
     });
 
   // Entitlement gate: design tier, then the monthly download allowance (counted on success only).
+  const mark = timer();
   const user = await currentUser();
+  mark('user');
   const design = await checkDesign(user, parsed.data.design);
+  mark('design');
   if (!design.ok) {
     await track(design.reason === 'sign_in' ? 'pdf_denied_signin' : 'pdf_denied_premium');
     return apiError(denialCode(design), design.message, rid, { reason: design.reason });
   }
   const gate = await reserve(user, 'pdf.download');
+  mark('reserve');
   if (!gate.decision.ok) {
     if (gate.decision.reason === 'sign_in') await track('pdf_denied_signin');
     if (gate.decision.reason === 'limit') await track('pdf_denied_limit');
@@ -75,8 +79,10 @@ export async function POST(req: Request) {
   inFlight++;
   try {
     const { pdf, pages, timing } = await renderResumePdf(parsed.data);
+    mark('pdf');
     await track('pdf_ok');
     if (user) await notePdf(user.uid);
+    mark('count');
     return new Response(Buffer.from(pdf), {
       status: 200,
       headers: {
@@ -86,7 +92,7 @@ export async function POST(req: Request) {
         'x-page-count': String(pages),
         'x-request-id': rid,
         // Where the time goes on the server: page build, browser start (0 when warm), rendering.
-        'Server-Timing': `build;dur=${timing.build}, browser;dur=${timing.browser}, render;dur=${timing.render}`,
+        'Server-Timing': `${mark.header()}, build;dur=${timing.build}, browser;dur=${timing.browser}, render;dur=${timing.render}`,
       },
     });
   } catch (err) {
@@ -98,4 +104,17 @@ export async function POST(req: Request) {
   } finally {
     inFlight--;
   }
+}
+
+/** Stage timings for the Server-Timing header (gap audit G-10: where the seconds go). */
+function timer() {
+  let last = Date.now();
+  const parts: string[] = [];
+  const mark = (name: string) => {
+    const now = Date.now();
+    parts.push(`${name};dur=${now - last}`);
+    last = now;
+  };
+  mark.header = () => parts.join(', ');
+  return mark;
 }
