@@ -46,7 +46,7 @@ export type StatementConfig = {
 /** Statement size steps down with its length, so a long profile still fits the front page. */
 export function statementScale(text: string): number {
   const n = text.length;
-  return n <= 150 ? 1 : n <= 240 ? 0.86 : n <= 340 ? 0.76 : n <= 460 ? 0.66 : 0.58;
+  return n <= 150 ? 1 : n <= 240 ? 0.92 : n <= 340 ? 0.84 : n <= 460 ? 0.74 : 0.64;
 }
 
 function QuoteMark(): ReactNode {
@@ -147,7 +147,8 @@ ${GRAPHIC_BASE_CSS}
 ${QUOTE[c.quote]}
 .st-cap{flex:none;width:var(--st-cap);display:flex;flex-direction:column;gap:4mm;align-items:${capLeft ? 'flex-start' : 'flex-start'}}
 ${FRAME[c.frame]}
-.cv-portrait--initials.st-photo{background:var(--g-soft);color:var(--g-ink);font-family:var(--g-display);font-weight:800;font-size:30pt;letter-spacing:-.04em}
+.cv-portrait--initials.st-photo{background:var(--g-ink);color:#fff;font-family:var(--g-display);font-weight:800;font-size:46pt;letter-spacing:-.04em;line-height:1}
+.st-head .st-mast .cv-portrait--initials.st-photo--mast{font-size:19pt}
 .st-head .st-mast .st-photo--mast{flex:none;width:22mm;height:22mm;margin:0 0 .6mm;outline:0;border-bottom:0;box-shadow:none}
 .st-dateline{margin-top:calc(5mm * var(--fit-gap));border-top:.35mm solid var(--g-ink);border-bottom:.35mm solid var(--g-ink);padding:2.3mm 0 2.1mm;font-size:.86em}
 .st-head--quiet .st-dateline{margin-top:0;border-top:0}
@@ -157,21 +158,26 @@ ${FRAME[c.frame]}
 .st-stats{margin-top:auto;padding-top:5mm}
 .st-say .st-stats{border-top:.35mm solid var(--g-ink);margin-top:6mm;padding-top:4mm}
 .st-say .g-stat{border-left:.9mm solid var(--g-hot);padding-left:3mm}
-.st-stats--col{display:flex;flex-direction:column;gap:3mm;margin:0;padding:3mm 0 0;border-top:.35mm solid var(--g-ink);width:100%}
+.st-stats--col{display:flex;flex-direction:column;gap:0;margin:0;padding:0;width:100%}
+.st-stats--col .g-stat{display:flex;align-items:baseline;gap:3mm;border-top:.35mm solid var(--g-ink);padding:2mm 0 1.8mm}
+.st-stats--col .g-stat:last-child{border-bottom:.35mm solid var(--g-ink)}
+.st-stats--col .g-stat-v{font-size:19pt;min-width:15mm;color:var(--g-ink)}
+.st-stats--col .g-stat-v span{color:var(--g-hot-text)}
+.st-stats--col .g-stat-l{margin:0;font-size:7.6pt;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
 .st-stats--row{margin-top:4mm}
 .st-stats--row .g-stat{border-left:.9mm solid var(--g-hot);padding-left:3mm}
-.st-stats--col .g-stat{display:flex;align-items:baseline;gap:3mm}
-.st-stats--col .g-stat-v{font-size:17pt;min-width:15mm}
-.st-stats--col .g-stat-l{margin:0}
 html[data-fit-compact] .st-photo{height:36mm}
 html[data-fit-compact] .st-front{padding-top:4mm}
 /* The profile is the statement: its body copy is not repeated. */
 .cv-main .k-summary{display:none}
+/* With the profile lifted out, the first visible section starts the column (rules line up). */
+.cv-main > .k-summary + .b-heading:not(.k-summary){padding-top:0}
 /* Continuation pages: the masthead rule and name. */
 .cv-top--running{margin-bottom:5mm}
-.st-run{display:flex;justify-content:space-between;align-items:baseline;gap:4mm;border-top:1.4mm solid var(--g-ink);border-bottom:.35mm solid var(--g-ink);padding:2.4mm 0 2mm}
+.cv-top--running .st-run.st-run{display:flex;flex-direction:column;align-items:flex-start;gap:.8mm;row-gap:.8mm}
+.st-run{border-top:1.4mm solid var(--g-ink);border-bottom:.35mm solid var(--g-ink);padding:2.4mm 0 2mm}
 .st-run strong{font-family:var(--g-display);font-weight:800;font-size:12pt;letter-spacing:-.03em;color:var(--g-ink);${c.caps ? 'text-transform:uppercase;' : ''}}
-.st-run span{font-size:6.8pt;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.st-run span{font-size:7.2pt;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
 /* Body: kicker-ruled heads, dates in a hanging margin, a narrow column for lists. */
 .cv-body{font-size:.92em}
 .cv-has-aside .cv-aside{width:var(--side-w);${capLeft ? 'order:-1;padding-right:6mm' : 'padding-left:6mm'}}
@@ -188,6 +194,8 @@ html[data-fit-compact] .st-front{padding-top:4mm}
 .cv-main .b-bullet{padding-left:24mm}
 .b-bullet{padding-top:1.2pt}
 .b-compact{padding-top:2.2mm}
+.cv-aside .cv-compact-grid{row-gap:2.2mm}
+.g-tags li{border-radius:0}
 .b-skills{padding-top:2.8mm}
 .b-compact.b-first,.b-skills.b-first{padding-top:0}
 `;

@@ -39,7 +39,7 @@
       "layout": "statement",
       "frame": "rect",
       "art": "marks",
-      "numbers": "ruled",
+      "numbers": "column",
       "side": "right",
       "marker": "square",
       "skills": "segments",
