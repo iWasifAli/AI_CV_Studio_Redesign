@@ -46,7 +46,24 @@ export type StatementConfig = {
 /** Statement size steps down with its length, so a long profile still fits the front page. */
 export function statementScale(text: string): number {
   const n = text.length;
-  return n <= 90 ? 1.22 : n <= 150 ? 1 : n <= 240 ? 0.92 : n <= 340 ? 0.84 : n <= 460 ? 0.74 : 0.64;
+  return n <= 90 ? 1.45 : n <= 150 ? 1 : n <= 240 ? 0.92 : n <= 340 ? 0.84 : n <= 460 ? 0.74 : 0.64;
+}
+
+/**
+ * A long profile is not set whole as a pull-quote: its opening sentences (up to about 300
+ * characters) are the statement and the rest follows as a standfirst in body type.
+ */
+export function splitStatement(text: string): [string, string] {
+  if (text.length <= 360) return [text, ''];
+  const parts = text.match(/[^.!?]+[.!?]+(?=\s|$)|[^.!?]+$/g) ?? [text];
+  let lead = '';
+  for (const p of parts) {
+    if (lead && (lead + p).length > 300) break;
+    lead += p;
+  }
+  lead = lead.trim();
+  const more = text.slice(lead.length).trim();
+  return lead.length >= 60 && more ? [lead, more] : [text, ''];
 }
 
 /** Keeps a one-letter word with the next one, so a statement line never ends on "I" or "a". */
@@ -68,6 +85,7 @@ export function statementTemplate(c: StatementConfig): CatalogueTemplate {
     const t = cvWords(model.locale);
     const summary = model.sections.find((s) => s.kind === 'summary');
     const text = summary?.text?.trim() ?? '';
+    const [lead, more] = splitStatement(text);
     const where = model.contacts.find((x) => x.kind === 'location')?.text;
     const stats = model.stats.length >= 2;
     // The place sits in the byline; the dateline carries the other details once.
@@ -91,10 +109,11 @@ export function statementTemplate(c: StatementConfig): CatalogueTemplate {
               {c.quote === 'marks' && <QuoteMark />}
               <p
                 className={`st-quote st-quote--${c.quote}`}
-                style={{ ['--qs' as string]: statementScale(text) }}
+                style={{ ['--qs' as string]: statementScale(lead) }}
               >
-                {bind(text)}
+                {bind(lead)}
               </p>
+              {more && <p className="st-more">{more}</p>}
               {stats && c.numbers === 'ruled' && <KeyNumbers model={model} className="st-stats" />}
             </div>
             <div className="st-cap">
@@ -143,8 +162,9 @@ ${GRAPHIC_BASE_CSS}
 .st-name .g-last,.st-name .g-stop{color:var(--g-hot-text)}
 .st-role{flex:none;max-width:62mm;text-align:right;display:flex;flex-direction:column;gap:1mm;font-size:7.4pt;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);padding-bottom:1mm}
 .st-role strong{color:var(--ink);font-weight:800}
-.st-front{display:flex;align-items:stretch;gap:9mm;padding-top:calc(6mm * var(--fit-gap));${capLeft ? 'flex-direction:row-reverse;' : ''}}
-.st-say{flex:1;min-width:0;display:flex;flex-direction:column}
+.st-front{display:flex;align-items:stretch;gap:13mm;padding-top:calc(6mm * var(--fit-gap));${capLeft ? 'flex-direction:row-reverse;' : ''}}
+.st-say{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center}
+.st-more{margin-top:3.2mm;font-size:.98em;line-height:1.6;color:var(--ink-2)}
 .st-kicker{font-size:6.8pt;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--g-hot-text);margin-bottom:3mm}
 .st-quote{font-family:var(--g-display);font-weight:600;font-size:calc(17pt * var(--qs,1) * (.86 + .14 * var(--fit-gap)));line-height:1.28;letter-spacing:-.018em;color:var(--g-ink);text-wrap:pretty}
 ${QUOTE[c.quote]}
@@ -152,7 +172,7 @@ ${QUOTE[c.quote]}
 ${FRAME[c.frame]}
 .cv-portrait--initials.st-photo{background:var(--g-soft);color:var(--g-ink);box-shadow:inset 0 0 0 .5mm var(--g-ink);font-family:var(--g-display);font-weight:800;font-size:46pt;letter-spacing:-.04em;line-height:1}
 .st-head .st-mast .cv-portrait--initials.st-photo--mast{font-size:19pt}
-.st-head .st-mast .st-photo--mast{flex:none;width:22mm;height:22mm;min-height:0;max-height:none;margin:0 0 .6mm;outline:0;border-bottom:0;box-shadow:none}
+.st-head .st-mast .st-photo--mast{flex:none;width:22mm;height:22mm;min-height:0;max-height:none;margin:0 0 .6mm;outline:0;border-bottom:0}
 .st-dateline{margin-top:calc(5mm * var(--fit-gap));border-top:.35mm solid var(--g-ink);border-bottom:.35mm solid var(--g-ink);padding:2.3mm 0 2.1mm;font-size:.86em}
 .st-head--quiet .st-dateline{margin-top:0;border-top:0}
 .st-dateline .cv-contacts{column-gap:6.5mm;row-gap:1.2mm;margin-left:0}
@@ -189,7 +209,7 @@ html[data-fit-compact] .st-front{padding-top:4mm}
 .b-first{padding-top:0}
 .cv-main > .b-heading:first-child,.cv-aside > .b-heading:first-child{padding-top:0}
 .b-heading .g-h{border-top:.7mm solid var(--g-ink);padding-top:2mm}
-.cv-aside .g-h{font-size:8pt}
+.cv-aside .g-h{font-size:8.6pt}
 /* Rotated markers stay whole inside the column edge. */
 .g-h--square .g-h-m{margin-left:.45mm;margin-top:-.1em}
 .b-entry{padding-top:calc(var(--item-gap) * 1.1)}
