@@ -189,7 +189,7 @@ for (const meta of DESIGNS) {
     // Geometry-sorted extraction: single-column designs as they are, every design's ATS-safe version
     // Section labels in a margin read like a second column in position-sorted text.
     const spec = doc.design.v2 ?? migrateV1(doc.design);
-    if (spec.layout.type === 'single' || spec.layout.type === 'timeline') {
+    if (process.env.ORDER_ALL || spec.layout.type === 'single' || spec.layout.type === 'timeline') {
       const why = sectionOrder(tool('pdftotext', r.pdf, ['-layout']), src);
       if (why) fail(`${label}: layout extraction order — ${why}`);
     }

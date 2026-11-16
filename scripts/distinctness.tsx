@@ -37,7 +37,7 @@ const PART_LABEL: Record<SignaturePart, string> = {
   skills: 'skills look',
   headingCase: 'heading case',
 };
-const SHOW = 15;
+const SHOW = 40;
 
 async function main() {
   const png = process.argv.includes('--png');
@@ -47,7 +47,7 @@ async function main() {
   const live = DESIGN_IDS.filter(
     (id) => DEFAULT_CONFIG.designs.find((d) => d.id === id)?.enabled || extra.includes(id),
   ) as DesignId[];
-  const ok = new Map(accepted.map((p) => [pairKey(p.a, p.b), p.reason] as const));
+  const ok = new Map(accepted.map((p) => [pairKey(p.a, p.b), p] as const));
   const pairs = nearestPairs(live);
   const failing = pairs.filter((p) => p.distance < THRESHOLD && !ok.has(pairKey(p.a, p.b)));
   const differs = (same: SignaturePart[]) =>
@@ -70,9 +70,11 @@ async function main() {
         (p, i) =>
           `| ${i + 1} | ${name(p.a)} – ${name(p.b)} | ${p.distance.toFixed(2)} | ${differs(p.same)} | ${
             p.distance < THRESHOLD
-              ? ok.has(pairKey(p.a, p.b))
-                ? 'below threshold, accepted by owner'
-                : '**below threshold — fails**'
+              ? ok.get(pairKey(p.a, p.b))?.decision === 'accepted'
+                ? 'below threshold, kept by owner'
+                : ok.has(pairKey(p.a, p.b))
+                  ? 'below threshold, **awaiting owner**'
+                  : '**below threshold — fails**'
               : 'ok'
           } |`,
       ),

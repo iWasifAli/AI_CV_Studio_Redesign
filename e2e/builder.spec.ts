@@ -3,6 +3,7 @@ import AxeBuilder from '@axe-core/playwright';
 import type { Page } from '@playwright/test';
 import { expect, test } from './support/test';
 import { chooseDesign } from './support/design';
+import { LIVE_DESIGNS } from './support/catalogue';
 
 async function axeClean(page: Page) {
   const results = await new AxeBuilder({ page })
@@ -230,7 +231,9 @@ test('the design browser offers every live design with thumbnails', async ({ pag
   await page.getByRole('tab', { name: 'Design' }).click();
   await page.getByTestId('browse-designs').click();
   const dialog = page.getByRole('dialog', { name: 'All designs' });
-  await expect(dialog.getByTestId('design-grid').locator('li[data-design]')).toHaveCount(52);
+  await expect(dialog.getByTestId('design-grid').locator('li[data-design]')).toHaveCount(
+    LIVE_DESIGNS,
+  );
   await page.keyboard.press('Escape');
   for (const name of ['Atelier', 'Ledger', 'Sprout']) await chooseDesign(page, name);
   await expect(previewFrame(page).locator('html[data-template="sprout"]')).toHaveCount(1);

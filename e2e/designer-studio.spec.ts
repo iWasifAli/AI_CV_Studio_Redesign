@@ -2,6 +2,7 @@ import AxeBuilder from '@axe-core/playwright';
 import type { APIRequestContext, Page } from '@playwright/test';
 import { expect, test } from './support/test';
 import { chooseDesign } from './support/design';
+import { LIVE_DESIGNS } from './support/catalogue';
 import { seedDocument } from './support/seed';
 import { setConfig } from './support/auth';
 import { DEFAULT_CONFIG } from '../src/modules/billing/config';
@@ -186,7 +187,7 @@ test.describe('visitors', () => {
   });
 });
 
-test('the browser has 52 designs in 9 families; a spec design switches from it', async ({
+test('the browser has every live design in 9 families; a spec design switches from it', async ({
   page,
   request,
 }) => {
@@ -195,7 +196,7 @@ test('the browser has 52 designs in 9 families; a spec design switches from it',
   await page.getByTestId('browse-designs').click();
   const dialog = page.getByRole('dialog', { name: 'All designs' });
   const cards = dialog.getByTestId('design-grid').locator('li[data-design]');
-  await expect(cards).toHaveCount(52);
+  await expect(cards).toHaveCount(LIVE_DESIGNS);
   await dialog.getByTestId('design-filters').click();
   await dialog
     .getByRole('group', { name: 'Design families' })

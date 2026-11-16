@@ -3,8 +3,9 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { expect, test } from './support/test';
+import { LIVE_DESIGNS } from './support/catalogue';
 import { FIXTURES, PHOTO_FOR, withPhoto, type FixtureId } from '../src/modules/resume/fixtures';
-import { DESIGN_IDS, TEMPLATE_IDS, type PageSize } from '../src/modules/resume/schema';
+import { TEMPLATE_IDS, type PageSize } from '../src/modules/resume/schema';
 import { buildDocumentHtml } from '../src/modules/templates/build-document';
 
 const hasPoppler = (() => {
@@ -105,8 +106,8 @@ test('Designs page shows all 52 designs with real content, filters and a page pe
   const frames = page.locator('iframe[title*="design with an example"][data-active]');
   // Previews are built lazily: off-screen cards show their static thumbnail first.
   const cards = page.locator('main ul > li[data-design]');
-  await expect(cards).toHaveCount(DESIGN_IDS.length);
-  expect(await frames.count()).toBeLessThan(DESIGN_IDS.length);
+  await expect(cards).toHaveCount(LIVE_DESIGNS);
+  expect(await frames.count()).toBeLessThan(LIVE_DESIGNS);
   for (const i of [0, 7, 15, 31]) {
     await cards.nth(i).scrollIntoViewIfNeeded();
     await expect(
@@ -131,7 +132,7 @@ test('Designs page shows all 52 designs with real content, filters and a page pe
   await page.getByLabel('Best for online applications').check();
   const online = await cards.count();
   expect(online).toBeGreaterThan(8);
-  expect(online).toBeLessThan(DESIGN_IDS.length);
+  expect(online).toBeLessThan(LIVE_DESIGNS);
   const close = page.getByRole('button', { name: 'Close filters' });
   if (await close.isVisible()) await close.click();
   // Every card says whether it is ATS-friendly or Creative with a plain ATS version.

@@ -104,8 +104,15 @@ export function defaultTags(id: DesignId): DesignTag[] {
   return [...(DEFAULT_TAGS[id] ?? (DATA_META[id]?.tags as DesignTag[] | undefined) ?? [])];
 }
 
+/**
+ * Built-in designs the owner retired (they stay usable for CVs that already have them):
+ *  - column (2026-11-16): too close to Press and to Ledger; lowest of the three in the audit.
+ */
+export const OWNER_RETIRED: readonly DesignId[] = ['column'];
+
 /** Status a design starts in: data files say so (new ones are drafts); the rest are live. */
 export function defaultStatus(id: DesignId): DesignStatus {
+  if (OWNER_RETIRED.includes(id)) return 'retired';
   return (DATA_META[id]?.status as DesignStatus | undefined) ?? 'live';
 }
 

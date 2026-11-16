@@ -15,14 +15,19 @@ import type { DesignId } from '@/modules/resume/schema';
 import { designSpec } from './catalogue';
 import type { DesignSpecV2, GraphicSpec } from './spec';
 
+/**
+ * Weights: the page structure counts most. Decoration — artwork, photo frame shape, heading
+ * markers — counts little, so a copy of a layout with different ornaments is still flagged
+ * (owner, 2026-11-16: "decoration counts for less").
+ */
 export const SIGNATURE_PARTS = {
   layout: 3,
   header: 3,
   headings: 2,
   entries: 2,
-  decoration: 2,
+  decoration: 0.75,
   placement: 1.5,
-  photo: 1.5,
+  photo: 0.75,
   sideFill: 1,
   container: 1,
   skills: 1,
@@ -37,15 +42,18 @@ export const THRESHOLD = 0.25;
 /** Signature of a graphic layout from its building blocks. */
 export function graphicSignature(g: GraphicSpec): Signature {
   const side = 'side' in g ? g.side : 'rail';
+  const rail = g.layout === 'band' || g.layout === 'rail';
   return {
     layout: g.layout === 'poster' || g.layout === 'cover' ? `${g.layout}-${side}` : g.layout,
-    header: `${g.layout}+${g.layout === 'rail' ? g.nameStyle : g.frame}`,
-    headings: g.marker,
+    // The header is the layout's own; its photo frame is counted once, under photo.
+    header: g.layout,
+    // Heading markers, artwork and end marks are ornaments: one decoration part.
+    headings: 'graphic',
     entries: 'graphic-timeline',
-    decoration: g.layout === 'band' ? `art:${g.art}+end:${g.end}` : `art:${g.art}`,
-    placement: g.layout === 'band' || g.layout === 'rail' ? 'rail' : `side-${side}`,
+    decoration: [g.art, g.marker, g.layout === 'band' ? g.end : ''].join('+'),
+    placement: rail ? 'rail' : `side-${side}`,
     photo: g.frame,
-    sideFill: g.layout === 'band' || g.layout === 'rail' ? 'deep' : 'none',
+    sideFill: rail ? 'deep' : 'none',
     container: 'numbers' in g ? `numbers:${g.numbers}` : 'none',
     skills: g.skills,
     headingCase: g.layout === 'rail' ? g.nameStyle : g.caps ? 'upper' : 'normal',

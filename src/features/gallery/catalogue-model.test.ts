@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { DESIGN_IDS } from '@/modules/resume/ids';
 import { normaliseEntry } from '@/modules/design/lifecycle';
+import { FIXTURES } from '@/modules/resume/fixtures';
 import { shortlist, MAX_THUMBS } from '@/features/editor/design-shortlist';
 import {
   NO_FILTERS,
   activeFilterCount,
   catalogueItems,
   filterItems,
+  keepsItsLayout,
   recommend,
   seeded,
   sortItems,
@@ -77,6 +79,17 @@ describe('gallery: which designs show', () => {
     const fams = new Map<string, number>();
     for (const d of r) fams.set(d.meta.family, (fams.get(d.meta.family) ?? 0) + 1);
     expect(Math.max(...fams.values())).toBeLessThanOrEqual(2);
+  });
+
+  it('never recommends a design that would have to drop a column for this CV', () => {
+    const doc = FIXTURES.engineer;
+    expect(keepsItsLayout('mosaic', doc)).toBe(false);
+    expect(keepsItsLayout('matrix', doc)).toBe(false);
+    expect(keepsItsLayout('clarity', doc)).toBe(true);
+    const r = recommend(items, { preset: 'tech', popularity: {}, current: 'clarity', doc }, 6);
+    expect(ids(r)).not.toContain('mosaic');
+    expect(ids(r)).not.toContain('matrix');
+    expect(r).toHaveLength(6);
   });
 
   it('300-card load test list has unique keys', () => {

@@ -458,7 +458,7 @@ export const LAUNCH_FREE_DESIGNS = [
   'clarity',
   'heritage',
   'harbor',
-  'column',
+  'press', // was Column, retired by the owner on 2026-11-16
   'chronicle',
   'spark',
   'lens',

@@ -27,6 +27,7 @@ export function shortlist(
     popularity: Record<string, number>;
     favourites: string[];
     recent: string[];
+    doc?: ResumeDocument;
   },
 ): { mine: CatalogueItem[]; recommended: CatalogueItem[] } {
   const live = new Map(items.map((d) => [d.id, d]));
@@ -40,7 +41,7 @@ export function shortlist(
   const room = Math.min(6, MAX_THUMBS - 1 - mine.length);
   const recommended = recommend(
     items.filter((d) => !mine.some((x) => x.id === d.id)),
-    { preset: ctx.preset ?? null, popularity: ctx.popularity, current: ctx.current },
+    { preset: ctx.preset ?? null, popularity: ctx.popularity, current: ctx.current, doc: ctx.doc },
     room,
   );
   return { mine, recommended };
@@ -75,8 +76,9 @@ export function DesignShortlist({
         popularity,
         favourites,
         recent: typeof window === 'undefined' ? [] : recentDesigns(),
+        doc: base,
       }),
-    [items, current, doc.presetId, popularity, favourites],
+    [items, current, doc.presetId, popularity, favourites, base],
   );
   const docs = useMemo(() => {
     const m = new Map<DesignId, ResumeDocument>();

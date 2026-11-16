@@ -24,6 +24,11 @@ describe('distinctness', () => {
     expect(distance(specSignature(s), specSignature(recoloured))).toBe(0);
   });
 
+  it('a graphic copy with other ornaments (frame, artwork, markers) is flagged', () => {
+    expect(distance(signature('terra'), signature('copper'))).toBeLessThan(THRESHOLD);
+    expect(distance(signature('violet'), signature('tangerine'))).toBeLessThan(THRESHOLD);
+  });
+
   it('a design is identical to itself and differs from others', () => {
     expect(distance(signature('neon'), signature('neon'))).toBe(0);
     expect(distance(signature('neon'), signature('clarity'))).toBeGreaterThan(0.8);
@@ -40,8 +45,10 @@ describe('distinctness', () => {
     expect(tooClose).toEqual([]);
   });
 
-  it('every accepted pair still exists and is still close (stale entries are removed)', () => {
+  it('every listed pair is decided or awaiting the owner, still exists and is still close', () => {
     for (const p of accepted) {
+      expect(['accepted', 'awaiting']).toContain(p.decision);
+      if (p.decision === 'accepted') expect(p.decidedOn).toMatch(/^\d{4}-\d{2}-\d{2}$/);
       expect(DESIGN_IDS).toContain(p.a);
       expect(DESIGN_IDS).toContain(p.b);
       expect(distance(signature(p.a as never), signature(p.b as never))).toBeLessThan(THRESHOLD);

@@ -13,7 +13,10 @@ import {
   type DesignTag,
 } from '@/modules/design/lifecycle';
 import type { PresetId } from '@/modules/resume/professions';
-import type { DesignId } from '@/modules/resume/schema';
+import type { DesignId, ResumeDocument } from '@/modules/resume/schema';
+import { designSpec } from '@/modules/design/catalogue';
+import { isSpecDesign } from '@/modules/design/designs';
+import { normalise } from '@/modules/design/normalise';
 
 export type CatalogueItem = {
   /** Unique per card (the 300-card load test repeats designs). */
@@ -157,11 +160,17 @@ export function sortItems(
  */
 export function recommend(
   items: CatalogueItem[],
-  ctx: { preset: PresetId | null; popularity: Record<string, number>; current?: DesignId | null },
+  ctx: {
+    preset: PresetId | null;
+    popularity: Record<string, number>;
+    current?: DesignId | null;
+    /** This CV: designs that would have to drop a column for it are not recommended. */
+    doc?: ResumeDocument;
+  },
   n = 6,
 ): CatalogueItem[] {
   const sorted = sortItems(
-    items.filter((d) => d.id !== ctx.current),
+    items.filter((d) => d.id !== ctx.current && (!ctx.doc || keepsItsLayout(d.id, ctx.doc))),
     'best',
     ctx,
   );
@@ -176,6 +185,16 @@ export function recommend(
     out.push(d);
   }
   return out;
+}
+
+/**
+ * Whether a design keeps its own layout for this CV. A three-column design whose side columns
+ * would be nearly empty falls back to two columns (G-11); it is then not what its card promises.
+ */
+export function keepsItsLayout(id: DesignId, doc: ResumeDocument): boolean {
+  if (!isSpecDesign(id)) return true;
+  const spec = designSpec(id, doc.design);
+  return normalise(spec, doc).spec.layout.type === spec.layout.type;
 }
 
 /** The 300-card load test: the catalogue repeated with unique keys. */

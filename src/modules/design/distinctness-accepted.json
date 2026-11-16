@@ -1,17 +1,212 @@
 [
   {
-    "a": "column",
-    "b": "press",
-    "reason": "Existing pair at the start of the catalogue task (2026-11-16). Differ only in header and heading case. Owner to decide: keep both, or retire one."
-  },
-  {
     "a": "brief",
     "b": "clarity",
-    "reason": "Existing pair (2026-11-16). Differ only in heading style and decoration. Owner to decide."
+    "decision": "accepted",
+    "decidedOn": "2026-11-16",
+    "reason": "Owner: keep both. They look alike but do different jobs: Brief exists to fit the most on a page."
   },
   {
-    "a": "column",
-    "b": "ledger",
-    "reason": "Existing pair (2026-11-16). Differ only in heading style and decoration (Ledger has its signature artwork). Owner to decide."
+    "a": "electric",
+    "b": "aurora",
+    "decision": "awaiting",
+    "decidedOn": "",
+    "reason": "Awaiting owner. Same graphic layout with different ornaments. Owner (2026-11-16): keep the 20 graphic designs for now and let 30 days of usage decide which to retire."
+  },
+  {
+    "a": "terra",
+    "b": "copper",
+    "decision": "awaiting",
+    "decidedOn": "",
+    "reason": "Awaiting owner. Same graphic layout with different ornaments. Owner (2026-11-16): keep the 20 graphic designs for now and let 30 days of usage decide which to retire."
+  },
+  {
+    "a": "ultraviolet",
+    "b": "chromatic",
+    "decision": "awaiting",
+    "decidedOn": "",
+    "reason": "Awaiting owner. Same graphic layout with different ornaments. Owner (2026-11-16): keep the 20 graphic designs for now and let 30 days of usage decide which to retire."
+  },
+  {
+    "a": "violet",
+    "b": "tangerine",
+    "decision": "awaiting",
+    "decidedOn": "",
+    "reason": "Awaiting owner. Same graphic layout with different ornaments. Owner (2026-11-16): keep the 20 graphic designs for now and let 30 days of usage decide which to retire."
+  },
+  {
+    "a": "cyber",
+    "b": "blueprint",
+    "decision": "awaiting",
+    "decidedOn": "",
+    "reason": "Awaiting owner. Same graphic layout with different ornaments. Owner (2026-11-16): keep the 20 graphic designs for now and let 30 days of usage decide which to retire."
+  },
+  {
+    "a": "electric",
+    "b": "solar",
+    "decision": "awaiting",
+    "decidedOn": "",
+    "reason": "Awaiting owner. Same graphic layout with different ornaments. Owner (2026-11-16): keep the 20 graphic designs for now and let 30 days of usage decide which to retire."
+  },
+  {
+    "a": "graphite",
+    "b": "copper",
+    "decision": "awaiting",
+    "decidedOn": "",
+    "reason": "Awaiting owner. Same graphic layout with different ornaments. Owner (2026-11-16): keep the 20 graphic designs for now and let 30 days of usage decide which to retire."
+  },
+  {
+    "a": "neon",
+    "b": "emerald",
+    "decision": "awaiting",
+    "decidedOn": "",
+    "reason": "Awaiting owner. Same graphic layout with different ornaments. Owner (2026-11-16): keep the 20 graphic designs for now and let 30 days of usage decide which to retire."
+  },
+  {
+    "a": "solar",
+    "b": "aurora",
+    "decision": "awaiting",
+    "decidedOn": "",
+    "reason": "Awaiting owner. Same graphic layout with different ornaments. Owner (2026-11-16): keep the 20 graphic designs for now and let 30 days of usage decide which to retire."
+  },
+  {
+    "a": "terra",
+    "b": "graphite",
+    "decision": "awaiting",
+    "decidedOn": "",
+    "reason": "Awaiting owner. Same graphic layout with different ornaments. Owner (2026-11-16): keep the 20 graphic designs for now and let 30 days of usage decide which to retire."
+  },
+  {
+    "a": "citrus",
+    "b": "ruby",
+    "decision": "awaiting",
+    "decidedOn": "",
+    "reason": "Awaiting owner. Same graphic layout with different ornaments. Owner (2026-11-16): keep the 20 graphic designs for now and let 30 days of usage decide which to retire."
+  },
+  {
+    "a": "citrus",
+    "b": "cobalt",
+    "decision": "awaiting",
+    "decidedOn": "",
+    "reason": "Awaiting owner. Same graphic layout with different ornaments. Owner (2026-11-16): keep the 20 graphic designs for now and let 30 days of usage decide which to retire."
+  },
+  {
+    "a": "cyber",
+    "b": "cobalt",
+    "decision": "awaiting",
+    "decidedOn": "",
+    "reason": "Awaiting owner. Same graphic layout with different ornaments. Owner (2026-11-16): keep the 20 graphic designs for now and let 30 days of usage decide which to retire."
+  },
+  {
+    "a": "graphite",
+    "b": "tangerine",
+    "decision": "awaiting",
+    "decidedOn": "",
+    "reason": "Awaiting owner. Same graphic layout with different ornaments. Owner (2026-11-16): keep the 20 graphic designs for now and let 30 days of usage decide which to retire."
+  },
+  {
+    "a": "tangerine",
+    "b": "copper",
+    "decision": "awaiting",
+    "decidedOn": "",
+    "reason": "Awaiting owner. Same graphic layout with different ornaments. Owner (2026-11-16): keep the 20 graphic designs for now and let 30 days of usage decide which to retire."
+  },
+  {
+    "a": "terra",
+    "b": "tangerine",
+    "decision": "awaiting",
+    "decidedOn": "",
+    "reason": "Awaiting owner. Same graphic layout with different ornaments. Owner (2026-11-16): keep the 20 graphic designs for now and let 30 days of usage decide which to retire."
+  },
+  {
+    "a": "violet",
+    "b": "terra",
+    "decision": "awaiting",
+    "decidedOn": "",
+    "reason": "Awaiting owner. Same graphic layout with different ornaments. Owner (2026-11-16): keep the 20 graphic designs for now and let 30 days of usage decide which to retire."
+  },
+  {
+    "a": "violet",
+    "b": "graphite",
+    "decision": "awaiting",
+    "decidedOn": "",
+    "reason": "Awaiting owner. Same graphic layout with different ornaments. Owner (2026-11-16): keep the 20 graphic designs for now and let 30 days of usage decide which to retire."
+  },
+  {
+    "a": "violet",
+    "b": "copper",
+    "decision": "awaiting",
+    "decidedOn": "",
+    "reason": "Awaiting owner. Same graphic layout with different ornaments. Owner (2026-11-16): keep the 20 graphic designs for now and let 30 days of usage decide which to retire."
+  },
+  {
+    "a": "citrus",
+    "b": "cyber",
+    "decision": "awaiting",
+    "decidedOn": "",
+    "reason": "Awaiting owner. Same graphic layout with different ornaments. Owner (2026-11-16): keep the 20 graphic designs for now and let 30 days of usage decide which to retire."
+  },
+  {
+    "a": "citrus",
+    "b": "blueprint",
+    "decision": "awaiting",
+    "decidedOn": "",
+    "reason": "Awaiting owner. Same graphic layout with different ornaments. Owner (2026-11-16): keep the 20 graphic designs for now and let 30 days of usage decide which to retire."
+  },
+  {
+    "a": "ruby",
+    "b": "cobalt",
+    "decision": "awaiting",
+    "decidedOn": "",
+    "reason": "Awaiting owner. Same graphic layout with different ornaments. Owner (2026-11-16): keep the 20 graphic designs for now and let 30 days of usage decide which to retire."
+  },
+  {
+    "a": "heritage",
+    "b": "regent",
+    "decision": "awaiting",
+    "decidedOn": "",
+    "reason": "Awaiting owner. Differ only in header and decoration (flagged once decoration counted for less, 2026-11-16)."
+  },
+  {
+    "a": "blueprint",
+    "b": "cobalt",
+    "decision": "awaiting",
+    "decidedOn": "",
+    "reason": "Awaiting owner. Same graphic layout with different ornaments. Owner (2026-11-16): keep the 20 graphic designs for now and let 30 days of usage decide which to retire."
+  },
+  {
+    "a": "coral",
+    "b": "emerald",
+    "decision": "awaiting",
+    "decidedOn": "",
+    "reason": "Awaiting owner. Same graphic layout with different ornaments. Owner (2026-11-16): keep the 20 graphic designs for now and let 30 days of usage decide which to retire."
+  },
+  {
+    "a": "cyber",
+    "b": "ruby",
+    "decision": "awaiting",
+    "decidedOn": "",
+    "reason": "Awaiting owner. Same graphic layout with different ornaments. Owner (2026-11-16): keep the 20 graphic designs for now and let 30 days of usage decide which to retire."
+  },
+  {
+    "a": "neon",
+    "b": "coral",
+    "decision": "awaiting",
+    "decidedOn": "",
+    "reason": "Awaiting owner. Same graphic layout with different ornaments. Owner (2026-11-16): keep the 20 graphic designs for now and let 30 days of usage decide which to retire."
+  },
+  {
+    "a": "ocean",
+    "b": "magenta",
+    "decision": "awaiting",
+    "decidedOn": "",
+    "reason": "Awaiting owner. Same graphic layout with different ornaments. Owner (2026-11-16): keep the 20 graphic designs for now and let 30 days of usage decide which to retire."
+  },
+  {
+    "a": "ruby",
+    "b": "blueprint",
+    "decision": "awaiting",
+    "decidedOn": "",
+    "reason": "Awaiting owner. Same graphic layout with different ornaments. Owner (2026-11-16): keep the 20 graphic designs for now and let 30 days of usage decide which to retire."
   }
 ]

@@ -150,7 +150,9 @@ test('Admin → Designs: search, bulk tags, retire; a retired design is hidden b
   await admin.getByTestId('catalogue-save').click();
   await expect(admin.getByText(/Saved as version \d+ \(\d+ changes?\)/)).toBeVisible();
   await admin.getByTestId('catalogue-status-filter').selectOption('retired');
-  await expect(table.locator('tbody tr')).toHaveCount(1);
+  // Terra, plus Column (retired by the owner on 2026-11-16).
+  await expect(table.locator('tbody tr')).toHaveCount(2);
+  await expect(table.getByTestId('catalogue-row-terra')).toBeVisible();
   await admin.getByTestId('catalogue-status-filter').selectOption('all');
   await admin.getByTestId('catalogue-tag-filter').selectOption('academic');
   await expect(table.getByTestId('catalogue-row-neon')).toBeVisible();
