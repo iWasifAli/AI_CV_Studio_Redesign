@@ -11,7 +11,7 @@
  */
 import { DESIGN_IDS } from '@/modules/resume/ids';
 import type { DesignId } from '@/modules/resume/schema';
-import { DESIGN_META, type DesignMeta } from './designs';
+import { DATA_META, DESIGN_META, type DesignMeta } from './designs';
 import { designSpec } from './catalogue';
 import { FIXTURES } from '@/modules/resume/fixtures';
 
@@ -101,11 +101,18 @@ const DEFAULT_TAGS: Record<DesignId, DesignTag[]> = {
 } as Record<DesignId, DesignTag[]>;
 
 export function defaultTags(id: DesignId): DesignTag[] {
-  return [...(DEFAULT_TAGS[id] ?? [])];
+  return [...(DEFAULT_TAGS[id] ?? (DATA_META[id]?.tags as DesignTag[] | undefined) ?? [])];
+}
+
+/** Status a design starts in: data files say so (new ones are drafts); the rest are live. */
+export function defaultStatus(id: DesignId): DesignStatus {
+  return (DATA_META[id]?.status as DesignStatus | undefined) ?? 'live';
 }
 
 /** Date each design entered the catalogue (from the repository history). */
 export function defaultAddedAt(id: DesignId): string {
+  const data = DATA_META[id]?.addedAt;
+  if (data) return data;
   return DESIGN_META[id]?.family === 'graphic' ? '2026-11-15' : '2026-11-13';
 }
 

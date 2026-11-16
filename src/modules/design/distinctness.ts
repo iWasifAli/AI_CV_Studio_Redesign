@@ -13,7 +13,7 @@ import { DESIGN_IDS } from '@/modules/resume/ids';
 import { FIXTURES } from '@/modules/resume/fixtures';
 import type { DesignId } from '@/modules/resume/schema';
 import { designSpec } from './catalogue';
-import type { DesignSpecV2 } from './spec';
+import type { DesignSpecV2, GraphicSpec } from './spec';
 
 export const SIGNATURE_PARTS = {
   layout: 3,
@@ -34,66 +34,102 @@ export type Signature = Record<SignaturePart, string>;
 /** Below this, two live designs are too close to both be offered without the owner's say-so. */
 export const THRESHOLD = 0.25;
 
-const GRAPHIC = new Map<string, Signature>();
-for (const c of SPOT)
-  GRAPHIC.set(c.id, {
-    layout: `poster-${c.side}`,
-    header: `poster+${c.portrait}`,
-    headings: c.marker,
+/** Signature of a graphic layout from its building blocks. */
+export function graphicSignature(g: GraphicSpec): Signature {
+  const side = 'side' in g ? g.side : 'rail';
+  return {
+    layout: g.layout === 'poster' || g.layout === 'cover' ? `${g.layout}-${side}` : g.layout,
+    header: `${g.layout}+${g.layout === 'rail' ? g.nameStyle : g.frame}`,
+    headings: g.marker,
     entries: 'graphic-timeline',
-    decoration: `art:${c.art}`,
-    placement: `side-${c.side}`,
-    photo: c.portrait,
-    sideFill: 'none',
-    container: `numbers:${c.numbers}`,
-    skills: c.skills,
-    headingCase: c.caps ? 'upper' : 'normal',
-  });
-for (const c of BAND)
-  GRAPHIC.set(c.id, {
-    layout: 'band-rail',
-    header: `band+${c.photo}`,
-    headings: c.marker,
-    entries: 'graphic-timeline',
-    decoration: `art:${c.art}+end:${c.end}`,
-    placement: 'rail',
-    photo: c.photo,
-    sideFill: 'deep',
-    container: `numbers:${c.numbers}`,
-    skills: c.skills,
-    headingCase: c.caps ? 'upper' : 'normal',
-  });
-for (const c of RAIL)
-  GRAPHIC.set(c.id, {
-    layout: 'full-rail',
-    header: `rail+${c.nameStyle}`,
-    headings: c.marker,
-    entries: 'graphic-timeline',
-    decoration: `panel:${c.panel}`,
-    placement: 'rail',
-    photo: c.photo,
-    sideFill: 'deep',
-    container: 'none',
-    skills: c.skills,
-    headingCase: c.nameStyle,
-  });
-for (const c of COVER)
-  GRAPHIC.set(c.id, {
-    layout: `cover-${c.side}`,
-    header: `cover+${c.frame}`,
-    headings: c.marker,
-    entries: 'graphic-timeline',
-    decoration: `pattern:${c.pattern}`,
-    placement: `side-${c.side}`,
-    photo: c.frame,
-    sideFill: 'none',
-    container: 'none',
-    skills: c.skills,
-    headingCase: c.caps ? 'upper' : 'normal',
-  });
+    decoration: g.layout === 'band' ? `art:${g.art}+end:${g.end}` : `art:${g.art}`,
+    placement: g.layout === 'band' || g.layout === 'rail' ? 'rail' : `side-${side}`,
+    photo: g.frame,
+    sideFill: g.layout === 'band' || g.layout === 'rail' ? 'deep' : 'none',
+    container: 'numbers' in g ? `numbers:${g.numbers}` : 'none',
+    skills: g.skills,
+    headingCase: g.layout === 'rail' ? g.nameStyle : g.caps ? 'upper' : 'normal',
+  };
+}
+
+const tones = (c: { ink: string; soft: string }) => ({ ink: c.ink, soft: c.soft });
+const GRAPHIC = new Map<string, Signature>([
+  ...SPOT.map(
+    (c) =>
+      [
+        c.id,
+        graphicSignature({
+          layout: 'poster',
+          frame: c.portrait,
+          art: c.art,
+          numbers: c.numbers,
+          marker: c.marker,
+          skills: c.skills,
+          side: c.side,
+          caps: c.caps,
+          stop: c.stop,
+          ...tones(c),
+        }),
+      ] as const,
+  ),
+  ...BAND.map(
+    (c) =>
+      [
+        c.id,
+        graphicSignature({
+          layout: 'band',
+          frame: c.photo,
+          art: c.art,
+          numbers: c.numbers,
+          marker: c.marker,
+          skills: c.skills,
+          caps: c.caps,
+          stop: c.stop,
+          end: c.end,
+          railMm: c.railMm,
+          ...tones(c),
+        }),
+      ] as const,
+  ),
+  ...RAIL.map(
+    (c) =>
+      [
+        c.id,
+        graphicSignature({
+          layout: 'rail',
+          frame: c.photo,
+          art: c.panel,
+          ornament: c.ornament,
+          nameStyle: c.nameStyle,
+          marker: c.marker,
+          skills: c.skills,
+          railMm: c.railMm,
+          ...tones(c),
+        }),
+      ] as const,
+  ),
+  ...COVER.map(
+    (c) =>
+      [
+        c.id,
+        graphicSignature({
+          layout: 'cover',
+          frame: c.frame,
+          art: c.pattern,
+          marker: c.marker,
+          skills: c.skills,
+          side: c.side,
+          caps: c.caps,
+          stop: c.stop,
+          ...tones(c),
+        }),
+      ] as const,
+  ),
+]);
 
 /** Signature of a spec (also used for new designs written as data). */
 export function specSignature(s: DesignSpecV2): Signature {
+  if (s.graphic) return graphicSignature(s.graphic);
   const twoCol = s.layout.type !== 'single' && s.layout.type !== 'timeline';
   return {
     layout: s.layout.type,

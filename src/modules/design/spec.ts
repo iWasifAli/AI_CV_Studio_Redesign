@@ -113,6 +113,79 @@ const kindList = z
   .transform((a) => [...new Set(a)])
   .default([]);
 
+const hex6 = z.string().regex(/^#[0-9a-fA-F]{6}$/);
+const MARKER_LOOKS = ['bar', 'dot', 'slash', 'number', 'square', 'line'] as const;
+const SKILL_LOOKS = ['bars', 'segments', 'dots'] as const;
+/** Building blocks of the graphic layouts (Part F), as values a design file can choose. */
+export const GRAPHIC_BLOCKS = {
+  poster: {
+    frame: ['arch', 'circle', 'squircle', 'leaf', 'hexagon'],
+    art: ['rings', 'beams', 'dots', 'waves', 'blocks'],
+    numbers: ['band', 'cards', 'ruled'],
+  },
+  band: {
+    frame: ['notch', 'circle', 'tall', 'slant', 'square'],
+    art: ['quarter', 'stripes', 'grid', 'ring', 'dots'],
+    numbers: ['box', 'columns', 'pills'],
+  },
+  rail: {
+    frame: ['block', 'arch', 'inset', 'circle', 'split'],
+    art: ['gradient', 'solid', 'lines', 'dots', 'frame'],
+  },
+  cover: {
+    frame: ['tilt', 'ring', 'diamond', 'blob', 'offset'],
+    art: ['hatch', 'grid', 'rays', 'confetti', 'bubbles'],
+  },
+} as const;
+const G = GRAPHIC_BLOCKS;
+const tones = { ink: hex6, soft: hex6 };
+const looks = { marker: z.enum(MARKER_LOOKS), skills: z.enum(SKILL_LOOKS) };
+export const graphicSpec = z.discriminatedUnion('layout', [
+  z.object({
+    layout: z.literal('poster'),
+    frame: z.enum(G.poster.frame),
+    art: z.enum(G.poster.art),
+    numbers: z.enum(G.poster.numbers),
+    ...looks,
+    side: z.enum(['left', 'right']),
+    caps: z.boolean(),
+    stop: z.string().max(2),
+    ...tones,
+  }),
+  z.object({
+    layout: z.literal('band'),
+    frame: z.enum(G.band.frame),
+    art: z.enum(G.band.art),
+    numbers: z.enum(G.band.numbers),
+    ...looks,
+    caps: z.boolean(),
+    stop: z.string().max(2),
+    end: z.enum(['bar', 'outline', 'none']),
+    railMm: z.number().min(60).max(76),
+    ...tones,
+  }),
+  z.object({
+    layout: z.literal('rail'),
+    frame: z.enum(G.rail.frame),
+    art: z.enum(G.rail.art),
+    ornament: z.string().max(2),
+    nameStyle: z.enum(['heavy', 'light']),
+    ...looks,
+    railMm: z.number().min(60).max(76),
+    ...tones,
+  }),
+  z.object({
+    layout: z.literal('cover'),
+    frame: z.enum(G.cover.frame),
+    art: z.enum(G.cover.art),
+    ...looks,
+    side: z.enum(['left', 'right']),
+    caps: z.boolean(),
+    stop: z.string().max(2),
+    ...tones,
+  }),
+]);
+
 export const designSpecV2 = z.object({
   version: z.literal(2).catch(2).default(2),
   /**
@@ -320,9 +393,17 @@ export const designSpecV2 = z.object({
       referencesLine: flag(false),
     })
     .default({ qr: 'none', referencesLine: false }),
+  /**
+   * Graphic layouts (catalogue Part F): a poster header with a portrait standing on its edge, a
+   * coloured band with a side rail, a full-height rail with the portrait at its top, or a patterned
+   * cover. Set, it replaces the layout and header above; the person's colour, font, spacing and
+   * paper still apply. Absent on every other design.
+   */
+  graphic: graphicSpec.optional().catch(undefined),
 });
 
 export type DesignSpecV2 = z.output<typeof designSpecV2>;
+export type GraphicSpec = z.output<typeof graphicSpec>;
 export type DesignSpecV2Input = z.input<typeof designSpecV2>;
 
 /** Parse anything into a valid spec: unknown values fall back, numbers are clamped. */

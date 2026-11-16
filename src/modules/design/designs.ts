@@ -3,6 +3,39 @@ import { DESIGN_IDS, SPEC_DESIGN_IDS } from '@/modules/resume/ids';
 import type { DesignId, FontPairId, SpecDesignId, TemplateId } from '@/modules/resume/schema';
 import type { DesignSpecV2Input } from './spec';
 import { GRAPHIC_META } from '@/modules/templates/graphic/meta';
+import { DATA_DESIGN_FILES } from './data';
+
+/** A design file as stored (validated strictly by the authoring kit and design-data.test.ts). */
+type DataDesignRaw = {
+  id: SpecDesignId;
+  name: string;
+  style: string;
+  description: string;
+  family: Family;
+  fontPair: FontPairId;
+  accent: string;
+  fit?: Partial<Record<PresetId, number>>;
+  photo: boolean;
+  fallback: TemplateId;
+  tags: string[];
+  status?: 'draft' | 'live' | 'retired';
+  addedAt?: string;
+  spec: DesignSpecV2Input;
+};
+const DATA = DATA_DESIGN_FILES as DataDesignRaw[];
+/** Owner-facing starting values of designs added as files (tags, status, date). */
+export const DATA_META: Record<string, { tags: string[]; status: string; addedAt?: string }> =
+  Object.fromEntries(
+    DATA.map((d) => [d.id, { tags: d.tags, status: d.status ?? 'draft', addedAt: d.addedAt }]),
+  );
+const columnsOf = (s: DesignSpecV2Input): 1 | 2 | 3 =>
+  s.graphic
+    ? 2
+    : s.layout?.type === 'rails'
+      ? 3
+      : !s.layout?.type || s.layout.type === 'single' || s.layout.type === 'timeline'
+        ? 1
+        : 2;
 
 /**
  * The R7 catalogue (complete-studio-spec §8.1): 32 designs in 8 families of 4. The 10 hand-crafted
@@ -307,6 +340,31 @@ export const SPEC_DESIGNS: Record<SpecDesignId, DesignSpecV2Input> = {
     type: { basePt: 9.6, lineHeight: 1.36 },
     page: { marginMm: 12 },
   },
+  // Designs added as data files: their spec, in their own colour and font.
+  ...(Object.fromEntries(
+    DATA.map((d) => [
+      d.id,
+      {
+        ...d.spec,
+        color: { ...d.spec.color, accent: d.accent },
+        type: { ...d.spec.type, pair: d.fontPair },
+      },
+    ]),
+  ) as Record<string, DesignSpecV2Input>),
+};
+
+/** Dark and pale tones of graphic designs made as data files (for colour themes). */
+export const DATA_GRAPHIC_TONES: Record<string, { ink: string; soft: string }> = Object.fromEntries(
+  DATA.filter((d) => d.spec.graphic).map((d) => [
+    d.id,
+    { ink: d.spec.graphic!.ink, soft: d.spec.graphic!.soft },
+  ]),
+);
+
+/** Signature colour a design starts in (graphic designs), unless the person chose their own. */
+export const SIGNATURE_ACCENT: Record<string, string> = {
+  ...Object.fromEntries(Object.entries(GRAPHIC_META).map(([id, g]) => [id, g.accent])),
+  ...Object.fromEntries(DATA.filter((d) => d.spec.graphic).map((d) => [d.id, d.accent])),
 };
 
 const M = (
@@ -725,6 +783,14 @@ export const DESIGNS: DesignMeta[] = [
       fit: g.fit,
     }),
   ),
+  ...DATA.map((d) =>
+    M(d.id, d.family, d.name, d.style, d.description, {
+      columns: columnsOf(d.spec),
+      photo: d.photo,
+      fontPair: d.fontPair,
+      fit: d.fit ?? {},
+    }),
+  ),
 ];
 
 export const DESIGN_META: Record<DesignId, DesignMeta> = Object.fromEntries(
@@ -764,4 +830,5 @@ export const LEGACY_FALLBACK: Record<SpecDesignId, TemplateId> = {
   mosaic: 'clarity',
   tiles: 'clarity',
   matrix: 'clarity',
+  ...(Object.fromEntries(DATA.map((d) => [d.id, d.fallback])) as Record<string, TemplateId>),
 };

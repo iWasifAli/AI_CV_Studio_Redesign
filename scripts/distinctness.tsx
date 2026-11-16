@@ -1,7 +1,7 @@
 /**
  * Distinctness check and report (catalogue task, Part D).
  *
- *   npx tsx scripts/distinctness.tsx [--png] [extra-id …]
+ *   npx tsx scripts/distinctness.tsx [--png] [--with id,id]
  *
  * Prints the nearest pairs of designs by structure (colour and font left out), writes
  * docs/catalogue/distinctness-report.md, and with --png a side-by-side sheet of the closest pairs
@@ -41,8 +41,11 @@ const SHOW = 15;
 
 async function main() {
   const png = process.argv.includes('--png');
+  // --with a,b: also check these designs (e.g. a new draft from the authoring kit).
+  const withIdx = process.argv.indexOf('--with');
+  const extra = withIdx > 0 ? (process.argv[withIdx + 1] ?? '').split(',').filter(Boolean) : [];
   const live = DESIGN_IDS.filter(
-    (id) => DEFAULT_CONFIG.designs.find((d) => d.id === id)?.enabled,
+    (id) => DEFAULT_CONFIG.designs.find((d) => d.id === id)?.enabled || extra.includes(id),
   ) as DesignId[];
   const ok = new Map(accepted.map((p) => [pairKey(p.a, p.b), p.reason] as const));
   const pairs = nearestPairs(live);
@@ -85,10 +88,16 @@ async function main() {
         '',
       ]),
   ];
-  fs.mkdirSync('docs/catalogue', { recursive: true });
-  fs.writeFileSync('docs/catalogue/distinctness-report.md', lines.join('\n') + '\n');
+  if (!extra.length) {
+    fs.mkdirSync('docs/catalogue', { recursive: true });
+    fs.writeFileSync('docs/catalogue/distinctness-report.md', lines.join('\n') + '\n');
+  }
 
-  for (const p of pairs.slice(0, SHOW))
+  const shown = extra.length
+    ? pairs.filter((p) => extra.includes(p.a) || extra.includes(p.b)).slice(0, 5)
+    : pairs.slice(0, SHOW);
+  if (extra.length) console.log(`Nearest designs to ${extra.join(', ')}:`);
+  for (const p of shown)
     console.log(
       `${p.distance.toFixed(3)}  ${name(p.a).padEnd(12)} ${name(p.b).padEnd(12)} differs: ${differs(p.same)}`,
     );

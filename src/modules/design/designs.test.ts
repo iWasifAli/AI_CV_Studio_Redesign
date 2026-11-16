@@ -1,3 +1,4 @@
+import { DATA_DESIGN_IDS } from './data';
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_CONFIG, parseConfig, withAllDesigns } from '@/modules/billing/config';
 import { FIXTURES } from '@/modules/resume/fixtures';
@@ -14,10 +15,11 @@ import { getTemplate } from '@/modules/templates/registry';
 const fonts = { kind: 'url' as const, baseUrl: 'https://cvstudio.test' };
 
 describe('R7 catalogue', () => {
-  it('has 52 designs: 8 families of 4 and 20 graphic designs, every id once', () => {
+  it('has the 52 built-in designs (8 families of 4, 20 graphic) plus design files, every id once', () => {
     expect(DESIGNS.map((d) => d.id).sort()).toEqual([...DESIGN_IDS].sort());
+    const builtIn = DESIGNS.filter((d) => !(DATA_DESIGN_IDS as readonly string[]).includes(d.id));
     for (const f of FAMILIES)
-      expect(DESIGNS.filter((d) => d.family === f)).toHaveLength(f === 'graphic' ? 20 : 4);
+      expect(builtIn.filter((d) => d.family === f)).toHaveLength(f === 'graphic' ? 20 : 4);
     for (const id of SPEC_DESIGN_IDS) expect(SPEC_DESIGNS[id]).toBeDefined();
   });
 
@@ -26,15 +28,22 @@ describe('R7 catalogue', () => {
       const s = designSpec(id, FIXTURES.teacher.design);
       return [s.layout.type, s.header.style, s.headings.style, s.decor.kind, s.baseId].join('|');
     };
+    // Built-in designs here; designs added as files are checked by the distinctness gate.
+    const builtIn = DESIGNS.filter((d) => !(DATA_DESIGN_IDS as readonly string[]).includes(d.id));
     for (const f of FAMILIES) {
       if (f === 'graphic') continue;
-      const looks = DESIGNS.filter((d) => d.family === f).map((d) => look(d.id));
+      const looks = builtIn.filter((d) => d.family === f).map((d) => look(d.id));
       expect(new Set(looks).size, f).toBe(4);
     }
     // Graphic designs: their stylesheets differ in more than colour (hex values removed).
-    const graphic = DESIGNS.filter((d) => d.family === 'graphic').map((d) =>
-      getTemplate(d.id as Parameters<typeof getTemplate>[0]).css.replace(/#[0-9a-f]{3,8}\b/gi, ''),
-    );
+    const graphic = builtIn
+      .filter((d) => d.family === 'graphic')
+      .map((d) =>
+        getTemplate(d.id as Parameters<typeof getTemplate>[0]).css.replace(
+          /#[0-9a-f]{3,8}\b/gi,
+          '',
+        ),
+      );
     expect(new Set(graphic).size).toBe(20);
   });
 

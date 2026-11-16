@@ -29,7 +29,10 @@
     "gates:catalogue": "tsx scripts/catalogue-gates.tsx",
     "gates:composition": "tsx scripts/composition-gates.tsx",
     "extension:zip": "mkdir -p dist && rm -f dist/ai-cv-studio-extension.zip && cd extension && zip -qr ../dist/ai-cv-studio-extension.zip manifest.json background.js icons",
-    "catalogue:distinct": "tsx scripts/distinctness.tsx"
+    "catalogue:distinct": "tsx scripts/distinctness.tsx",
+    "design:new": "tsx scripts/design-kit.tsx new",
+    "design:check": "tsx scripts/design-kit.tsx check",
+    "design:remove": "tsx scripts/design-kit.tsx remove"
   },
   "dependencies": {
     "@fontsource-variable/figtree": "^5.3.0",

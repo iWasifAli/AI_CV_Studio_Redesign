@@ -13,6 +13,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import puppeteer from 'puppeteer-core';
 import { DESIGNS } from '../src/modules/design/designs';
+import { enumSweep } from '../src/modules/design/samples';
 import { extreme } from '../src/modules/resume/fixtures';
 import { ops } from '../src/modules/resume/ops';
 import type { ResumeDocument } from '../src/modules/resume/schema';
@@ -53,10 +54,23 @@ const browser = await puppeteer.launch({
 });
 const fails: string[] = [];
 const rows: string[] = [];
-for (const meta of DESIGNS) {
-  if (only && !only.includes(meta.id)) continue;
-  for (const [name, src] of CASES) {
-    const doc = ops.useDesign(src, meta.id);
+// Every building block of the graphic layouts (catalogue Part F), drawn by the composer.
+const BLOCKS = only
+  ? []
+  : enumSweep()
+      .filter((x) => x.spec.graphic)
+      .map((x) => ({ id: `block: ${x.label}`, spec: x.spec }));
+const targets: { id: string; doc: (src: ResumeDocument) => ResumeDocument }[] = [
+  ...DESIGNS.filter((m) => !only || only.includes(m.id)).map((m) => ({
+    id: m.id as string,
+    doc: (src: ResumeDocument) => ops.useDesign(src, m.id),
+  })),
+  ...BLOCKS.map((b) => ({ id: b.id, doc: (src: ResumeDocument) => ops.setSpec(src, b.spec) })),
+];
+for (const meta of targets) {
+  // Building blocks: two of the four cases are enough (they share their layout code).
+  for (const [name, src] of meta.id.startsWith('block:') ? CASES.slice(1, 3) : CASES) {
+    const doc = meta.doc(src);
     const page = await browser.newPage();
     await page.emulateMediaType('print');
     await page.setContent(buildDocumentHtml(doc, { fonts: { kind: 'inline', read } }), {

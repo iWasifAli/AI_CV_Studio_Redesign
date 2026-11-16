@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react';
+import { composeGraphic } from './compose-graphic';
+import { GRAPHIC_TEXT } from './normalise';
 import {
   Award,
   BadgeCheck,
@@ -47,7 +49,8 @@ export function resolveSpec(s: DesignSpecV2): ResolvedDesign {
   const raw = s.color.mode === 'mono' ? INK[s.color.ink][1] : s.color.accent;
   // Accent text also sits on cream paper and on tinted side columns (down to the 90% white
   // "soft" tint): 5.2:1 against white keeps it at 4.5:1 or more on all of them.
-  const accent = ensureContrast(raw, '#ffffff', 5.2);
+  // The graphic layouts keep the catalogue rule (4.5:1): their accent text sits on white only.
+  const accent = ensureContrast(raw, '#ffffff', s.graphic ? 4.5 : 5.2);
   const skill = s.lists.skills.style;
   return {
     templateId: s.baseId ?? 'clarity',
@@ -712,6 +715,7 @@ ${s.entries.layout === 'dates-left' || s.entries.layout === 'timeline-dots' ? '.
  * composed here (they use their signature code; see design/render.ts).
  */
 export function composeTemplate(s: DesignSpecV2): TemplateDefinition {
+  if (s.graphic && !s.atsSafe) return composeGraphic(s, s.graphic);
   const d = resolveSpec(s);
   const side = s.placement.side as SectionKind[];
   const third = s.layout.type === 'rails' ? (s.placement.third as SectionKind[]) : [];
@@ -826,6 +830,12 @@ function qrTarget(model: RenderModel, which: DesignSpecV2['extras']['qr']): stri
 export function contrastPairs(spec: DesignSpecV2): { what: string; fg: string; bg: string }[] {
   const s = spec;
   const d = resolveSpec(s);
+  if (s.graphic && !s.atsSafe)
+    return [
+      { what: 'accent text on page', fg: d.accent, bg: '#ffffff' },
+      { what: 'header text on dark tone', fg: '#ffffff', bg: s.graphic.ink },
+      { what: 'text on pale tone', fg: GRAPHIC_TEXT, bg: s.graphic.soft },
+    ];
   const ink = INK[s.color.ink];
   const page =
     s.page.background === 'cream'

@@ -2,6 +2,8 @@
 
 **Read this before creating or changing a CV template.** Every rule below exists because a real defect shipped or nearly shipped during the November 2026 design sprint and three independent reviews (scores rose from 7.8 → 8.5 → 8.9). The engine now prevents most of these problems automatically; this guide explains what the engine guarantees, what a template author must still do, and how to prove a template is ready.
 
+**Adding a new design?** Designs are data files now — see `../TEMPLATE_AUTHORING.md` (one file, one command, no layout code). This guide covers the engine rules every design must meet and hand-written templates.
+
 Related: `template-engine.md` (architecture), `../ux/design-system.md` (app UI, not CV styling), `testing-and-qa.md`.
 
 ---

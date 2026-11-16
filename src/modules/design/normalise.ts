@@ -1,5 +1,18 @@
 import type { ResumeDocument } from '@/modules/resume/schema';
-import { COMPACT_KINDS, type CompactKind, type DesignSpecV2 } from './spec';
+import { contrast, ensureContrast, mix } from '@/modules/templates/color';
+import { COMPACT_KINDS, type CompactKind, type DesignSpecV2, type GraphicSpec } from './spec';
+
+/** Body text colour of the graphic layouts (on white and on the pale tone). */
+export const GRAPHIC_TEXT = '#132235';
+
+/** Dark tone carries white text (4.5:1); the pale tone carries dark text (4.5:1). */
+export function readableTones<T extends GraphicSpec>(g: T): T {
+  const ink = ensureContrast(g.ink, '#ffffff', 4.5);
+  let soft = g.soft.toLowerCase();
+  for (let i = 0; i < 40 && contrast(GRAPHIC_TEXT, soft) < 4.5; i++)
+    soft = mix(soft, '#ffffff', 0.08);
+  return ink === g.ink && soft === g.soft ? g : { ...g, ink, soft };
+}
 
 /**
  * Hard design rules (complete-studio-spec §7.6), applied to every spec before it is composed.
@@ -28,6 +41,7 @@ export function atsSafeSpec(s: DesignSpecV2): DesignSpecV2 {
   return {
     ...s,
     baseId: undefined,
+    graphic: undefined,
     layout: { ...s.layout, type: 'single' },
     placement: { side: [], third: [], contactIn: 'header' },
     header: {
@@ -57,6 +71,8 @@ export function normalise(input: DesignSpecV2, doc?: ResumeDocument): Normalised
   if (s.atsSafe) s = { ...atsSafeSpec(s), atsSafe: true };
   // Attached catalogue designs are already tested as they are.
   if (s.baseId) return { spec: s, unmet };
+  // Graphic layouts: white text on the dark tone and dark text on the pale tone stay readable.
+  if (s.graphic) s = { ...s, graphic: readableTones(s.graphic) };
 
   const L = s.layout;
   const hasSide = SIDE_LAYOUTS.has(L.type);

@@ -3,7 +3,12 @@ import { z } from 'zod';
 import { DESIGN_IDS } from '@/modules/resume/schema';
 import { TASK_IDS } from '@/modules/ai/schemas';
 import { DEFAULT_FAQ, DEFAULT_OFFER } from '@/modules/content/defaults';
-import { DESIGN_STATUSES, DESIGN_TAGS, normaliseEntry } from '@/modules/design/lifecycle';
+import {
+  DESIGN_STATUSES,
+  DESIGN_TAGS,
+  defaultStatus,
+  normaliseEntry,
+} from '@/modules/design/lifecycle';
 
 /**
  * Business configuration (docs/product/studio-master-plan.md §3, §4.4). One typed schema shared by
@@ -369,7 +374,13 @@ export const DEFAULT_CONFIG: BusinessConfig = {
     },
   },
   designs: DESIGN_IDS.map((id) =>
-    normaliseEntry({ id, enabled: true, tier: 'free' as const, isNew: false }),
+    normaliseEntry({
+      id,
+      enabled: defaultStatus(id) === 'live',
+      status: defaultStatus(id),
+      tier: 'free' as const,
+      isNew: false,
+    }),
   ),
   passes: [
     { id: 'month', label: '1 month', days: 30, pricePkr: 499, active: true },

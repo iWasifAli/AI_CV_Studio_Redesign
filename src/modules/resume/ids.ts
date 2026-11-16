@@ -1,3 +1,4 @@
+import { DATA_DESIGN_IDS } from '@/modules/design/data';
 /** Design identifiers shared by the document schema and the design engine (no imports: avoids cycles). */
 /** The 20 graphic designs (R12), hand-crafted in templates/graphic. */
 export const GRAPHIC_IDS = [
@@ -59,6 +60,8 @@ export const SPEC_DESIGN_IDS = [
   'mosaic',
   'tiles',
   'matrix',
+  // Designs added as data files (src/modules/design/data, catalogue Part F).
+  ...DATA_DESIGN_IDS,
 ] as const;
 /** Every catalogue design: the 10 hand-crafted ones, then the spec-only ones. */
 export const DESIGN_IDS = [...TEMPLATE_IDS, ...SPEC_DESIGN_IDS] as const;

@@ -1,10 +1,9 @@
 import { applyV1Change, designSpec, migrateV1, toV1 } from '@/modules/design/catalogue';
-import { DESIGN_META, isSpecDesign } from '@/modules/design/designs';
+import { DESIGN_META, SIGNATURE_ACCENT, isSpecDesign } from '@/modules/design/designs';
 import type { DesignSpecV2 } from '@/modules/design/spec';
 import { newId } from './create';
 import { getPreset } from './presets';
 import type { Basics, DesignId, DesignSpec, ResumeDocument, Section, SectionKind } from './schema';
-import { GRAPHIC_META } from '@/modules/templates/graphic/meta';
 
 /**
  * Pure document operations. Every edit in the UI goes through one of these, which keeps
@@ -244,7 +243,7 @@ export const ops = {
     // themselves (spacing, font, colour) carries over, so the result never depends on the
     // design picked before (audit F-03). Paper size and photo on/off are always the person's.
     const mine = new Set(doc.design.chosen ?? []);
-    const graphic = (x: string) => x in GRAPHIC_META;
+    const graphic = (x: string) => x in SIGNATURE_ACCENT;
     // Leaving a graphic design (which starts in its own colour) goes back to the person's colour.
     const from = doc.design.v2?.designId ?? doc.design.templateId;
     const backToOwn =
@@ -262,20 +261,23 @@ export const ops = {
     };
     if (!isSpecDesign(id)) {
       // Graphic designs start in their signature colour (unless the person chose a colour).
-      const g = (GRAPHIC_META as Record<string, { accent: string }>)[id];
+      const g = SIGNATURE_ACCENT[id];
       return ops.setDesign(
         doc,
         {
           templateId: id,
           ...fresh,
-          ...(g && !mine.has('accent') ? { accent: g.accent } : {}),
+          ...(g && !mine.has('accent') ? { accent: g } : {}),
         },
         'design',
       );
     }
     const { v2: _old, ...v1 } = doc.design;
     void _old;
-    return ops.setSpec(doc, designSpec(id, { ...v1, ...fresh }));
+    // Graphic designs made as data files also start in their own colour.
+    const own = SIGNATURE_ACCENT[id];
+    const look = own && !mine.has('accent') ? { accent: own } : {};
+    return ops.setSpec(doc, designSpec(id, { ...v1, ...fresh, ...look }));
   },
   /** Set the Design Spec v2 (Design Studio); the v1 fields follow it. */
   setSpec(doc: ResumeDocument, spec: DesignSpecV2) {

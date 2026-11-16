@@ -1,4 +1,5 @@
 import {
+  GRAPHIC_BLOCKS,
   BACKGROUNDS,
   BANDS,
   CASES,
@@ -124,7 +125,43 @@ export function randomSpec(r: () => number): DesignSpecV2 {
     },
     extras: { qr: one(['none', 'portfolio', 'linkedin'] as const), referencesLine: r() < 0.3 },
     atsSafe: r() < 0.1,
+    // Graphic layouts (Part F) in about one spec in six, with random building blocks.
+    graphic: r() < 0.17 ? randomGraphic(r) : undefined,
   });
+}
+
+const MARKS = ['bar', 'dot', 'slash', 'number', 'square', 'line'] as const;
+const METERS = ['bars', 'segments', 'dots'] as const;
+const hex = (r: () => number) =>
+  `#${Math.floor(r() * 0xffffff)
+    .toString(16)
+    .padStart(6, '0')}`;
+
+export function randomGraphic(r: () => number) {
+  const one = <T>(a: readonly T[]) => a[Math.floor(r() * a.length)]!;
+  const layout = one(['poster', 'band', 'rail', 'cover'] as const);
+  const b = GRAPHIC_BLOCKS[layout] as {
+    frame: readonly string[];
+    art: readonly string[];
+    numbers?: readonly string[];
+  };
+  return {
+    layout,
+    frame: one(b.frame),
+    art: one(b.art),
+    ...(b.numbers ? { numbers: one(b.numbers) } : {}),
+    marker: one(MARKS),
+    skills: one(METERS),
+    side: r() < 0.5 ? 'left' : 'right',
+    caps: r() < 0.5,
+    stop: one(['', '.', '/']),
+    end: one(['bar', 'outline', 'none'] as const),
+    railMm: Math.round(60 + r() * 16),
+    ornament: one(['', '✦', '◆']),
+    nameStyle: r() < 0.5 ? 'heavy' : 'light',
+    ink: hex(r),
+    soft: hex(r),
+  };
 }
 
 /** One spec per enum value (plus layouts paired with side content). */
@@ -179,5 +216,41 @@ export function enumSweep(): { label: string; spec: DesignSpecV2 }[] {
   add('section icons', { icons: { sections: true, style: 'solid' } });
   add('ats safe', { atsSafe: true, layout: { type: 'rails' }, placement: side });
   for (const v of FONT_PAIR_IDS) add(`font ${v}`, { type: { pair: v } });
+  // Every building block of every graphic layout (Part F).
+  const g = {
+    marker: 'bar',
+    skills: 'bars',
+    side: 'right',
+    caps: true,
+    stop: '.',
+    end: 'bar',
+    railMm: 70,
+    ornament: '✦',
+    nameStyle: 'heavy',
+    ink: '#14263b',
+    soft: '#e8f0f8',
+  };
+  for (const layout of ['poster', 'band', 'rail', 'cover'] as const) {
+    const b = GRAPHIC_BLOCKS[layout] as {
+      frame: readonly string[];
+      art: readonly string[];
+      numbers?: readonly string[];
+    };
+    const first = {
+      frame: b.frame[0],
+      art: b.art[0],
+      ...(b.numbers ? { numbers: b.numbers[0] } : {}),
+    };
+    for (const frame of b.frame)
+      add(`${layout} frame ${frame}`, { graphic: { ...g, layout, ...first, frame } });
+    for (const art of b.art)
+      add(`${layout} art ${art}`, { graphic: { ...g, layout, ...first, art } });
+    for (const numbers of b.numbers ?? [])
+      add(`${layout} numbers ${numbers}`, { graphic: { ...g, layout, ...first, numbers } });
+    for (const marker of MARKS)
+      add(`${layout} marker ${marker}`, { graphic: { ...g, layout, ...first, marker } });
+    for (const skills of METERS)
+      add(`${layout} skills ${skills}`, { graphic: { ...g, layout, ...first, skills } });
+  }
   return out;
 }

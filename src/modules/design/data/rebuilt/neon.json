@@ -1,0 +1,54 @@
+{
+  "id": "neon",
+  "name": "Neon",
+  "style": "Graphic spotlight",
+  "description": "A deep navy header with your name set huge, an arched portrait standing on a bright band of key numbers, and a timeline beside your skills.",
+  "family": "graphic",
+  "fontPair": "bold",
+  "accent": "#00d3c4",
+  "fit": {
+    "tech": 0.8,
+    "student": 0.8,
+    "retail": 0.6,
+    "general": 0.5,
+    "teacher": 0.8
+  },
+  "photo": true,
+  "tags": ["creative", "bold", "photo-led"],
+  "fallback": "neon",
+  "status": "live",
+  "spec": {
+    "layout": {
+      "type": "sidebar-right"
+    },
+    "placement": {
+      "side": ["skills", "languages", "certifications", "licences", "awards"]
+    },
+    "header": {
+      "style": "band",
+      "photo": {
+        "show": true
+      }
+    },
+    "color": {
+      "accent": "#00d3c4",
+      "mode": "accent"
+    },
+    "type": {
+      "pair": "bold"
+    },
+    "graphic": {
+      "layout": "poster",
+      "frame": "arch",
+      "art": "rings",
+      "numbers": "band",
+      "marker": "bar",
+      "skills": "bars",
+      "side": "right",
+      "caps": true,
+      "stop": ".",
+      "ink": "#102d43",
+      "soft": "#e8f7f5"
+    }
+  }
+}

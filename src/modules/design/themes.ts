@@ -3,7 +3,7 @@
  * A design's own colours are always the first theme. For most designs a theme is the accent colour;
  * the graphic designs also take its dark and pale tones (their header and panels).
  */
-import { GRAPHIC_META } from '@/modules/templates/graphic/meta';
+import { DATA_GRAPHIC_TONES, SIGNATURE_ACCENT } from './designs';
 import { BAND, COVER, RAIL, SPOT } from '@/modules/templates/graphic/catalog';
 import type { DesignId, ResumeDocument } from '@/modules/resume/schema';
 import { ops } from '@/modules/resume/ops';
@@ -23,16 +23,16 @@ export const THEMES: Theme[] = [
 const GRAPHIC_TONES = new Map<string, { ink: string; soft: string }>(
   [...SPOT, ...BAND, ...RAIL, ...COVER].map((c) => [c.id, { ink: c.ink, soft: c.soft }]),
 );
-export const isGraphic = (id: string) => id in GRAPHIC_META;
+export const isGraphic = (id: string) => id in SIGNATURE_ACCENT;
 
 /** The design's own colours as a theme (graphic designs have a signature palette). */
 export function ownTheme(id: DesignId, doc?: ResumeDocument): Theme {
-  const g = (GRAPHIC_META as Record<string, { accent: string }>)[id];
-  const tones = GRAPHIC_TONES.get(id);
+  const g = SIGNATURE_ACCENT[id];
+  const tones = GRAPHIC_TONES.get(id) ?? DATA_GRAPHIC_TONES[id];
   return {
     id: 'own',
     name: 'Its own colours',
-    accent: g?.accent ?? doc?.design.accent ?? '#1f4e8c',
+    accent: g ?? doc?.design.accent ?? '#1f4e8c',
     ink: tones?.ink ?? '#1f2a37',
     soft: tones?.soft ?? '#eef2f6',
   };

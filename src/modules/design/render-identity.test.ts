@@ -11,6 +11,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { DESIGN_IDS } from '@/modules/resume/ids';
+import { DATA_DESIGN_IDS } from './data';
 import { FIXTURES, PHOTO_FOR, withPhoto } from '@/modules/resume/fixtures';
 import { ops } from '@/modules/resume/ops';
 import { buildDocumentHtml } from '@/modules/templates/build-document';
@@ -32,10 +33,15 @@ function hashes(): Record<string, string> {
 describe('render identity', () => {
   it('every design renders as recorded', () => {
     const now = hashes();
-    if (process.env.UPDATE_RENDER_HASHES) fs.writeFileSync(FILE, JSON.stringify(now, null, 1));
+    if (process.env.UPDATE_RENDER_HASHES)
+      fs.writeFileSync(FILE, JSON.stringify(now, null, 2) + '\n');
     const was = JSON.parse(fs.readFileSync(FILE, 'utf8')) as Record<string, string>;
     const changed = Object.keys(was).filter((k) => was[k] !== now[k]);
     expect(changed).toEqual([]);
-    expect(Object.keys(now).length).toBe(DESIGN_IDS.length * SAMPLES.length);
+    // Every built-in design is recorded; designs added as files are recorded by the authoring kit.
+    const missing = Object.keys(now).filter(
+      (k) => !(k in was) && !(DATA_DESIGN_IDS as readonly string[]).includes(k.split('/')[0]!),
+    );
+    expect(missing).toEqual([]);
   });
 });
