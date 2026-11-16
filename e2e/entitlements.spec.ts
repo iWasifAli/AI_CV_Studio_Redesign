@@ -164,8 +164,12 @@ test.describe('free account', () => {
 
     await page.goto(`/cv/${d.id}`);
     await page.getByRole('tab', { name: 'Design' }).click();
-    await expect(page.getByRole('radio', { name: /Vivid · Premium/ })).toBeVisible();
-    await expect(page.getByRole('radio', { name: /Sprout/ })).toHaveCount(0); // disabled design hidden
+    await expect(page.getByTestId('current-design')).toContainText('Vivid');
+    await page.getByTestId('browse-designs').click();
+    const dialog = page.getByRole('dialog', { name: 'All designs' });
+    await expect(dialog.locator('li[data-design="vivid"]')).toContainText('Premium');
+    await expect(dialog.locator('li[data-design="sprout"]')).toHaveCount(0); // disabled design hidden
+    await page.keyboard.press('Escape');
     await expect(page.locator('[data-gate="premium-note"]')).toBeVisible();
 
     await page.goto(`/cv/${d.id}/download`);

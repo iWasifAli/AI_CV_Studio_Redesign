@@ -118,6 +118,7 @@ test('Designs page shows all 52 designs with real content, filters and a page pe
   await expect(frames.first()).toHaveAttribute('title', /example driver CV/);
   await expect(frames.first().contentFrame().locator('.cv-page h1')).toContainText('Imran');
   // Filters
+  await page.getByTestId('design-filters').click();
   await page
     .getByRole('group', { name: 'Design families' })
     .getByRole('button', { name: 'Timeline' })
@@ -131,6 +132,12 @@ test('Designs page shows all 52 designs with real content, filters and a page pe
   const online = await cards.count();
   expect(online).toBeGreaterThan(8);
   expect(online).toBeLessThan(DESIGN_IDS.length);
+  const close = page.getByRole('button', { name: 'Close filters' });
+  if (await close.isVisible()) await close.click();
+  // Every card says whether it is ATS-friendly or Creative with a plain ATS version.
+  await expect(cards.first().getByTestId('design-label')).toHaveText(
+    /ATS-friendly|Creative — plain ATS version included/,
+  );
   // A design page: two-page view, ATS-safe version, matching letter, "Use this design".
   await page.getByRole('link', { name: 'Linea: see this design' }).click();
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Linea');

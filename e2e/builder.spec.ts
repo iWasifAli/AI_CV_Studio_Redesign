@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import AxeBuilder from '@axe-core/playwright';
 import type { Page } from '@playwright/test';
 import { expect, test } from './support/test';
+import { chooseDesign } from './support/design';
 
 async function axeClean(page: Page) {
   const results = await new AxeBuilder({ page })
@@ -105,7 +106,7 @@ test('J1: a delivery driver creates, edits and downloads a CV', async ({ page, i
   // Design change keeps content.
   if (isMobile) await page.getByRole('button', { name: 'Design', exact: true }).click();
   else await page.getByRole('tab', { name: 'Design' }).click();
-  await page.getByRole('radio', { name: /Calm & classic/ }).click();
+  await chooseDesign(page, 'Heritage');
   if (isMobile) await page.getByRole('button', { name: 'Preview', exact: true }).click();
   await expect(previewFrame(page).locator('html[data-template="heritage"]')).toHaveCount(1);
   await expect(previewFrame(page).getByText('Multi-drop Van Driver')).toBeVisible();
@@ -212,7 +213,7 @@ test('a photo can be added, shown in photo designs, hidden, and removed', async 
   await page.getByRole('checkbox', { name: 'Show my photo' }).uncheck();
   await expect(previewFrame(page).locator('.cv-page .cv-portrait img')).toHaveCount(0);
   // A design without photo support explains itself instead of failing silently.
-  await page.getByRole('radio', { name: /Calm & classic/ }).click();
+  await chooseDesign(page, 'Heritage');
   await expect(previewFrame(page).locator('html[data-template="heritage"]')).toHaveCount(1);
   await page.getByRole('tab', { name: 'Content' }).click();
   await expect(page.getByText('This design doesn’t show photos')).toBeVisible();
@@ -220,28 +221,18 @@ test('a photo can be added, shown in photo designs, hidden, and removed', async 
   await expect(page.getByRole('img', { name: 'Your photo' })).toHaveCount(0);
 });
 
-test('the design picker offers all 52 designs with thumbnails', async ({ page, isMobile }) => {
+test('the design browser offers every live design with thumbnails', async ({ page, isMobile }) => {
   test.skip(isMobile, 'Covered on desktop');
   await page.goto('/cv/new?work=driver');
   await page.getByLabel('Full name').fill('Imran Qureshi');
   await page.waitForTimeout(600);
   await page.goto(page.url().replace(/\/guided$/, ''));
   await page.getByRole('tab', { name: 'Design' }).click();
-  const options = page.getByRole('radiogroup', { name: 'Design' }).getByRole('radio');
-  await expect(options).toHaveCount(52);
-  for (const name of [
-    'Creative sidebar',
-    'Bold editorial',
-    'Timeline',
-    'Bold & modern',
-    'Warm portrait',
-    'Editorial',
-    'Friendly & fresh',
-  ]) {
-    const radio = page.getByRole('radio', { name: new RegExp(`^${name} · `) });
-    await radio.click();
-    await expect(radio).toHaveAttribute('aria-checked', 'true');
-  }
+  await page.getByTestId('browse-designs').click();
+  const dialog = page.getByRole('dialog', { name: 'All designs' });
+  await expect(dialog.getByTestId('design-grid').locator('li[data-design]')).toHaveCount(52);
+  await page.keyboard.press('Escape');
+  for (const name of ['Atelier', 'Ledger', 'Sprout']) await chooseDesign(page, name);
   await expect(previewFrame(page).locator('html[data-template="sprout"]')).toHaveCount(1);
   await expect(previewFrame(page).locator('.cv-page h1')).toHaveText('Imran Qureshi');
   const broken = await page.evaluate(
@@ -262,7 +253,7 @@ test('undo back to an earlier design updates the preview again', async ({ page, 
   await page.goto(page.url().replace(/\/guided$/, ''));
   await page.getByRole('tab', { name: 'Design' }).click();
   await expect(previewFrame(page).locator('html[data-template="clarity"]')).toHaveCount(1);
-  await page.getByRole('radio', { name: /Bold & modern/ }).click();
+  await chooseDesign(page, 'Vivid');
   await expect(previewFrame(page).locator('html[data-template="vivid"]')).toHaveCount(1);
   // The previous document is still loaded in the hidden frame; undo must show it again.
   await page.keyboard.press('Control+z');
@@ -282,7 +273,7 @@ test('a change made just before Download is in the download page (no lost last e
   await page.goto(page.url().replace(/\/guided$/, ''));
   await page.getByRole('tab', { name: 'Design' }).click();
   // Switch design and leave at once (well inside the editor's save delay).
-  await page.getByRole('radio', { name: /^Bold & organised · Meridian/ }).click();
+  await chooseDesign(page, 'Meridian');
   await page.getByRole('link', { name: 'Download' }).click();
   await expect(page).toHaveURL(/\/download$/);
   await expect(

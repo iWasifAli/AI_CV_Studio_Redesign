@@ -11,23 +11,26 @@ import { Segmented } from '@/components/ui/segmented';
 import { cn } from '@/lib/cn';
 import { ops } from '@/modules/resume/ops';
 import { browserRegion } from '@/modules/resume/region';
-import { FONT_PAIR_IDS, type DesignSpec } from '@/modules/resume/schema';
+import { FONT_PAIR_IDS, type DesignId, type DesignSpec } from '@/modules/resume/schema';
 import { contrast } from '@/modules/templates/color';
 import { ACCENT_PALETTE } from '@/modules/templates/design';
 import { FONT_PAIRS } from '@/modules/templates/fonts';
 import { currentDesignId } from '@/modules/design/catalogue';
 import { getTemplate } from '@/modules/templates/registry';
-import {
-  DESIGNS,
-  DESIGN_META,
-  FAMILIES,
-  FAMILY_LABEL,
-  type Family,
-} from '@/modules/design/designs';
+import { DESIGN_META } from '@/modules/design/designs';
+import { LayoutGrid } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Dialog } from '@/components/ui/dialog';
+import { catalogueItems } from '@/features/gallery/catalogue-model';
+import { DesignBrowser } from '@/features/gallery/design-browser';
+import { noteChosen } from '@/features/gallery/design-usage';
+import { noteRecent, useFavourites, usePopularity } from '@/features/gallery/use-favourites';
+import { inTheme } from '@/modules/design/themes';
+import { DesignShortlist } from './design-shortlist';
 import type { DocumentEditor } from './use-document-editor';
 import { DesignStudio } from './design-studio';
 import { Designer } from './designer';
-import { DocumentPreview, type PreviewStatus } from '@/features/preview/document-preview';
+import type { PreviewStatus } from '@/features/preview/document-preview';
 
 const FONT_DESCRIPTIONS: Record<(typeof FONT_PAIR_IDS)[number], string> = {
   modern: 'Clean and contemporary',
@@ -81,12 +84,20 @@ export function DesignPanel({
     ent !== null && ent.plan !== 'premium' && isPremiumDesign(ent, id);
   const current = currentDesignId(d);
   const meta = current ? DESIGN_META[current] : null;
-  const [family, setFamily] = useState<Family | 'all'>('all');
-  const retired = !!current && ent?.designs.find((x) => x.id === current)?.status === 'retired';
-  const available = DESIGNS.filter(
-    (t) => t.id === current || !ent || ent.designs.find((x) => x.id === t.id)?.enabled !== false,
+  const [browsing, setBrowsing] = useState(false);
+  const favs = useFavourites();
+  const popularity = usePopularity();
+  const items = useMemo(
+    () => catalogueItems(ent?.designs ?? null, current ?? undefined),
+    [ent, current],
   );
-  const shown = family === 'all' ? available : available.filter((t) => t.family === family);
+  // One undo step: the design and its colour theme change together.
+  const use = (id: DesignId, theme = 'own') => {
+    update((x) => inTheme(ops.useDesign(x, id), theme === 'own' ? undefined : theme));
+    noteChosen(id, theme === 'own' ? undefined : theme);
+    noteRecent(id);
+  };
+  const retired = !!current && ent?.designs.find((x) => x.id === current)?.status === 'retired';
   // The person's CV as the picker previews show it: rebuilt only when the words or their own
   // colour, font, spacing or paper change — not when they pick a design.
   const mineKey = JSON.stringify([
@@ -99,12 +110,6 @@ export function DesignPanel({
   ]);
   // eslint-disable-next-line react-hooks/exhaustive-deps -- rebuilt by content key only
   const mine = useMemo(() => doc, [mineKey]);
-  // One preview document per design, kept while the content is the same (stable identities, so
-  // the previews don't rebuild on every render).
-  const inDesign = useMemo(
-    () => new Map(DESIGNS.map((t) => [t.id, ops.useDesign(mine, t.id)] as const)),
-    [mine],
-  );
   const customLow = contrast(d.accent, '#ffffff') < 4.5;
 
   return (
@@ -133,82 +138,41 @@ export function DesignPanel({
             {tx('This design has been retired — you can keep it or choose another.')}
           </p>
         )}
-        <div role="group" aria-label={tx('Design families')} className="flex flex-wrap gap-1.5">
-          {(['all', ...FAMILIES] as const).map((f) => (
-            <button
-              key={f}
-              type="button"
-              aria-pressed={family === f}
-              onClick={() => setFamily(f)}
-              className={cn(
-                'rounded-full border px-3 py-1 text-[13px] font-semibold transition-colors',
-                family === f
-                  ? 'bg-primary text-on-primary border-transparent'
-                  : 'border-line-strong text-ink-muted hover:bg-sunken',
-              )}
-            >
-              {f === 'all' ? tx('All') : FAMILY_LABEL[f].name}
-            </button>
-          ))}
-        </div>
-        <div role="radiogroup" aria-label={tx('Design')} className="grid grid-cols-2 gap-3">
-          {shown.map((t) => {
-            const selected = current === t.id;
-            return (
-              <button
-                key={t.id}
-                type="button"
-                role="radio"
-                aria-checked={selected}
-                aria-label={`${tx(t.style)} · ${tx(t.name)}${showPremium(t.id) ? ' · Premium' : ''}`}
-                onClick={() => update((x) => ops.useDesign(x, t.id))}
-                className={cn(
-                  'group flex flex-col gap-2 rounded-lg p-1.5 text-left transition-colors',
-                  selected ? 'bg-primary-soft ring-primary ring-2' : 'hover:bg-sunken',
-                )}
-              >
-                <span className="bg-surface shadow-1 ring-line relative block overflow-hidden rounded-[3px] ring-1">
-                  {/* Static thumbnail at once; the person's own CV in this design renders over it
-                      when the card scrolls into view, so the picker shows what they will get. */}
-                  {/* eslint-disable-next-line @next/next/no-img-element -- static thumbnails */}
-                  <img
-                    src={`/templates/${t.id}.webp`}
-                    alt=""
-                    width={397}
-                    height={562}
-                    className="absolute inset-0 h-full w-full object-cover object-top"
-                    loading="lazy"
-                  />
-                  <DocumentPreview
-                    doc={inDesign.get(t.id)!}
-                    firstPageOnly
-                    decorative
-                    lazy
-                    debounceMs={300}
-                    title={tx('Your CV in the {name} design', { name: t.name })}
-                  />
-                  {selected && (
-                    <span className="bg-primary text-on-primary shadow-1 absolute top-2 right-2 inline-flex size-6 items-center justify-center rounded-full">
-                      <Check aria-hidden size={14} strokeWidth={3} />
-                    </span>
-                  )}
-                  {showPremium(t.id) && (
-                    <span className="bg-ink/85 absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold text-white">
-                      <Crown aria-hidden size={12} /> {tx('Premium')}
-                    </span>
-                  )}
-                </span>
-                <span className="px-1 pb-1">
-                  <span className="text-ink block text-sm font-semibold">{tx(t.style)}</span>
-                  <span className="text-ink-muted block text-xs">
-                    {tx(t.name)}
-                    {t.photo ? ` · ${tx('Photo')}` : ''}
-                  </span>
-                </span>
-              </button>
-            );
-          })}
-        </div>
+        <DesignShortlist
+          doc={doc}
+          current={current}
+          items={items}
+          popularity={popularity}
+          favourites={favs.ids}
+          showPremium={showPremium}
+          onUse={use}
+          mine={mine}
+        />
+        <Button
+          variant="secondary"
+          onClick={() => setBrowsing(true)}
+          data-testid="browse-designs"
+          className="self-start"
+        >
+          <LayoutGrid aria-hidden size={18} /> {tx('Browse all designs')}
+        </Button>
+        <Dialog
+          open={browsing}
+          onClose={() => setBrowsing(false)}
+          title={tx('All designs')}
+          className="h-[100dvh] max-h-none w-screen max-w-none rounded-none sm:h-[94vh] sm:w-[min(100vw-2rem,80rem)] sm:rounded-xl"
+        >
+          <DesignBrowser
+            base={mine}
+            label="your CV"
+            preset={doc.presetId ?? null}
+            current={current}
+            onUse={(id, theme) => {
+              use(id, theme);
+              setBrowsing(false);
+            }}
+          />
+        </Dialog>
         <p className="text-ink-muted text-sm">
           {meta ? tx(meta.description) : tx('Your own design, made in the Design Studio below.')}
         </p>

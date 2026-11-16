@@ -37,6 +37,9 @@ export interface UserStore {
   /** The person's interface language, so emails to them are in it ('en' when never set). */
   setUserLang(uid: string, lang: 'en' | 'de'): Promise<void>;
   userLang(uid: string): Promise<'en' | 'de'>;
+  /** Designs the person marked with a heart (ids, newest first). */
+  favouriteDesigns(uid: string): Promise<string[]>;
+  setFavouriteDesigns(uid: string, ids: string[]): Promise<void>;
   /**
    * Account deletion: removes the user record, every CV and version, the pass and usage.
    * Payment requests are kept for accounting with the email removed.
@@ -89,6 +92,15 @@ export interface UserStore {
   bumpMetrics(day: string, counts: Record<string, number>): Promise<void>;
   /** Daily counters for days in [from, to] (inclusive, yyyy-mm-dd), oldest first. */
   getMetrics(from: string, to: string): Promise<{ day: string; counts: Record<string, number> }[]>;
+  /**
+   * Design usage counters per day (designUsage/{yyyy-mm-dd}): counts[key][event], key = design id
+   * or "id@theme". Counts only — no CV content, no user.
+   */
+  bumpDesignUsage(day: string, counts: Record<string, Record<string, number>>): Promise<void>;
+  getDesignUsage(
+    from: string,
+    to: string,
+  ): Promise<{ day: string; counts: Record<string, Record<string, number>> }[]>;
   /** A pending or approved payment request with this transaction reference (normalised). */
   findPaymentByReference(referenceKey: string): Promise<PaymentRequest | null>;
   /** Has this account used the studio before (signed in at least once)? */

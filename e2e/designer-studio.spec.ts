@@ -1,6 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import type { APIRequestContext, Page } from '@playwright/test';
 import { expect, test } from './support/test';
+import { chooseDesign } from './support/design';
 import { seedDocument } from './support/seed';
 import { setConfig } from './support/auth';
 import { DEFAULT_CONFIG } from '../src/modules/billing/config';
@@ -185,31 +186,28 @@ test.describe('visitors', () => {
   });
 });
 
-test('the picker has 52 designs in 9 families; a spec design switches in one click', async ({
+test('the browser has 52 designs in 9 families; a spec design switches from it', async ({
   page,
   request,
 }) => {
   await config(request);
   await openDesign(page, { ...structuredClone(FIXTURES.driver), id: 'designer-pick' });
-  const picker = page.getByRole('radiogroup', { name: 'Design' });
-  await expect(picker.getByRole('radio')).toHaveCount(52);
-  await page
+  await page.getByTestId('browse-designs').click();
+  const dialog = page.getByRole('dialog', { name: 'All designs' });
+  const cards = dialog.getByTestId('design-grid').locator('li[data-design]');
+  await expect(cards).toHaveCount(52);
+  await dialog.getByTestId('design-filters').click();
+  await dialog
     .getByRole('group', { name: 'Design families' })
     .getByRole('button', { name: 'Compact grid' })
     .click();
-  await expect(picker.getByRole('radio')).toHaveCount(4);
-  await picker.getByRole('radio', { name: /Three-column grid · Mosaic/ }).click();
-  await expect(picker.getByRole('radio', { name: /Mosaic/ })).toHaveAttribute(
-    'aria-checked',
-    'true',
-  );
+  await expect(cards).toHaveCount(4);
+  await page.keyboard.press('Escape');
+  await chooseDesign(page, 'Mosaic');
+  await expect(page.getByTestId('current-design')).toContainText('Mosaic');
   await expect.poll(() => previewTemplate(page)).toBe('custom');
   await expect(page.getByTestId('studio-base')).toContainText('Based on Mosaic');
   // Back to a crafted design re-attaches it.
-  await page
-    .getByRole('group', { name: 'Design families' })
-    .getByRole('button', { name: 'All' })
-    .click();
-  await picker.getByRole('radio', { name: /Clarity/ }).click();
+  await chooseDesign(page, 'Clarity');
   await expect.poll(() => previewTemplate(page)).toBe('clarity');
 });

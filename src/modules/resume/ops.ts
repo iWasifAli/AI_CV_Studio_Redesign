@@ -252,6 +252,8 @@ export const ops = {
         ? { accent: getPreset(doc.presetId).design.accent }
         : {};
     const fresh: Partial<DesignSpec> = {
+      // A colour theme belongs to the design it was picked for.
+      ...(doc.design.palette ? { palette: undefined } : {}),
       ...backToOwn,
       ...(mine.has('density') ? {} : { density: 'balanced' as const }),
       ...(mine.has('fontPair') || !DESIGN_META[id].fontPair

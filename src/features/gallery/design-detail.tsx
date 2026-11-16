@@ -3,7 +3,7 @@
 import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { isPremiumDesign, useEntitlements } from '@/features/account/entitlements';
@@ -17,6 +17,9 @@ import { ops } from '@/modules/resume/ops';
 import type { DesignId } from '@/modules/resume/schema';
 import { getRepository } from '@/modules/storage/repository';
 import { SAMPLES, inDesign, onlineSafe, useShowWith, type SampleId } from './template-gallery';
+import { inTheme, themeById } from '@/modules/design/themes';
+import { noteChosen, notePreviewed } from './design-usage';
+import { noteRecent } from './use-favourites';
 
 const SAMPLE_LETTER = {
   greeting: 'Dear Hiring Manager,',
@@ -48,14 +51,19 @@ export function DesignDetail({ id }: { id: DesignId }) {
     (params.get('cv') ? `own:${params.get('cv')}` : own[0] ? `own:${own[0].id}` : 'sample:teacher');
   const [view, setView] = useState<'design' | 'ats' | 'letter' | 'portfolio'>('design');
 
+  const theme = themeById(params.get('theme') ?? undefined)?.id;
   const { doc, ownId } = useMemo(() => {
     if (show.startsWith('own:')) {
       const d = getRepository().get(show.slice(4));
-      if (d) return { doc: inDesign(d, id), ownId: d.id };
+      if (d) return { doc: inTheme(inDesign(d, id), theme), ownId: d.id };
     }
     const k = (show.split(':')[1] ?? 'teacher') as SampleId;
-    return { doc: inDesign((SAMPLES[k] ?? SAMPLES.teacher).doc, id, k), ownId: null };
-  }, [show, id]);
+    return {
+      doc: inTheme(inDesign((SAMPLES[k] ?? SAMPLES.teacher).doc, id, k), theme),
+      ownId: null,
+    };
+  }, [show, id, theme]);
+  useEffect(() => notePreviewed(id, theme), [id, theme]);
   const ats = useMemo(() => ops.setSpec(doc, { ...specOf(doc.design), atsSafe: true }), [doc]);
   const letter = useMemo(
     () =>
@@ -77,11 +85,15 @@ export function DesignDetail({ id }: { id: DesignId }) {
     if (ownId) {
       const cv = getRepository().get(ownId);
       if (cv) {
-        getRepository().save(ops.useDesign(cv, id));
+        getRepository().save(inTheme(ops.useDesign(cv, id), theme));
+        noteChosen(id, theme);
+        noteRecent(id);
         router.push(`/cv/${ownId}`);
         return;
       }
     }
+    noteChosen(id, theme);
+    noteRecent(id);
     router.push(`/start?design=${id}`);
   }
 

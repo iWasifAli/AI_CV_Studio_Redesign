@@ -7,6 +7,8 @@ import { checkDesign, denialCode, reserve } from '@/modules/billing/server';
 import { track } from '@/modules/metrics/server';
 import { currentUser } from '@/modules/identity/session';
 import { notePdf } from '@/modules/metrics/activity';
+import { tierDesignId } from '@/modules/design/catalogue';
+import { recordUsage } from '@/modules/design/usage-server';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -84,6 +86,8 @@ export async function POST(req: Request) {
     // Counting is bookkeeping: it runs after the PDF is on its way (it cost ~0.9 s before).
     after(async () => {
       await track('pdf_ok');
+      const designId = tierDesignId(parsed.data.design);
+      if (designId) await recordUsage([{ id: designId, kind: 'downloaded' }]);
       if (user) await notePdf(user.uid);
     });
     return new Response(Buffer.from(pdf), {

@@ -105,6 +105,7 @@ export const de: Dict = {
   '{n} designs': '{n} Designs',
   '{n} downloads a month': '{n} Downloads pro Monat',
   '{n} imports a month': '{n} Importe pro Monat',
+  '{n} of {max} picked to compare': '{n} von {max} zum Vergleich ausgewählt',
   '{n} reminders for today': '{n} Erinnerungen für heute',
   '{name} — {v} ·{v2} {columns} column': '{name} – {v} ·{v2} {columns} Spalte',
   '{name} — CV. Click a line to comment on it.':
@@ -593,6 +594,7 @@ export const de: Dict = {
   'Beside the side column': 'Neben der Seitenspalte',
   'best for online applications': 'am besten für Online-Bewerbungen',
   'Best for online applications': 'Am besten für Online-Bewerbungen',
+  'Best for you': 'Am besten für Sie',
   'Best match': 'Beste Übereinstimmung',
   'Best value': 'Bestes Angebot',
   'Between {after} and {before}': 'Zwischen {after} und {before}',
@@ -620,6 +622,7 @@ export const de: Dict = {
   'Breaks are common and nothing to hide. A short, calm line answers the question before it’s asked. Only what you tell us is used.':
     'Lücken sind häufig und kein Grund, etwas zu verbergen. Eine kurze, sachliche Zeile beantwortet die Frage, bevor sie gestellt wird. Es wird nur verwendet, was Sie uns sagen.',
   'Brief copied': 'Unternehmensprofil kopiert',
+  'Browse all designs': 'Alle Designs durchsuchen',
   Bullets: 'Aufzählungspunkte',
   'Bullets, dates and skills': 'Aufzählungen, Daten und Kenntnisse',
   'Business card': 'Visitenkarte',
@@ -745,6 +748,7 @@ export const de: Dict = {
   'Clean, one column, navy': 'Klar, einspaltig, Marineblau',
   'Clean, two columns, navy': 'Klar, zweispaltig, Marineblau',
   Clear: 'Leeren',
+  'Clear all filters': 'Alle Filter zurücksetzen',
   'Clear selection': 'Auswahl aufheben',
   'Clear the conversation?': 'Unterhaltung löschen?',
   'Clear this review': 'Diese Prüfung löschen',
@@ -754,6 +758,7 @@ export const de: Dict = {
     'Klicken Sie auf eine Zeile im Lebenslauf oder wählen Sie unten einen Teil aus. Ihr Kommentar geht nur an {first}; andere mit diesem Link sehen ihn nicht.',
   'Clinical observations': 'Klinische Beobachtung',
   Close: 'Schließen',
+  'Close filters': 'Filter schließen',
   'Close menu': 'Menü schließen',
   'Close preview': 'Vorschau schließen',
   Closest: 'Am nächsten',
@@ -777,6 +782,7 @@ export const de: Dict = {
   'Coloured line': 'Farbige Linie',
   'Coloured tiles': 'Farbige Kacheln',
   Colours: 'Farben',
+  'Colours for {name}': 'Farben für {name}',
   Columns: 'Spalten',
   'Columns, colours, headings, photo — in your own words. We design it with your CV.':
     'Spalten, Farben, Überschriften, Foto – in Ihren eigenen Worten. Wir gestalten es mit Ihrem Lebenslauf.',
@@ -812,6 +818,8 @@ export const de: Dict = {
   'Company briefs are switched off right now.': 'Unternehmensprofile sind gerade abgeschaltet.',
   'Company not set': 'Unternehmen nicht angegeben',
   Compare: 'Vergleichen',
+  'Compare {name}': '{name} vergleichen',
+  'Compare designs': 'Designs vergleichen',
   'Compare with my CV': 'Mit meinem Lebenslauf vergleichen',
   'Compare with now: {v0}, {v1}': 'Mit jetzt vergleichen: {v0}, {v1}',
   'Compare your original CV with the new one':
@@ -907,6 +915,7 @@ export const de: Dict = {
   'Create your application kit: {job}': 'Bewerbungspaket erstellen: {job}',
   'Create your CV': 'Ihren Lebenslauf erstellen',
   Creative: 'Kreativ',
+  'Creative — plain ATS version included': 'Kreativ – schlichte ATS-Version inklusive',
   'Creative sidebar': 'Kreative Seitenleiste',
   'Creative, marketing and customer-facing roles': 'Kreative, Marketing- und Kundenrollen',
   'creative: made to be seen by people; download its ATS PDF for online forms':
@@ -1239,6 +1248,8 @@ export const de: Dict = {
   'Fast tasks (writing help, import, extraction)':
     'Schnelle Aufgaben (Schreibhilfe, Import, Extraktion)',
   'Fault finding': 'Fehlersuche',
+  'Favourite: {name}': 'Favorit: {name}',
+  Favourites: 'Favoriten',
   Feature: 'Funktion',
   Features: 'Funktionen',
   Feedback: 'Rückmeldung',
@@ -1249,10 +1260,13 @@ export const de: Dict = {
   'Fill in what you can. Anything you leave empty will not appear on your CV.':
     'Füllen Sie aus, was Sie können. Leere Felder erscheinen nicht in Ihrem Lebenslauf.',
   'Filled in from {host}': 'Übernommen von {host}',
+  Filters: 'Filter',
   'Final preview': 'Endgültige Vorschau',
   'Final preview of your CV': 'Endgültige Vorschau Ihres Lebenslaufs',
   Find: 'Suchen',
   'Find a design': 'Ein Design finden',
+  'Find a design by mood, occasion or kind of work. Each is shown with your own CV when you have one, each has a plain ATS version for online application forms, and you can switch at any time without losing a word.':
+    'Finden Sie ein Design nach Stimmung, Anlass oder Berufsfeld. Jedes wird mit Ihrem eigenen Lebenslauf gezeigt, sobald Sie einen haben, jedes hat eine schlichte ATS-Version für Online-Bewerbungsformulare, und Sie können jederzeit wechseln, ohne ein Wort zu verlieren.',
   'Find a section — e.g. references': 'Einen Abschnitt finden – z. B. Referenzen',
   'Find a section type': 'Einen Abschnittstyp finden',
   "Find an account by email to grant Premium, reset this month's allowance or block sign-in.":
@@ -1331,6 +1345,7 @@ export const de: Dict = {
     'für die gewählte Anzahl an Tagen. Er verlängert sich nicht automatisch, und es wird nichts abgebucht, ohne dass Sie einen neuen Pass bezahlen.',
   'For your account we keep your email address and name, how you sign in, when you last used the studio, your plan, and how many downloads, imports and AI actions you used this month. If you buy Premium, we keep the order details (order number, pass, amount, payment method, your mobile number and any transaction ID you give) to check the payment. Payment screenshots you send us on WhatsApp stay in that chat and are only used to check your order.':
     'Für Ihr Konto speichern wir Ihre E-Mail-Adresse und Ihren Namen, wie Sie sich anmelden, wann Sie das Studio zuletzt genutzt haben, Ihren Tarif und wie viele Downloads, Importe und KI-Aktionen Sie diesen Monat genutzt haben. Wenn Sie Premium kaufen, speichern wir die Bestelldaten (Bestellnummer, Pass, Betrag, Zahlungsart, Ihre Mobilnummer und eine eventuell angegebene Transaktions-ID), um die Zahlung zu prüfen. Zahlungs-Screenshots, die Sie uns per WhatsApp senden, bleiben in diesem Chat und dienen nur zur Prüfung Ihrer Bestellung.',
+  Forest: 'Waldgrün',
   'Forgot your password?': 'Passwort vergessen?',
   'Form fields': 'Formularfelder',
   Formal: 'Förmlich',
@@ -1399,6 +1414,7 @@ export const de: Dict = {
   'Graphic portfolio': 'Grafisches Portfolio',
   'Graphic rail': 'Grafische Leiste',
   'Graphic spotlight': 'Grafischer Blickfang',
+  Graphite: 'Graphit',
   Greeting: 'Anrede',
   'Group name': 'Gruppenname',
   'Guard replaced: {v}': 'Vom Schutz ersetzt: {v}',
@@ -1506,6 +1522,7 @@ export const de: Dict = {
   'In this design the address is too long for its column, so it breaks in two. Software that reads line by line may store it wrongly.':
     'In diesem Design ist die Adresse zu lang für ihre Spalte und wird umgebrochen. Software, die zeilenweise liest, speichert sie womöglich falsch.',
   'In this order': 'In dieser Reihenfolge',
+  'In use': 'In Verwendung',
   'In your CV ({length})': 'In Ihrem Lebenslauf ({length})',
   'Include the letter': 'Anschreiben beifügen',
   'Infection control': 'Infektionsschutz',
@@ -1555,6 +1572,7 @@ export const de: Dict = {
     'Er wurde möglicherweise gelöscht oder auf einem anderen Gerät erstellt, während Sie abgemeldet waren. Melden Sie sich an, um die in Ihrem Konto gespeicherten Lebensläufe zu sehen.',
   'It suggests clearer, more professional wording for what you have already written. It never adds jobs, dates, qualifications or numbers you did not give us. When a sentence would be stronger with a detail only you know, it asks you instead of guessing — those parts are highlighted until you fill them in. You can turn AI help off on the privacy page.':
     'Sie schlägt klarere, professionellere Formulierungen für das vor, was Sie bereits geschrieben haben. Sie fügt nie Stellen, Daten, Abschlüsse oder Zahlen hinzu, die Sie uns nicht genannt haben. Wenn ein Satz mit einem Detail stärker wäre, das nur Sie kennen, fragt sie nach, statt zu raten – diese Stellen bleiben markiert, bis Sie sie ausfüllen. Sie können die KI-Hilfe auf der Datenschutzseite abschalten.',
+  'Its own colours': 'Eigene Farben',
   Job: 'Stelle',
   'Job added': 'Stelle hinzugefügt',
   'Job from a link': 'Stelle aus einem Link',
@@ -1760,10 +1778,12 @@ export const de: Dict = {
   'Modern with a colour banner': 'Modern mit farbigem Banner',
   Month: 'Monat',
   'Monthly download limit reached': 'Monatliches Download-Limit erreicht',
+  'Mood and occasion': 'Stimmung und Anlass',
   More: 'Mehr',
   'More formal': 'Förmlicher',
   'More options for “{title}”': 'Weitere Optionen für „{title}“',
   'More professional': 'Professioneller',
+  'Most used': 'Meistgenutzt',
   'Move “{title}” down': '„{title}“ nach unten',
   'Move “{title}” up': '„{title}“ nach oben',
   'Move {name} down': '{name} nach unten',
@@ -1797,6 +1817,7 @@ export const de: Dict = {
   'Nationality, visa, driving licence… expected in some countries, not in others':
     'Staatsangehörigkeit, Visum, Führerschein … in manchen Ländern erwartet, in anderen nicht',
   Native: 'Muttersprache',
+  Navy: 'Marineblau',
   'Navy and gold, refined': 'Marineblau und Gold, edel',
   'Needs work': 'Muss verbessert werden',
   'Needs your input': 'Braucht Ihre Angabe',
@@ -1820,6 +1841,7 @@ export const de: Dict = {
   'New questions replace the current ones and your notes on them. Continue?':
     'Neue Fragen ersetzen die aktuellen und Ihre Notizen dazu. Fortfahren?',
   'New story': 'Neue Geschichte',
+  Newest: 'Neueste',
   'Next best step': 'Nächster sinnvoller Schritt',
   'Next reminder:': 'Nächste Erinnerung:',
   'No account uses that email address.': 'Kein Konto verwendet diese E-Mail-Adresse.',
@@ -2004,6 +2026,7 @@ export const de: Dict = {
   'Or on': 'Oder auf',
   'Or send it to': 'Oder senden Sie es an',
   'or with email': 'oder mit E-Mail',
+  Order: 'Sortierung',
   'Order cancelled': 'Bestellung storniert',
   'Order details, dates and links are filled in automatically. {order} in a subject becomes the order number. Leave a field empty for the standard wording.':
     'Bestelldaten, Daten und Links werden automatisch eingefügt. {order} in einem Betreff wird zur Bestellnummer. Lassen Sie ein Feld leer, um den Standardtext zu verwenden.',
@@ -2169,6 +2192,7 @@ export const de: Dict = {
     'Bitte verwenden Sie ein JPG-, PNG-, WebP- oder HEIC-Bild unter 4 MB.',
   'Please verify your email': 'Bitte bestätigen Sie Ihre E-Mail-Adresse',
   'Please wait a little and try again.': 'Bitte warten Sie kurz und versuchen Sie es erneut.',
+  Plum: 'Pflaume',
   PNG: 'PNG',
   'Point from your CV': 'Punkt aus Ihrem Lebenslauf',
   'point has': 'Punkt hat',
@@ -2231,8 +2255,10 @@ export const de: Dict = {
   Press: 'Drücken Sie',
   Preview: 'Vorschau',
   PREVIEW: 'VORSCHAU',
+  'Preview {name}': 'Vorschau: {name}',
   'Preview in the {name} theme — only you can see this.{v}':
     'Vorschau im Stil {name} – nur Sie sehen das.{v}',
+  'Preview of the {name} design': 'Vorschau des Designs {name}',
   'Preview of your CV': 'Vorschau Ihres Lebenslaufs',
   'Preview of your CV. Click any part to edit it.':
     'Vorschau Ihres Lebenslaufs. Klicken Sie auf einen Teil, um ihn zu bearbeiten.',
@@ -2324,6 +2350,7 @@ export const de: Dict = {
   'Reason: {reason}': 'Grund: {reason}',
   'Recently active': 'Kürzlich aktiv',
   'Recently active ({total} accounts)': 'Kürzlich aktiv ({total} Konten)',
+  'Recommended for you': 'Für Sie empfohlen',
   Redo: 'Wiederholen',
   'Reference request': 'Bitte um Referenz',
   References: 'Referenzen',
@@ -2428,6 +2455,7 @@ export const de: Dict = {
   'Run the live evaluation before relying on AI help: every writing task over realistic CVs and messy notes. It passes with 0 unmarked new facts.':
     'Starten Sie die Live-Auswertung, bevor Sie sich auf die KI-Hilfe verlassen: jede Schreibaufgabe mit realistischen Lebensläufen und unordentlichen Notizen. Sie besteht mit 0 unmarkierten neuen Fakten.',
   'Rupees per US dollar': 'Rupien pro US-Dollar',
+  Rust: 'Rost',
   'Safe driving': 'Sicheres Fahren',
   'Salary negotiation': 'Gehaltsverhandlung',
   'Salary, hours, location — exactly as agreed.':
@@ -2482,6 +2510,7 @@ export const de: Dict = {
   'Schools, colleges, universities and courses': 'Schulen, Hochschulen, Universitäten und Kurse',
   'Screening software reads this CV well.': 'Auswahlsoftware liest diesen Lebenslauf gut.',
   Search: 'Suchen',
+  'Search designs': 'Designs suchen',
   'Search documents, pages and actions…': 'Dokumente, Seiten und Aktionen suchen …',
   'Search or jump to': 'Suchen oder springen zu',
   'Second colour (headings)': 'Zweitfarbe (Überschriften)',
@@ -2571,6 +2600,7 @@ export const de: Dict = {
     'Kurze Einträge pro Zeile (Sprachen, Zertifikate, Führerscheine)',
   Shorten: 'Kürzen',
   Show: 'Anzeigen',
+  'Show {n} designs': '{n} Designs anzeigen',
   'Show a level for each skill (for bar or dot designs)':
     'Für jede Kenntnis ein Niveau anzeigen (für Designs mit Balken oder Punkten)',
   'Show all {length}': 'Alle {length} anzeigen',
@@ -2814,6 +2844,7 @@ export const de: Dict = {
   Teacher: 'Lehrkraft',
   'Teacher, tutor, teaching assistant': 'Lehrkraft, Nachhilfe, Unterrichtsassistenz',
   'Teaching & education': 'Lehre & Bildung',
+  Teal: 'Petrol',
   'Team leadership': 'Teamleitung',
   'Team working': 'Teamarbeit',
   'Tech, design and consulting': 'Technik, Design und Beratung',
@@ -3782,6 +3813,7 @@ export const de: Dict = {
   'Your review': 'Ihre Prüfung',
   'Your rights': 'Ihre Rechte',
   'Your role': 'Ihre Funktion',
+  'Your saved and recent designs': 'Ihre gespeicherten und zuletzt genutzten Designs',
   'Your share links': 'Ihre Freigabelinks',
   'Your signature': 'Ihre Signatur',
   'Your skills': 'Ihre Kenntnisse',

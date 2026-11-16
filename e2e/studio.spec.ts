@@ -48,7 +48,7 @@ test('the studio is behind the switch; adjusting detaches, undo re-attaches', as
 }) => {
   await on(request, false);
   await openDesign(page, FIXTURES.engineer);
-  await expect(page.getByRole('radiogroup', { name: 'Design' })).toBeVisible();
+  await expect(page.getByTestId('browse-designs')).toBeVisible();
   await expect(page.getByTestId('design-studio')).toHaveCount(0);
 
   await on(request, true);

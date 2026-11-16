@@ -6,6 +6,7 @@ import { DEFAULT_CONFIG } from '../src/modules/billing/config';
 import { driver } from '../src/modules/resume/fixtures';
 import { ops } from '../src/modules/resume/ops';
 import { seedDocument } from './support/seed';
+import { chooseDesign } from './support/design';
 
 /**
  * R1.3 — Admin Console. Runs in its own Playwright project after all other specs, because it
@@ -87,7 +88,10 @@ test('admin changes settings; the gate follows; history records and restores', a
   await expect(page.getByText(/Saved as version \d+ \(3 changes\)/)).toBeVisible();
 
   // Design tiers are set in Admin → Designs.
-  await page.getByRole('link', { name: 'Designs' }).click();
+  await page
+    .getByRole('navigation', { name: 'Admin' })
+    .getByRole('link', { name: 'Designs' })
+    .click();
   await page.getByLabel('Vivid tier').selectOption('premium');
   await page.getByTestId('catalogue-save').click();
   await expect(page.getByText(/Saved as version \d+ \(1 change\)/)).toBeVisible();
@@ -177,6 +181,74 @@ test('Admin → Designs: search, bulk tags, retire; a retired design is hidden b
   await expect(page.getByTestId('design-retired')).toBeVisible();
   const pdf = await request.post('/api/pdf', { data: { document: cv } });
   expect(pdf.status()).toBe(200);
+});
+
+test('design usage: a scripted session is counted once per action and shown in Admin → Designs', async ({
+  browser,
+}) => {
+  const { context: adminCtx, page: admin } = await adminPage(browser);
+  type Row = {
+    id: string;
+    shown: number;
+    previewed: number;
+    chosen: number;
+    switchedAway: number;
+    downloaded: number;
+  };
+  const usage = async () => {
+    const r = (await (await adminCtx.request.get('/api/admin/design-usage?days=30')).json()) as {
+      rows: Row[];
+    };
+    return Object.fromEntries(r.rows.map((x) => [x.id, x])) as Record<string, Row>;
+  };
+  const before = await usage();
+
+  const visitor = await browser.newContext();
+  const page = await visitor.newPage();
+  // The gallery: Cobalt is shown.
+  await page.goto('/templates');
+  await page.getByTestId('design-search').fill('cobalt');
+  await expect(page.locator('li[data-design="cobalt"]')).toBeVisible();
+  // The editor: preview and choose Cobalt, then Citrus within 5 minutes; download in Citrus.
+  const cv = ops.useDesign({ ...driver, id: 'usage-session' }, 'clarity');
+  await seedDocument(page, cv);
+  await page.goto(`/cv/${cv.id}`);
+  await page.getByRole('tab', { name: 'Design' }).click();
+  await chooseDesign(page, 'Cobalt');
+  await chooseDesign(page, 'Citrus');
+  // The visitor needs an account to download: count the server side with an admin download.
+  const pdf = await adminCtx.request.post('/api/pdf', {
+    data: { document: ops.useDesign({ ...driver, id: 'usage-dl' }, 'citrus') },
+  });
+  expect(pdf.status()).toBe(200);
+  await page.goto('/'); // leaving the page sends what is still queued
+  await visitor.close();
+
+  const d = (id: string, k: keyof Row) =>
+    expect.poll(async () => ((await usage())[id]![k] as number) - (before[id]![k] as number));
+  await d('cobalt', 'previewed').toBe(1);
+  await d('cobalt', 'chosen').toBe(1);
+  await d('cobalt', 'switchedAway').toBe(1);
+  await d('citrus', 'previewed').toBe(1);
+  await d('citrus', 'chosen').toBe(1);
+  await d('citrus', 'switchedAway').toBe(0);
+  await d('citrus', 'downloaded').toBe(1);
+  await d('cobalt', 'downloaded').toBe(0);
+  await d('cobalt', 'shown').toBeGreaterThanOrEqual(1);
+
+  // The Admin table shows the same numbers.
+  const now = await usage();
+  await admin.goto('/admin/designs');
+  const row = admin.getByTestId('catalogue-row-cobalt');
+  const cells = row.locator('td.tabular-nums');
+  await expect(cells).toHaveText([
+    String(now.cobalt!.shown),
+    String(now.cobalt!.previewed),
+    String(now.cobalt!.chosen),
+    String(now.cobalt!.switchedAway),
+    String(now.cobalt!.downloaded),
+  ]);
+  await adminCtx.close();
 });
 
 test('the support email set in Settings appears on Help and Terms', async ({ browser, page }) => {

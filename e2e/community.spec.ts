@@ -76,7 +76,7 @@ test('share → review in the Console → others use it; a declined one says why
 
   // The owner reviews: previews on three sample CVs, approve one, decline one with a reason.
   const { context, page: admin } = await adminPage(browser);
-  await admin.goto('/admin/designs');
+  await admin.goto('/admin/designs?tab=shared');
   const items = admin.getByTestId('review-item');
   await expect(items).toHaveCount(2);
   const bold = items.filter({ hasText: 'Bold sidebar' });

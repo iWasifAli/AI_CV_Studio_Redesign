@@ -249,6 +249,13 @@ export const designSpec = z.object({
     .max(3)
     .optional(),
   /**
+   * Colour theme picked in the design browser for designs with dark header parts (the graphic
+   * designs): the dark and pale tones. Absent = the design's own palette.
+   */
+  palette: z
+    .object({ theme: z.string().regex(/^[a-z0-9-]{1,24}$/), ink: hexColor, soft: hexColor })
+    .optional(),
+  /**
    * Design Spec v2 (R6). When present it is the source of truth for the look; the fields above
    * are kept in sync (design/catalogue.ts toV1) for readers that only know v1.
    */

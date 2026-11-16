@@ -239,6 +239,28 @@ export class FirestoreUserStore implements UserStore {
       }))
       .sort((a, b) => a.day.localeCompare(b.day));
   }
+  async bumpDesignUsage(day: string, counts: Record<string, Record<string, number>>) {
+    const inc = Object.fromEntries(
+      Object.entries(counts).map(([key, ev]) => [
+        key,
+        Object.fromEntries(Object.entries(ev).map(([k, v]) => [k, FieldValue.increment(v)])),
+      ]),
+    );
+    await this.db.collection('designUsage').doc(day).set({ day, counts: inc }, { merge: true });
+  }
+  async getDesignUsage(from: string, to: string) {
+    const snap = await this.db
+      .collection('designUsage')
+      .where('day', '>=', from)
+      .where('day', '<=', to)
+      .get();
+    return snap.docs
+      .map((d) => ({
+        day: d.get('day') as string,
+        counts: (d.get('counts') ?? {}) as Record<string, Record<string, number>>,
+      }))
+      .sort((a, b) => a.day.localeCompare(b.day));
+  }
   async findPaymentByReference(referenceKey: string) {
     const snap = await this.db
       .collection('paymentRequests')
@@ -446,6 +468,14 @@ export class FirestoreUserStore implements UserStore {
     } catch {
       return 'en';
     }
+  }
+
+  async favouriteDesigns(uid: string): Promise<string[]> {
+    const v = (await this.db.collection('users').doc(uid).get()).get('favDesigns');
+    return Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : [];
+  }
+  async setFavouriteDesigns(uid: string, ids: string[]) {
+    await this.db.collection('users').doc(uid).set({ favDesigns: ids }, { merge: true });
   }
 
   async knownUser(uid: string) {

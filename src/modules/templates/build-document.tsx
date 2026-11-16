@@ -153,10 +153,18 @@ export function buildDocumentHtml(input: ResumeDocument, opts: BuildOptions): st
 <meta name="viewport" content="width=device-width">
 <title>${escapeHtml(title)}</title>
 <style>${fontFaceCss(design.fontPairId, opts.fonts)}</style>
-<style>${designCssVars(design)}${baseCss(design)}${template.css}</style>
+<style>${designCssVars(design)}${baseCss(design)}${template.css}${paletteCss(doc.design.palette)}</style>
 </head>
 <body>${body}<script>${RUNTIME_JS}</script>${opts.autoPrint ? `<script>${AUTO_PRINT_JS}</script>` : ''}</body>
 </html>`;
+}
+
+/** A colour theme's dark and pale tones for the graphic designs (nothing when none is picked). */
+function paletteCss(p: ResumeDocument['design']['palette']): string {
+  if (!p) return '';
+  const hex = /^#[0-9a-fA-F]{6}$/;
+  if (!hex.test(p.ink) || !hex.test(p.soft)) return '';
+  return `:root{--g-ink:${p.ink};--g-soft:${p.soft}}`;
 }
 
 /**

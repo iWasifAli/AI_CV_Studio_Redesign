@@ -221,6 +221,21 @@ export class MemoryUserStore implements UserStore {
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([day, counts]) => ({ day, counts: { ...counts } }));
   }
+  private designUsage = new Map<string, Record<string, Record<string, number>>>();
+  async bumpDesignUsage(day: string, counts: Record<string, Record<string, number>>) {
+    const m = this.designUsage.get(day) ?? {};
+    for (const [key, ev] of Object.entries(counts)) {
+      const row = (m[key] ??= {});
+      for (const [k, v] of Object.entries(ev)) row[k] = (row[k] ?? 0) + v;
+    }
+    this.designUsage.set(day, m);
+  }
+  async getDesignUsage(from: string, to: string) {
+    return [...this.designUsage.entries()]
+      .filter(([d]) => d >= from && d <= to)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([day, counts]) => ({ day, counts: structuredClone(counts) }));
+  }
   async findPaymentByReference(referenceKey: string) {
     const p = this.payments.find((x) => x.referenceKey === referenceKey && x.status !== 'rejected');
     return p ? structuredClone(p) : null;
@@ -228,6 +243,7 @@ export class MemoryUserStore implements UserStore {
 
   async deleteUserData(uid: string) {
     this.langs.delete(uid);
+    this.favs.delete(uid);
     this.users.delete(uid);
     this.seen.delete(uid);
     this.activity.delete(uid);
@@ -258,6 +274,14 @@ export class MemoryUserStore implements UserStore {
   }
   async userLang(uid: string) {
     return this.langs.get(uid) ?? 'en';
+  }
+
+  private favs = new Map<string, string[]>();
+  async favouriteDesigns(uid: string) {
+    return [...(this.favs.get(uid) ?? [])];
+  }
+  async setFavouriteDesigns(uid: string, ids: string[]) {
+    this.favs.set(uid, [...ids]);
   }
 
   async knownUser(uid: string) {
