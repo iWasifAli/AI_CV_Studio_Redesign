@@ -449,6 +449,14 @@ function css(s: DesignSpecV2, d: ResolvedDesign): string {
         `.cv-has-aside .cv-page.cv-page--wide::before{content:'';position:absolute;top:0;bottom:0;${sideLeft ? 'left' : 'right'}:0;width:4mm;background:${fill};z-index:0}`,
       );
       if (L.sideFill === 'solid') out.push('.cv-aside,.cv-third{--ink-3:var(--ink-2)}');
+      // Accent text on a pale side fill keeps 4.5:1 (a light accent can drop just below it there).
+      if (!deep) {
+        const sideBg = L.sideFill === 'solid' ? d.accentSoft : d.accentTint;
+        const a = sideAccent(d.accent, sideBg);
+        const sec = sideAccent(second, sideBg);
+        if (a !== d.accent || sec !== second)
+          out.push(`.cv-aside,.cv-third{--accent:${a};--second:${sec}}`);
+      }
       // The page number sits bottom right: on a deep right-hand column it is drawn light.
       if (deep && L.type !== 'sidebar-left')
         out.push('.cv-has-aside .cv-page:not(.cv-page--wide) .cv-foot{color:rgba(255,255,255,.8)}');
@@ -714,6 +722,11 @@ ${s.entries.layout === 'dates-left' || s.entries.layout === 'timeline-dots' ? '.
  * Design Spec v2 (already normalised) → TemplateDefinition. Attached catalogue specs are not
  * composed here (they use their signature code; see design/render.ts).
  */
+/** Accent colour as drawn on a pale side fill: darkened only when needed for 4.5:1. */
+export function sideAccent(accent: string, fill: string): string {
+  return ensureContrast(accent, fill, 4.6);
+}
+
 export function composeTemplate(s: DesignSpecV2): TemplateDefinition {
   if (s.graphic && !s.atsSafe) return composeGraphic(s, s.graphic);
   const d = resolveSpec(s);
@@ -889,7 +902,7 @@ export function contrastPairs(spec: DesignSpecV2): { what: string; fg: string; b
       const b = L.sideFill === 'solid' ? d.accentSoft : d.accentTint;
       const sideInk = L.sideFill === 'solid' ? [ink[0], ink[1], ink[1]] : ink;
       for (const [i, c] of sideInk.entries()) add(`side ink-${i + 1}`, c, b);
-      add('side heading', heading, b);
+      add('side heading', heading === ink[0] ? heading : sideAccent(heading, b), b);
     }
   }
   return out;

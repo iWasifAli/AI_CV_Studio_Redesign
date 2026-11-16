@@ -3,7 +3,10 @@ import { DESIGN_IDS, SPEC_DESIGN_IDS } from '@/modules/resume/ids';
 import type { DesignId, FontPairId, SpecDesignId, TemplateId } from '@/modules/resume/schema';
 import type { DesignSpecV2Input } from './spec';
 import { GRAPHIC_META } from '@/modules/templates/graphic/meta';
-import { DATA_DESIGN_FILES } from './data';
+import { DATA_DESIGN_FILES, type DATA_DESIGN_IDS } from './data';
+
+/** Ids of the designs added as data files (an empty list when there are none). */
+type DataDesignId = (typeof DATA_DESIGN_IDS)[number];
 
 /** A design file as stored (validated strictly by the authoring kit and design-data.test.ts). */
 type DataDesignRaw = {
@@ -350,7 +353,7 @@ export const SPEC_DESIGNS: Record<SpecDesignId, DesignSpecV2Input> = {
         type: { ...d.spec.type, pair: d.fontPair },
       },
     ]),
-  ) as Record<string, DesignSpecV2Input>),
+  ) as Record<DataDesignId, DesignSpecV2Input>),
 };
 
 /** Dark and pale tones of graphic designs made as data files (for colour themes). */
@@ -830,5 +833,5 @@ export const LEGACY_FALLBACK: Record<SpecDesignId, TemplateId> = {
   mosaic: 'clarity',
   tiles: 'clarity',
   matrix: 'clarity',
-  ...(Object.fromEntries(DATA.map((d) => [d.id, d.fallback])) as Record<string, TemplateId>),
+  ...(Object.fromEntries(DATA.map((d) => [d.id, d.fallback])) as Record<DataDesignId, TemplateId>),
 };

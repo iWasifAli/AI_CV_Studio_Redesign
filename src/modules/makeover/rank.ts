@@ -118,6 +118,11 @@ export const DESIGN_TRAITS: Record<DesignId, DesignTraits> = Object.fromEntries(
   ]),
 ) as Record<DesignId, DesignTraits>;
 
+/** Designs of the graphic (creative) family: hand-built and data-file designs alike. */
+const GRAPHIC_IDS = new Set<DesignId>(
+  DESIGNS.filter((d) => d.family === 'graphic').map((d) => d.id),
+);
+
 export type ContentStats = {
   presetId: PresetId;
   words: number;
@@ -211,7 +216,8 @@ export function rankDesigns(s: ContentStats, enabled: DesignId[], count = 6): Ra
     .map((id) => scoreDesign(id, s))
     .sort((a, b) => b.score - a.score || enabled.indexOf(a.id) - enabled.indexOf(b.id));
   // At most one graphic (creative) design, so the strip still shows the everyday layouts.
-  const isGraphic = (id: DesignId) => id in GRAPHIC_META;
+  // Graphic family by catalogue family, so graphic designs added as data files count too.
+  const isGraphic = (id: DesignId) => GRAPHIC_IDS.has(id);
   const firstGraphic = all.find((r) => isGraphic(r.id));
   const pick = all.filter((r) => !isGraphic(r.id) || r === firstGraphic).slice(0, count);
   // "Bold" is the gallery's Bold family (what the person sees labelled bold), audit R-03.
