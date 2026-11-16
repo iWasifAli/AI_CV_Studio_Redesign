@@ -41,3 +41,12 @@ Each finding was checked against the code and fresh renders before anything was 
 | Rows 43, 44, 54, 58, 63 | Real, low priority | Comments drawn on the page, profile sync for edits and removals, streamed coach replies, publishing the extension, interface dark mode |
 | S-01, S-02 | Real (missing features) | Editing CV content by instruction, and creating a CV from a free-text description, are genuinely missing and valuable. They are new features, not fixes, so they wait for the owner's go-ahead |
 | S-08 | Owner | Testing through real application systems (Workday, Greenhouse) needs real application forms |
+
+## Follow-ups after the auditor's re-check (16 Nov 2026, commit `acc6b25`)
+
+| Point raised | Change | Checked |
+|---|---|---|
+| Long emails still split in narrow side columns | The editor now warns under the page count: the email is too long for this design's side column, and designs with contact details across the top keep it whole. Not done: moving the line to full width automatically, which would re-flow an already paginated page differently in each engine. Found and fixed on the way: a fit pass left earlier break hints in place, so a long email could wrap without being detected | New e2e test (desktop and phone): a 68-character email in Atelier shows the warning, a normal one does not |
+| "Using skill tags instead" while the saved design keeps bars | Deliberate: the person asked for bars, and they appear once skills have levels. The note now says exactly that | — |
+| `/api/health` reports "dev" | Reports the built commit, or Cloud Run's revision name if the build has no git | Live: `"version":"acc6b25"` |
+| Designer 11.5 s against an 8 s target | One run, not a median. The compose task already runs with minimal thinking. The allowance check that slows PDFs (1.1–1.4 s of database reads) runs before every AI action too, so the database-region decision under G-10 affects the Designer as well | Not changed |
