@@ -120,7 +120,8 @@ function answer(task: TaskId, input: unknown, attempt: number, files: AiFile[] =
       const i = input as ParsedInput<'cv.edit'>;
       const q = i.instruction.toLowerCase();
       const rows = i.cv.split('\n');
-      const field = (id: string) => rows.find((r) => r.startsWith(`${id} | `))?.split(' | ')[2] ?? '';
+      const field = (id: string) =>
+        rows.find((r) => r.startsWith(`${id} | `))?.split(' | ')[2] ?? '';
       const section = (kind: string) =>
         rows.find((r) => / \| /.test(r) && r.split(' | ')[2] === kind)?.split(' | ')[0];
       const firstSection = rows[1]?.split(' | ')[0] ?? '';
@@ -130,11 +131,23 @@ function answer(task: TaskId, input: unknown, attempt: number, files: AiFile[] =
         const p = field('basics.summary');
         const first = p.split(/(?<=\.)\s/)[0] ?? p;
         if (p && first !== p)
-          changes.push({ op: 'set', target: 'basics.summary', text: first, before: '', why: 'shorter, same facts' });
+          changes.push({
+            op: 'set',
+            target: 'basics.summary',
+            text: first,
+            before: '',
+            why: 'shorter, same facts',
+          });
       }
       const edu = section('education');
       if (/education/.test(q) && /(top|first|above|move)/.test(q) && edu && edu !== firstSection)
-        changes.push({ op: 'move', target: edu, text: '', before: firstSection, why: 'education first' });
+        changes.push({
+          op: 'move',
+          target: edu,
+          text: '',
+          before: firstSection,
+          why: 'education first',
+        });
       if (/award|prize/.test(q)) notDone.push('Added no award: the CV does not mention one.');
       if (!changes.length && !notDone.length)
         notDone.push('This offline helper only shortens the profile and moves Education.');
