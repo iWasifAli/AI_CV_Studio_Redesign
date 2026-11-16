@@ -32,3 +32,20 @@ test('the editor says when the email is too long for the side column', async ({
   await expect(page.getByTestId('page-count')).toBeVisible({ timeout: 15_000 });
   await expect(page.getByTestId('email-wraps')).toHaveCount(0);
 });
+
+test('the download page says it too, without opening the preview first', async ({ page }) => {
+  const long = ops.useDesign(
+    {
+      ...engineer,
+      id: 'email-wraps-download',
+      basics: {
+        ...engineer.basics,
+        email: 'alexandra.konstantinopoulou-featherstonehaugh@example-holdings.co.uk',
+      },
+    },
+    'atelier',
+  );
+  await seedDocument(page, long);
+  await page.goto(`/cv/${long.id}/download`);
+  await expect(page.getByTestId('download-email-wraps')).toBeVisible({ timeout: 15_000 });
+});

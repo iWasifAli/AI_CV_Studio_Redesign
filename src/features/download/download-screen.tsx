@@ -182,6 +182,18 @@ export function DownloadScreen({ doc: initialDoc }: { doc: ResumeDocument }) {
 
           <HealthPanel doc={doc} pages={status?.pages} />
 
+          {/* Beside the check, not only under the preview: on a phone the preview is further down
+              (gap audit follow-up). */}
+          {status?.emailWraps && (
+            <Banner tone="warning" title={t('Your email breaks onto two lines in this design')}>
+              <span data-testid="download-email-wraps">
+                {t(
+                  'It is too long for the side column. For online applications, download the ATS PDF, or choose a design with contact details across the top to keep it whole.',
+                )}
+              </span>
+            </Banner>
+          )}
+
           {failed && (
             <Banner
               tone="error"

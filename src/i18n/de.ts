@@ -1529,6 +1529,8 @@ export const de: Dict = {
   'Issued by': 'Ausgestellt von',
   'It helps your results: a “no” counts as a reply, silence doesn’t.':
     'Das hilft Ihren Ergebnissen: Ein „Nein“ zählt als Antwort, Schweigen nicht.',
+  'It is too long for the side column. For online applications, download the ATS PDF, or choose a design with contact details across the top to keep it whole.':
+    'Sie ist zu lang für die Seitenspalte. Laden Sie für Online-Bewerbungen das ATS-PDF herunter oder wählen Sie ein Design mit Kontaktdaten oben, damit sie vollständig bleibt.',
   'It may have been deleted, or it belongs to another account. Your saved CVs are in Documents.':
     'Er wurde möglicherweise gelöscht oder gehört zu einem anderen Konto. Ihre gespeicherten Lebensläufe finden Sie unter Dokumente.',
   'It may have been deleted, or made on another device while you were signed out. Sign in to see the CVs saved to your account.':
@@ -3652,6 +3654,8 @@ export const de: Dict = {
   'Your details and skills in a side column': 'Ihre Angaben und Kenntnisse in einer Seitenspalte',
   'Your documents': 'Ihre Dokumente',
   'Your email': 'Ihre E-Mail-Adresse',
+  'Your email breaks onto two lines in this design':
+    'Ihre E-Mail-Adresse wird in diesem Design auf zwei Zeilen umgebrochen',
   'Your email is split over two lines': 'Ihre E-Mail-Adresse ist auf zwei Zeilen verteilt',
   'Your email is too long for this design’s side column, so it breaks onto two lines. Designs with contact details across the top keep it whole.':
     'Ihre E-Mail-Adresse ist für die Seitenspalte dieses Designs zu lang und wird auf zwei Zeilen umgebrochen. Designs mit Kontaktdaten oben zeigen sie vollständig.',
