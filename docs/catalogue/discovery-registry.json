@@ -1400,6 +1400,7 @@
   "learnings": [
     "2026-11-16: a new header over an existing body column is not a new structure (Tessera rejected: bento tiles over the label-column body). The reviewer judges the whole page, not the masthead.",
     "2026-11-16: changing content presentation (the person's own profile lifted into a hero pull-quote) is what got approved; but four review rounds converged on ~9.0 because the body stayed conventional. Next time design the body structure with the same care as the header before building.",
-    "2026-11-16: gaps still open — no design yet with an editorial/structural body of its own among graphic designs; professions still thin: healthcare, trades and academic-graphic. Engine traps found: the Tailwind Prettier plugin strips leading spaces inside className template literals (use classes()); data-design graphic designs were invisible to Instant Makeover's graphic rule (fixed in the open PR)."
+    "2026-11-16: gaps still open — no design yet with an editorial/structural body of its own among graphic designs; professions still thin: healthcare, trades and academic-graphic. Engine traps found: the Tailwind Prettier plugin strips leading spaces inside className template literals (use classes()); data-design graphic designs were invisible to Instant Makeover's graphic rule (fixed in the open PR).",
+    "2026-11-16 (owner): uniqueness is judged for the whole template — the body must always be structurally new, plus the header or continuation pages. Header-only ideas (e.g. Byline's statement masthead, Tessera's bento tiles) are kept as header variants for existing building blocks, not proposed as new designs."
   ]
 }
