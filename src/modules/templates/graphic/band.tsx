@@ -126,7 +126,8 @@ function RailArt({ kind }: { kind: BandConfig['art'] }): ReactNode {
   }
 }
 
-const label = (locale: string) => (locale.startsWith('en') ? 'Curriculum vitae' : '');
+/** No "Curriculum vitae" tag: the document is obviously a CV. */
+const label = (_locale: string) => '';
 
 export function bandTemplate(c: BandConfig): CatalogueTemplate {
   function Header({ model }: TemplateComponentProps) {
@@ -158,16 +159,9 @@ export function bandTemplate(c: BandConfig): CatalogueTemplate {
     c.end === 'none'
       ? undefined
       : ({ model }: TemplateComponentProps) => {
-          const l = link(model);
-          if (!l) return null;
-          return (
-            <p className="bd-end">
-              <span>{model.locale.startsWith('en') ? 'See more of my work' : ''}</span>
-              <a href={l.href}>
-                {l.text} <Glyph char="↗" />
-              </a>
-            </p>
-          );
+          // No "See more of my work" box: the link is already listed with the contacts.
+          void link(model);
+          return null;
         };
 
   const PHOTO: Record<BandConfig['photo'], string> = {

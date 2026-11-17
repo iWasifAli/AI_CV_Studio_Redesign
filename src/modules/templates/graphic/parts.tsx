@@ -95,31 +95,12 @@ export function Monogram(_props: { model: RenderModel; star?: string }) {
   return null;
 }
 
-/** The key numbers strip: "09+" style figures with what they count. */
-export function KeyNumbers({ model, className }: { model: RenderModel; className: string }) {
-  if (model.stats.length < 2) return null;
-  return (
-    <div className={`g-stats ${className}`}>
-      {model.stats.map((k, i) => {
-        const m = /^(.*?\d)([^\d]*)$/.exec(k.value);
-        return (
-          <div key={i} className="g-stat">
-            <p className="g-stat-v">
-              {m ? (
-                <>
-                  {m[1]}
-                  {m[2] && <span>{m[2]}</span>}
-                </>
-              ) : (
-                k.value
-              )}
-            </p>
-            <p className="g-stat-l">{k.label}</p>
-          </div>
-        );
-      })}
-    </div>
-  );
+/**
+ * Formerly a strip of derived figures ("Roles held", "Years of experience"). Deliberately renders
+ * nothing: those counts are not written by the person and mean little to an employer.
+ */
+export function KeyNumbers(_props: { model: RenderModel; className: string }) {
+  return null;
 }
 
 /** Section heading with a small graphic marker ('number' counts sections with CSS counters). */

@@ -183,8 +183,8 @@ function Art({ kind }: { kind: SpotConfig['art'] }): ReactNode {
   }
 }
 
-/** A short eyebrow, only for English CVs (other languages simply leave it out). */
-const hello = (locale: string) => (locale.startsWith('en') ? 'Hello, I’m' : '');
+/** No eyebrow: a CV does not greet the reader; the name is the heading. */
+const hello = (_locale: string) => '';
 
 export function spotTemplate(c: SpotConfig): CatalogueTemplate {
   function Header({ model }: TemplateComponentProps) {
