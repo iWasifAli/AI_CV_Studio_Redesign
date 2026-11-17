@@ -67,14 +67,9 @@ export function SplitName({
       {last && (
         <>
           {' '}
-          <span className="g-last">
-            {last}
-            {stop && (
-              <span className="g-stop" aria-hidden="true">
-                <Glyph char={stop} />
-              </span>
-            )}
-          </span>
+          <span className="g-last">{last}</span>
+          {/* The `stop` flourish is accepted but never drawn: a CV must show the name exactly as the person wrote it. */}
+          {stop === undefined && null}
         </>
       )}
     </h1>
@@ -94,17 +89,10 @@ export function nameScale(model: RenderModel): number {
   return Math.max(0.4, Math.round(k * 100) / 100);
 }
 
-/** Initials as a small brand mark (initials plus a star). */
-export function Monogram({ model, star = '✳' }: { model: RenderModel; star?: string }) {
-  if (!model.initials) return null;
-  return (
-    <p className="g-mono" aria-hidden="true">
-      {model.initials}
-      <span>
-        <Glyph char={star} />
-      </span>
-    </p>
-  );
+/** Formerly a brand mark of initials plus a star; deliberately renders nothing now. */
+export function Monogram(_props: { model: RenderModel; star?: string }) {
+  // Not drawn: initials plus a star carry no meaning on a CV (the name is already the heading).
+  return null;
 }
 
 /** The key numbers strip: "09+" style figures with what they count. */
