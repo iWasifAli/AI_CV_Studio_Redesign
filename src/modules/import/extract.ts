@@ -230,7 +230,37 @@ async function docLines(bytes: Uint8Array): Promise<string[]> {
   return doc.getBody().split(/\r?\n/);
 }
 
+/** A .docx is a zip: a few kilobytes can claim gigabytes once unpacked ("zip bomb"). */
+export const MAX_DOCX_UNPACKED = 40 * 1024 * 1024;
+const MAX_DOCX_ENTRIES = 2000;
+
+/** Throws if the zip's own directory declares too much data, before anything is unpacked. */
+export function assertSafeZip(bytes: Uint8Array): void {
+  const v = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  // End-of-central-directory record: signature 0x06054b50, searched from the end.
+  let eocd = -1;
+  for (let i = bytes.byteLength - 22; i >= Math.max(0, bytes.byteLength - 22 - 65535); i--)
+    if (v.getUint32(i, true) === 0x06054b50) {
+      eocd = i;
+      break;
+    }
+  if (eocd < 0) throw new Error('not a zip');
+  const count = v.getUint16(eocd + 10, true);
+  let at = v.getUint32(eocd + 16, true);
+  if (count > MAX_DOCX_ENTRIES) throw new ImportError('UNREADABLE', BOMB_MESSAGE);
+  let total = 0;
+  for (let n = 0; n < count; n++) {
+    if (at + 46 > bytes.byteLength || v.getUint32(at, true) !== 0x02014b50)
+      throw new ImportError('UNREADABLE', BOMB_MESSAGE);
+    total += v.getUint32(at + 24, true);
+    if (total > MAX_DOCX_UNPACKED) throw new ImportError('UNREADABLE', BOMB_MESSAGE);
+    at += 46 + v.getUint16(at + 28, true) + v.getUint16(at + 30, true) + v.getUint16(at + 32, true);
+  }
+}
+const BOMB_MESSAGE = 'This Word file is too large to open. Save it again from Word and retry.';
+
 async function docxLines(bytes: Uint8Array): Promise<string[]> {
+  assertSafeZip(bytes);
   const mammoth = await import('mammoth');
   // HTML keeps list structure (bullets) that raw text loses.
   const { value } = await mammoth.convertToHtml({ buffer: Buffer.from(bytes) });
