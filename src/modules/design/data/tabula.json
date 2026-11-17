@@ -1,0 +1,46 @@
+{
+  "id": "tabula",
+  "name": "Tabula",
+  "style": "Information table",
+  "description": "Everything set as ruled tables on one grid, like a timetable: a fact table of contact details under the name, then every section as a table with When, What and Where columns.",
+  "family": "graphic",
+  "fontPair": "technical",
+  "accent": "#d6361f",
+  "fit": {
+    "office": 0.9,
+    "tech": 0.85,
+    "executive": 0.75,
+    "trades": 0.7,
+    "general": 0.65
+  },
+  "photo": true,
+  "tags": ["minimal", "senior", "creative"],
+  "fallback": "ledger",
+  "status": "draft",
+  "addedAt": "2026-11-17",
+  "spec": {
+    "layout": {
+      "type": "single"
+    },
+    "header": {
+      "style": "band",
+      "photo": {
+        "show": true
+      }
+    },
+    "color": {
+      "mode": "accent"
+    },
+    "graphic": {
+      "layout": "table",
+      "frame": "square",
+      "art": "heavy",
+      "numbers": "cells",
+      "marker": "number",
+      "skills": "segments",
+      "caps": false,
+      "ink": "#14202e",
+      "soft": "#eef1f4"
+    }
+  }
+}

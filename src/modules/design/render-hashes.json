@@ -154,5 +154,8 @@
   "tiles/engineer": "15282a3a8fee9c65",
   "matrix/driver": "5e94eb2f94ba311f",
   "matrix/teacher": "557a3092f4822b5a",
-  "matrix/engineer": "e457e0d8f6ca9056"
+  "matrix/engineer": "e457e0d8f6ca9056",
+  "tabula/driver": "62d45385e6fe652e",
+  "tabula/teacher": "cde1a38076899259",
+  "tabula/engineer": "e6df41ee71226f1a"
 }

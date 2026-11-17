@@ -41,6 +41,20 @@ export const THRESHOLD = 0.25;
 
 /** Signature of a graphic layout from its building blocks. */
 export function graphicSignature(g: GraphicSpec): Signature {
+  if (g.layout === 'table')
+    return {
+      layout: 'table-grid',
+      header: 'fact-table',
+      headings: 'table-head-labels',
+      entries: 'table-rows',
+      decoration: [g.art, g.marker].join('+'),
+      placement: 'none',
+      photo: g.frame,
+      sideFill: 'none',
+      container: `numbers:${g.numbers}`,
+      skills: 'table-rows',
+      headingCase: g.caps ? 'upper' : 'normal',
+    };
   const side = 'side' in g ? g.side : 'rail';
   const rail = g.layout === 'band' || g.layout === 'rail';
   return {

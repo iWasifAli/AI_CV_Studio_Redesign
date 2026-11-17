@@ -39,6 +39,10 @@ const DE: Record<string, string> = {
   'Curriculum vitae': 'Lebenslauf',
   'The story of': 'Die Geschichte von',
   'See more of my work': 'Mehr von meiner Arbeit',
+  // Column heads of the table designs
+  When: 'Wann',
+  What: 'Was',
+  Where: 'Wo',
   'Your name': 'Ihr Name',
   Signature: 'Unterschrift',
   'Profile photo': 'Profilfoto',

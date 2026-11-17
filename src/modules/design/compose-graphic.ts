@@ -8,6 +8,7 @@ import { bandTemplate } from '@/modules/templates/graphic/band';
 import { coverTemplate } from '@/modules/templates/graphic/cover';
 import { railTemplate } from '@/modules/templates/graphic/rail';
 import { spotTemplate } from '@/modules/templates/graphic/spot';
+import { tableTemplate } from '@/modules/templates/graphic/table';
 import type { TemplateDefinition } from '@/modules/templates/types';
 import type { TemplateId } from '@/modules/resume/schema';
 import type { DesignSpecV2, GraphicSpec } from './spec';
@@ -79,6 +80,11 @@ export function graphicConfig(s: DesignSpecV2, g: GraphicSpec) {
           stop: g.stop,
         },
       } as const;
+    case 'table':
+      return {
+        layout: g.layout,
+        cfg: { ...base, frame: g.frame, opener: g.art, numbers: g.numbers, caps: g.caps },
+      } as const;
   }
 }
 
@@ -91,6 +97,8 @@ export function composeGraphic(s: DesignSpecV2, g: GraphicSpec): TemplateDefinit
         ? bandTemplate(c.cfg)
         : c.layout === 'rail'
           ? railTemplate(c.cfg)
-          : coverTemplate(c.cfg);
+          : c.layout === 'cover'
+            ? coverTemplate(c.cfg)
+            : tableTemplate(c.cfg);
   return { ...t, id: 'custom' };
 }

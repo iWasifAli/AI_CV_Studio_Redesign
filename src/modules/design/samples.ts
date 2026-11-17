@@ -139,7 +139,11 @@ const hex = (r: () => number) =>
 
 export function randomGraphic(r: () => number) {
   const one = <T>(a: readonly T[]) => a[Math.floor(r() * a.length)]!;
-  const layout = one(['poster', 'band', 'rail', 'cover'] as const);
+  // The table layout takes a fifth of the draws without an extra random number, so the sequence
+  // (and every other random spec) stays as it was before the layout existed.
+  const v = r();
+  const base = (['poster', 'band', 'rail', 'cover'] as const)[Math.floor(v * 4)]!;
+  const layout = (v * 20) % 1 < 0.2 ? 'table' : base;
   const b = GRAPHIC_BLOCKS[layout] as {
     frame: readonly string[];
     art: readonly string[];
@@ -230,7 +234,7 @@ export function enumSweep(): { label: string; spec: DesignSpecV2 }[] {
     ink: '#14263b',
     soft: '#e8f0f8',
   };
-  for (const layout of ['poster', 'band', 'rail', 'cover'] as const) {
+  for (const layout of ['poster', 'band', 'rail', 'cover', 'table'] as const) {
     const b = GRAPHIC_BLOCKS[layout] as {
       frame: readonly string[];
       art: readonly string[];

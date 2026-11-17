@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-16",
+  "updated": "2026-11-17",
   "existing": [
     {
       "id": "clarity",
@@ -1144,6 +1144,28 @@
         "skills": "segments",
         "headingCase": "upper"
       }
+    },
+    {
+      "id": "tabula",
+      "name": "Tabula",
+      "family": "Graphic",
+      "look": "Information table",
+      "description": "Everything set as ruled tables on one grid, like a timetable: a fact table of contact details under the name, then every section as a table with When, What and Where columns.",
+      "status": "draft",
+      "label": "Creative",
+      "structure": {
+        "layout": "table-grid",
+        "header": "fact-table",
+        "headings": "table-head-labels",
+        "entries": "table-rows",
+        "decoration": "heavy+number",
+        "placement": "none",
+        "photo": "square",
+        "sideFill": "none",
+        "container": "numbers:cells",
+        "skills": "table-rows",
+        "headingCase": "normal"
+      }
     }
   ],
   "proposals": [
@@ -1394,6 +1416,172 @@
         "by": "scout (not shortlisted)",
         "date": "2026-11-16",
         "reason": "Too close to Press / Ledger / Linea once colour and type are set aside: a typographic header over a label or split column."
+      }
+    },
+    {
+      "id": "tabula",
+      "date": "2026-11-17",
+      "name": "Tabula",
+      "concept": "The whole CV is set as ruled information tables, like a timetable or an annual-report schedule: a fact-table header (contact cells and key numbers on one grid), and every section as a table with its own column-header row, a fixed key column (dates, years, skill groups), a content column and a right column for organisation and place; descriptions span the last two columns. Continuation pages carry a running table strip.",
+      "structureKey": "fact table masthead over ruled column-headed tables for every section",
+      "references": [
+        {
+          "title": "Müller-Brockmann, SBB design manual (SEGD)",
+          "url": "https://segd.org/resources/design-manual-swiss-federal-railways/",
+          "idea": "A strict information grid where every fact has a fixed column"
+        },
+        {
+          "title": "eguide.ch: SBB visual information system",
+          "url": "https://www.eguide.ch/en/objekt/sbb/",
+          "idea": "Timetable typography: tabular figures, hairlines, column labels"
+        },
+        {
+          "title": "Tufte: resumes and presentation of data",
+          "url": "https://www.edwardtufte.com/notebook/resumes-and-presentation-of-data/",
+          "idea": "A CV as presentation of data rather than decoration"
+        }
+      ],
+      "status": "proposed",
+      "nearestExisting": "linea (0.818)",
+      "scores": {
+        "scout": {
+          "visual": 8.5,
+          "originality": 8.5,
+          "graphical": 8,
+          "typography": 8.5,
+          "layout": 9,
+          "professional": 9,
+          "engine": 9,
+          "print": 9,
+          "average": 8.69
+        }
+      },
+      "implementation": {
+        "branch": "scout/2026-11-17",
+        "designId": "tabula"
+      }
+    },
+    {
+      "id": "gloss",
+      "date": "2026-11-17",
+      "name": "Gloss",
+      "concept": "A book-page CV: a text column with a wide outer margin. The role and its achievements sit in the text column; organisation, place and dates are set beside each role as margin notes; contact details are margin notes beside the name; continuation pages keep the margin with a running note.",
+      "structureKey": "title page with margin-note contacts over a text column with per-entry outer-margin notes",
+      "references": [
+        {
+          "title": "Tufte: resumes and presentation of data",
+          "url": "https://www.edwardtufte.com/notebook/resumes-and-presentation-of-data/",
+          "idea": "Margin notes for dates, places and degrees beside the main text"
+        },
+        {
+          "title": "Tufte CSS",
+          "url": "https://push.cx/assets/tufte-css/",
+          "idea": "Sidenote/margin-note mechanics and measure"
+        }
+      ],
+      "status": "rejected",
+      "nearestExisting": "linea / press",
+      "decision": {
+        "by": "scout (not shortlisted)",
+        "date": "2026-11-17",
+        "reason": "Moving organisation, place and dates into an outer margin is the same body family as Linea/Scholar (dates in a gutter) and Press/Ledger (label column), mirrored; it would not pass the whole-template rule for the body. Not built so the day is not filled with a weak second design."
+      }
+    },
+    {
+      "id": "evidence",
+      "date": "2026-11-17",
+      "name": "Evidence",
+      "concept": "Impact-first entries: a figure pulled from the bullets is set large beside each job.",
+      "structureKey": "impact-first entries with a pulled key figure beside each role",
+      "references": [
+        {
+          "title": "Jobscan: identifying key achievements",
+          "url": "https://www.jobscan.co/blog/simple-formula-identifying-key-achievements-executive-resume/",
+          "idea": "Lead with quantified results"
+        }
+      ],
+      "status": "rejected",
+      "decision": {
+        "by": "scout (not shortlisted)",
+        "date": "2026-11-17",
+        "reason": "Picking a figure from free text is unreliable (\"Year 5\", \"30 pupils\" become hero numbers) and repeats text; entries without figures get an empty slot."
+      }
+    },
+    {
+      "id": "playbill",
+      "date": "2026-11-17",
+      "name": "Playbill",
+      "concept": "Theatre-programme listings: role ...... organisation with dotted leaders under a centred programme title page.",
+      "structureKey": "centred programme title page over dotted-leader listings",
+      "references": [],
+      "status": "rejected",
+      "decision": {
+        "by": "scout (not shortlisted)",
+        "date": "2026-11-17",
+        "reason": "Dotted leaders are a re-decoration of dates-right entries; the centred title page is Regent/Heritage. Header and body both existing."
+      }
+    },
+    {
+      "id": "broadsheet",
+      "date": "2026-11-17",
+      "name": "Broadsheet",
+      "concept": "Newspaper body with work history flowing in two balanced columns under a nameplate.",
+      "structureKey": "newspaper nameplate over two balanced flowing text columns",
+      "references": [],
+      "status": "rejected",
+      "decision": {
+        "by": "scout (not shortlisted)",
+        "date": "2026-11-17",
+        "reason": "The paginator stacks blocks per column; text cannot flow between columns, so it would degrade to the existing two-equal layout (Grid, Tiles)."
+      }
+    },
+    {
+      "id": "axis",
+      "date": "2026-11-17",
+      "name": "Axis",
+      "concept": "Centre-spine infographic timeline with jobs alternating left and right.",
+      "structureKey": "centre spine with alternating left and right entries",
+      "references": [],
+      "status": "rejected",
+      "decision": {
+        "by": "scout (not shortlisted)",
+        "date": "2026-11-17",
+        "reason": "Bullets are separate pagination blocks, so a job cannot keep its side; also a very common template-shop look."
+      }
+    },
+    {
+      "id": "thumb-index",
+      "date": "2026-11-17",
+      "name": "Thumb index",
+      "concept": "Section headings as tabs bleeding off the outer page edge like a dictionary thumb index.",
+      "structureKey": "outer edge thumb-index tabs as section heads over a single column",
+      "references": [],
+      "status": "rejected",
+      "kind": "header-variant",
+      "decision": {
+        "by": "scout (not shortlisted)",
+        "date": "2026-11-17",
+        "reason": "Only the section heads change (a heading treatment over the single-column body); the useful version (highlighting the current section per page) needs runtime knowledge. Kept as a heading option idea."
+      }
+    },
+    {
+      "id": "museum-label",
+      "date": "2026-11-17",
+      "name": "Wall label",
+      "concept": "Each job as a museum object label: bold title, tombstone line, interpretive text.",
+      "structureKey": "museum tombstone captions as entries",
+      "references": [
+        {
+          "title": "Wellcome Collection exhibition texts",
+          "url": "https://wellcomecollection.org/exhibition-texts",
+          "idea": "Tombstone + interpretive text hierarchy"
+        }
+      ],
+      "status": "rejected",
+      "decision": {
+        "by": "scout (not shortlisted)",
+        "date": "2026-11-17",
+        "reason": "Structurally the stacked entry (Margin, Counsel) with caption typography; no new body arrangement."
       }
     }
   ],

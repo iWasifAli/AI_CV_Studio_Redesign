@@ -136,6 +136,11 @@ export const GRAPHIC_BLOCKS = {
     frame: ['tilt', 'ring', 'diamond', 'blob', 'offset'],
     art: ['hatch', 'grid', 'rays', 'confetti', 'bubbles'],
   },
+  table: {
+    frame: ['square', 'circle', 'tall'],
+    art: ['heavy', 'double', 'band'],
+    numbers: ['cells', 'inline'],
+  },
 } as const;
 const G = GRAPHIC_BLOCKS;
 const tones = { ink: hex6, soft: hex6 };
@@ -182,6 +187,17 @@ export const graphicSpec = z.discriminatedUnion('layout', [
     side: z.enum(['left', 'right']),
     caps: z.boolean(),
     stop: z.string().max(2),
+    ...tones,
+  }),
+  z.object({
+    layout: z.literal('table'),
+    frame: z.enum(G.table.frame),
+    /** How each section table is opened: a heavy rule, a double rule or a tinted band. */
+    art: z.enum(G.table.art),
+    /** Key numbers: their own row of large figures, or cells in the fact table. */
+    numbers: z.enum(G.table.numbers),
+    ...looks,
+    caps: z.boolean(),
     ...tones,
   }),
 ]);
