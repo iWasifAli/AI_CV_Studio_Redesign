@@ -10,6 +10,10 @@ import {
   normaliseEntry,
 } from '@/modules/design/lifecycle';
 
+/** The public contact address (a mailbox on our own domain; no personal inboxes). */
+export const SUPPORT_EMAIL = 'support@aicvstudio.app';
+const LEGACY_SUPPORT_EMAIL = 'aicvstudio.app@gmail.com';
+
 /**
  * Business configuration (docs/product/studio-master-plan.md §3, §4.4). One typed schema shared by
  * the server gate, the Admin Console and tests. Stored in `config/business` with versions; code
@@ -332,7 +336,15 @@ export const businessConfig = z.object({
     })
     .default({ enabled: false, rewardDays: 14, welcomeDays: 7 }),
   /** Public contact for help, payments and privacy requests; shown on Help, Terms and Premium. */
-  support: z.object({ email: z.union([z.literal(''), z.email().max(120)]) }).default({ email: '' }),
+  support: z
+    .object({
+      email: z
+        .union([z.literal(''), z.email().max(120)])
+        // The one public contact is the domain mailbox. The early test inbox, and an empty
+        // setting, both read as it, so no saved setting needs editing by hand.
+        .transform((e) => (e === '' || e === LEGACY_SUPPORT_EMAIL ? SUPPORT_EMAIL : e)),
+    })
+    .default({ email: SUPPORT_EMAIL }),
 });
 export type BusinessConfig = z.infer<typeof businessConfig>;
 
@@ -439,7 +451,7 @@ export const DEFAULT_CONFIG: BusinessConfig = {
   emails: { approved: { subject: '', note: '' }, rejected: { subject: '', note: '' } },
   content: { hiddenLetterTypes: [], faq: DEFAULT_FAQ, offer: DEFAULT_OFFER, designerPrompts: [] },
   announcement: { enabled: false, text: '' },
-  support: { email: '' },
+  support: { email: SUPPORT_EMAIL },
   coupons: [],
   referrals: { enabled: false, rewardDays: 14, welcomeDays: 7 },
   payments: {

@@ -1413,3 +1413,7 @@ Everything below is built with unit and browser tests; each was deployed only af
 - **GitHub:** all branches are pushed to `nisar87/AI_CV_Studio_Redesign` (2026-11-12). Tags could not be pushed from this session (proxy refuses tag refs); they are in `ai-cv-studio.bundle` — run `git push origin --tags` from a local clone.
 - **CI:** green on GitHub Actions (main, 2026-11-12). The runner is pinned to `ubuntu-24.04`.
 - **Workspace network:** the build workspace can no longer reach aicvstudio.app directly (proxy 403). Production checks run through the owner's browser session.
+
+## 2026-11-17 — one public contact: support@aicvstudio.app
+
+The Gmail inbox (aicvstudio.app@gmail.com) is no longer used anywhere. The support address now defaults to `support@aicvstudio.app` (the Namecheap mailbox that already sends buyer emails); a saved setting of the old Gmail, or an empty one, reads as it. Earlier entries above that mention the Gmail inbox are history. Alerts email channel in Cloud Monitoring still points at the Gmail inbox: change it to the domain mailbox when convenient.
