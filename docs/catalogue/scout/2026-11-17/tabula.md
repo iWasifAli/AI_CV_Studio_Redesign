@@ -1,6 +1,6 @@
 # Proposal: Tabula — the CV as an information table
 
-Scout run 2026-11-17 · branch `scout/2026-11-17` · status **draft** (never live)
+Scout run 2026-11-17 · branch `scout/2026-11-17` · **REJECTED by the reviewer** (average 7.19). See [REPORT.md](REPORT.md).
 
 ## A. Concept
 
@@ -60,7 +60,7 @@ Tool distance from the nearest live design: **0.818 (Linea)**.
 |---|---|---|
 | **Header** | Ledger / Linea (typographic name over a contact line) | The contact details are a ruled **fact table** of cells, and the key numbers sit as figures on the body's column lines. No existing header is a table; the graphic headers are colour fields. |
 | **Body** | Linea / Scholar (dates in a left margin), Ledger / Press (label column) | Entries are **table rows under a column-header row**: the organisation and place get their own right column instead of a subtitle line; descriptions span two columns; a vertical rule runs down the key column; lists, skills and languages are rows of the same table. Linea's body is a stacked entry with a date gutter; Press/Ledger put *section names* in the margin. Neither has column heads, a third column or ruled rows. |
-| **Continuation pages** | Byline-style rule + name strips (spot, statement) | The running strip is laid on the table grid (initials in the key column) and every continued section reopens as a numbered table with its column heads. |
+| **Continuation pages** | Byline-style rule + name strips (spot, statement) | The running strip is laid on the table grid (initials in the key column); a new section on a later page opens as a numbered table with its column heads. *Correction after review:* a section that **continues** from the previous page does not repeat its head or column heads (the paginator repeats only the running header), so this zone is weaker than first written. |
 
 ## F. Scout's scores (honest)
 

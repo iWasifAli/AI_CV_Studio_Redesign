@@ -1441,7 +1441,7 @@
           "idea": "A CV as presentation of data rather than decoration"
         }
       ],
-      "status": "proposed",
+      "status": "rejected",
       "nearestExisting": "linea (0.818)",
       "scores": {
         "scout": {
@@ -1454,12 +1454,36 @@
           "engine": 9,
           "print": 9,
           "average": 8.69
+        },
+        "reviewer": {
+          "visual": 6.5,
+          "originality": 6.0,
+          "graphical": 6.0,
+          "typography": 7.5,
+          "layout": 7.5,
+          "professional": 8.5,
+          "engine": 7.5,
+          "print": 8.0,
+          "average": 7.19
         }
       },
       "implementation": {
         "branch": "scout/2026-11-17",
-        "designId": "tabula"
-      }
+        "designId": "tabula",
+        "blockers": [
+          "Concept: body not structurally new enough (reviewer)",
+          "Continuation pages do not repeat section and column heads",
+          "Typical CV page fill",
+          "Key-number cell proportions; band option orphan stat"
+        ],
+        "note": "Design files not merged; branch scout/2026-11-17 keeps the table building block for reference."
+      },
+      "decision": {
+        "by": "reviewer agent (main-development-thread authority)",
+        "date": "2026-11-17",
+        "reason": "REJECT: the body is a rearranged existing body (Linea/Scholar dates-left entries with the organisation moved right; Ledger numbered heads; inline skill lists as Brief/Clarity) and ruled date|role|company rows are a common template-shop layout; the column-head row is typographic dressing. The header (big name, ruled contact strip, key-number cells) is the Blueprint/Cyber/Ocean family and the rejected swiss-poster. Continued sections do not reopen with their heads; running strip name off the grid and role truncated. Defects: typical CV spills to a ~40% page 2; unequal key-number cells; orphaned inline stat and uneven rules in the band option; email broken mid-word on the extreme CV. Reads as an ATS-family document, themes barely show. Could live as an entry-style option on an existing block, not as a new design."
+      },
+      "kind": "entry-variant"
     },
     {
       "id": "gloss",
@@ -1589,6 +1613,9 @@
     "2026-11-16: a new header over an existing body column is not a new structure (Tessera rejected: bento tiles over the label-column body). The reviewer judges the whole page, not the masthead.",
     "2026-11-16: changing content presentation (the person's own profile lifted into a hero pull-quote) is what got approved; but four review rounds converged on ~9.0 because the body stayed conventional. Next time design the body structure with the same care as the header before building.",
     "2026-11-16: gaps still open — no design yet with an editorial/structural body of its own among graphic designs; professions still thin: healthcare, trades and academic-graphic. Engine traps found: the Tailwind Prettier plugin strips leading spaces inside className template literals (use classes()); data-design graphic designs were invisible to Instant Makeover's graphic rule (fixed in the open PR).",
-    "2026-11-16 (owner): uniqueness is judged for the whole template — the body must always be structurally new, plus the header or continuation pages. Header-only ideas (e.g. Byline's statement masthead, Tessera's bento tiles) are kept as header variants for existing building blocks, not proposed as new designs."
+    "2026-11-16 (owner): uniqueness is judged for the whole template — the body must always be structurally new, plus the header or continuation pages. Header-only ideas (e.g. Byline's statement masthead, Tessera's bento tiles) are kept as header variants for existing building blocks, not proposed as new designs.",
+    "2026-11-17: Tabula (everything as ruled tables with When/What/Where heads) was rejected: rows of date | role | organisation are still the dates-left entry with the company moved right. A column-head row and hairlines are dressing, not structure. In this engine the body is a stack of additive blocks per column, so real body novelty has to change what a block shows or how columns relate, not how a stacked entry is ruled.",
+    "2026-11-17: before building, check that every claimed zone is actually drawn: the proposal claimed continued sections reopen with their heads, but the paginator only repeats the running header. Also check the typical CV's page fill (a ~40% page 2 is a defect) and the option variants, not only the default.",
+    "2026-11-17: gaps still open after two runs: a graphic body that is structurally new (not gutter/label/timeline/stacked); healthcare, trades and academic. Gloss (per-entry margin notes) was dropped for the same reason as Tabula: meta in a gutter is the Linea/Press family. Engine notes: the stress executive fixture is US Letter by default (set pageSize for A4 PDFs); text in [data-num]/.g-mono is flattened to pictures in the PDF, which is how furniture text stays out of the ATS read; randomGraphic can take a new layout without an extra random draw so other random specs stay unchanged."
   ]
 }
