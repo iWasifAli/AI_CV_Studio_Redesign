@@ -41,6 +41,8 @@ const nextConfig: NextConfig = {
     // The standalone server only ships traced files; design thumbnails are served from public/
     // (fonts are traced through the PDF renderer). Without this they were 404 in production.
     '/templates': ['./public/templates/**'],
+    // The link-preview image used by every page's <meta property="og:image">.
+    '/': ['./public/og/**'],
     // The installable app: service worker and icons (served from public/).
     '/offline': ['./public/sw.js', './public/icons/**'],
   },
