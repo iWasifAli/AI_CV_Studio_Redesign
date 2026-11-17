@@ -26,6 +26,9 @@ export function SiteFooter() {
           <Link className="text-ink-muted hover:text-ink" href="/templates">
             {t('Designs')}
           </Link>
+          <Link className="text-ink-muted hover:text-ink" href="/cv-for">
+            {t('CV guides')}
+          </Link>
           <Link className="text-ink-muted hover:text-ink" href="/help">
             {t('Help')}
           </Link>

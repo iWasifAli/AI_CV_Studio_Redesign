@@ -20,6 +20,7 @@ import {
 import { ButtonLink } from '@/components/ui/button';
 import { Container } from '@/components/ui/misc';
 import { StudioPreview } from '@/features/home/studio-preview';
+import { GUIDES } from '@/features/guides/guides';
 import { LandingDrop } from '@/features/makeover/landing-drop';
 import { ContinueCardClient } from '@/features/library/client';
 import { PROFESSIONS } from '@/modules/resume/professions';
@@ -326,6 +327,22 @@ export default async function HomePage() {
               </li>
             ))}
           </ul>
+          <p className="text-ink-muted mt-8 text-[15px]">
+            <span className="font-semibold">{t('Not sure what to include?')}</span>{' '}
+            {t('Read the CV guide for your work:')}{' '}
+            {GUIDES.map((g, i) => (
+              <span key={g.slug}>
+                {i > 0 && ' · '}
+                <Link
+                  href={`/cv-for/${g.slug}`}
+                  lang="en"
+                  className="text-violet font-semibold underline-offset-2 hover:underline"
+                >
+                  {g.short}
+                </Link>
+              </span>
+            ))}
+          </p>
         </Container>
       </section>
 

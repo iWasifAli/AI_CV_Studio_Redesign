@@ -946,6 +946,7 @@ export const de: Dict = {
   'CV check': 'Lebenslauf-Check',
   'CV designs': 'Lebenslauf-Designs',
   'CV designs and templates': 'Lebenslauf-Designs und Vorlagen',
+  'CV guides': 'Lebenslauf-Ratgeber',
   'CV import is available': 'Lebenslauf-Import ist verfügbar',
   'CV imports': 'Lebenslauf-Importe',
   'CV name': 'Name des Lebenslaufs',
@@ -1944,6 +1945,7 @@ export const de: Dict = {
   'Not saying / several countries': 'Keine Angabe / mehrere Länder',
   'Not sent': 'Nicht gesendet',
   'Not set': 'Nicht festgelegt',
+  'Not sure what to include?': 'Unsicher, was hineingehört?',
   'Not verified yet': 'Noch nicht bestätigt',
   'Not verified yet. Open the link in the email first.':
     'Noch nicht bestätigt. Öffnen Sie zuerst den Link in der E-Mail.',
@@ -2381,6 +2383,7 @@ export const de: Dict = {
   'Read the {openComments} comments waiting': 'Die {openComments} wartenden Kommentare lesen',
   'Read the 1 comment waiting': 'Den 1 wartenden Kommentar lesen',
   'Read the comments': 'Kommentare lesen',
+  'Read the CV guide for your work:': 'Lesen Sie den Lebenslauf-Ratgeber für Ihr Berufsfeld:',
   'Read them in your studio:': 'Lesen Sie sie in Ihrem Studio:',
   'Readable by hiring systems': 'Lesbar für Bewerbermanagementsysteme',
   'Reading a scanned page': 'Eine gescannte Seite wird gelesen',

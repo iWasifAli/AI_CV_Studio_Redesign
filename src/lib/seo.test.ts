@@ -35,11 +35,12 @@ describe('seo helpers', () => {
     const urls = sitemap().map((e) => e.url);
     expect(urls).toContain('https://aicvstudio.app');
     expect(urls).toContain('https://aicvstudio.app/templates');
+    expect(urls).toContain('https://aicvstudio.app/cv-for/drivers');
     const live = DEFAULT_CONFIG.designs.filter(isLive);
     for (const d of live) expect(urls).toContain(`https://aicvstudio.app/templates/${d.id}`);
     expect(new Set(urls).size).toBe(urls.length);
     // Retired designs and signed-in pages stay out.
     expect(urls.some((u) => u.endsWith('/templates/column'))).toBe(false);
-    expect(urls.some((u) => /\/(account|documents|admin|cv)\b/.test(u))).toBe(false);
+    expect(urls.some((u) => /\/(account|documents|admin|cv)(\/|$)/.test(u))).toBe(false);
   });
 });

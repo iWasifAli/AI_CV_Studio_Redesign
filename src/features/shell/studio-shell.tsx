@@ -5,7 +5,7 @@ import { setLanguage } from '@/i18n/language-switch';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { CircleHelp, CircleUserRound, Plus, Search } from 'lucide-react';
+import { CircleHelp, CircleUserRound, LogOut, Plus, Search } from 'lucide-react';
 import { Dialog } from '@/components/ui/dialog';
 import { Menu } from '@/components/ui/menu';
 import { Logo } from '@/components/layout/logo';
@@ -40,6 +40,11 @@ export function ShellTop() {
   }, []);
 
   const lang = useLang();
+  // One tap, no confirmation (signing back in is easy): the account page keeps the "all devices" option.
+  const signOut = () =>
+    void account.signOut().then(() => {
+      router.replace('/');
+    });
   const profileItems = [
     { label: 'Career profile', onSelect: () => router.push('/profile') },
     { label: 'My designs', onSelect: () => router.push('/templates') },
@@ -59,6 +64,7 @@ export function ShellTop() {
     ...(account.user?.admin
       ? [{ label: 'Admin Console', onSelect: () => router.push('/admin') }]
       : []),
+    { label: 'Sign out', onSelect: signOut },
   ];
   const avatar = (
     <Menu
@@ -137,6 +143,14 @@ export function ShellTop() {
             <CircleHelp aria-hidden size={20} /> {t('Help')}
           </Link>
           {avatar}
+          <button
+            type="button"
+            onClick={signOut}
+            data-testid="quick-sign-out"
+            className="text-ink-muted hover:bg-sunken hover:text-ink inline-flex min-h-11 items-center gap-2 rounded-md px-3 text-[15px] font-semibold"
+          >
+            <LogOut aria-hidden size={20} /> {t('Sign out')}
+          </button>
         </div>
       </aside>
 

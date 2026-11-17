@@ -211,7 +211,7 @@ test('a CV made before signing in moves into the account and appears on another 
 
   // Sign out on B: the account's CV leaves B, but stays in the account.
   await b.page.goto('/account');
-  await b.page.getByRole('button', { name: 'Sign out', exact: true }).click();
+  await b.page.locator('main').getByRole('button', { name: 'Sign out', exact: true }).click();
   await expect(b.page).toHaveURL(/\/$/);
   await b.page.goto('/cv');
   await expect(b.page.getByText(/^No CVs (on this device )?yet$/)).toBeVisible();
