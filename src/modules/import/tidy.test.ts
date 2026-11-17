@@ -56,6 +56,20 @@ describe('tidyImport (real CV case, 2026-11-13)', () => {
     expect(t.sections[0]!.kind).toBe(base.sections[0]!.kind);
   });
 
+  it('labels a bare date of birth and nationality printed beside icons', () => {
+    const t = tidyImport({
+      ...doc,
+      sections: [other('o9', ['09.08.1987', 'Pakistani', 'Senior engineer who likes order'])],
+    });
+    const pd = t.sections.find((s) => s.kind === 'personalDetails')!;
+    expect((pd.items as { label: string; value: string }[]).map((i) => [i.label, i.value])).toEqual(
+      [
+        ['Date of birth', '09.08.1987'],
+        ['Nationality', 'Pakistani'],
+      ],
+    );
+  });
+
   it('only drops a contact line when its value is already in the header', () => {
     expect(repeatsContact('Email: nisar_87@hotmail.com', doc)).toBe(true);
     expect(repeatsContact('LinkedIn: linkedin.com/in/nisarse', doc)).toBe(true);
