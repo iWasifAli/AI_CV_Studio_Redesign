@@ -7,6 +7,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
   return {
     title: t('Premium'),
+    alternates: { canonical: '/premium' },
     description:
       'Every CV design, more downloads and honest AI writing help — a one-time pass, no subscription.',
   };

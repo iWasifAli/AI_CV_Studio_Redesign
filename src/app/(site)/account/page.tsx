@@ -5,7 +5,7 @@ import { AccountScreen } from '@/features/account/account-screen';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
-  return { title: t('Your account') };
+  return { title: t('Your account'), robots: { index: false } };
 }
 
 export default async function AccountPage() {

@@ -6,7 +6,7 @@ import { getBusinessConfig } from '@/modules/billing/server';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
-  return { title: t('Privacy') };
+  return { title: t('Privacy'), alternates: { canonical: '/privacy' } };
 }
 
 // Reads the support email from settings (cached 60 s on the server); not baked in at build time.

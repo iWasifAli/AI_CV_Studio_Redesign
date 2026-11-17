@@ -1,4 +1,7 @@
 import { getT } from '@/i18n/server';
+import type { Metadata } from 'next';
+import { JsonLd } from '@/components/seo/json-ld';
+import { SITE_URL } from '@/lib/seo';
 import Link from 'next/link';
 import { Suspense } from 'react';
 import { InvitedNote } from '@/features/referrals/invited-note';
@@ -93,10 +96,53 @@ const PROMISES = [
   },
 ];
 
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return {
+    title: { absolute: t('AI CV Studio — Build and design a professional CV') },
+    description: t(
+      'Upload your CV or answer a few questions, improve the wording with AI that never invents facts, choose from {n} designs and download a PDF.',
+      { n: DESIGN_COUNT },
+    ),
+    alternates: { canonical: '/' },
+  };
+}
+
 export default async function HomePage() {
   const t = await getT();
   return (
     <div className="landing bg-paper">
+      <JsonLd
+        data={{
+          '@context': 'https://schema.org',
+          '@graph': [
+            {
+              '@type': 'Organization',
+              '@id': `${SITE_URL}/#org`,
+              name: 'AI CV Studio',
+              url: SITE_URL,
+              logo: `${SITE_URL}/icons/icon-512.png`,
+            },
+            {
+              '@type': 'WebSite',
+              '@id': `${SITE_URL}/#site`,
+              url: SITE_URL,
+              name: 'AI CV Studio',
+              publisher: { '@id': `${SITE_URL}/#org` },
+            },
+            {
+              '@type': 'WebApplication',
+              name: 'AI CV Studio',
+              url: SITE_URL,
+              applicationCategory: 'BusinessApplication',
+              operatingSystem: 'Any (web browser)',
+              description:
+                'Build, improve and design a professional CV with AI help that never invents facts, then download it as a PDF.',
+              publisher: { '@id': `${SITE_URL}/#org` },
+            },
+          ],
+        }}
+      />
       <section className="relative overflow-hidden">
         {/* Soft colour behind the studio picture: lavender into peach, kept pale. */}
         <div

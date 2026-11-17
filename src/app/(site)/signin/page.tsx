@@ -6,7 +6,7 @@ import { SignInScreen } from '@/features/account/signin-screen';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
-  return { title: t('Sign in') };
+  return { title: t('Sign in'), robots: { index: false } };
 }
 
 export default function SignInPage() {

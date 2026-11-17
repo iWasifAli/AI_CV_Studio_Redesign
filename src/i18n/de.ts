@@ -408,7 +408,11 @@ export const de: Dict = {
   'AI CV Studio': 'AI CV Studio',
   'AI CV Studio — A professional CV in your own words':
     'AI CV Studio – Ein professioneller Lebenslauf in Ihren eigenen Worten',
+  'AI CV Studio — Build and design a professional CV':
+    'AI CV Studio — Professionellen Lebenslauf erstellen und gestalten',
   'AI CV Studio — home': 'AI CV Studio – Startseite',
+  'AI CV Studio: write with AI, design a professional CV':
+    'AI CV Studio: mit KI schreiben, einen professionellen Lebenslauf gestalten',
   'AI daily budget used': 'Verbrauchtes KI-Tagesbudget',
   'AI Designer': 'KI-Designer',
   'AI Designer (describe a design in words or with a picture)':
@@ -629,6 +633,8 @@ export const de: Dict = {
     'Lücken sind häufig und kein Grund, etwas zu verbergen. Eine kurze, sachliche Zeile beantwortet die Frage, bevor sie gestellt wird. Es wird nur verwendet, was Sie uns sagen.',
   'Brief copied': 'Unternehmensprofil kopiert',
   'Browse all designs': 'Alle Designs ansehen',
+  'Browse professional CV designs by mood or kind of work. Every design has a plain ATS version for online forms, and you can switch without losing a word.':
+    'Entdecken Sie professionelle Lebenslauf-Designs nach Stimmung oder Berufsfeld. Jedes Design hat eine schlichte ATS-Version für Online-Formulare, und Sie können wechseln, ohne ein Wort zu verlieren.',
   Bullets: 'Aufzählungspunkte',
   'Bullets, dates and skills': 'Aufzählungen, Daten und Kenntnisse',
   'Business card': 'Visitenkarte',
@@ -939,6 +945,7 @@ export const de: Dict = {
   'Customer service': 'Kundenservice',
   'CV check': 'Lebenslauf-Check',
   'CV designs': 'Lebenslauf-Designs',
+  'CV designs and templates': 'Lebenslauf-Designs und Vorlagen',
   'CV import is available': 'Lebenslauf-Import ist verfügbar',
   'CV imports': 'Lebenslauf-Importe',
   'CV name': 'Name des Lebenslaufs',
@@ -2649,6 +2656,8 @@ export const de: Dict = {
   'Sharing designs isn’t open yet.': 'Das Teilen von Designs ist noch nicht geöffnet.',
   'Shops, cafés & hotels': 'Läden, Cafés & Hotels',
   'Short (about 50 words)': 'Kurz (etwa 50 Wörter)',
+  'Short answers about making, designing and downloading your CV with AI CV Studio, your privacy and Premium.':
+    'Kurze Antworten zum Erstellen, Gestalten und Herunterladen Ihres Lebenslaufs mit AI CV Studio, zu Datenschutz und Premium.',
   'Short answers to the questions people ask most.': 'Kurze Antworten auf die häufigsten Fragen.',
   'Short items per row (languages, certificates, licences)':
     'Kurze Einträge pro Zeile (Sprachen, Zertifikate, Führerscheine)',
@@ -2910,6 +2919,8 @@ export const de: Dict = {
     'Beschreiben Sie den Look, den Sie sich vorstellen – Spalten, Farben, Überschriften – und sehen Sie Ihren Lebenslauf darin.',
   'Tell us what you did, in your own words':
     'Erzählen Sie in Ihren eigenen Worten, was Sie getan haben',
+  'Tell us what you do and answer a few simple questions. We ask the right things for your kind of work, then you edit and download a PDF.':
+    'Sagen Sie uns, was Sie beruflich machen, und beantworten Sie ein paar einfache Fragen. Wir fragen das Passende für Ihr Berufsfeld, dann bearbeiten Sie und laden ein PDF herunter.',
   'Tell us what you do, answer a few simple questions, and get a professional CV you can edit and download as a PDF.':
     'Sagen Sie uns, was Sie tun, beantworten Sie ein paar einfache Fragen und erhalten Sie einen professionellen Lebenslauf, den Sie bearbeiten und als PDF herunterladen können.',
   Templates: 'Vorlagen',
@@ -3329,6 +3340,8 @@ export const de: Dict = {
   'Upload the PDF LinkedIn makes of your profile and get a review of each section, with better text to paste back.':
     'Laden Sie die PDF hoch, die LinkedIn aus Ihrem Profil erstellt, und erhalten Sie eine Prüfung jedes Abschnitts mit besserem Text zum Zurückkopieren.',
   'Upload your CV': 'Ihren Lebenslauf hochladen',
+  'Upload your CV or answer a few questions, improve the wording with AI that never invents facts, choose from {n} designs and download a PDF.':
+    'Laden Sie Ihren Lebenslauf hoch oder beantworten Sie ein paar Fragen, verbessern Sie die Formulierungen mit KI, die nichts erfindet, wählen Sie aus {n} Designs und laden Sie ein PDF herunter.',
   'Upload your CV,': 'Laden Sie Ihren Lebenslauf hoch,',
   'Upload your CV, see it transformed': 'Lebenslauf hochladen, verwandelt sehen',
   'Upload your LinkedIn profile and get a review of each section, with better text to paste back.':

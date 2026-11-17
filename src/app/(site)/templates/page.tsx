@@ -5,7 +5,13 @@ import { TemplateGallery } from '@/features/gallery/template-gallery';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
-  return { title: t('Designs') };
+  return {
+    title: t('CV designs and templates'),
+    description: t(
+      'Browse professional CV designs by mood or kind of work. Every design has a plain ATS version for online forms, and you can switch without losing a word.',
+    ),
+    alternates: { canonical: '/templates' },
+  };
 }
 
 export default async function TemplatesPage({

@@ -7,7 +7,13 @@ import { InstallApp } from '@/features/app/install-app';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
-  return { title: t('Help') };
+  return {
+    title: t('Help'),
+    description: t(
+      'Short answers about making, designing and downloading your CV with AI CV Studio, your privacy and Premium.',
+    ),
+    alternates: { canonical: '/help' },
+  };
 }
 
 // Reads the support email from settings (cached 60 s on the server); not baked in at build time.

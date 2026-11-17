@@ -4,7 +4,7 @@ import { PortfolioSettings } from '@/features/portfolio/portfolio-settings';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
-  return { title: t('Your portfolio page') };
+  return { title: t('Your portfolio page'), alternates: { canonical: '/portfolio' } };
 }
 
 export default function PortfolioSettingsPage() {

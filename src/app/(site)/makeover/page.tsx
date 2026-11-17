@@ -8,6 +8,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
   return {
     title: t('Instant CV makeover'),
+    alternates: { canonical: '/makeover' },
     description:
       'Upload the CV you have — PDF, Word or a photo — and see it in a professional design in under a minute. Nothing is added that isn’t in your CV.',
   };

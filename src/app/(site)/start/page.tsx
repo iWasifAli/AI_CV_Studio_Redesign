@@ -8,7 +8,13 @@ import { StartFlow } from '@/features/start/start-flow';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
-  return { title: t('Create your CV') };
+  return {
+    title: t('Create your CV'),
+    description: t(
+      'Tell us what you do and answer a few simple questions. We ask the right things for your kind of work, then you edit and download a PDF.',
+    ),
+    alternates: { canonical: '/start' },
+  };
 }
 
 export default async function StartPage() {
