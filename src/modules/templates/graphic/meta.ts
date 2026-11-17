@@ -25,7 +25,7 @@ export const GRAPHIC_META = {
     name: 'Neon',
     style: 'Graphic spotlight',
     description:
-      'A deep navy header with your name set huge, an arched portrait standing on a bright band of key numbers, and a timeline beside your skills.',
+      'A deep navy header with your name set huge, an arched portrait, and a timeline beside your skills.',
     mood: 'graphic, bold dark header, arched photo, big name, key numbers band, teal, creative, education, tech',
     family: 'spot',
     accent: '#00d3c4',
@@ -36,7 +36,7 @@ export const GRAPHIC_META = {
     name: 'Coral',
     style: 'Graphic spotlight',
     description:
-      'A plum header with soft light beams and a rounded portrait; your key numbers float on cards over its edge. Warm, confident and modern.',
+      'A plum header with soft light beams and a rounded portrait over its edge. Warm, confident and modern.',
     mood: 'graphic, warm coral and plum, rounded photo, number cards, marketing, sales, strategy',
     family: 'spot',
     accent: '#fc725e',
@@ -58,7 +58,7 @@ export const GRAPHIC_META = {
     name: 'Emerald',
     style: 'Graphic spotlight',
     description:
-      'A forest-green header with a dot grid and a leaf-shaped portrait, a bright band of key numbers and numbered sections.',
+      'A forest-green header with a dot grid and a leaf-shaped portrait and numbered sections.',
     mood: 'graphic, green, numbered sections, leaf photo, technical type, sustainability, engineering',
     family: 'spot',
     accent: '#63dda1',
@@ -69,7 +69,7 @@ export const GRAPHIC_META = {
     name: 'Magenta',
     style: 'Graphic spotlight',
     description:
-      'A berry header with angled blocks and a hexagon portrait; key numbers on cards and a left side column. Bold and personal.',
+      'A berry header with angled blocks and a hexagon portrait and a left side column. Bold and personal.',
     mood: 'graphic, pink and berry, hexagon photo, number cards, bold, content, media, hospitality',
     family: 'spot',
     accent: '#f27dc6',
@@ -80,7 +80,7 @@ export const GRAPHIC_META = {
     name: 'Citrus',
     style: 'Graphic rail',
     description:
-      'A dark full-height column with a notched portrait, contact details and skill bars; a huge two-tone name and a sunny box of key numbers.',
+      'A dark full-height column with a notched portrait, contact details and skill bars; and a huge two-tone name.',
     mood: 'graphic, dark left column, yellow, notched photo, big name, architecture, engineering, design',
     family: 'band',
     accent: '#f9b632',
@@ -91,7 +91,7 @@ export const GRAPHIC_META = {
     name: 'Cyber',
     style: 'Graphic rail',
     description:
-      'A near-black column with a grid motif and a round portrait; lime highlights, numbered sections and figures set in columns. Built for tech.',
+      'A near-black column with a grid motif and a round portrait; lime highlights and numbered sections. Built for tech.',
     mood: 'graphic, black and lime, tech, developer, grid, numbered sections, technical type',
     family: 'band',
     accent: '#b9fc55',
@@ -102,7 +102,7 @@ export const GRAPHIC_META = {
     name: 'Ruby',
     style: 'Graphic rail',
     description:
-      'A wine-dark column with a tall arched portrait and light stripes; rose highlights, figures on dark pills and a closing link band.',
+      'A wine-dark column with a tall arched portrait and light stripes; and rose highlights.',
     mood: 'graphic, wine and rose, tall arched photo, pills, motion, media, marketing, creative lead',
     family: 'band',
     accent: '#ff5b84',
@@ -113,7 +113,7 @@ export const GRAPHIC_META = {
     name: 'Blueprint',
     style: 'Graphic rail',
     description:
-      'A navy column with a slanted portrait and a quiet ring; sky-blue lines, figures in ruled columns and an outlined link band. Precise.',
+      'A navy column with a slanted portrait and a quiet ring; and sky-blue lines. Precise.',
     mood: 'graphic, navy and sky blue, engineering, civil, architecture, precise, slanted photo',
     family: 'band',
     accent: '#72b6ff',
@@ -124,7 +124,7 @@ export const GRAPHIC_META = {
     name: 'Cobalt',
     style: 'Graphic rail',
     description:
-      'A deep blue column with a square framed portrait and a dot field; serif name in two tones, a box of key numbers. Analytical and calm.',
+      'A deep blue column with a square framed portrait and a dot field; serif name in two tones. Analytical and calm.',
     mood: 'graphic, cobalt blue, serif name, analytics, data, finance, consulting, square photo',
     family: 'band',
     accent: '#6f9cff',
@@ -190,7 +190,7 @@ export const GRAPHIC_META = {
     name: 'Electric',
     style: 'Graphic cover',
     description:
-      'A magazine-cover header with fine diagonal hatching and a tilted, framed portrait; a bright strip carries your contact line above your key numbers.',
+      'A magazine-cover header with fine diagonal hatching and a tilted, framed portrait; a bright strip carries your contact line.',
     mood: 'graphic, magazine cover, electric blue, tilted photo, designer, creative, tech',
     family: 'cover',
     accent: '#3f9cff',
