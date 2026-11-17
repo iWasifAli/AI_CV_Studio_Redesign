@@ -1,0 +1,35 @@
+{
+  "slides": [
+    {
+      "type": "designs",
+      "title": "Which CV design suits *your* job?",
+      "sub": "A quick guide to four of our 51 designs.",
+      "ids": ["heritage", "clarity", "violet", "atelier"]
+    },
+    {
+      "type": "point",
+      "title": "Heritage",
+      "body": "Calm and classic: one column, quiet rules, no photo. A good fit for managers, office and formal roles."
+    },
+    {
+      "type": "point",
+      "title": "Clarity",
+      "body": "Single column with a clean accent line. Easy for anyone to read. Works for drivers, trades, office and general jobs."
+    },
+    {
+      "type": "point",
+      "title": "Violet",
+      "body": "A portrait and a deep violet column. Popular for healthcare, teaching, tech and students."
+    },
+    {
+      "type": "point",
+      "title": "Atelier",
+      "body": "A coloured sidebar with your name, photo and contact. Confident and creative, for tech, students and retail."
+    },
+    {
+      "type": "cta",
+      "title": "Try them on your own CV",
+      "sub": "Switch designs any time without losing a word. Every design has a plain version for online forms."
+    }
+  ]
+}

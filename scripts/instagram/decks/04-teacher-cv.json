@@ -1,0 +1,35 @@
+{
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "CV tips: teachers",
+      "title": "Teacher CV: what *schools* look for",
+      "sub": "Swipe. Save this for your next application."
+    },
+    {
+      "type": "point",
+      "title": "Qualifications first",
+      "body": "Teaching qualification, subject degree, registration and safeguarding training, with the awarding body and year."
+    },
+    {
+      "type": "point",
+      "title": "Describe the class",
+      "body": "Age group, class size, specialisms such as special needs or English as an additional language, and the curriculum you taught."
+    },
+    {
+      "type": "point",
+      "title": "Show impact you can back up",
+      "body": "Progress of a group, a club you started, a project you led. No figure? Describe the change in plain words."
+    },
+    {
+      "type": "point",
+      "title": "A short summary",
+      "body": "Two or three sentences: who you teach, how many years, what you do best. Skip long statements of philosophy."
+    },
+    {
+      "type": "cta",
+      "title": "Build your teaching CV",
+      "sub": "Upload the one you have or start fresh. Full guide: aicvstudio.app/cv-for/teachers"
+    }
+  ]
+}

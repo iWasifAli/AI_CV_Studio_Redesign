@@ -1,0 +1,35 @@
+{
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "CV myths",
+      "title": "Designed CV or *ATS* CV? Both.",
+      "sub": "Why you should keep two versions."
+    },
+    {
+      "type": "point",
+      "title": "What is an ATS?",
+      "body": "Many employers read CVs through screening software first. It prefers real text, clear headings and a simple layout."
+    },
+    {
+      "type": "point",
+      "title": "Send the plain one to online forms",
+      "body": "A single column with real text, headings and no tables is the safest for application systems."
+    },
+    {
+      "type": "point",
+      "title": "Send the designed one to people",
+      "body": "Emailing a recruiter, a manager or handing a CV over in person? A well-designed page makes a good first impression."
+    },
+    {
+      "type": "point",
+      "title": "Same words, two looks",
+      "body": "In AI CV Studio every design has a plain version. Switch any time without losing a word."
+    },
+    {
+      "type": "cta",
+      "title": "Get both versions",
+      "sub": "Upload your CV or start fresh. Free to start."
+    }
+  ]
+}
