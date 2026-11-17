@@ -14,8 +14,8 @@ test.describe('German', () => {
     const sw = page.getByTestId('language-switch').first();
     await sw.getByRole('button', { name: 'Deutsch' }).click();
     await expect(page.locator('html')).toHaveAttribute('lang', 'de');
-    await expect(page.getByRole('heading', { level: 1 })).toContainText('Lebenslauf');
-    await expect(page.getByText('Drei Schritte', { exact: false })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('Ihr Studio');
+    await expect(page.getByText('Vom vorhandenen Lebenslauf', { exact: false })).toBeVisible();
     // The brand is never translated.
     await expect(page.getByText('KI CV Studio')).toHaveCount(0);
     // Stays German on other pages (cookie).

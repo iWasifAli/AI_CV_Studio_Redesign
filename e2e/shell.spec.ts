@@ -2,7 +2,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from './support/test';
 
 const PAGES = [
-  { path: '/', heading: /see it transformed/i },
+  { path: '/', heading: /Your Studio/i },
   { path: '/start', heading: /What kind of work do you do/i },
   { path: '/documents', heading: /Documents/i },
   { path: '/studio', heading: /Your studio/i },

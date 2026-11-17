@@ -1,5 +1,6 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import { useEffect, useSyncExternalStore, type ReactNode } from 'react';
 import { AnnouncementBar } from '@/components/layout/announcement-bar';
 import { SiteFooter } from '@/components/layout/site-footer';
@@ -33,10 +34,18 @@ export function SiteChrome({ children }: { children: ReactNode }) {
     } catch {}
   }, [status]);
   const shell = status === 'signedIn' || (status === 'loading' && hint);
+  // The visitor home page wears the new look (see `.landing` in globals.css).
+  const landing = usePathname() === '/' && !shell;
   // One tree for both chromes: <main> keeps its place so the page never remounts on a switch.
   return (
     <div
-      className={shell ? 'min-h-dvh md:pl-60' : 'flex min-h-dvh flex-col'}
+      className={
+        shell
+          ? 'min-h-dvh md:pl-60'
+          : landing
+            ? 'landing flex min-h-dvh flex-col'
+            : 'flex min-h-dvh flex-col'
+      }
       data-shell={shell ? 'studio' : 'site'}
     >
       <Top shell={shell} />

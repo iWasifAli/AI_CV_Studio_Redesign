@@ -29,6 +29,9 @@
   --color-danger-soft: #fdecea;
   --color-info: #2c5ba8;
   --color-info-soft: #e7eef9;
+  --color-violet: #5b45a0;
+  --color-violet-soft: #ece8f6;
+  --color-coral: #dc786e;
   --color-transparent: transparent;
   --color-white: #ffffff;
   --color-current: currentColor;
@@ -132,4 +135,39 @@
     --shell-bottom: 0px;
     --shell-left: 15rem;
   }
+}
+
+/*
+ * The new look, for the visitor home page only (the page's wrapper carries `landing`).
+ * Re-points the colour tokens, so every existing component inside picks it up; nothing else on
+ * the site is affected.
+ */
+.landing {
+  --color-paper: #fbf9f6;
+  --color-sunken: #f4efe9;
+  --color-line: #e9e5e1;
+  --color-ink: #172a3d;
+  --color-ink-muted: #4f5d6c;
+  --color-ink-subtle: #5f6b79;
+  --color-primary: #172a3d;
+  --color-primary-hover: #2a4058;
+  --color-primary-soft: #ece8f6;
+  --color-accent: #c69a61;
+  --color-accent-soft: #f7ecdc;
+  --color-accent-ink: #7a5528;
+  --logo-fold: #b9a8e6;
+}
+
+/* Movement only, never fading: text stays at full contrast from the first frame. */
+@keyframes landing-rise {
+  from {
+    transform: translateY(14px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+.landing-rise {
+  animation: landing-rise 0.7s var(--ease-studio) both;
+  animation-delay: var(--d, 0ms);
 }

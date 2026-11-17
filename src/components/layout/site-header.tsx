@@ -82,7 +82,7 @@ export function SiteHeader() {
             <Link
               href={accountHref}
               aria-current={pathname === accountHref ? 'page' : undefined}
-              className="text-ink-muted hover:bg-sunken hover:text-ink hidden items-center gap-1.5 rounded-md px-3 py-2 text-[15px] font-semibold md:inline-flex"
+              className="text-ink-muted hover:bg-sunken hover:text-ink hidden items-center gap-1.5 rounded-md px-3 py-2 text-[15px] font-semibold whitespace-nowrap md:inline-flex"
             >
               {signedIn && <CircleUserRound aria-hidden size={18} />}
               {t(accountLabel)}
@@ -92,7 +92,7 @@ export function SiteHeader() {
             href="/start"
             size="sm"
             variant="secondary"
-            className="max-sm:hidden sm:h-11 sm:px-4 sm:text-[15px]"
+            className="max-lg:hidden sm:h-11 sm:px-4 sm:text-[15px]"
           >
             {t('Start from scratch')}
           </ButtonLink>
