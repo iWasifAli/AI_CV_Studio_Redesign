@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-16",
+  "updated": "2026-11-17",
   "existing": [
     {
       "id": "clarity",
@@ -1395,12 +1395,205 @@
         "date": "2026-11-16",
         "reason": "Too close to Press / Ledger / Linea once colour and type are set aside: a typographic header over a label or split column."
       }
+    },
+    {
+      "id": "tabula",
+      "date": "2026-11-17",
+      "name": "Tabula",
+      "concept": "The whole CV is set as ruled information tables, like a timetable or an annual-report schedule: a fact-table header (contact cells and key numbers on one grid), and every section as a table with its own column-header row, a fixed key column (dates, years, skill groups), a content column and a right column for organisation and place; descriptions span the last two columns. Continuation pages carry a running table strip.",
+      "structureKey": "fact table masthead over ruled column-headed tables for every section",
+      "references": [
+        {
+          "title": "Müller-Brockmann, SBB design manual (SEGD)",
+          "url": "https://segd.org/resources/design-manual-swiss-federal-railways/",
+          "idea": "A strict information grid where every fact has a fixed column"
+        },
+        {
+          "title": "eguide.ch: SBB visual information system",
+          "url": "https://www.eguide.ch/en/objekt/sbb/",
+          "idea": "Timetable typography: tabular figures, hairlines, column labels"
+        },
+        {
+          "title": "Tufte: resumes and presentation of data",
+          "url": "https://www.edwardtufte.com/notebook/resumes-and-presentation-of-data/",
+          "idea": "A CV as presentation of data rather than decoration"
+        }
+      ],
+      "status": "rejected",
+      "nearestExisting": "linea (0.818)",
+      "scores": {
+        "scout": {
+          "visual": 8.5,
+          "originality": 8.5,
+          "graphical": 8,
+          "typography": 8.5,
+          "layout": 9,
+          "professional": 9,
+          "engine": 9,
+          "print": 9,
+          "average": 8.69
+        },
+        "reviewer": {
+          "visual": 6.5,
+          "originality": 6,
+          "graphical": 6,
+          "typography": 7.5,
+          "layout": 7.5,
+          "professional": 8.5,
+          "engine": 7.5,
+          "print": 8,
+          "average": 7.19
+        }
+      },
+      "implementation": {
+        "branch": "scout/2026-11-17",
+        "designId": "tabula",
+        "blockers": [
+          "Concept: body not structurally new enough (reviewer)",
+          "Continuation pages do not repeat section and column heads",
+          "Typical CV page fill",
+          "Key-number cell proportions; band option orphan stat"
+        ],
+        "note": "Design files not merged; branch scout/2026-11-17 keeps the table building block for reference."
+      },
+      "decision": {
+        "by": "reviewer agent (main-development-thread authority)",
+        "date": "2026-11-17",
+        "reason": "REJECT: the body is a rearranged existing body (Linea/Scholar dates-left entries with the organisation moved right; Ledger numbered heads; inline skill lists as Brief/Clarity) and ruled date|role|company rows are a common template-shop layout; the column-head row is typographic dressing. The header (big name, ruled contact strip, key-number cells) is the Blueprint/Cyber/Ocean family and the rejected swiss-poster. Continued sections do not reopen with their heads; running strip name off the grid and role truncated. Defects: typical CV spills to a ~40% page 2; unequal key-number cells; orphaned inline stat and uneven rules in the band option; email broken mid-word on the extreme CV. Reads as an ATS-family document, themes barely show. Could live as an entry-style option on an existing block, not as a new design."
+      },
+      "kind": "entry-variant"
+    },
+    {
+      "id": "gloss",
+      "date": "2026-11-17",
+      "name": "Gloss",
+      "concept": "A book-page CV: a text column with a wide outer margin. The role and its achievements sit in the text column; organisation, place and dates are set beside each role as margin notes; contact details are margin notes beside the name; continuation pages keep the margin with a running note.",
+      "structureKey": "title page with margin-note contacts over a text column with per-entry outer-margin notes",
+      "references": [
+        {
+          "title": "Tufte: resumes and presentation of data",
+          "url": "https://www.edwardtufte.com/notebook/resumes-and-presentation-of-data/",
+          "idea": "Margin notes for dates, places and degrees beside the main text"
+        },
+        {
+          "title": "Tufte CSS",
+          "url": "https://push.cx/assets/tufte-css/",
+          "idea": "Sidenote/margin-note mechanics and measure"
+        }
+      ],
+      "status": "rejected",
+      "nearestExisting": "linea / press",
+      "decision": {
+        "by": "scout (not shortlisted)",
+        "date": "2026-11-17",
+        "reason": "Moving organisation, place and dates into an outer margin is the same body family as Linea/Scholar (dates in a gutter) and Press/Ledger (label column), mirrored; it would not pass the whole-template rule for the body. Not built so the day is not filled with a weak second design."
+      }
+    },
+    {
+      "id": "evidence",
+      "date": "2026-11-17",
+      "name": "Evidence",
+      "concept": "Impact-first entries: a figure pulled from the bullets is set large beside each job.",
+      "structureKey": "impact-first entries with a pulled key figure beside each role",
+      "references": [
+        {
+          "title": "Jobscan: identifying key achievements",
+          "url": "https://www.jobscan.co/blog/simple-formula-identifying-key-achievements-executive-resume/",
+          "idea": "Lead with quantified results"
+        }
+      ],
+      "status": "rejected",
+      "decision": {
+        "by": "scout (not shortlisted)",
+        "date": "2026-11-17",
+        "reason": "Picking a figure from free text is unreliable (\"Year 5\", \"30 pupils\" become hero numbers) and repeats text; entries without figures get an empty slot."
+      }
+    },
+    {
+      "id": "playbill",
+      "date": "2026-11-17",
+      "name": "Playbill",
+      "concept": "Theatre-programme listings: role ...... organisation with dotted leaders under a centred programme title page.",
+      "structureKey": "centred programme title page over dotted-leader listings",
+      "references": [],
+      "status": "rejected",
+      "decision": {
+        "by": "scout (not shortlisted)",
+        "date": "2026-11-17",
+        "reason": "Dotted leaders are a re-decoration of dates-right entries; the centred title page is Regent/Heritage. Header and body both existing."
+      }
+    },
+    {
+      "id": "broadsheet",
+      "date": "2026-11-17",
+      "name": "Broadsheet",
+      "concept": "Newspaper body with work history flowing in two balanced columns under a nameplate.",
+      "structureKey": "newspaper nameplate over two balanced flowing text columns",
+      "references": [],
+      "status": "rejected",
+      "decision": {
+        "by": "scout (not shortlisted)",
+        "date": "2026-11-17",
+        "reason": "The paginator stacks blocks per column; text cannot flow between columns, so it would degrade to the existing two-equal layout (Grid, Tiles)."
+      }
+    },
+    {
+      "id": "axis",
+      "date": "2026-11-17",
+      "name": "Axis",
+      "concept": "Centre-spine infographic timeline with jobs alternating left and right.",
+      "structureKey": "centre spine with alternating left and right entries",
+      "references": [],
+      "status": "rejected",
+      "decision": {
+        "by": "scout (not shortlisted)",
+        "date": "2026-11-17",
+        "reason": "Bullets are separate pagination blocks, so a job cannot keep its side; also a very common template-shop look."
+      }
+    },
+    {
+      "id": "thumb-index",
+      "date": "2026-11-17",
+      "name": "Thumb index",
+      "concept": "Section headings as tabs bleeding off the outer page edge like a dictionary thumb index.",
+      "structureKey": "outer edge thumb-index tabs as section heads over a single column",
+      "references": [],
+      "status": "rejected",
+      "kind": "header-variant",
+      "decision": {
+        "by": "scout (not shortlisted)",
+        "date": "2026-11-17",
+        "reason": "Only the section heads change (a heading treatment over the single-column body); the useful version (highlighting the current section per page) needs runtime knowledge. Kept as a heading option idea."
+      }
+    },
+    {
+      "id": "museum-label",
+      "date": "2026-11-17",
+      "name": "Wall label",
+      "concept": "Each job as a museum object label: bold title, tombstone line, interpretive text.",
+      "structureKey": "museum tombstone captions as entries",
+      "references": [
+        {
+          "title": "Wellcome Collection exhibition texts",
+          "url": "https://wellcomecollection.org/exhibition-texts",
+          "idea": "Tombstone + interpretive text hierarchy"
+        }
+      ],
+      "status": "rejected",
+      "decision": {
+        "by": "scout (not shortlisted)",
+        "date": "2026-11-17",
+        "reason": "Structurally the stacked entry (Margin, Counsel) with caption typography; no new body arrangement."
+      }
     }
   ],
   "learnings": [
     "2026-11-16: a new header over an existing body column is not a new structure (Tessera rejected: bento tiles over the label-column body). The reviewer judges the whole page, not the masthead.",
     "2026-11-16: changing content presentation (the person's own profile lifted into a hero pull-quote) is what got approved; but four review rounds converged on ~9.0 because the body stayed conventional. Next time design the body structure with the same care as the header before building.",
     "2026-11-16: gaps still open — no design yet with an editorial/structural body of its own among graphic designs; professions still thin: healthcare, trades and academic-graphic. Engine traps found: the Tailwind Prettier plugin strips leading spaces inside className template literals (use classes()); data-design graphic designs were invisible to Instant Makeover's graphic rule (fixed in the open PR).",
-    "2026-11-16 (owner): uniqueness is judged for the whole template — the body must always be structurally new, plus the header or continuation pages. Header-only ideas (e.g. Byline's statement masthead, Tessera's bento tiles) are kept as header variants for existing building blocks, not proposed as new designs."
+    "2026-11-16 (owner): uniqueness is judged for the whole template — the body must always be structurally new, plus the header or continuation pages. Header-only ideas (e.g. Byline's statement masthead, Tessera's bento tiles) are kept as header variants for existing building blocks, not proposed as new designs.",
+    "2026-11-17: Tabula (everything as ruled tables with When/What/Where heads) was rejected: rows of date | role | organisation are still the dates-left entry with the company moved right. A column-head row and hairlines are dressing, not structure. In this engine the body is a stack of additive blocks per column, so real body novelty has to change what a block shows or how columns relate, not how a stacked entry is ruled.",
+    "2026-11-17: before building, check that every claimed zone is actually drawn: the proposal claimed continued sections reopen with their heads, but the paginator only repeats the running header. Also check the typical CV's page fill (a ~40% page 2 is a defect) and the option variants, not only the default.",
+    "2026-11-17: gaps still open after two runs: a graphic body that is structurally new (not gutter/label/timeline/stacked); healthcare, trades and academic. Gloss (per-entry margin notes) was dropped for the same reason as Tabula: meta in a gutter is the Linea/Press family. Engine notes: the stress executive fixture is US Letter by default (set pageSize for A4 PDFs); text in [data-num]/.g-mono is flattened to pictures in the PDF, which is how furniture text stays out of the ATS read; randomGraphic can take a new layout without an extra random draw so other random specs stay unchanged."
   ]
 }
