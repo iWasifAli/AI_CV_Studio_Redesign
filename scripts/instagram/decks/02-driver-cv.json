@@ -1,0 +1,35 @@
+{
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "CV tips: drivers",
+      "title": "3 things to put *first* on a driver CV",
+      "sub": "Swipe. Save this for your next application."
+    },
+    {
+      "type": "point",
+      "title": "Your licences",
+      "body": "Licence categories, extra entitlements and your driving record status go at the top, before your work history. Add expiry or renewal dates honestly."
+    },
+    {
+      "type": "point",
+      "title": "Reliability, with real numbers",
+      "body": "Parcels or stops per day, years without an at-fault incident, on-time rate. Use only figures you know. \"Around 120 a day\" beats an invented percentage."
+    },
+    {
+      "type": "point",
+      "title": "The vehicles and kit",
+      "body": "Vans, rigid or articulated trucks, taxis, forklifts, scanners, tachographs, sat-navs. Use the same words as the job advert."
+    },
+    {
+      "type": "point",
+      "title": "Keep the history short",
+      "body": "Job title, company, dates and two or three lines each. Older or short jobs can be one line."
+    },
+    {
+      "type": "cta",
+      "title": "Build your driver CV in minutes",
+      "sub": "Upload the one you have or start fresh. Free to start. Full guide: aicvstudio.app/cv-for/drivers"
+    }
+  ]
+}
