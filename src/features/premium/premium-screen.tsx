@@ -51,6 +51,8 @@ export function PremiumScreen() {
     fetch('/api/premium', { cache: 'no-store' })
       .then((r) => r.json() as Promise<PremiumOffer>)
       .then((o) => {
+        // Shortest pass first, whatever order the owner saved them in.
+        o = { ...o, passes: [...o.passes].sort((a, b) => a.days - b.days) };
         setOffer(o);
         setPassId((cur) => cur ?? o.passes[o.passes.length > 1 ? 1 : 0]?.id ?? null);
         setMethodId((cur) => cur ?? o.methods[0]?.id ?? null);
