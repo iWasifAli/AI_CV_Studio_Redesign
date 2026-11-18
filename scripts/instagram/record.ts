@@ -385,7 +385,13 @@ const scenes: Record<
         },
         hold: 2600,
       },
-      { say: 'Move it along as you hear back', do: scroll(250) },
+      {
+        say: 'Drag it on as you hear back, or open Actions',
+        do: async (p) => {
+          await tap(p, p.getByText('Actions', { exact: true }).first());
+        },
+        hold: 3000,
+      },
     ],
     ['Never lose track<br>again.', 'aicvstudio.app'],
   ),

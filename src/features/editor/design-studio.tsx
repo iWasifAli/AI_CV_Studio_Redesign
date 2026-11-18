@@ -385,7 +385,9 @@ export function DesignStudio({
       body: JSON.stringify({ name, spec }),
     });
     const j = (await r.json().catch(() => null)) as
-      { design: Saved } | { error: { message: string } } | null;
+      | { design: Saved }
+      | { error: { message: string } }
+      | null;
     if (!r.ok || !j || 'error' in j) {
       setSaveMsg((j && 'error' in j && j.error.message) || 'That didn’t work. Please try again.');
       return;

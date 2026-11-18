@@ -46,18 +46,17 @@ const boardData = (data: { jobs: Job[]; max: number; board?: JobBoardState }): B
 });
 
 /** Both renderers share account, add flow and one serialized mutation controller. */
-export function JobsBoard({ enhanced = false }: { enhanced?: boolean }) {
+export function JobsBoard() {
   const account = useAccount();
   // Account identity owns the controller: a switch immediately discards its display state.
   return (
     <JobsBoardSession
       key={account.status === 'signedIn' ? `account:${account.user?.uid}` : account.status}
-      enhanced={enhanced}
     />
   );
 }
 
-function JobsBoardSession({ enhanced }: { enhanced: boolean }) {
+function JobsBoardSession() {
   const t = useT();
   const account = useAccount();
   const { ent } = useEntitlements();
@@ -166,16 +165,15 @@ function JobsBoardSession({ enhanced }: { enhanced: boolean }) {
           },
     );
     try {
-      const result =
-        movement && enhanced
-          ? await jobsApi.move(movement)
-          : {
-              job: await jobsApi.update(
-                job.id,
-                'stage' in action ? { stage: action.stage } : { outcome: action.outcome },
-              ),
-              board: undefined,
-            };
+      const result = movement
+        ? await jobsApi.move(movement)
+        : {
+            job: await jobsApi.update(
+              job.id,
+              'stage' in action ? { stage: action.stage } : { outcome: action.outcome },
+            ),
+            board: undefined,
+          };
       if (!isCurrent()) return;
       // A job can be added while a move is in flight. Merge into the latest confirmed list.
       const latest = confirmed.current ?? snapshot;
@@ -330,116 +328,14 @@ function JobsBoardSession({ enhanced }: { enhanced: boolean }) {
           }}
         />
       )}
-      {enhanced ? (
-        <EnhancedBoard
-          jobs={data.jobs}
-          board={data.board}
-          pending={pending}
-          onMove={(jobId, stage, beforeId) => move({ jobId, stage, beforeId })}
-          onOutcome={(jobId, outcome) => move({ jobId, outcome })}
-          reminder={(job) => <NextReminder job={job} />}
-        />
-      ) : data.jobs.length === 0 && !adding ? (
-        <div className="border-line-strong bg-surface flex flex-col items-center gap-3 rounded-lg border border-dashed px-6 py-14 text-center">
-          <Briefcase aria-hidden size={28} className="text-primary" />
-          <h2 className="text-xl font-semibold">{t('No jobs yet')}</h2>
-          <p className="text-ink-muted max-w-md">
-            {t(
-              'Add a job you’re interested in. Paste the advert too — it lets you check how well your CV matches and write a letter for it.',
-            )}
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-5" data-testid="jobs-board">
-          {JOB_STAGES.map((stage) => {
-            const jobs = data.jobs.filter((j) => j.stage === stage);
-            return (
-              <section
-                key={stage}
-                aria-labelledby={`stage-${stage}`}
-                className="bg-sunken/60 flex flex-col gap-2 rounded-lg p-3"
-                data-stage={stage}
-              >
-                <h2
-                  id={`stage-${stage}`}
-                  className="flex items-center justify-between px-1 text-sm font-semibold"
-                >
-                  {STAGE_LABEL[stage]}
-                  <span className="text-ink-muted font-normal">{jobs.length}</span>
-                </h2>
-                {jobs.map((j) => (
-                  <article
-                    key={j.id}
-                    className="border-line bg-surface rounded-md border p-3"
-                    data-testid="job-card"
-                  >
-                    <Link
-                      href={`/jobs/${j.id}`}
-                      className="font-semibold underline-offset-2 hover:underline"
-                    >
-                      {j.title}
-                    </Link>
-                    {(j.company || j.location) && (
-                      <p className="text-ink-muted text-sm">
-                        {[j.company, j.location].filter(Boolean).join(' · ')}
-                      </p>
-                    )}
-                    <p className="text-ink-subtle mt-1 text-xs">
-                      {j.appliedOn
-                        ? t('Applied {v0}', { v0: fmt(j.appliedOn) })
-                        : t('Added {v0}', { v0: fmt(j.createdAt) })}
-                    </p>
-                    <NextReminder job={j} />
-                    <label className="mt-2 flex items-center gap-2 text-sm">
-                      <span className="text-ink-muted">{t('Move to')}</span>
-                      <select
-                        className="border-line-strong bg-surface h-9 min-w-0 flex-1 rounded-sm border px-1.5"
-                        value={j.stage}
-                        aria-label={t('Stage for {title}', { title: j.title })}
-                        disabled={pending}
-                        onChange={(e) =>
-                          void move({
-                            jobId: j.id,
-                            stage: e.target.value as JobStage,
-                            beforeId: null,
-                          })
-                        }
-                      >
-                        {JOB_STAGES.map((s) => (
-                          <option key={s} value={s}>
-                            {STAGE_LABEL[s]}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    {j.stage === 'closed' && (
-                      <label className="mt-2 flex items-center gap-2 text-sm">
-                        <span className="text-ink-muted">{t('Ended')}</span>
-                        <select
-                          className="border-line-strong bg-surface h-9 min-w-0 flex-1 rounded-sm border px-1.5"
-                          value={j.outcome ?? ''}
-                          aria-label={t('How it ended: {title}', { title: j.title })}
-                          disabled={pending}
-                          onChange={(e) =>
-                            void move({ jobId: j.id, outcome: e.target.value as JobOutcome | '' })
-                          }
-                        >
-                          <option value="">{t('Not said')}</option>
-                          {JOB_OUTCOMES.map((o) => (
-                            <option key={o} value={o}>
-                              {OUTCOME_LABEL[o]}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                    )}
-                  </article>
-                ))}
-              </section>
-            );
-          })}
-        </div>
-      )}
+      <EnhancedBoard
+        jobs={data.jobs}
+        board={data.board}
+        pending={pending}
+        onMove={(jobId, stage, beforeId) => move({ jobId, stage, beforeId })}
+        onOutcome={(jobId, outcome) => move({ jobId, outcome })}
+        reminder={(job) => <NextReminder job={job} />}
+      />
     </div>
   );
 }

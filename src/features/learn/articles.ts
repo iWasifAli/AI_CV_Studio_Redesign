@@ -10,7 +10,7 @@ export const VIDEO_SECONDS = {
   editor: 22,
   check: 24,
   letters: 25,
-  jobs: 23,
+  jobs: 24,
   coach: 23,
   stories: 20,
   skills: 23,
@@ -365,7 +365,7 @@ export const ARTICLES: Article[] = [
     shots: [
       {
         file: 'jobs-1',
-        alt: 'The Job tracker with no jobs yet and an Add a job button',
+        alt: 'The Job tracker with no jobs yet, empty stage columns and an Add a job button',
         caption: 'The tracker starts empty. Choose Add a job.',
       },
       {
@@ -375,8 +375,8 @@ export const ARTICLES: Article[] = [
       },
       {
         file: 'jobs-3',
-        alt: 'The job board with Saved, Applied, Interview, Offer and Closed columns and one saved job',
-        caption: 'Move each job along as you hear back.',
+        alt: 'The job board with Saved, Applied, Interview, Offer and Closed columns, a drag handle and an Actions menu on one saved job',
+        caption: 'Drag a card to the next column as you hear back, or use Actions.',
       },
     ],
     steps: [
@@ -391,7 +391,7 @@ export const ARTICLES: Article[] = [
       },
       {
         title: 'Move it along',
-        text: 'Each job sits in a column: Saved, Applied, Interview, Offer or Closed. Use Move to when something changes.',
+        text: 'Each job sits in a column: Saved, Applied, Interview, Offer or Closed. Drag a card by its handle into the next column, or open Actions and choose Move to. Move up and Move down change the order inside a column, and your order is kept.',
         shot: 2,
       },
       {
@@ -399,7 +399,10 @@ export const ARTICLES: Article[] = [
         text: 'Attach the CV you used so you always know which version an employer has.',
       },
     ],
-    tips: ['A free account can track up to 3 jobs at a time.'],
+    tips: [
+      'A free account can track up to 3 jobs at a time.',
+      'On a phone, use Jump to stage to go straight to a column. Pressing Escape while dragging cancels the move.',
+    ],
     faqs: [
       {
         q: 'Does it apply for me?',

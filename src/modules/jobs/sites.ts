@@ -5,7 +5,8 @@
  * let other sites read their adverts, get a plain message pointing to the paste-the-text route.
  */
 export type JobLink =
-  { kind: 'read'; url: string } | { kind: 'refuse'; reason: 'list' | 'closed'; message: string };
+  | { kind: 'read'; url: string }
+  | { kind: 'refuse'; reason: 'list' | 'closed'; message: string };
 
 const PASTE =
   'Open the job, copy the advert text and paste it into “The job advert” below — then use “Fill in from the advert text”.';

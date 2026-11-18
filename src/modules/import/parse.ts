@@ -991,7 +991,7 @@ export function parseCv(
   }
   // Graphic designs: an eyebrow ("Hello, I'm", "Curriculum vitae") or a bare monogram ("DO", "DO/")
   // above the name is decoration, not the name.
-  for (let i = 0; i < Math.min(head.length, 4);) {
+  for (let i = 0; i < Math.min(head.length, 4); ) {
     const t = head[i]!.text;
     if (EYEBROW.test(t) || (/^\p{Lu}{2,3}[/*.✳]?$/u.test(t) && !head[i]!.contact))
       head.splice(i, 1);

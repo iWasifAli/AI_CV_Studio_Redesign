@@ -103,7 +103,9 @@ export function GapPanel({
         }),
       });
       const j = (await r.json().catch(() => null)) as
-        (Wording & { error?: undefined }) | { error: { message: string } } | null;
+        | (Wording & { error?: undefined })
+        | { error: { message: string } }
+        | null;
       if (!r.ok || !j || 'error' in j) {
         setProblem({
           message: (j && 'error' in j && j.error?.message) || 'That didn’t work. Please try again.',

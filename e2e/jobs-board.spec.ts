@@ -21,8 +21,6 @@ const seed = async (page: Page) => {
 };
 
 test.describe('enhanced job board', () => {
-  test.skip(process.env.JOBS_BOARD_V2_ENABLED === '0', 'Enhanced UI deliberately disabled');
-
   test('keyboard reorder and move to an empty stage persist without changing reorder timestamps', async ({
     page,
   }) => {
