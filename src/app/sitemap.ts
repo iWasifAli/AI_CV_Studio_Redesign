@@ -19,6 +19,10 @@ export const PUBLIC_PATHS = [
   '/help',
   '/privacy',
   '/terms',
+  '/refund',
+  '/delivery',
+  '/services',
+  '/contact',
 ] as const;
 
 export default function sitemap(): MetadataRoute.Sitemap {

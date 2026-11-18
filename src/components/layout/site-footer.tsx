@@ -44,6 +44,18 @@ export function SiteFooter() {
           <Link className="text-ink-muted hover:text-ink" href="/terms">
             {t('Terms')}
           </Link>
+          <Link className="text-ink-muted hover:text-ink" href="/refund">
+            {t('Refunds')}
+          </Link>
+          <Link className="text-ink-muted hover:text-ink" href="/delivery">
+            {t('Delivery')}
+          </Link>
+          <Link className="text-ink-muted hover:text-ink" href="/services">
+            {t('Services and prices')}
+          </Link>
+          <Link className="text-ink-muted hover:text-ink" href="/contact">
+            {t('Contact')}
+          </Link>
         </nav>
       </Container>
       <Container className="border-line text-ink-subtle flex flex-wrap items-center justify-between gap-3 border-t py-5 text-xs">

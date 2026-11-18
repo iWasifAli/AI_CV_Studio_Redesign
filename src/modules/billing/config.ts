@@ -343,8 +343,14 @@ export const businessConfig = z.object({
         // The one public contact is the domain mailbox. The early test inbox, and an empty
         // setting, both read as it, so no saved setting needs editing by hand.
         .transform((e) => (e === '' || e === LEGACY_SUPPORT_EMAIL ? SUPPORT_EMAIL : e)),
+      /** Phone or WhatsApp number with country code, e.g. +92 321 8554745. Shown on Contact. */
+      phone: z.string().max(40).default(''),
+      /** Local office or postal address, shown on Contact (payment providers ask for one). */
+      address: z.string().max(300).default(''),
+      /** Opening hours or reply times, e.g. "Mon to Sat, 10am to 6pm (PKT)". */
+      hours: z.string().max(120).default(''),
     })
-    .default({ email: SUPPORT_EMAIL }),
+    .default({ email: SUPPORT_EMAIL, phone: '', address: '', hours: '' }),
 });
 export type BusinessConfig = z.infer<typeof businessConfig>;
 
@@ -452,7 +458,7 @@ export const DEFAULT_CONFIG: BusinessConfig = {
   emails: { approved: { subject: '', note: '' }, rejected: { subject: '', note: '' } },
   content: { hiddenLetterTypes: [], faq: DEFAULT_FAQ, offer: DEFAULT_OFFER, designerPrompts: [] },
   announcement: { enabled: false, text: '' },
-  support: { email: SUPPORT_EMAIL },
+  support: { email: SUPPORT_EMAIL, phone: '', address: '', hours: '' },
   coupons: [],
   referrals: { enabled: false, rewardDays: 14, welcomeDays: 7 },
   payments: {

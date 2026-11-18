@@ -1103,6 +1103,22 @@ export function AdminSettings() {
             value={draft.support.email}
             onChange={(e) => edit((c) => void (c.support.email = e.target.value.trim()))}
           />
+          <TextField
+            label={tx('Phone or WhatsApp (with country code)')}
+            value={draft.support.phone}
+            onChange={(e) => edit((c) => void (c.support.phone = e.target.value.trim()))}
+          />
+          <TextField
+            label={tx('Office or postal address')}
+            hint={tx('Shown on the Contact page. Payment providers ask for a local address.')}
+            value={draft.support.address}
+            onChange={(e) => edit((c) => void (c.support.address = e.target.value))}
+          />
+          <TextField
+            label={tx('Hours or reply time')}
+            value={draft.support.hours}
+            onChange={(e) => edit((c) => void (c.support.hours = e.target.value))}
+          />
           <EmailCheck />
         </Section>
 
