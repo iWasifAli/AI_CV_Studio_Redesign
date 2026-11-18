@@ -64,10 +64,17 @@ async function overlay(p: Page) {
         .replace(/Demo AI:\s*/g, '');
   });
   // The test setup labels its stand-in AI "DEMO AI"; the real product does not show that.
-  await p.evaluate(() => {
-    for (const el of Array.from(document.querySelectorAll('span,div,p,small')))
-      if (/^\s*demo ai\s*$/i.test(el.textContent ?? '')) el.setAttribute('data-rec-hide', '1');
-  });
+  // The label can appear after the page loads, so keep hiding it while recording.
+  await p.evaluate(`(() => {
+    const hide = () => {
+      const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      for (let n = w.nextNode(); n; n = w.nextNode())
+        if (/^\\s*demo[^a-z]?(ai|ki)\\s*$/i.test(n.textContent || ''))
+          n.parentElement && n.parentElement.setAttribute('data-rec-hide', '1');
+    };
+    hide();
+    if (!window.__recHide) window.__recHide = window.setInterval(hide, 250);
+  })()`);
 }
 const say = async (p: Page, text: string) => {
   mark(text);
@@ -254,6 +261,44 @@ const scenes: Record<string, { title: string; auth?: boolean; plain?: boolean; r
       await say(p, 'We ask simple questions, one step at a time');
       await wait(p, 2600);
       await card(p, 'Free to start', 'Your first CV,<br>step by step', 'aicvstudio.app');
+      await wait(p, 2800);
+    },
+  },
+  german: {
+    title: 'Use it in German',
+    run: async (p) => {
+      await p.goto(`${BASE}/`);
+      await p.waitForLoadState('networkidle');
+      await card(p, 'AI CV Studio', 'Auch auf Deutsch.<br>Also in German.', 'aicvstudio.app');
+      await wait(p, 2200);
+      await hideCard(p);
+      await say(p, 'Switch the whole app in the footer');
+      await wait(p, 900);
+      const sw = p.getByTestId('language-switch').first();
+      await sw.scrollIntoViewIfNeeded();
+      await wait(p, 2400);
+      await say(p, 'Tap Deutsch');
+      await tap(p, sw.getByRole('button', { name: 'Deutsch' }));
+      await p.locator('html[lang="de"]').waitFor({ timeout: 15_000 });
+      await wait(p, 1200);
+      await p.evaluate(() => window.scrollTo(0, 0));
+      await wait(p, 2800);
+      await say(p, 'Menus, buttons and guides are in German');
+      await p.goto(`${BASE}/templates`);
+      await p.waitForLoadState('networkidle');
+      await overlay(p);
+      await wait(p, 3000);
+      await say(p, 'Switch back to English any time');
+      await p.goto(`${BASE}/`);
+      await p.waitForLoadState('networkidle');
+      await p.getByTestId('language-switch').first().scrollIntoViewIfNeeded();
+      await tap(
+        p,
+        p.getByTestId('language-switch').first().getByRole('button', { name: 'English' }),
+      );
+      await p.locator('html[lang="en"]').waitFor({ timeout: 15_000 });
+      await wait(p, 2200);
+      await card(p, 'Free to start', 'Your language,<br>your CV.', 'aicvstudio.app');
       await wait(p, 2800);
     },
   },
