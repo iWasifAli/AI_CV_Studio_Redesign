@@ -4,7 +4,7 @@ import { runTask } from '@/modules/ai/run';
 import { prepareJobAi } from '@/modules/jobs/ai-route';
 import { profileDigest } from '@/modules/jobs/digest';
 import { checkInterview } from '@/modules/jobs/interview';
-import { getUserStore } from '@/modules/store';
+import { saveJobUpdate } from '@/modules/jobs/updates';
 import { noteUse } from '@/modules/metrics/activity';
 
 export const runtime = 'nodejs';
@@ -37,8 +37,15 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     );
   const interview = checkInterview(r.result, digest, { sourceTitle: p.doc.title });
   // New questions: earlier notes no longer line up, so they are cleared.
-  const job = { ...p.job, interview, interviewNotes: [], updatedAt: new Date().toISOString() };
-  await getUserStore().putJob(p.user.uid, job);
+  const now = new Date().toISOString();
+  const saved = await saveJobUpdate(p.user.uid, p.job.id, p.rid, (latest) => ({
+    ...latest,
+    interview,
+    interviewNotes: [],
+    updatedAt: now,
+  }));
+  if ('error' in saved) return saved.error;
+  const { job } = saved;
   return NextResponse.json(
     { job, findings: r.findings.length },
     { headers: { 'Cache-Control': 'no-store' } },

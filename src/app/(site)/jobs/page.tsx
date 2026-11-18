@@ -11,8 +11,14 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function JobsPage() {
   const t = await getT();
+  const enhanced = process.env.JOBS_BOARD_V2_ENABLED === '1';
+  const PageContainer = enhanced ? 'div' : Container;
   return (
-    <Container className="max-w-[1280px] py-10 md:py-14">
+    <PageContainer
+      className={
+        enhanced ? 'w-full min-w-0 px-5 py-8 sm:px-8 md:py-10' : 'max-w-[1280px] py-10 md:py-14'
+      }
+    >
       <div className="mb-6 flex max-w-2xl flex-col gap-2">
         <h1 className="font-display text-[32px] leading-tight font-semibold tracking-tight sm:text-4xl">
           {t('Job tracker')}
@@ -22,8 +28,8 @@ export default async function JobsPage() {
         </p>
       </div>
       <Suspense>
-        <JobsBoard />
+        <JobsBoard enhanced={enhanced} />
       </Suspense>
-    </Container>
+    </PageContainer>
   );
 }

@@ -3,7 +3,7 @@ import { apiError } from '@/lib/http';
 import { runTask } from '@/modules/ai/run';
 import { prepareJobAi } from '@/modules/jobs/ai-route';
 import { profileDigest } from '@/modules/jobs/digest';
-import { getUserStore } from '@/modules/store';
+import { saveJobUpdate } from '@/modules/jobs/updates';
 import { noteUse } from '@/modules/metrics/activity';
 
 export const runtime = 'nodejs';
@@ -37,12 +37,13 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
       p.rid,
     );
   const now = new Date().toISOString();
-  const job = {
-    ...p.job,
+  const saved = await saveJobUpdate(p.user.uid, p.job.id, p.rid, (latest) => ({
+    ...latest,
     letter: { ...r.result, tone, documentId: p.doc.id, updatedAt: now },
     updatedAt: now,
-  } as typeof p.job;
-  await getUserStore().putJob(p.user.uid, job);
+  }));
+  if ('error' in saved) return saved.error;
+  const { job } = saved;
   return NextResponse.json(
     { job, findings: r.findings.length },
     { headers: { 'Cache-Control': 'no-store' } },

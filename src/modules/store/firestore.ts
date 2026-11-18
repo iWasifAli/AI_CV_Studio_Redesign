@@ -4,6 +4,14 @@ import type { Activity } from '@/modules/metrics/numbers';
 import type { CommunityDesign, CommunityStatus } from '@/modules/community/types';
 import { FieldValue, type Firestore } from 'firebase-admin/firestore';
 import type { Job } from '@/modules/jobs/schema';
+import {
+  planJobMove,
+  removeFromJobBoard,
+  resolveJobBoard,
+  type JobBoardMove,
+  type JobBoardState,
+  type JobEditor,
+} from '@/modules/jobs/board';
 import type { SavedLetter } from '@/modules/letters/schema';
 import type { Story } from '@/modules/stories/schema';
 import type { SkillPlan } from '@/modules/skills/gap';
@@ -84,8 +92,81 @@ export class FirestoreUserStore implements UserStore {
   async putJob(uid: string, job: Job) {
     await this.jobsCol(uid).doc(job.id).set(job);
   }
+  async updateJob(uid: string, id: string, edit: JobEditor) {
+    const ref = this.jobsCol(uid).doc(id);
+    return this.db.runTransaction(async (tx) => {
+      const snap = await tx.get(ref);
+      if (!snap.exists) return null;
+      const next = await edit(snap.data() as Job);
+      if (next.id !== id) throw new Error('A job update cannot change its ID.');
+      tx.set(ref, next);
+      return next;
+    });
+  }
+  private jobBoardRef(uid: string) {
+    return this.db.collection('users').doc(uid).collection('jobBoard').doc('main');
+  }
+  async getJobBoard(uid: string) {
+    return this.db.runTransaction(
+      async (tx) => {
+        const [jobsSnap, boardSnap] = await Promise.all([
+          tx.get(this.jobsCol(uid).orderBy('updatedAt', 'desc').limit(500)),
+          tx.get(this.jobBoardRef(uid)),
+        ]);
+        const jobs = jobsSnap.docs.map((doc) => doc.data() as Job);
+        return {
+          jobs,
+          board: resolveJobBoard(
+            jobs,
+            boardSnap.exists ? (boardSnap.data() as JobBoardState) : undefined,
+          ),
+        };
+      },
+      { readOnly: true },
+    );
+  }
+  async moveJobOnBoard(uid: string, input: JobBoardMove, edit: JobEditor) {
+    const boardRef = this.jobBoardRef(uid);
+    const jobRef = this.jobsCol(uid).doc(input.jobId);
+    return this.db.runTransaction(async (tx) => {
+      // Explicitly read the moved card/anchor, even if they fall outside the listing cap.
+      const [jobsSnap, boardSnap, jobSnap, anchorSnap] = await Promise.all([
+        tx.get(this.jobsCol(uid).orderBy('updatedAt', 'desc').limit(500)),
+        tx.get(boardRef),
+        tx.get(jobRef),
+        input.beforeId === null
+          ? Promise.resolve(null)
+          : tx.get(this.jobsCol(uid).doc(input.beforeId)),
+      ]);
+      const observed = new Map(jobsSnap.docs.map((doc) => [doc.id, doc.data() as Job]));
+      if (jobSnap.exists) observed.set(jobSnap.id, jobSnap.data() as Job);
+      if (anchorSnap?.exists) observed.set(anchorSnap.id, anchorSnap.data() as Job);
+      const planned = planJobMove(
+        [...observed.values()],
+        boardSnap.exists ? (boardSnap.data() as JobBoardState) : undefined,
+        input,
+      );
+      const job = planned.stageChanged ? await edit(planned.job) : planned.job;
+      if (job.id !== input.jobId || (planned.stageChanged && job.stage !== input.toStage))
+        throw new Error('Invalid job stage transition.');
+      if (planned.changed) {
+        if (planned.stageChanged) tx.set(jobRef, job);
+        tx.set(boardRef, planned.board);
+      }
+      return { job, board: planned.board };
+    });
+  }
   async deleteJob(uid: string, id: string) {
-    await this.jobsCol(uid).doc(id).delete();
+    const ref = this.jobBoardRef(uid);
+    await this.db.runTransaction(async (tx) => {
+      const board = await tx.get(ref);
+      tx.delete(this.jobsCol(uid).doc(id));
+      if (board.exists) {
+        const current = board.data() as JobBoardState;
+        const next = removeFromJobBoard(current, id);
+        if (next.revision !== current.revision) tx.set(ref, next);
+      }
+    });
   }
 
   private coachDoc(uid: string) {

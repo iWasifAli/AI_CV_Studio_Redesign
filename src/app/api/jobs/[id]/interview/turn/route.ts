@@ -5,7 +5,7 @@ import { getBusinessConfig } from '@/modules/billing/server';
 import { prepareJobAi } from '@/modules/jobs/ai-route';
 import { profileDigest } from '@/modules/jobs/digest';
 import { advance, MOCK_QUESTIONS } from '@/modules/jobs/mock';
-import { getUserStore } from '@/modules/store';
+import { JobUpdateError, saveJobUpdate } from '@/modules/jobs/updates';
 import { storyLines } from '@/modules/stories/schema';
 import { storiesForAi } from '@/modules/stories/server';
 import { noteUse } from '@/modules/metrics/activity';
@@ -27,6 +27,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     });
   const p = await prepareJobAi(req, ctx, cfg.aiWeights.mockTurn);
   if ('error' in p) return p.error;
+  const expectedMock = JSON.stringify(p.job.mock);
   await noteUse(p.user.uid, 'mock');
   const restart = p.body.restart === true;
   const session = restart ? undefined : p.job.mock;
@@ -63,23 +64,32 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     );
   const mock = advance(session, r.result, answer);
   const finished = !mock.current && mock.turns.length > 0;
-  const job = {
-    ...p.job,
-    mock,
-    ...(finished
-      ? {
-          mockPast: [
-            {
-              at: mock.startedAt,
-              verdicts: mock.turns.map((t) => t.feedback.verdict),
-              summary: mock.summary,
-            },
-            ...(p.job.mockPast ?? []),
-          ].slice(0, 5),
-        }
-      : {}),
-    updatedAt: new Date().toISOString(),
-  };
-  await getUserStore().putJob(p.user.uid, job);
+  const now = new Date().toISOString();
+  const saved = await saveJobUpdate(p.user.uid, p.job.id, p.rid, (latest) => {
+    if (JSON.stringify(latest.mock) !== expectedMock)
+      throw new JobUpdateError(
+        'CONFLICT',
+        'The interview has moved on. Please reload and try again.',
+      );
+    return {
+      ...latest,
+      mock,
+      ...(finished
+        ? {
+            mockPast: [
+              {
+                at: mock.startedAt,
+                verdicts: mock.turns.map((t) => t.feedback.verdict),
+                summary: mock.summary,
+              },
+              ...(latest.mockPast ?? []),
+            ].slice(0, 5),
+          }
+        : {}),
+      updatedAt: now,
+    };
+  });
+  if ('error' in saved) return saved.error;
+  const { job } = saved;
   return NextResponse.json({ job }, { headers: { 'Cache-Control': 'no-store' } });
 }

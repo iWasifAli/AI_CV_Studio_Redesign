@@ -5,7 +5,8 @@ import { runTask } from '@/modules/ai/run';
 import { prepareJobAi } from '@/modules/jobs/ai-route';
 import { profileDigest } from '@/modules/jobs/digest';
 import { applyTailor } from '@/modules/jobs/match';
-import { getUserStore } from '@/modules/store';
+import { withSent } from '@/modules/jobs/server';
+import { saveJobUpdate } from '@/modules/jobs/updates';
 import { noteUse } from '@/modules/metrics/activity';
 
 export const runtime = 'nodejs';
@@ -49,16 +50,18 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     );
   const document = applyTailor(p.doc, tailor.result, digest, p.job);
   const now = new Date().toISOString();
-  const next = {
-    ...p.job,
-    letter: { ...letter.result, tone, documentId: document.id, updatedAt: now },
-    documentIds: [...p.job.documentIds.filter((x) => x !== document.id), document.id].slice(-10),
-    kit: { cvId: document.id, at: now },
-    updatedAt: now,
-  } as typeof p.job;
-  await getUserStore().putJob(p.user.uid, next);
+  const saved = await saveJobUpdate(p.user.uid, p.job.id, p.rid, (latest) =>
+    withSent(p.user.uid, latest, {
+      ...latest,
+      letter: { ...letter.result, tone, documentId: document.id, updatedAt: now },
+      documentIds: [...latest.documentIds.filter((x) => x !== document.id), document.id].slice(-10),
+      kit: { cvId: document.id, at: now },
+      updatedAt: now,
+    }),
+  );
+  if ('error' in saved) return saved.error;
   return NextResponse.json(
-    { document, job: next, findings: tailor.findings.length + letter.findings.length },
+    { document, job: saved.job, findings: tailor.findings.length + letter.findings.length },
     { headers: { 'Cache-Control': 'no-store' } },
   );
 }

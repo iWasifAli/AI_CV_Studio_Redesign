@@ -6,7 +6,7 @@ import { prepareJobAi } from '@/modules/jobs/ai-route';
 import { profileDigest } from '@/modules/jobs/digest';
 import { noteUse } from '@/modules/metrics/activity';
 import { track } from '@/modules/metrics/server';
-import { getUserStore } from '@/modules/store';
+import { saveJobUpdate } from '@/modules/jobs/updates';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -50,11 +50,13 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
       p.rid,
     );
   await track('brief_ok');
-  const job = {
-    ...p.job,
-    brief: { ...r.result, at: new Date().toISOString() },
-    updatedAt: new Date().toISOString(),
-  };
-  await getUserStore().putJob(p.user.uid, job);
+  const now = new Date().toISOString();
+  const saved = await saveJobUpdate(p.user.uid, p.job.id, p.rid, (latest) => ({
+    ...latest,
+    brief: { ...r.result, at: now },
+    updatedAt: now,
+  }));
+  if ('error' in saved) return saved.error;
+  const { job } = saved;
   return NextResponse.json({ job }, { headers: { 'Cache-Control': 'no-store' } });
 }

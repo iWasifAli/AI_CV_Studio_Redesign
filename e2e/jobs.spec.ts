@@ -38,6 +38,11 @@ test.describe('free account', () => {
     );
 
     // Move with the select: lands in Applied with today's date.
+    const actions = page
+      .getByTestId('job-card')
+      .filter({ hasText: 'Delivery Driver' })
+      .locator('summary');
+    if (await actions.count()) await actions.click();
     await page.getByLabel('Stage for Delivery Driver').selectOption('applied');
     await expect(page.locator('[data-stage="applied"]')).toContainText('Delivery Driver');
     await expect(page.locator('[data-stage="applied"]')).toContainText('Applied');

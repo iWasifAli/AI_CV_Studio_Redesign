@@ -13,6 +13,7 @@ import { useToast } from '@/components/ui/toast';
 import { useAccount } from '@/features/account/account-context';
 import { useEntitlements } from '@/features/account/entitlements';
 import type { JobFromUrl } from '@/modules/jobs/from-url';
+import { resolveJobBoard, type JobBoardState } from '@/modules/jobs/board';
 import {
   JOB_OUTCOMES,
   JOB_STAGES,
@@ -23,17 +24,50 @@ import {
   type JobStage,
 } from '@/modules/jobs/schema';
 import { JobsError, jobsApi } from './api';
+import { EnhancedBoard } from './enhanced-board';
+import {
+  createBoardRequestScope,
+  makeBoardMove,
+  previewBoardMove,
+  reconcileBoardRefreshJobs,
+} from './board-ui-state';
 
 const fmt = (d: string) =>
   new Date(d).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
 
-/** Job tracker board: one column per stage (stacked on phones), move with a select. */
-export function JobsBoard() {
+type BoardData = { jobs: Job[]; max: number; board: JobBoardState };
+type BoardAction =
+  | { jobId: string; stage: JobStage; beforeId: string | null }
+  | { jobId: string; outcome: JobOutcome | '' };
+
+const boardData = (data: { jobs: Job[]; max: number; board?: JobBoardState }): BoardData => ({
+  ...data,
+  board: resolveJobBoard(data.jobs, data.board),
+});
+
+/** Both renderers share account, add flow and one serialized mutation controller. */
+export function JobsBoard({ enhanced = false }: { enhanced?: boolean }) {
+  const account = useAccount();
+  // Account identity owns the controller: a switch immediately discards its display state.
+  return (
+    <JobsBoardSession
+      key={account.status === 'signedIn' ? `account:${account.user?.uid}` : account.status}
+      enhanced={enhanced}
+    />
+  );
+}
+
+function JobsBoardSession({ enhanced }: { enhanced: boolean }) {
   const t = useT();
   const account = useAccount();
   const { ent } = useEntitlements();
   const toast = useToast();
-  const [data, setData] = useState<{ jobs: Job[]; max: number } | null>(null);
+  const [scope] = useState(createBoardRequestScope);
+  const [data, setData] = useState<BoardData | null>(null);
+  const confirmed = useRef<BoardData | null>(null);
+  const requestGuard = useRef(true);
+  const [pending, setPending] = useState(true);
+  const [needsRetry, setNeedsRetry] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [opened, setOpened] = useState(false);
   // The Create sheet and Studio Home link here with ?new=1 to open the form straight away.
@@ -46,27 +80,136 @@ export function JobsBoard() {
     if (!v && wantsNew) router.replace('/jobs', { scroll: false });
   };
 
-  const load = useCallback(() => {
-    jobsApi.list().then(setData, (e: Error) => setError(e.message));
+  const refetch = useCallback(async (isCurrent: () => boolean) => {
+    const atStart = confirmed.current?.jobs ?? [];
+    const response = await jobsApi.list();
+    if (!isCurrent()) return false;
+    const next = boardData({
+      ...response,
+      jobs: reconcileBoardRefreshJobs(response.jobs, atStart, confirmed.current?.jobs ?? []),
+    });
+    confirmed.current = next;
+    setData(next);
+    return true;
   }, []);
-  useEffect(() => {
-    if (account.status === 'signedIn') load();
-  }, [account.status, load]);
 
-  const move = async (job: Job, patch: { stage?: JobStage; outcome?: JobOutcome }) => {
+  const load = useCallback(async () => {
+    const isCurrent = scope.capture();
+    if (!isCurrent()) return;
+    requestGuard.current = true;
+    setPending(true);
+    setNeedsRetry(false);
+    try {
+      if (!(await refetch(isCurrent)) || !isCurrent()) return;
+      setError(null);
+      requestGuard.current = false;
+      setPending(false);
+    } catch (e) {
+      if (!isCurrent()) return;
+      setError((e as Error).message);
+      setNeedsRetry(true);
+    }
+  }, [refetch, scope]);
+  useEffect(() => {
+    if (account.status !== 'signedIn') return;
+    scope.open();
+    const isCurrent = scope.capture();
+    requestGuard.current = true;
+    void jobsApi.list().then(
+      (response) => {
+        if (!isCurrent()) return;
+        const next = boardData(response);
+        confirmed.current = next;
+        setData(next);
+        requestGuard.current = false;
+        setPending(false);
+      },
+      (e: Error) => {
+        if (!isCurrent()) return;
+        setError(e.message);
+        setNeedsRetry(true);
+      },
+    );
+    return () => {
+      scope.close();
+      confirmed.current = null;
+      requestGuard.current = true;
+    };
+  }, [account.status, account.user?.uid, scope]);
+
+  const move = async (action: BoardAction) => {
+    const isCurrent = scope.capture();
+    // State alone is too late to reject a second event in the same render frame.
+    if (!isCurrent() || requestGuard.current || !confirmed.current) return;
+    const snapshot = confirmed.current;
+    const job = snapshot.jobs.find((item) => item.id === action.jobId);
+    if (!job) return;
+    const movement =
+      'stage' in action
+        ? makeBoardMove(snapshot.jobs, snapshot.board, job.id, action.stage, action.beforeId)
+        : null;
+    if ('stage' in action && !movement) return;
+    if ('outcome' in action && (job.outcome ?? '') === action.outcome) return;
+    requestGuard.current = true;
+    setPending(true);
+    setError(null);
     setData(
-      (d) => d && { ...d, jobs: d.jobs.map((j) => (j.id === job.id ? { ...j, ...patch } : j)) },
+      movement
+        ? { ...snapshot, ...previewBoardMove(snapshot.jobs, snapshot.board, movement) }
+        : {
+            ...snapshot,
+            jobs: snapshot.jobs.map((item) =>
+              item.id === job.id && 'outcome' in action
+                ? { ...item, outcome: action.outcome }
+                : item,
+            ),
+          },
     );
     try {
-      const next = await jobsApi.update(job.id, patch);
-      setData((d) => d && { ...d, jobs: d.jobs.map((j) => (j.id === job.id ? next : j)) });
+      const result =
+        movement && enhanced
+          ? await jobsApi.move(movement)
+          : {
+              job: await jobsApi.update(
+                job.id,
+                'stage' in action ? { stage: action.stage } : { outcome: action.outcome },
+              ),
+              board: undefined,
+            };
+      if (!isCurrent()) return;
+      // A job can be added while a move is in flight. Merge into the latest confirmed list.
+      const latest = confirmed.current ?? snapshot;
+      const next = boardData({
+        ...latest,
+        jobs: latest.jobs.map((item) => (item.id === job.id ? result.job : item)),
+        board: result.board ?? latest.board,
+      });
+      confirmed.current = next;
+      setData(next);
       toast.show({
         tone: 'success',
-        message: patch.stage ? `Moved to ${STAGE_LABEL[patch.stage]}` : 'Saved',
+        message:
+          movement && movement.fromStage !== movement.toStage
+            ? t('Moved to {stage}', { stage: t(STAGE_LABEL[movement.toStage]) })
+            : t('Saved'),
       });
+      requestGuard.current = false;
+      setPending(false);
     } catch (e) {
+      if (!isCurrent()) return;
       setError((e as Error).message);
-      load();
+      setData(confirmed.current);
+      try {
+        // A failed request may have committed. Reconcile before accepting any more edits.
+        if (!(await refetch(isCurrent)) || !isCurrent()) return;
+        requestGuard.current = false;
+        setPending(false);
+      } catch {
+        if (!isCurrent()) return;
+        // Dismissal during the refresh must not hide the only way to unlock movement.
+        setError((e as Error).message);
+        setNeedsRetry(true);
+      }
     }
   };
 
@@ -87,7 +230,15 @@ export function JobsBoard() {
     );
   if (!data)
     return error ? (
-      <Banner tone="error" title={error} />
+      <Banner
+        tone="error"
+        title={error}
+        action={
+          <Button variant="secondary" onClick={() => void load()} disabled={!needsRetry}>
+            {t('Retry')}
+          </Button>
+        }
+      />
     ) : (
       <div className="skeleton h-72 rounded-lg" aria-busy="true" aria-label={t('Loading')} />
     );
@@ -141,8 +292,20 @@ export function JobsBoard() {
         </Banner>
       )}
       {error && (
-        <Banner tone="error" title={t('That didn’t work')} onDismiss={() => setError(null)}>
+        <Banner
+          tone="error"
+          title={t('That didn’t work')}
+          onDismiss={needsRetry ? undefined : () => setError(null)}
+          action={
+            needsRetry ? (
+              <Button variant="secondary" onClick={() => void load()}>
+                {t('Retry')}
+              </Button>
+            ) : undefined
+          }
+        >
           {t(error)}
+          {needsRetry && <p>{t('Refresh the board before moving jobs again.')}</p>}
         </Banner>
       )}
       {adding && (
@@ -151,13 +314,32 @@ export function JobsBoard() {
           canFetch={ent?.features.jobFromUrl !== false}
           onCancel={() => setAdding(false)}
           onAdded={(job) => {
+            if (!scope.capture()()) return;
             setAdding(false);
-            setData((d) => d && { ...d, jobs: [job, ...d.jobs] });
+            const latest = confirmed.current;
+            if (latest) {
+              // A recovery GET may acknowledge creation before its POST response arrives.
+              const includeJob = (jobs: Job[]) =>
+                jobs.some((item) => item.id === job.id) ? jobs : [job, ...jobs];
+              confirmed.current = boardData({ ...latest, jobs: includeJob(latest.jobs) });
+              setData(
+                (display) => display && boardData({ ...display, jobs: includeJob(display.jobs) }),
+              );
+            }
             toast.show({ tone: 'success', message: 'Job added' });
           }}
         />
       )}
-      {data.jobs.length === 0 && !adding ? (
+      {enhanced ? (
+        <EnhancedBoard
+          jobs={data.jobs}
+          board={data.board}
+          pending={pending}
+          onMove={(jobId, stage, beforeId) => move({ jobId, stage, beforeId })}
+          onOutcome={(jobId, outcome) => move({ jobId, outcome })}
+          reminder={(job) => <NextReminder job={job} />}
+        />
+      ) : data.jobs.length === 0 && !adding ? (
         <div className="border-line-strong bg-surface flex flex-col items-center gap-3 rounded-lg border border-dashed px-6 py-14 text-center">
           <Briefcase aria-hidden size={28} className="text-primary" />
           <h2 className="text-xl font-semibold">{t('No jobs yet')}</h2>
@@ -214,7 +396,14 @@ export function JobsBoard() {
                         className="border-line-strong bg-surface h-9 min-w-0 flex-1 rounded-sm border px-1.5"
                         value={j.stage}
                         aria-label={t('Stage for {title}', { title: j.title })}
-                        onChange={(e) => void move(j, { stage: e.target.value as JobStage })}
+                        disabled={pending}
+                        onChange={(e) =>
+                          void move({
+                            jobId: j.id,
+                            stage: e.target.value as JobStage,
+                            beforeId: null,
+                          })
+                        }
                       >
                         {JOB_STAGES.map((s) => (
                           <option key={s} value={s}>
@@ -230,7 +419,10 @@ export function JobsBoard() {
                           className="border-line-strong bg-surface h-9 min-w-0 flex-1 rounded-sm border px-1.5"
                           value={j.outcome ?? ''}
                           aria-label={t('How it ended: {title}', { title: j.title })}
-                          onChange={(e) => void move(j, { outcome: e.target.value as JobOutcome })}
+                          disabled={pending}
+                          onChange={(e) =>
+                            void move({ jobId: j.id, outcome: e.target.value as JobOutcome | '' })
+                          }
                         >
                           <option value="">{t('Not said')}</option>
                           {JOB_OUTCOMES.map((o) => (

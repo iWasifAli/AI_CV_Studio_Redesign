@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { apiError, readJson, requestId } from '@/lib/http';
 import { currentUser } from '@/modules/identity/session';
 import { applyJobPatch, withSent } from '@/modules/jobs/server';
+import { JobUpdateError, saveJobUpdate } from '@/modules/jobs/updates';
 import { getUserStore } from '@/modules/store';
 
 export const runtime = 'nodejs';
@@ -33,11 +34,14 @@ export async function PUT(req: Request, ctx: Ctx) {
   if ('error' in r) return r.error;
   const body = await readJson(req, 64 * 1024);
   if (!body.ok) return apiError(body.code, 'Invalid request.', r.rid);
-  const next = applyJobPatch(r.job, body.value);
-  if ('error' in next) return apiError('INVALID_INPUT', next.error, r.rid);
-  const saved = await withSent(r.user.uid, r.job, next);
-  await getUserStore().putJob(r.user.uid, saved);
-  return NextResponse.json({ job: saved }, noStore);
+  const now = new Date();
+  const saved = await saveJobUpdate(r.user.uid, r.job.id, r.rid, async (latest) => {
+    const next = applyJobPatch(latest, body.value, now);
+    if ('error' in next) throw new JobUpdateError('INVALID_INPUT', next.error);
+    return withSent(r.user.uid, latest, next);
+  });
+  if ('error' in saved) return saved.error;
+  return NextResponse.json({ job: saved.job }, noStore);
 }
 
 export async function DELETE(_req: Request, ctx: Ctx) {
