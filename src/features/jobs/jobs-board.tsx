@@ -1,11 +1,6 @@
 'use client';
 
-import {
-  useWorkspaceState,
-  useWorkspaceTask,
-  useWorkspace,
-  useWorkspaceClean,
-} from '@/features/workspace/context';
+import { useWorkspaceState, useWorkspaceTask, useWorkspace } from '@/features/workspace/context';
 
 import { useT } from '@/i18n/client';
 import { useSearchParams } from 'next/navigation';
@@ -30,6 +25,7 @@ import type { JobFromUrl } from '@/modules/jobs/from-url';
 import { resolveJobBoard, type JobBoardState } from '@/modules/jobs/board';
 import { STAGE_LABEL, type Job, type JobOutcome, type JobStage } from '@/modules/jobs/schema';
 import { JobsError, jobsApi } from './api';
+import { useWorkspaceAcknowledge } from '@/features/workspace/use-acknowledge';
 import { creationIntent, keepLaterEdits, revisionOf, type CreationIntent } from './workspace-state';
 import { EnhancedBoard } from './enhanced-board';
 import {
@@ -435,7 +431,11 @@ function AddJob({
   const t = useT();
   const runTask = useWorkspaceTask();
   const { ownerUid, store, tabId, routeKey } = useWorkspace();
-  const markClean = useWorkspaceClean();
+  const acknowledgeTitle = useWorkspaceAcknowledge<string>('jobs.AddJob.title');
+  const acknowledgeCompany = useWorkspaceAcknowledge<string>('jobs.AddJob.company');
+  const acknowledgeLocation = useWorkspaceAcknowledge<string>('jobs.AddJob.location');
+  const acknowledgeUrl = useWorkspaceAcknowledge<string>('jobs.AddJob.url');
+  const acknowledgeAdvert = useWorkspaceAcknowledge<string>('jobs.AddJob.advert');
   const [intent, setIntent] = useWorkspaceState<CreationIntent | null>('jobs.AddJob.intent', null, {
     dirty: false,
   });
@@ -572,18 +572,14 @@ function AddJob({
         const input = { title, company, location, url, advert };
         const nextIntent = creationIntent(intent, input);
         setIntent(nextIntent);
+        // Persist the retry key before creation can succeed on the server.
+        await store?.flush();
+        signal.throwIfAborted();
         const created = await jobsApi.create(input, {
           signal,
           ownerUid,
           idempotencyKey: nextIntent.key,
         });
-        const unchanged =
-          !store ||
-          !tabId ||
-          Object.entries(input).every(
-            ([field, value]) =>
-              store.readFeature(tabId, `${routeKey}:jobs.AddJob.${field}`) === value,
-          );
         onAdded(created);
         setTitle((current) => keepLaterEdits(current, title, ''));
         setCompany((current) => keepLaterEdits(current, company, ''));
@@ -591,7 +587,12 @@ function AddJob({
         setUrl((current) => keepLaterEdits(current, url, ''));
         setAdvert((current) => keepLaterEdits(current, advert, ''));
         setIntent(null);
-        if (unchanged) markClean();
+        // Only the cleared fields are acknowledged; later edits keep their dirty state.
+        acknowledgeTitle('');
+        acknowledgeCompany('');
+        acknowledgeLocation('');
+        acknowledgeUrl('');
+        acknowledgeAdvert('');
       });
     } catch (err) {
       setError(err instanceof JobsError ? err.message : 'That didn’t work. Please try again.');

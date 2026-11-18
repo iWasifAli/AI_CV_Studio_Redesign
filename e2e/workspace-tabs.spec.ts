@@ -845,3 +845,178 @@ test.describe('visitors', () => {
     await expect(page.getByRole('button', { name: 'New workspace', exact: true })).toHaveCount(0);
   });
 });
+
+test.describe('review regression: restored server records and saved forms', () => {
+  test.beforeEach(async ({ page }) => allowReload(page));
+
+  for (const unsaved of [false, true]) {
+    test(`portfolio restores current privacy settings with unsaved address=${unsaved}`, async ({
+      page,
+    }, info) => {
+      await seedDocument(page, driver);
+      await page.goto('/portfolio');
+      await expect
+        .poll(async () => (await page.request.get(`/api/documents/${driver.id}`)).status())
+        .toBe(200);
+      const slug = `review-${info.project.name}-${Date.now().toString(36)}`;
+      await page.getByLabel('Your address').fill(slug);
+      await page.getByLabel('Show my email address').check();
+      await page.getByRole('button', { name: 'Create my page' }).click();
+      await expect(page.getByTestId('portfolio-live')).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Save changes' })).toBeDisabled();
+      if (unsaved) await page.getByLabel('Your address').fill(`${slug}-draft`);
+      const current = (await (await page.request.get('/api/portfolio')).json()).portfolio;
+      expect(
+        (
+          await page.request.put('/api/portfolio', {
+            data: { ...current, published: false, showEmail: false, showPhone: false },
+          })
+        ).ok(),
+      ).toBe(true);
+      let release!: () => void;
+      if (unsaved) {
+        const gate = new Promise<void>((resolve) => {
+          release = resolve;
+        });
+        await page.route('**/api/portfolio', async (route) => {
+          if (route.request().method() === 'GET') await gate;
+          await route.continue();
+        });
+      }
+      try {
+        await page.reload();
+        if (unsaved)
+          await expect(page.getByRole('button', { name: 'Save changes' })).toBeDisabled();
+      } finally {
+        release?.();
+      }
+      await expect(page.getByLabel('Page is published')).not.toBeChecked();
+      await expect(page.getByLabel('Show my email address')).not.toBeChecked();
+      await expect(page.getByLabel('Your address')).toHaveValue(unsaved ? `${slug}-draft` : slug);
+      if (unsaved) {
+        await page.getByRole('button', { name: 'Save changes' }).click();
+        await expect(page.getByRole('button', { name: 'Save changes' })).toBeDisabled();
+        const saved = (await (await page.request.get('/api/portfolio')).json()).portfolio;
+        expect(saved).toMatchObject({ slug: `${slug}-draft`, published: false, showEmail: false });
+      }
+    });
+  }
+
+  test('letter reload refreshes saved content and tone while retaining a personal edit', async ({
+    page,
+  }) => {
+    const created = await page.request.post('/api/letters', {
+      data: {
+        type: 'cover',
+        subject: 'Application',
+        greeting: 'Original greeting',
+        paragraphs: ['Original paragraph'],
+        tone: 'warm',
+      },
+    });
+    expect(created.ok()).toBe(true);
+    const { letter } = await created.json();
+    await page.goto(`/letters/${letter.id}`);
+    await expect(page.getByLabel('Greeting')).toHaveValue('Original greeting');
+    expect(
+      (
+        await page.request.put(`/api/letters/${letter.id}`, {
+          data: {
+            greeting: 'Remote greeting',
+            paragraphs: ['Remote paragraph'],
+            tone: 'formal',
+            expectedRevision: letter.revision,
+          },
+        })
+      ).ok(),
+    ).toBe(true);
+    await page.reload();
+    await expect(page.getByLabel('Greeting')).toHaveValue('Remote greeting');
+    await expect(page.getByLabel('Paragraph 1', { exact: true })).toHaveValue('Remote paragraph');
+    await page.getByText('Your answers and a new AI draft', { exact: true }).click();
+    await expect(page.getByRole('radio', { name: 'Formal', exact: true })).toBeChecked();
+    await expect(page.getByRole('button', { name: 'Download PDF', exact: true })).toBeEnabled();
+    await page.getByLabel('Greeting').fill('My personal greeting');
+    expect(
+      (
+        await page.request.put(`/api/letters/${letter.id}`, {
+          data: {
+            greeting: 'Another remote greeting',
+            paragraphs: ['Newest paragraph'],
+          },
+        })
+      ).ok(),
+    ).toBe(true);
+    await page.reload();
+    await expect(page.getByLabel('Greeting')).toHaveValue('My personal greeting');
+    await expect(page.getByLabel('Paragraph 1', { exact: true })).toHaveValue('Newest paragraph');
+    await expect(page.getByRole('button', { name: 'Download PDF', exact: true })).toBeDisabled();
+  });
+
+  test('job reload updates stage and revision without replacing unsaved notes', async ({
+    page,
+  }) => {
+    const created = await page.request.post('/api/jobs', {
+      data: { title: 'Engineer', notes: 'Original notes' },
+    });
+    expect(created.ok()).toBe(true);
+    const { job } = await created.json();
+    await page.goto(`/jobs/${job.id}`);
+    await expect(page.getByLabel(/^Notes/)).toHaveValue('Original notes');
+    await page.getByLabel(/^Notes/).fill('My unsaved notes');
+    expect(
+      (
+        await page.request.put(`/api/jobs/${job.id}`, {
+          data: { stage: 'applied', expectedRevision: job.revision },
+        })
+      ).ok(),
+    ).toBe(true);
+    await page.reload();
+    await expect(page.getByRole('radio', { name: 'Applied', exact: true })).toBeChecked();
+    await expect(page.getByLabel(/^Notes/)).toHaveValue('My unsaved notes');
+    await page.getByRole('button', { name: 'Save changes', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Save changes', exact: true })).toBeDisabled();
+    const latest = (await (await page.request.get(`/api/jobs/${job.id}`)).json()).job;
+    expect(latest).toMatchObject({ stage: 'applied', notes: 'My unsaved notes' });
+    expect(latest.revision).toBeGreaterThan(job.revision);
+  });
+
+  test('saved story and job forms allow sign-out without a false recovery prompt', async ({
+    page,
+    isMobile,
+  }) => {
+    await page.goto('/stories');
+    await page.getByRole('button', { name: 'New story', exact: true }).click();
+    await page
+      .getByTestId('story-editor')
+      .getByLabel('Title', { exact: true })
+      .fill('Reduced delays');
+    await page
+      .getByTestId('story-editor')
+      .getByLabel('Action', { exact: true })
+      .fill('I improved scheduling.');
+    await page.getByRole('button', { name: 'Save story', exact: true }).click();
+    await expect(page.getByTestId('story-editor')).toBeHidden();
+    await page.goto('/jobs?new=1');
+    await page.getByLabel('Job title', { exact: true }).fill('Engineer');
+    await page.getByRole('button', { name: 'Save job', exact: true }).click();
+    await expect(page.getByRole('form', { name: 'Add a job' })).toBeHidden();
+    await signOut(page, isMobile);
+    await expect(exitPrompt(page)).toBeHidden();
+    await expect(workspaces(page)).toBeHidden();
+  });
+
+  test('skill plans can switch from a typed role back to a saved job', async ({ page }) => {
+    await seedDocument(page, driver);
+    const created = await page.request.post('/api/jobs', { data: { title: 'Engineer' } });
+    expect(created.ok()).toBe(true);
+    const { job } = await created.json();
+    await page.goto('/skills?role=Planner');
+    await expect(page.getByLabel('The role', { exact: true })).toHaveValue('Planner');
+    await page.getByLabel('One of my jobs', { exact: true }).check();
+    await expect(page.getByLabel('Job', { exact: true })).toBeEnabled();
+    await expect(page.getByLabel('Job', { exact: true })).toHaveValue(job.id);
+    await page.getByLabel('A role I’d like', { exact: true }).check();
+    await expect(page.getByLabel('The role', { exact: true })).toHaveValue('Planner');
+  });
+});

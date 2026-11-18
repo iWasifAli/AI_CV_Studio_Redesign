@@ -5,7 +5,8 @@ import { useCurrentWorkspaceValue } from '@/features/workspace/use-current-value
 
 import { useWorkspaceTask } from '@/features/workspace/context';
 
-import { useWorkspaceState, useWorkspaceClean } from '@/features/workspace/context';
+import { useWorkspaceState } from '@/features/workspace/context';
+import { useWorkspaceAcknowledge } from '@/features/workspace/use-acknowledge';
 
 import { useT } from '@/i18n/client';
 import Link from '@/features/workspace/navigation';
@@ -52,7 +53,7 @@ const QUESTION = /\{\{\?[^}]*\}\}/;
  */
 export function StoryBank() {
   const runTask = useWorkspaceTask();
-  const markClean = useWorkspaceClean();
+  const acknowledgeEditing = useWorkspaceAcknowledge<Draft | null>('stories.StoryBank.editing');
 
   const t = useT();
   const account = useAccount();
@@ -161,12 +162,9 @@ export function StoryBank() {
           : await storiesApi.create(input, { signal, ownerUid: account.user?.uid });
         signal.throwIfAborted();
         setStories((current) => [saved, ...current.filter((s) => s.id !== saved.id)]);
-        let unchanged = false;
-        setEditing((current) => {
-          unchanged = JSON.stringify(current) === JSON.stringify(editing);
-          return unchanged ? null : current;
-        });
-        if (unchanged) markClean();
+        setEditing((current) => (sameSnapshotValue(current, editing) ? null : current));
+        // Closing/cancelling is clean; any newer draft stays dirty until it is saved or cancelled.
+        acknowledgeEditing(null);
         toast.show({ tone: 'success', message: 'Story saved' });
       } catch (e) {
         signal.throwIfAborted();

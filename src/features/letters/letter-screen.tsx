@@ -5,15 +5,20 @@ import {
   useWorkspaceTask,
   useWorkspace,
   useWorkspaceDownload,
-  useWorkspaceClean,
 } from '@/features/workspace/context';
+
+import { useWorkspaceAcknowledge } from '@/features/workspace/use-acknowledge';
+import {
+  isNewerCanonical,
+  reconcileCanonicalFields,
+} from '@/features/workspace/canonical-reconciliation';
 
 import { useWorkspaceTitle } from '@/features/workspace/use-title';
 import { useLang, useT } from '@/i18n/client';
 import Link from '@/features/workspace/navigation';
 import { useSearchParams } from 'next/navigation';
 import { useWorkspaceRouter as useRouter } from '@/features/workspace/navigation';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Download, Lock, Sparkles, Trash2 } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
 import { Button, ButtonLink } from '@/components/ui/button';
@@ -23,7 +28,7 @@ import { useToast } from '@/components/ui/toast';
 import { useAccount, useRepositoryVersion } from '@/features/account/account-context';
 import { useEntitlements } from '@/features/account/entitlements';
 import { JobsError, type ConflictDetails } from '@/features/jobs/api';
-import { keepLaterEdits, revisionOf } from '@/features/jobs/workspace-state';
+import { revisionOf } from '@/features/jobs/workspace-state';
 import { ConflictNotice } from '@/features/jobs/conflict-notice';
 import { buildLetterHtml } from '@/modules/letters/build-letter';
 import type { SavedLetter } from '@/modules/letters/schema';
@@ -109,7 +114,8 @@ export function SavedLetterEditor({ initial }: { initial: SavedLetter }) {
   const router = useRouter();
   const runTask = useWorkspaceTask();
   const { ownerUid, store, tabId, routeKey } = useWorkspace();
-  const markClean = useWorkspaceClean();
+  const acknowledgeDraft = useWorkspaceAcknowledge<Editable>('letters.Editor.draft');
+  const acknowledgeTone = useWorkspaceAcknowledge<SavedLetter['tone']>('letters.Editor.tone');
   const [conflict, setConflict] = useWorkspaceState<ConflictDetails | null>(
     'letters.Editor.conflict',
     null,
@@ -134,6 +140,40 @@ export function SavedLetterEditor({ initial }: { initial: SavedLetter }) {
   );
   useWorkspaceTitle(draft.subject || type.title);
   const [tone, setTone] = useWorkspaceState('letters.Editor.tone', initial.tone, { dirty: true });
+  const acceptCanonical = useCallback(
+    (
+      next: SavedLetter,
+      submitted?: { draft: Editable; tone: SavedLetter['tone'] },
+      preserveDraft = false,
+    ) => {
+      let previous: SavedLetter | undefined;
+      setSaved((current) => {
+        if (!isNewerCanonical(current, next)) return current;
+        previous = current;
+        return next;
+      });
+      if (!previous) return false;
+      if (!preserveDraft) {
+        setDraft((current) =>
+          reconcileCanonicalFields(
+            current,
+            submitted?.draft ?? editable(previous!),
+            editable(next),
+          ),
+        );
+        setTone((current) =>
+          current === (submitted?.tone ?? previous!.tone) ? next.tone : current,
+        );
+      }
+      acknowledgeDraft(editable(next));
+      acknowledgeTone(next.tone);
+      return true;
+    },
+    [setSaved, setDraft, setTone, acknowledgeDraft, acknowledgeTone],
+  );
+  useEffect(() => {
+    acceptCanonical(initial);
+  }, [initial, acceptCanonical]);
   const [busy, setBusy] = useState<null | 'save' | 'ai' | 'pdf' | 'delete'>(null);
   const [problem, setProblem] = useWorkspaceState<{ message: string; premium?: boolean } | null>(
     'letters.Editor.problem',
@@ -241,13 +281,7 @@ export function SavedLetterEditor({ initial }: { initial: SavedLetter }) {
         },
         { signal, ownerUid, expectedRevision: revisionOf(saved) },
       );
-      const latest =
-        store && tabId ? store.readFeature(tabId, `${routeKey}:letters.Editor.draft`) : draft;
-      const latestTone =
-        store && tabId ? store.readFeature(tabId, `${routeKey}:letters.Editor.tone`) : tone;
-      setSaved(next);
-      setDraft((current) => keepLaterEdits(current, draft, editable(next)));
-      if (JSON.stringify(latest) === JSON.stringify(draft) && latestTone === tone) markClean();
+      acceptCanonical(next, { draft, tone });
       setConflict(null);
       toast.show({ tone: 'success', message: 'Letter saved' });
     });
@@ -261,16 +295,20 @@ export function SavedLetterEditor({ initial }: { initial: SavedLetter }) {
           { ...draft, tone },
           { signal, ownerUid, expectedRevision: revisionOf(saved) },
         );
-        setSaved(baseline);
+        acceptCanonical(baseline, { draft, tone });
       }
       const r = await lettersApi.draft(saved.id, design, tone, {
         signal,
         ownerUid,
         expectedRevision: revisionOf(baseline),
       });
-      setSaved(r.letter);
-      if (generationInputs() === submitted) {
+      const unchanged = generationInputs() === submitted;
+      if (!acceptCanonical(r.letter, undefined, true)) return;
+      if (unchanged) {
         setDraft(editable(r.letter));
+        setTone(r.letter.tone);
+        acknowledgeDraft(editable(r.letter));
+        acknowledgeTone(r.letter.tone);
         setSuggestion(null);
       } else setSuggestion(editable(r.letter));
       refresh();

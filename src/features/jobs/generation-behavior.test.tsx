@@ -332,6 +332,7 @@ describe('generation after a workspace remount', () => {
       const letter = {
         ...initial,
         paragraphs: ['Warm generated letter'],
+        revision: 3,
         email: { subject: '', body: '' },
       };
       resolve(kind === 'jobs' ? { job: { ...baseJob(), letter } } : { letter });

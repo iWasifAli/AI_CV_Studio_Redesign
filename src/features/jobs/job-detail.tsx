@@ -1,17 +1,19 @@
 'use client';
 
+import { useWorkspaceState, useWorkspaceTask, useWorkspace } from '@/features/workspace/context';
+
+import { useWorkspaceAcknowledge } from '@/features/workspace/use-acknowledge';
 import {
-  useWorkspaceState,
-  useWorkspaceTask,
-  useWorkspace,
-  useWorkspaceClean,
-} from '@/features/workspace/context';
+  isNewerCanonical,
+  reconcileCanonicalFields,
+} from '@/features/workspace/canonical-reconciliation';
+import { sameSnapshotValue } from '@/features/workspace/equality';
 
 import { useWorkspaceTitle } from '@/features/workspace/use-title';
 import { useT } from '@/i18n/client';
 import Link from '@/features/workspace/navigation';
 import { useWorkspaceRouter as useRouter } from '@/features/workspace/navigation';
-import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { ArrowLeft, ExternalLink, Trash2 } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
@@ -30,7 +32,7 @@ import {
 } from '@/modules/jobs/schema';
 import { getRepository } from '@/modules/storage/repository';
 import { jobsApi, JobsError, type ConflictDetails } from './api';
-import { keepLaterEdits, revisionOf } from './workspace-state';
+import { revisionOf } from './workspace-state';
 import { ConflictNotice } from './conflict-notice';
 import { JobTools } from './job-tools';
 import { CompanyBrief } from './company-brief';
@@ -85,7 +87,7 @@ export function JobDetail({ id }: { id: string }) {
     let live = true;
     jobsApi.get(id, { ownerUid }).then(
       (j) => {
-        if (live) setJob((current) => current ?? j);
+        if (live) setJob((current) => (!current || isNewerCanonical(current, j) ? j : current));
       },
       (e: Error) => {
         if (live) setError(e.message);
@@ -104,12 +106,12 @@ export function JobDetail({ id }: { id: string }) {
   return <JobDetailForm initial={job} />;
 }
 
-function JobDetailForm({ initial }: { initial: Job }) {
+export function JobDetailForm({ initial }: { initial: Job }) {
   const t = useT();
   const router = useRouter();
   const runTask = useWorkspaceTask();
   const { ownerUid, store, tabId, routeKey } = useWorkspace();
-  const markClean = useWorkspaceClean();
+  const acknowledgeDraft = useWorkspaceAcknowledge<Draft>('jobs.JobDetail.draft');
   const [conflict, setConflict] = useWorkspaceState<ConflictDetails | null>(
     'jobs.JobDetail.conflict',
     null,
@@ -127,6 +129,32 @@ function JobDetailForm({ initial }: { initial: Job }) {
   });
   useWorkspaceTitle([draft.title, draft.company].filter(Boolean).join(' · '));
   const [saving, setSaving] = useState(false);
+  const baseline = useRef(pick(job));
+  useEffect(() => {
+    const canonical = isNewerCanonical(job, initial) ? initial : job;
+    if (canonical !== job) setJob(canonical);
+    const acknowledged =
+      store && tabId
+        ? (store.getTab(tabId)?.features[`${routeKey}:jobs.JobDetail.draft`]?.baseline?.value as
+            Draft | undefined)
+        : undefined;
+    const previous = acknowledged ?? baseline.current;
+    const next = pick(canonical);
+    if (!sameSnapshotValue(previous, next)) {
+      setDraft((current) => reconcileCanonicalFields(current, previous, next));
+      acknowledgeDraft(next);
+    }
+    baseline.current = next;
+  }, [initial, job, store, tabId, routeKey, setJob, setDraft, acknowledgeDraft]);
+
+  const acceptJob = (next: Job) => {
+    let accepted = false;
+    setJob((current) => {
+      accepted = isNewerCanonical(current, next);
+      return accepted ? next : current;
+    });
+    return accepted;
+  };
 
   const dirty = JSON.stringify(pick(job)) !== JSON.stringify(draft);
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setDraft((d) => d && { ...d, [k]: v });
@@ -141,20 +169,11 @@ function JobDetailForm({ initial }: { initial: Job }) {
           ownerUid,
           expectedRevision: revisionOf(job),
         });
-        const latest =
-          store && tabId ? store.readFeature(tabId, `${routeKey}:jobs.JobDetail.draft`) : draft;
-        setJob(next);
-        setDraft((current) => keepLaterEdits(current, draft, pick(next)));
-        const otherDrafts =
-          store &&
-          tabId &&
-          Object.entries(store.getTab(tabId)?.features ?? {}).some(
-            ([key, value]) =>
-              key.startsWith(`${routeKey}:`) &&
-              key !== `${routeKey}:jobs.JobDetail.draft` &&
-              value.dirty,
-          );
-        if (!otherDrafts && JSON.stringify(latest) === JSON.stringify(draft)) markClean();
+        if (acceptJob(next)) {
+          setDraft((current) => reconcileCanonicalFields(current, draft, pick(next)));
+          baseline.current = pick(next);
+          acknowledgeDraft(pick(next));
+        }
         setConflict(null);
         toast.show({ tone: 'success', message: 'Saved' });
       });
@@ -287,7 +306,7 @@ function JobDetailForm({ initial }: { initial: Job }) {
             />
           </Card>
 
-          {ent?.features.reminders !== false && <RemindersCard job={job} onJobChange={setJob} />}
+          {ent?.features.reminders !== false && <RemindersCard job={job} onJobChange={acceptJob} />}
 
           <Card className="flex flex-col gap-3 p-5">
             <h2 className="text-lg font-semibold">{t('CVs for this job')}</h2>
@@ -343,15 +362,13 @@ function JobDetailForm({ initial }: { initial: Job }) {
           <JobTools
             job={job}
             onJobChange={(j) => {
-              setJob(j);
-              setDraft((current) => keepLaterEdits(current, pick(job), pick(j)));
+              acceptJob(j);
             }}
           />
           <CompanyBrief
             job={job}
             onJobChange={(j) => {
-              setJob(j);
-              setDraft((current) => keepLaterEdits(current, pick(job), pick(j)));
+              acceptJob(j);
             }}
           />
         </div>

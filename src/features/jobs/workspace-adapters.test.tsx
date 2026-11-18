@@ -44,7 +44,28 @@ vi.mock('@/features/workspace/context', () => ({
     tabId: workspace.scope,
     routeKey: 'route',
     store: {
-      getTab: () => ({ features: {} }),
+      flush: async () => {},
+      isLive: () => true,
+      getTab: (tab: string) => ({
+        features: Object.fromEntries(
+          [...workspace.values]
+            .filter(([key]) => key.startsWith(`${tab}:`))
+            .map(([key, value]) => [
+              `route:${key.slice(tab.length + 1)}`,
+              { version: 1, value, dirty: true, updatedAt: 0 },
+            ]),
+        ),
+      }),
+      markClean: (tab: string, _prefix: string, expected: Record<string, { value: unknown }>) => {
+        if (
+          Object.entries(expected).every(
+            ([key, snapshot]) =>
+              JSON.stringify(workspace.values.get(`${tab}:${key.replace(/^route:/, '')}`)) ===
+              JSON.stringify(snapshot.value),
+          )
+        )
+          workspace.clean.add(tab);
+      },
       readFeature: (tab: string, key: string) =>
         workspace.values.get(`${tab}:${key.replace(/^route:/, '')}`),
     },
@@ -293,6 +314,7 @@ describe('new letter creation', () => {
     const pending = workspace.buttons.get('tab-a:Write it myself')!();
     workspace.scope = 'tab-b';
     renderToStaticMarkup(<NewLetter />);
+    await Promise.resolve(); // Creation starts after its recovery receipt has flushed.
     resolve(new Response(JSON.stringify({ letter: { id: 'created-letter', revision: 0 } })));
     await pending;
     expect(workspace.values.get('tab-a:letters.LetterForm.created')).toMatchObject({

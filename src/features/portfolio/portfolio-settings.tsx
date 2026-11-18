@@ -4,11 +4,14 @@ import { workspaceFetch } from '@/features/workspace/request';
 
 import { useWorkspaceTask } from '@/features/workspace/context';
 
-import { useWorkspaceState, useWorkspaceClean } from '@/features/workspace/context';
+import { useWorkspaceState, useWorkspace } from '@/features/workspace/context';
+import { useWorkspaceAcknowledge } from '@/features/workspace/use-acknowledge';
+import { reconcileCanonicalFields } from '@/features/workspace/canonical-reconciliation';
+import { sameSnapshotValue } from '@/features/workspace/equality';
 
 import { useT } from '@/i18n/client';
 import Link from '@/features/workspace/navigation';
-import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { ExternalLink, Eye, Globe } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
 import { Button, ButtonLink } from '@/components/ui/button';
@@ -51,7 +54,8 @@ export function PortfolioSettings() {
 
 function Settings() {
   const runTask = useWorkspaceTask();
-  const markClean = useWorkspaceClean();
+  const { store, tabId, routeKey } = useWorkspace();
+  const acknowledgeForm = useWorkspaceAcknowledge<Form>('portfolio.Settings.form');
 
   const tx = useT();
   const account = useAccount();
@@ -59,11 +63,21 @@ function Settings() {
   const toast = useToast();
   const repo = getRepository();
   const cvs = useMemo(() => repo.list(), [repo]);
-  const [saved, setSaved] = useState<PortfolioView | null | undefined>(undefined);
+  const [saved, setSaved] = useWorkspaceState<PortfolioView | null | undefined>(
+    'portfolio.Settings.saved',
+    undefined,
+    { dirty: false },
+  );
+  const [needsReview, setNeedsReview] = useWorkspaceState('portfolio.Settings.needsReview', false, {
+    dirty: false,
+  });
+  const baseline = useRef<Form | null>(null);
+  const mutations = useRef(0);
   const [draft, setForm] = useWorkspaceState<Form | null>('portfolio.Settings.form', null, {
     dirty: true,
   });
   const [initialForm, setInitialForm] = useState<Form | null>(null);
+  const [refreshedFor, setRefreshedFor] = useState<object | null>(null);
   const form = draft ?? initialForm;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useWorkspaceState<string | null>('portfolio.Settings.error', null, {
@@ -71,45 +85,110 @@ function Settings() {
   });
   const signedIn = account.status === 'signedIn';
   const premium = ent?.plan === 'premium';
+  const refreshScope = useMemo(
+    () => ({ signedIn, ownerUid: account.user?.uid, cvs, store, tabId, routeKey }),
+    [signedIn, account.user?.uid, cvs, store, tabId, routeKey],
+  );
+  const refreshed = refreshedFor === refreshScope;
 
   useEffect(() => {
     if (!signedIn) return;
     let live = true;
+    const startedAt = mutations.current;
+    const savedAtRequest =
+      store && tabId ? store.readFeature(tabId, `${routeKey}:portfolio.Settings.saved`) : undefined;
     const controller = new AbortController();
     workspaceFetch('/api/portfolio', {
       cache: 'no-store',
       signal: controller.signal,
       headers: account.user?.uid ? { 'X-Workspace-Owner': account.user.uid } : undefined,
     })
-      .then((r) => r.json() as Promise<{ portfolio: PortfolioView | null }>)
+      .then((r) => {
+        if (!r.ok) throw new Error('Could not refresh saved settings. Reload to try again.');
+        return r.json() as Promise<{ portfolio: PortfolioView | null }>;
+      })
       .then(({ portfolio }) => {
         if (!live) return;
-        setSaved(portfolio);
+        setRefreshedFor(refreshScope);
+        if (startedAt !== mutations.current) return;
+        let accepted = true;
+        setSaved((current) => {
+          // The completing save may belong to an earlier mount. Its snapshot still wins
+          // over an older (or empty, unversioned) GET started before that save completed.
+          const changedDuringGet = store && tabId && current !== savedAtRequest;
+          if (
+            (current && portfolio && current.updatedAt > portfolio.updatedAt) ||
+            (changedDuringGet &&
+              (current === null ||
+                (current && (!portfolio || current.updatedAt >= portfolio.updatedAt))))
+          ) {
+            accepted = false;
+            return current;
+          }
+          return portfolio;
+        });
+        if (!accepted) return;
         const source = cvs.find((c) => c.role === 'profile') ?? cvs[0];
-        setInitialForm(
-          portfolio
-            ? fromView(portfolio)
-            : {
-                slug: suggestSlug(source?.name ?? ''),
-                docId: source?.id ?? '',
-                published: true,
-                showEmail: false,
-                showPhone: false,
-                theme: 'auto',
-                sections: [],
-                projects: [],
-                contact: false,
-              },
-        );
+        const next: Form = portfolio
+          ? fromView(portfolio)
+          : {
+              slug: suggestSlug(source?.name ?? ''),
+              docId: source?.id ?? '',
+              published: true,
+              showEmail: false,
+              showPhone: false,
+              theme: 'auto',
+              sections: [],
+              projects: [],
+              contact: false,
+            };
+        const acknowledged =
+          store && tabId
+            ? (store.getTab(tabId)?.features[`${routeKey}:portfolio.Settings.form`]?.baseline
+                ?.value as Form | null | undefined)
+            : undefined;
+        const previous = acknowledged ?? baseline.current;
+        setForm((current) => {
+          if (!current) return next;
+          const conflicts = (Object.keys(next) as (keyof Form)[]).some(
+            (key) =>
+              !sameSnapshotValue(current[key], next[key]) &&
+              (!previous ||
+                (!sameSnapshotValue(current[key], previous[key]) &&
+                  !sameSnapshotValue(next[key], previous[key]))),
+          );
+          if (conflicts) setNeedsReview(true);
+          return previous ? reconcileCanonicalFields(current, previous, next) : current;
+        });
+        baseline.current = next;
+        setInitialForm(next);
+        acknowledgeForm(next);
       })
       .catch(() => {
-        if (live) setSaved(null);
+        if (live) {
+          setRefreshedFor(null);
+          setError('Could not refresh saved settings. Reload to try again.');
+          if (startedAt === mutations.current) setSaved((current) => current ?? null);
+        }
       });
     return () => {
       live = false;
       controller.abort();
     };
-  }, [signedIn, account.user?.uid, cvs]);
+  }, [
+    signedIn,
+    account.user?.uid,
+    cvs,
+    store,
+    tabId,
+    routeKey,
+    setSaved,
+    setForm,
+    setNeedsReview,
+    setError,
+    acknowledgeForm,
+    refreshScope,
+  ]);
 
   const url = (slug: string) => `${window.location.origin}/p/${slug}`;
   const problem = form ? slugProblem(form.slug) : null;
@@ -129,7 +208,7 @@ function Settings() {
 
   async function save() {
     return runTask('portfolio.Settings.save', async (signal) => {
-      if (!form) return;
+      if (!form || needsReview || !refreshed) return;
       setBusy(true);
       setError(null);
       try {
@@ -146,14 +225,21 @@ function Settings() {
         const j = (await r.json()) as { portfolio?: PortfolioView; error?: { message: string } };
         signal.throwIfAborted();
         if (!r.ok || !j.portfolio) throw new Error(j.error?.message ?? 'That didn’t work.');
-        setSaved(j.portfolio);
-        setInitialForm(fromView(j.portfolio));
-        let unchanged = false;
-        setForm((current) => {
-          unchanged = JSON.stringify(current ?? initialForm) === JSON.stringify(form);
-          return unchanged ? fromView(j.portfolio!) : current;
+        mutations.current += 1;
+        const next = fromView(j.portfolio);
+        let accepted = true;
+        setSaved((current) => {
+          if (current && current.updatedAt > j.portfolio!.updatedAt) {
+            accepted = false;
+            return current;
+          }
+          return j.portfolio!;
         });
-        if (unchanged) markClean();
+        if (!accepted) return;
+        setInitialForm(next);
+        setForm((current) => reconcileCanonicalFields(current ?? form, form, next));
+        baseline.current = next;
+        acknowledgeForm(next);
         toast.show({
           tone: 'success',
           message: j.portfolio.published ? 'Your page is live' : 'Saved. Your page is hidden.',
@@ -182,6 +268,7 @@ function Settings() {
         setError('The portfolio could not be deleted. Please try again.');
         return;
       }
+      mutations.current += 1;
       setSaved(null);
       toast.show({ tone: 'success', message: 'Portfolio page deleted' });
     }).catch((error: unknown) => {
@@ -226,6 +313,34 @@ function Settings() {
         <div className="skeleton h-80 rounded-lg" aria-busy="true" aria-label={tx('Loading')} />
       ) : (
         <>
+          {needsReview && (
+            <Banner tone="warning" title={tx('Review your unsaved settings')}>
+              <p>
+                {tx(
+                  'Your edits were kept because the saved settings changed. Review contact details and publishing before saving.',
+                )}
+              </p>
+              <div className="mt-3 flex gap-2">
+                <Button size="sm" onClick={() => setNeedsReview(false)}>
+                  {tx('Keep my edits')}
+                </Button>
+                {saved && (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => {
+                      const next = fromView(saved);
+                      setForm(next);
+                      acknowledgeForm(next);
+                      setNeedsReview(false);
+                    }}
+                  >
+                    {tx('Use saved settings')}
+                  </Button>
+                )}
+              </div>
+            </Banner>
+          )}
           {saved?.published && (
             <Card
               className="flex flex-wrap items-center justify-between gap-3 p-5"
@@ -360,7 +475,11 @@ function Settings() {
               </Banner>
             )}
             <div className="flex flex-wrap gap-2">
-              <Button disabled={!dirty || !!problem} loading={busy} onClick={save}>
+              <Button
+                disabled={!dirty || !!problem || needsReview || !refreshed}
+                loading={busy}
+                onClick={save}
+              >
                 {saved ? tx('Save changes') : tx('Create my page')}
               </Button>
               <Button

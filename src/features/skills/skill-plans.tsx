@@ -88,7 +88,7 @@ export function SkillPlans() {
   );
   const target = {
     ...targetDraft,
-    kind: jobs.length && !targetDraft.role ? targetDraft.kind : ('role' as const),
+    kind: jobs.length ? targetDraft.kind : ('role' as const),
     jobId: jobs.some((job) => job.id === targetDraft.jobId)
       ? targetDraft.jobId
       : (jobs[0]?.id ?? ''),

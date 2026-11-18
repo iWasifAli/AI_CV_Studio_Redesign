@@ -200,6 +200,9 @@ function LetterForm({ type }: { type: LetterType }) {
         };
         const nextIntent = creationIntent(intent, input);
         setIntent(nextIntent);
+        // The retry key must survive a crash before the server can create the letter.
+        await store?.flush();
+        signal.throwIfAborted();
         const letter = await lettersApi.create(input, {
           signal,
           ownerUid,
