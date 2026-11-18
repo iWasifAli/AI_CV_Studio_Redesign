@@ -1,7 +1,9 @@
 'use client';
 
+import { useWorkspaceTask, useWorkspace, useWorkspaceDownload } from '@/features/workspace/context';
+
 import { useT } from '@/i18n/client';
-import Link from 'next/link';
+import Link from '@/features/workspace/navigation';
 import { useMemo, useState } from 'react';
 import { Copy, Download, FileText, Mail, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,8 +14,7 @@ import { pdfFilename } from '@/modules/export/filename';
 import type { Job } from '@/modules/jobs/schema';
 import { buildLetterHtml } from '@/modules/letters/build-letter';
 import { getRepository } from '@/modules/storage/repository';
-import { saveBlob } from '@/lib/save-blob';
-import { jobAiApi, JobsError } from './api';
+import { jobAiApi, JobsError, workspaceRequest } from './api';
 import { PackButton } from '@/features/export/pack-dialog';
 
 type Problem = { message: string; premium?: boolean };
@@ -41,6 +42,9 @@ export function KitSection({
 }) {
   const t = useT();
   const toast = useToast();
+  const runTask = useWorkspaceTask();
+  const { ownerUid } = useWorkspace();
+  const downloadFile = useWorkspaceDownload();
   const [busy, setBusy] = useState(false);
   const cv = useMemo(
     () => (job.kit && typeof window !== 'undefined' ? getRepository().get(job.kit.cvId) : null),
@@ -62,21 +66,35 @@ export function KitSection({
     setBusy(true);
     onProblem(null);
     try {
-      const r = await fetch('/api/pdf', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ document: cv }),
+      await runTask('jobs.KitSection.pdf', async (signal) => {
+        const r = await fetch(
+          '/api/pdf',
+          workspaceRequest(
+            {
+              method: 'POST',
+              headers: { 'content-type': 'application/json' },
+              body: JSON.stringify({ document: cv }),
+            },
+            { signal, ownerUid },
+          ),
+        );
+        signal.throwIfAborted();
+        if (!r.ok) {
+          const j = (await r.json().catch(() => null)) as { error?: { message: string } } | null;
+          throw new JobsError(
+            j?.error?.message ?? 'We couldn’t create the PDF just now.',
+            r.status,
+          );
+        }
+        const blob = await r.blob();
+        signal.throwIfAborted();
+        downloadFile(blob, pdfFilename(cv.basics.name));
+        const l = await jobAiApi.letterPdf(job.id, cv, { signal, ownerUid });
+        const name = (cv.basics.name || 'Cover').replace(/[^\p{L}\p{N}]+/gu, '-');
+        downloadFile(l, `${name}-Cover-Letter.pdf`);
+        toast.show({ tone: 'success', message: 'Your CV and letter are ready to download' });
+        refresh();
       });
-      if (!r.ok) {
-        const j = (await r.json().catch(() => null)) as { error?: { message: string } } | null;
-        throw new JobsError(j?.error?.message ?? 'We couldn’t create the PDF just now.', r.status);
-      }
-      saveBlob(await r.blob(), pdfFilename(cv.basics.name));
-      const l = await jobAiApi.letterPdf(job.id, cv);
-      const name = (cv.basics.name || 'Cover').replace(/[^\p{L}\p{N}]+/gu, '-');
-      saveBlob(l, `${name}-Cover-Letter.pdf`);
-      toast.show({ tone: 'success', message: 'Your CV and letter are downloading' });
-      refresh();
     } catch (e) {
       onProblem(
         e instanceof JobsError

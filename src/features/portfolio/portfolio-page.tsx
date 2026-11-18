@@ -1,7 +1,7 @@
 import { makeT, type T } from '@/i18n/core';
 import { DICTS } from '@/i18n/dicts';
 import { cvLang } from '@/modules/resume/cv-words';
-import Link from 'next/link';
+import Link from '@/features/workspace/navigation';
 import type { CSSProperties, ReactNode } from 'react';
 import { ExternalLink, Mail, MapPin, Phone } from 'lucide-react';
 import { cn as classes } from '@/lib/cn';

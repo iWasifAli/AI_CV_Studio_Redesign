@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { NextResponse } from 'next/server';
 import { apiError, readJson, requestId } from '@/lib/http';
 import { aiModels, getAiProvider } from '@/modules/ai/config';
@@ -21,7 +22,7 @@ const noStore = { headers: { 'Cache-Control': 'no-store' } };
  * POST { document, point, notes? } → { draft }: a STAR story drafted from one CV point (an AI
  * action, Premium). Nothing is saved; the person edits the draft and saves it themselves.
  */
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   const rid = requestId();
   const user = await currentUser();
   if (user) await noteUse(user.uid, 'stories');
@@ -82,3 +83,5 @@ export async function POST(req: Request) {
     noStore,
   );
 }
+
+export const POST = withWorkspaceOwnerErrors(handlePOST);

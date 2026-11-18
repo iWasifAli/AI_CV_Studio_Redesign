@@ -1,10 +1,13 @@
 'use client';
+import { RecoveryBanner } from '@/features/editor/recovery-banner';
+
+import { useWorkspaceState } from '@/features/workspace/context';
 
 import { useT } from '@/i18n/client';
 import { AiDocProvider } from '@/features/ai/context';
 import { SummaryAssist } from '@/features/ai/assist';
 import { NeedsInputHint } from '@/features/ai/suggestion';
-import { useRouter } from 'next/navigation';
+import { useWorkspaceRouter as useRouter } from '@/features/workspace/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, Eye, Plus, Trash2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -103,9 +106,9 @@ export function GuidedScreen({ initial }: { initial: ResumeDocument }) {
   const { doc, update } = editor;
   const router = useRouter();
   const preset = getPreset(doc.presetId);
-  const [index, setIndex] = useState(0);
+  const [index, setIndex] = useWorkspaceState('guided.guidedscreen.index', 0);
   const [nameError, setNameError] = useState(false);
-  const [peek, setPeek] = useState(false);
+  const [peek, setPeek] = useWorkspaceState('guided.guidedscreen.peek', false);
   const heading = useRef<HTMLHeadingElement>(null);
 
   // Steps follow the CV's own sections (as created from the profession preset).
@@ -166,12 +169,13 @@ export function GuidedScreen({ initial }: { initial: ResumeDocument }) {
 
   return (
     <AiDocProvider value={doc}>
-      <div className="bg-paper flex min-h-dvh flex-col">
+      <div className="bg-paper flex min-h-[calc(100dvh-var(--workspace-tab-height,0px))] flex-col">
         <StudioBar
           editor={editor}
           backHref="/documents"
           backLabel={t('Save and go to Documents')}
         />
+        <RecoveryBanner editor={editor} />
         <div className="flex flex-1">
           <main
             id="main"

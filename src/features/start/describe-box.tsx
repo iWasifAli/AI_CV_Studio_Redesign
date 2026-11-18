@@ -1,5 +1,8 @@
 'use client';
 
+import { useWorkspaceState, useWorkspaceTask, useWorkspace } from '@/features/workspace/context';
+
+import { routeScope } from '@/features/workspace/routes';
 import { useT } from '@/i18n/client';
 import { useId, useState } from 'react';
 import { Sparkles } from 'lucide-react';
@@ -11,31 +14,51 @@ import { callAi, useAi } from '@/features/ai/client';
 export function DescribeBox({ onCreate }: { onCreate: (href: string) => void }) {
   const t = useT();
   const ai = useAi();
+  const runTask = useWorkspaceTask();
+  const { store, tabId, routeKey } = useWorkspace();
+  const [destination, setDestination] = useWorkspaceState<string | null>(
+    'start.describe.destination',
+    null,
+  );
   const id = useId();
-  const [text, setText] = useState('');
+  const [text, setText] = useWorkspaceState('start.describebox.text', '', { dirty: true });
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useWorkspaceState('start.describebox.error', '');
   if (!ai.show) return null;
 
   async function submit() {
     setBusy(true);
     setError('');
-    const r = await callAi('intake.interpret', { description: text.trim().slice(0, 600) });
-    if (!r.ok) {
+    try {
+      const r = await runTask('start.describe.intake', (signal) =>
+        callAi('intake.interpret', { description: text.trim().slice(0, 600) }, 0, signal),
+      );
+      if (!r.ok) {
+        setBusy(false);
+        setError(`${r.message} You can also choose from the list below.`);
+        return;
+      }
+      const { presetId, targetTitle, design } = r.data.result;
+      const q = new URLSearchParams({
+        work: presetId,
+        design: design.templateId,
+        accent: design.accent,
+        font: design.fontPair,
+        density: design.density,
+        ...(targetTitle ? { title: targetTitle } : {}),
+      });
+      const href = `/cv/new?${q.toString()}`;
+      setDestination(href);
+      const currentInput =
+        store && tabId ? store.readFeature(tabId, `${routeKey}:start.describebox.text`) : text;
+      const currentRoute = store && tabId ? store.getTab(tabId)?.href : null;
+      if (currentInput === text && (!currentRoute || routeScope(currentRoute) === routeKey))
+        onCreate(href);
+    } catch (error) {
+      if (!(error instanceof Error && error.name === 'AbortError')) setError('Please try again.');
+    } finally {
       setBusy(false);
-      setError(`${r.message} You can also choose from the list below.`);
-      return;
     }
-    const { presetId, targetTitle, design } = r.data.result;
-    const q = new URLSearchParams({
-      work: presetId,
-      design: design.templateId,
-      accent: design.accent,
-      font: design.fontPair,
-      density: design.density,
-      ...(targetTitle ? { title: targetTitle } : {}),
-    });
-    onCreate(`/cv/new?${q.toString()}`);
   }
 
   return (
@@ -78,6 +101,11 @@ export function DescribeBox({ onCreate }: { onCreate: (href: string) => void }) 
           {t('Create my CV')}
         </Button>
       </form>
+      {destination && (
+        <Button variant="secondary" onClick={() => onCreate(destination)}>
+          {t('Continue with suggested CV')}
+        </Button>
+      )}
       {error ? (
         <p role="alert" className="text-danger text-[15px]">
           {t(error)}

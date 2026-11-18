@@ -292,14 +292,17 @@ describe('job update boundary', () => {
   );
 
   it.each([['PUT', PUT], ...routes] as const)(
-    '%s returns 404 if the job is deleted before saving',
+    '%s refuses a job deleted before saving (AI preserves a conflict suggestion)',
     async (_name, route) => {
       duringSave = () => {
         current = null;
       };
       const res = response(await route(request(), ctx()));
-      expect(res.status).toBe(404);
-      expect((await res.json()).error.code).toBe('NOT_FOUND');
+      expect(res.status).toBe(_name === 'PUT' ? 404 : 409);
+      const error = (await res.json()).error;
+      expect(error.code).toBe(_name === 'PUT' ? 'NOT_FOUND' : 'CONFLICT');
+      if (_name !== 'PUT')
+        expect(error.details).toMatchObject({ current: null, generated: expect.any(Object) });
       expect(current).toBeNull();
     },
   );

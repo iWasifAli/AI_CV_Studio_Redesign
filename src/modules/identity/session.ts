@@ -1,5 +1,5 @@
 import 'server-only';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { adminAuth } from '@/lib/firebase-admin';
 
 /**
@@ -23,7 +23,7 @@ export type SessionUser = {
 
 export class AuthError extends Error {
   constructor(
-    readonly code: 'NO_SESSION' | 'INVALID_TOKEN' | 'STALE_LOGIN',
+    readonly code: 'NO_SESSION' | 'INVALID_TOKEN' | 'STALE_LOGIN' | 'WORKSPACE_OWNER_MISMATCH',
     message: string,
   ) {
     super(message);
@@ -69,8 +69,7 @@ export async function clearSessionCookie() {
 }
 
 /** The signed-in user, or null. Checks revocation so signed-out/disabled users are rejected. */
-export async function currentUser(): Promise<SessionUser | null> {
-  const value = (await cookies()).get(SESSION_COOKIE)?.value;
+export async function verifiedSessionUser(value: string | undefined): Promise<SessionUser | null> {
   if (!value) return null;
   try {
     const d = await adminAuth().verifySessionCookie(value, true);
@@ -85,6 +84,22 @@ export async function currentUser(): Promise<SessionUser | null> {
   } catch {
     return null;
   }
+}
+
+/** An assertion only: the header never supplies identity or grants guest permissions. */
+export function assertWorkspaceOwner(owner: string | null, user: SessionUser | null) {
+  if (owner !== null && (!user || owner !== user.uid))
+    throw new AuthError(
+      'WORKSPACE_OWNER_MISMATCH',
+      'The workspace belongs to a different or expired session.',
+    );
+}
+
+export async function currentUser(): Promise<SessionUser | null> {
+  const user = await verifiedSessionUser((await cookies()).get(SESSION_COOKIE)?.value);
+  // Deliberately outside the verification catch: a mismatch must never become a guest request.
+  assertWorkspaceOwner((await headers()).get('X-Workspace-Owner'), user);
+  return user;
 }
 
 export async function requireUser(): Promise<SessionUser> {

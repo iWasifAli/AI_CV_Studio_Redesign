@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { NextResponse } from 'next/server';
 import { adminAuth } from '@/lib/firebase-admin';
 import { apiError, readJson, requestId } from '@/lib/http';
@@ -9,7 +10,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /** The signed-in user (or null). Plan and usage are added in R1.2. */
-export async function GET() {
+async function handleGET() {
   const user = await currentUser();
   if (user) await noteUse(user.uid, null);
   return NextResponse.json(
@@ -33,7 +34,7 @@ export async function GET() {
  * DELETE { confirm: "DELETE" } — deletes the account and everything stored for it (CVs, versions,
  * pass, usage). Payment records are kept for accounting with the email removed.
  */
-export async function DELETE(req: Request) {
+async function handleDELETE(req: Request) {
   const rid = requestId();
   const user = await currentUser();
   if (!user) return apiError('UNAUTHORIZED', 'Please sign in.', rid);
@@ -66,3 +67,6 @@ export async function DELETE(req: Request) {
   );
   return NextResponse.json({ ok: true });
 }
+
+export const GET = withWorkspaceOwnerErrors(handleGET);
+export const DELETE = withWorkspaceOwnerErrors(handleDELETE);

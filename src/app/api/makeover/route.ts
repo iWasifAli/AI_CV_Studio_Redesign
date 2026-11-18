@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { NextResponse } from 'next/server';
 import { apiError, clientKey, createRateLimiter, requestId } from '@/lib/http';
 import { getBusinessConfig, reserve } from '@/modules/billing/server';
@@ -36,7 +37,7 @@ type Step = 'read' | 'scan' | 'structure' | 'design';
  * With `Accept: application/x-ndjson` the answer streams: one `{"step":…}` line as each stage
  * really finishes, then `{"status":…,"body":…}` with what the plain JSON request returns.
  */
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   if (!(req.headers.get('accept') ?? '').includes('application/x-ndjson')) return handle(req);
   const enc = new TextEncoder();
   const stream = new ReadableStream<Uint8Array>({
@@ -201,3 +202,5 @@ async function handle(req: Request, onStep?: (s: Step) => void): Promise<Respons
     );
   }
 }
+
+export const POST = withWorkspaceOwnerErrors(handlePOST);

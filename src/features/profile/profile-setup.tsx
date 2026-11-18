@@ -1,8 +1,8 @@
 'use client';
 
 import { useLang, useT } from '@/i18n/client';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import Link from '@/features/workspace/navigation';
+import { useWorkspaceRouter as useRouter } from '@/features/workspace/navigation';
 import { useEffect, useState } from 'react';
 import { FilePlus2, FileText, FileUp, Lock } from 'lucide-react';
 import { ButtonLink } from '@/components/ui/button';

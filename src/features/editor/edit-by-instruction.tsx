@@ -1,7 +1,9 @@
 'use client';
 
+import { useWorkspaceState } from '@/features/workspace/context';
+
 import { useT } from '@/i18n/client';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Wand2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAi } from '@/features/ai/client';
@@ -38,10 +40,16 @@ export function EditByInstruction({ editor }: { editor: DocumentEditor }) {
   const tx = useT();
   const ai = useAi();
   const s = useSuggestion('cv.edit');
-  const [text, setText] = useState('');
-  const [skip, setSkip] = useState<Set<number>>(new Set());
+  const [text, setText] = useWorkspaceState('editor.editbyinstruction.text', '', { dirty: true });
+  const [skip, setSkip] = useWorkspaceState<Set<number>>(
+    'editor.editbyinstruction.skip',
+    new Set(),
+  );
   // The CV the changes were made against: they apply only while it is unchanged.
-  const [asked, setAsked] = useState<ResumeDocument | null>(null);
+  const [asked, setAsked] = useWorkspaceState<ResumeDocument | null>(
+    'editor.editbyinstruction.asked',
+    null,
+  );
 
   const result = s.state.kind === 'done' ? s.state.data.result : null;
   const rows = useMemo(() => {

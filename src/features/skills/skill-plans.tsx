@@ -1,7 +1,13 @@
 'use client';
 
+import { workspaceFetch } from '@/features/workspace/request';
+
+import { useWorkspaceTask } from '@/features/workspace/context';
+
+import { useWorkspaceState } from '@/features/workspace/context';
+
 import { useT } from '@/i18n/client';
-import Link from 'next/link';
+import Link from '@/features/workspace/navigation';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { BookOpen, CircleCheck, CircleDashed, Lock, PenLine, Sparkles, Trash2 } from 'lucide-react';
@@ -10,7 +16,7 @@ import { Button, ButtonLink } from '@/components/ui/button';
 import { Badge } from '@/components/ui/chip';
 import { TextField } from '@/components/ui/field';
 import { Skeleton } from '@/components/ui/misc';
-import { useAccount } from '@/features/account/account-context';
+import { useAccount, useRepositoryVersion } from '@/features/account/account-context';
 import { useEntitlements } from '@/features/account/entitlements';
 import { JobsError, jobsApi } from '@/features/jobs/api';
 import type { Job } from '@/modules/jobs/schema';
@@ -21,13 +27,16 @@ import { cn } from '@/lib/cn';
 import { CareerPaths } from './career-paths';
 
 async function call<T>(path: string, init?: RequestInit): Promise<T> {
-  const r = await fetch(path, {
+  const headers = new Headers(init?.headers);
+  if (init?.body) headers.set('content-type', 'application/json');
+  const r = await workspaceFetch(path, {
     cache: 'no-store',
     ...init,
-    headers: init?.body ? { 'content-type': 'application/json' } : undefined,
+    headers,
   });
   const j = (await r.json().catch(() => null)) as
     (T & { error?: undefined }) | { error: { message: string; reason?: string } } | null;
+  init?.signal?.throwIfAborted();
   if (!r.ok || !j || ('error' in j && j.error))
     throw new JobsError(
       (j && 'error' in j && j.error?.message) || 'That didn’t work. Please try again.',
@@ -49,55 +58,93 @@ const when = (iso: string) =>
  * shows (with the lines that show them), what's partly there or missing, and what to learn first.
  */
 export function SkillPlans() {
+  const runTask = useWorkspaceTask();
+
   const tx = useT();
   const account = useAccount();
   const { ent, refresh } = useEntitlements();
   const params = useSearchParams();
-  const [data, setData] = useState<{ plans: SkillPlan[]; max: number; enabled: boolean } | null>(
-    null,
-  );
+  const [plans, setPlans] = useWorkspaceState<SkillPlan[]>('skills.SkillPlans.plans', [], {
+    dirty: false,
+  });
+  const [access, setAccess] = useState<{ max: number; enabled: boolean } | null>(null);
+  const data = access ? { ...access, plans } : null;
   const [jobs, setJobs] = useState<Job[]>([]);
   const [error, setError] = useState<string | null>(null);
   // ?role= comes from Career paths ("Plan the skills for this role").
   const askedRole = (params.get('role') ?? '').slice(0, 80);
-  const [target, setTarget] = useState<{ kind: 'job' | 'role'; jobId: string; role: string }>({
-    kind: askedRole ? 'role' : 'job',
-    jobId: params.get('job') ?? '',
-    role: askedRole,
+  const [targetDraft, setTarget] = useWorkspaceState<{
+    kind: 'job' | 'role';
+    jobId: string;
+    role: string;
+  }>(
+    'skills.SkillPlans.target',
+    {
+      kind: askedRole ? 'role' : 'job',
+      jobId: params.get('job') ?? '',
+      role: askedRole,
+    },
+    { dirty: true },
+  );
+  const target = {
+    ...targetDraft,
+    kind: jobs.length && !targetDraft.role ? targetDraft.kind : ('role' as const),
+    jobId: jobs.some((job) => job.id === targetDraft.jobId)
+      ? targetDraft.jobId
+      : (jobs[0]?.id ?? ''),
+  };
+  const [openId, setOpenId] = useWorkspaceState<string | null>('skills.SkillPlans.openId', null, {
+    dirty: false,
   });
-  const [openId, setOpenId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [problem, setProblem] = useState<{ message: string; premium?: boolean } | null>(null);
+  const [problem, setProblem] = useWorkspaceState<{ message: string; premium?: boolean } | null>(
+    'skills.SkillPlans.problem',
+    null,
+    { dirty: false },
+  );
 
+  const repositoryVersion = useRepositoryVersion();
   const repo = typeof window === 'undefined' ? null : getRepository();
   const source = useMemo(() => {
     const cvs = repo?.list() ?? [];
     const id = defaultSourceCv(cvs);
     return (id && repo?.get(id)) || null;
-  }, [repo]);
+  }, [repo, repositoryVersion]); // eslint-disable-line react-hooks/exhaustive-deps -- repository event revision
 
   useEffect(() => {
     if (account.status !== 'signedIn') return;
+    const baseline = plans;
+    let live = true;
+    const controller = new AbortController();
+    const options = { signal: controller.signal, ownerUid: account.user?.uid };
     Promise.all([
-      call<{ plans: SkillPlan[]; max: number; enabled: boolean }>('/api/skills'),
-      jobsApi.list().then(
+      call<{ plans: SkillPlan[]; max: number; enabled: boolean }>('/api/skills', {
+        signal: controller.signal,
+        headers: account.user?.uid ? { 'X-Workspace-Owner': account.user.uid } : undefined,
+      }),
+      jobsApi.list(options).then(
         (r) => r.jobs.filter((j) => j.stage !== 'closed'),
         () => [] as Job[],
       ),
     ]).then(
       ([d, j]) => {
-        setData(d);
+        if (!live) return;
+        setPlans((current) => (current === baseline ? d.plans : current));
+        setAccess({ max: d.max, enabled: d.enabled });
         setJobs(j);
-        setOpenId(d.plans[0]?.id ?? null);
-        setTarget((t) => ({
-          ...t,
-          kind: j.length && !t.role ? t.kind : 'role',
-          jobId: t.jobId && j.some((x) => x.id === t.jobId) ? t.jobId : (j[0]?.id ?? ''),
-        }));
+        setOpenId((current) => current ?? d.plans[0]?.id ?? null);
       },
-      (e: Error) => setError(e.message),
+      (e: Error) => {
+        if (live) setError(e.message);
+      },
     );
-  }, [account.status]);
+    return () => {
+      live = false;
+      controller.abort();
+    };
+    // Revalidate on arrival/account change, not after every task result. The baseline fences a late GET.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [account.status, account.user?.uid, setOpenId, setPlans]);
 
   if (account.status === 'signedOut')
     return (
@@ -122,39 +169,56 @@ export function SkillPlans() {
     !!source && (target.kind === 'job' ? !!target.jobId : target.role.trim().length >= 2);
 
   const make = async () => {
-    if (!source) return;
-    setBusy(true);
-    setProblem(null);
-    try {
-      const { plan } = await call<{ plan: SkillPlan }>('/api/skills', {
-        method: 'POST',
-        body: JSON.stringify({
-          document: source,
-          ...(target.kind === 'job' ? { jobId: target.jobId } : { role: target.role }),
-        }),
-      });
-      setData({ ...data, plans: [plan, ...data.plans] });
-      setOpenId(plan.id);
-      refresh();
-    } catch (e) {
-      setProblem(
-        e instanceof JobsError
-          ? { message: e.message, premium: e.status === 402 }
-          : { message: 'You seem to be offline. Please try again.' },
-      );
-    } finally {
-      setBusy(false);
-    }
+    return runTask('skills.SkillPlans.make', async (signal) => {
+      if (!source) return;
+      setBusy(true);
+      setProblem(null);
+      try {
+        const { plan } = await call<{ plan: SkillPlan }>('/api/skills', {
+          signal,
+          headers: account.user?.uid ? { 'X-Workspace-Owner': account.user.uid } : undefined,
+          method: 'POST',
+          body: JSON.stringify({
+            document: source,
+            ...(target.kind === 'job' ? { jobId: target.jobId } : { role: target.role }),
+          }),
+        });
+        signal.throwIfAborted();
+        setPlans((current) => [plan, ...current.filter((p) => p.id !== plan.id)]);
+        setOpenId((current) => (current === openId ? plan.id : current));
+        refresh();
+      } catch (e) {
+        signal.throwIfAborted();
+        setProblem(
+          e instanceof JobsError
+            ? { message: e.message, premium: e.status === 402 }
+            : { message: 'You seem to be offline. Please try again.' },
+        );
+      } finally {
+        setBusy(false);
+      }
+    }).catch((error: unknown) => {
+      if (!(error instanceof Error && error.name === 'AbortError')) throw error;
+    });
   };
 
   const update = (p: SkillPlan) =>
-    setData({ ...data, plans: data.plans.map((x) => (x.id === p.id ? p : x)) });
+    setPlans((current) => current.map((x) => (x.id === p.id ? p : x)));
   const remove = async (p: SkillPlan) => {
-    if (!confirm(`Delete the plan for “${p.role}”?`)) return;
-    await call(`/api/skills/${p.id}`, { method: 'DELETE' }).catch(() => null);
-    const rest = data.plans.filter((x) => x.id !== p.id);
-    setData({ ...data, plans: rest });
-    setOpenId(rest[0]?.id ?? null);
+    return runTask('skills.SkillPlans.remove', async (signal) => {
+      if (!confirm(`Delete the plan for “${p.role}”?`)) return;
+      await call(`/api/skills/${p.id}`, {
+        method: 'DELETE',
+        signal,
+        headers: account.user?.uid ? { 'X-Workspace-Owner': account.user.uid } : undefined,
+      });
+      signal.throwIfAborted();
+      const rest = data.plans.filter((x) => x.id !== p.id);
+      setPlans((current) => current.filter((x) => x.id !== p.id));
+      setOpenId(rest[0]?.id ?? null);
+    }).catch((error: unknown) => {
+      if (!(error instanceof Error && error.name === 'AbortError')) throw error;
+    });
   };
   const open = data.plans.find((p) => p.id === openId) ?? null;
 
@@ -375,24 +439,35 @@ function PlanView({
   onChange: (p: SkillPlan) => void;
   onDelete: () => void;
 }) {
+  const runTask = useWorkspaceTask();
+  const account = useAccount();
+
   const tx = useT();
   const [saving, setSaving] = useState<number | null>(null);
   const g = progressOf(plan);
   const set = async (i: number, status: StepStatus) => {
-    const steps = plan.plan.map((s, n) => (n === i ? status : s.status));
-    onChange({ ...plan, plan: plan.plan.map((s, n) => ({ ...s, status: steps[n]! })) });
-    setSaving(i);
-    try {
-      const r = await call<{ plan: SkillPlan }>(`/api/skills/${plan.id}`, {
-        method: 'PUT',
-        body: JSON.stringify({ steps }),
-      });
-      onChange(r.plan);
-    } catch {
-      onChange(plan);
-    } finally {
-      setSaving(null);
-    }
+    return runTask(`skills.PlanView.set.${plan.id}`, async (signal) => {
+      const steps = plan.plan.map((s, n) => (n === i ? status : s.status));
+      onChange({ ...plan, plan: plan.plan.map((s, n) => ({ ...s, status: steps[n]! })) });
+      setSaving(i);
+      try {
+        const r = await call<{ plan: SkillPlan }>(`/api/skills/${plan.id}`, {
+          signal,
+          headers: account.user?.uid ? { 'X-Workspace-Owner': account.user.uid } : undefined,
+          method: 'PUT',
+          body: JSON.stringify({ steps }),
+        });
+        signal.throwIfAborted();
+        onChange(r.plan);
+      } catch {
+        signal.throwIfAborted();
+        onChange(plan);
+      } finally {
+        setSaving(null);
+      }
+    }).catch((error: unknown) => {
+      if (!(error instanceof Error && error.name === 'AbortError')) throw error;
+    });
   };
   const by = (s: GapSkill['status']) => plan.skills.filter((k) => k.status === s);
 

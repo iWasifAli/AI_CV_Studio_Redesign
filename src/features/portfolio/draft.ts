@@ -17,21 +17,39 @@ export type PortfolioDraft = {
   contact: boolean;
 };
 
-const KEY = 'cvstudio:portfolio-draft';
+const KEY = 'cvstudio:portfolio-preview:';
+const DAY = 86_400_000;
 
-export function saveDraft(d: PortfolioDraft) {
+/** Each preview gets an immutable, opaque handoff; unrelated tabs cannot replace it. */
+export function saveDraft(draft: PortfolioDraft, ownerUid: string | null = null): string {
+  const key = crypto.randomUUID();
+  const value = JSON.stringify({ version: 1, ownerUid, draft, at: Date.now() });
   try {
-    sessionStorage.setItem(KEY, JSON.stringify(d));
-    // localStorage too: a new tab opened with target=_blank gets a copy of sessionStorage only
-    // in some browsers.
-    localStorage.setItem(KEY, JSON.stringify(d));
+    localStorage.setItem(KEY + key, value);
   } catch {}
+  try {
+    sessionStorage.setItem(KEY + key, value);
+  } catch {}
+  return key;
 }
 
-export function readDraft(): PortfolioDraft | null {
+export function readDraft(
+  key: string | null,
+  ownerUid: string | null = null,
+): PortfolioDraft | null {
+  if (!key || !/^[a-zA-Z0-9-]{20,80}$/.test(key)) return null;
   try {
-    const s = sessionStorage.getItem(KEY) ?? localStorage.getItem(KEY);
-    return s ? (JSON.parse(s) as PortfolioDraft) : null;
+    const raw = sessionStorage.getItem(KEY + key) ?? localStorage.getItem(KEY + key);
+    if (!raw) return null;
+    const value = JSON.parse(raw);
+    if (
+      value.version !== 1 ||
+      value.ownerUid !== ownerUid ||
+      !Number.isFinite(value.at) ||
+      Date.now() - value.at > DAY
+    )
+      return null;
+    return value.draft?.docId && Array.isArray(value.draft.projects) ? value.draft : null;
   } catch {
     return null;
   }

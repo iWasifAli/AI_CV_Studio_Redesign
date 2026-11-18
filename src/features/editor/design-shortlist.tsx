@@ -1,6 +1,7 @@
 'use client';
 
 import { useT } from '@/i18n/client';
+import { useWorkspaceScope } from '@/features/workspace/context';
 import { useMemo } from 'react';
 import { Check, Crown } from 'lucide-react';
 import { cn } from '@/lib/cn';
@@ -68,6 +69,7 @@ export function DesignShortlist({
   onUse: (id: DesignId) => void;
 }) {
   const tx = useT();
+  const scope = useWorkspaceScope();
   const list = useMemo(
     () =>
       shortlist(items, {
@@ -75,10 +77,10 @@ export function DesignShortlist({
         preset: doc.presetId ?? null,
         popularity,
         favourites,
-        recent: typeof window === 'undefined' ? [] : recentDesigns(),
+        recent: typeof window === 'undefined' ? [] : recentDesigns(scope),
         doc: base,
       }),
-    [items, current, doc.presetId, popularity, favourites, base],
+    [items, current, doc.presetId, popularity, favourites, base, scope],
   );
   const docs = useMemo(() => {
     const m = new Map<DesignId, ResumeDocument>();

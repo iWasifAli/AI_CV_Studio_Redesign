@@ -1,7 +1,9 @@
 'use client';
 
+import { useWorkspaceState } from '@/features/workspace/context';
+
 import { useT } from '@/i18n/client';
-import { useId, useState } from 'react';
+import { useId } from 'react';
 import { Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { TEMPLATE_CATALOG } from '@/modules/ai/catalog';
@@ -22,7 +24,7 @@ export function StyleAssist({
   const tx = useT();
   const ai = useAi();
   const s = useSuggestion('design.interpret');
-  const [text, setText] = useState('');
+  const [text, setText] = useWorkspaceState('ai.styleassist.text', '', { dirty: true });
   const id = useId();
   if (!ai.show) return null;
   const d = doc.design;

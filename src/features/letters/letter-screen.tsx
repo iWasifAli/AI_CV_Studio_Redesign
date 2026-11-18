@@ -1,19 +1,30 @@
 'use client';
 
+import {
+  useWorkspaceState,
+  useWorkspaceTask,
+  useWorkspace,
+  useWorkspaceDownload,
+  useWorkspaceClean,
+} from '@/features/workspace/context';
+
+import { useWorkspaceTitle } from '@/features/workspace/use-title';
 import { useLang, useT } from '@/i18n/client';
-import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import Link from '@/features/workspace/navigation';
+import { useSearchParams } from 'next/navigation';
+import { useWorkspaceRouter as useRouter } from '@/features/workspace/navigation';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Download, Lock, Sparkles, Trash2 } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { TextArea, TextField } from '@/components/ui/field';
 import { Skeleton } from '@/components/ui/misc';
 import { useToast } from '@/components/ui/toast';
-import { useAccount } from '@/features/account/account-context';
+import { useAccount, useRepositoryVersion } from '@/features/account/account-context';
 import { useEntitlements } from '@/features/account/entitlements';
-import { JobsError } from '@/features/jobs/api';
-import { saveBlob } from '@/lib/save-blob';
+import { JobsError, type ConflictDetails } from '@/features/jobs/api';
+import { keepLaterEdits, revisionOf } from '@/features/jobs/workspace-state';
+import { ConflictNotice } from '@/features/jobs/conflict-notice';
 import { buildLetterHtml } from '@/modules/letters/build-letter';
 import type { SavedLetter } from '@/modules/letters/schema';
 import { LETTER_TYPE } from '@/modules/letters/types';
@@ -46,12 +57,24 @@ const key = (e: Editable) => JSON.stringify(e);
 export function LetterScreen({ id }: { id: string }) {
   const tx = useT();
   const account = useAccount();
+  const { ownerUid } = useWorkspace();
   const [letter, setLetter] = useState<SavedLetter | null>(null);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
     if (account.status !== 'signedIn') return;
-    lettersApi.get(id).then(setLetter, (e: Error) => setError(e.message));
-  }, [account.status, id]);
+    let live = true;
+    lettersApi.get(id, { ownerUid }).then(
+      (value) => {
+        if (live) setLetter(value);
+      },
+      (e: Error) => {
+        if (live) setError(e.message);
+      },
+    );
+    return () => {
+      live = false;
+    };
+  }, [account.status, id, ownerUid]);
   if (account.status === 'signedOut')
     return (
       <Banner
@@ -77,31 +100,70 @@ export function LetterScreen({ id }: { id: string }) {
       />
     );
   if (!letter) return <Skeleton className="h-96 w-full rounded-xl" />;
-  return <Editor key={letter.id} initial={letter} />;
+  return <SavedLetterEditor key={letter.id} initial={letter} />;
 }
 
-function Editor({ initial }: { initial: SavedLetter }) {
+export function SavedLetterEditor({ initial }: { initial: SavedLetter }) {
   const lang = useLang();
   const tx = useT();
   const router = useRouter();
+  const runTask = useWorkspaceTask();
+  const { ownerUid, store, tabId, routeKey } = useWorkspace();
+  const markClean = useWorkspaceClean();
+  const [conflict, setConflict] = useWorkspaceState<ConflictDetails | null>(
+    'letters.Editor.conflict',
+    null,
+    { dirty: false },
+  );
+  const [suggestion, setSuggestion] = useWorkspaceState<Editable | null>(
+    'letters.Editor.suggestion',
+    null,
+    { dirty: false },
+  );
+  const downloadFile = useWorkspaceDownload();
   const params = useSearchParams();
   const toast = useToast();
   const account = useAccount();
   const { ent, refresh } = useEntitlements();
   const type = LETTER_TYPE[initial.type];
-  const [saved, setSaved] = useState(initial);
-  const [draft, setDraft] = useState<Editable>(() => editable(initial));
-  const [tone, setTone] = useState(initial.tone);
+  const [saved, setSaved] = useWorkspaceState('letters.Editor.saved', initial, { dirty: false });
+  const [draft, setDraft] = useWorkspaceState<Editable>(
+    'letters.Editor.draft',
+    () => editable(initial),
+    { dirty: true },
+  );
+  useWorkspaceTitle(draft.subject || type.title);
+  const [tone, setTone] = useWorkspaceState('letters.Editor.tone', initial.tone, { dirty: true });
   const [busy, setBusy] = useState<null | 'save' | 'ai' | 'pdf' | 'delete'>(null);
-  const [problem, setProblem] = useState<{ message: string; premium?: boolean } | null>(() => {
-    const ai = params.get('ai');
-    return ai ? { message: `The AI draft didn’t work: ${ai} Your answers are kept below.` } : null;
-  });
+  const [problem, setProblem] = useWorkspaceState<{ message: string; premium?: boolean } | null>(
+    'letters.Editor.problem',
+    () => {
+      const ai = params.get('ai');
+      return ai
+        ? { message: `The AI draft didn’t work: ${ai} Your answers are kept below.` }
+        : null;
+    },
+    { dirty: false },
+  );
   const aiLocked = ent ? ent.limits['ai.action'] === 0 : false;
-  const dirty = key(draft) !== key(editable(saved));
+  const dirty = key(draft) !== key(editable(saved)) || tone !== saved.tone;
+  const latestInputs = useRef({ draft, tone });
+  useEffect(() => {
+    latestInputs.current = { draft, tone };
+  }, [draft, tone]);
+  const generationInputs = () =>
+    JSON.stringify(
+      store && tabId
+        ? {
+            draft: store.readFeature(tabId, `${routeKey}:letters.Editor.draft`) ?? draft,
+            tone: store.readFeature(tabId, `${routeKey}:letters.Editor.tone`) ?? tone,
+          }
+        : latestInputs.current,
+    );
 
+  const repositoryVersion = useRepositoryVersion();
   const repo = typeof window === 'undefined' ? null : getRepository();
-  const cvs = useMemo(() => repo?.list() ?? [], [repo]);
+  const cvs = useMemo(() => repo?.list() ?? [], [repo, repositoryVersion]); // eslint-disable-line react-hooks/exhaustive-deps -- repository event revision
   // The design and contact details come from the chosen CV, or a plain page with the account name.
   const statement = type.form === 'statement';
   // Saved designs ("My designs", spec §7.4): a letter can use one instead of the CV's own design.
@@ -128,7 +190,7 @@ function Editor({ initial }: { initial: SavedLetter }) {
     }
     const mine = draft.designId ? savedDesigns.find((d) => d.id === draft.designId) : null;
     return mine ? ops.setSpec(doc, mine.spec) : doc;
-  }, [draft.documentId, draft.designId, savedDesigns, repo, account.user, lang]);
+  }, [draft.documentId, draft.designId, savedDesigns, repo, account.user, lang, repositoryVersion]); // eslint-disable-line react-hooks/exhaustive-deps -- repository event revision
   const html = useMemo(
     () =>
       typeof window === 'undefined'
@@ -151,12 +213,13 @@ function Editor({ initial }: { initial: SavedLetter }) {
   const asks =
     [draft.greeting, ...draft.paragraphs, draft.closing].join(' ').match(/\{\{\?/g)?.length ?? 0;
 
-  async function act(kind: NonNullable<typeof busy>, fn: () => Promise<void>) {
+  async function act(kind: NonNullable<typeof busy>, fn: (signal: AbortSignal) => Promise<void>) {
     setBusy(kind);
     setProblem(null);
     try {
-      await fn();
+      await runTask(`letters.Editor.${kind}`, fn);
     } catch (e) {
+      if (e instanceof JobsError && e.status === 409) setConflict(e.details ?? {});
       setProblem(
         e instanceof JobsError
           ? { message: e.message, premium: e.status === 402 }
@@ -167,37 +230,63 @@ function Editor({ initial }: { initial: SavedLetter }) {
     }
   }
   const save = () =>
-    act('save', async () => {
-      const next = await lettersApi.update(saved.id, {
-        ...draft,
-        title: draft.subject || type.title,
-        paragraphs: draft.paragraphs.filter((p) => p.trim()),
-        tone,
-      });
+    act('save', async (signal) => {
+      const next = await lettersApi.update(
+        saved.id,
+        {
+          ...draft,
+          title: draft.subject || type.title,
+          paragraphs: draft.paragraphs.filter((p) => p.trim()),
+          tone,
+        },
+        { signal, ownerUid, expectedRevision: revisionOf(saved) },
+      );
+      const latest =
+        store && tabId ? store.readFeature(tabId, `${routeKey}:letters.Editor.draft`) : draft;
+      const latestTone =
+        store && tabId ? store.readFeature(tabId, `${routeKey}:letters.Editor.tone`) : tone;
       setSaved(next);
-      setDraft(editable(next));
+      setDraft((current) => keepLaterEdits(current, draft, editable(next)));
+      if (JSON.stringify(latest) === JSON.stringify(draft) && latestTone === tone) markClean();
+      setConflict(null);
       toast.show({ tone: 'success', message: 'Letter saved' });
     });
   const redraft = () =>
-    act('ai', async () => {
-      if (dirty) await lettersApi.update(saved.id, { ...draft, tone });
-      const r = await lettersApi.draft(saved.id, design, tone);
+    act('ai', async (signal) => {
+      const submitted = generationInputs();
+      let baseline = saved;
+      if (dirty) {
+        baseline = await lettersApi.update(
+          saved.id,
+          { ...draft, tone },
+          { signal, ownerUid, expectedRevision: revisionOf(saved) },
+        );
+        setSaved(baseline);
+      }
+      const r = await lettersApi.draft(saved.id, design, tone, {
+        signal,
+        ownerUid,
+        expectedRevision: revisionOf(baseline),
+      });
       setSaved(r.letter);
-      setDraft(editable(r.letter));
+      if (generationInputs() === submitted) {
+        setDraft(editable(r.letter));
+        setSuggestion(null);
+      } else setSuggestion(editable(r.letter));
       refresh();
       toast.show({ tone: 'success', message: 'Draft ready. Read it through and make it yours.' });
     });
   const pdf = () =>
-    act('pdf', async () => {
-      const blob = await lettersApi.pdf(saved.id, design);
+    act('pdf', async (signal) => {
+      const blob = await lettersApi.pdf(saved.id, design, { signal, ownerUid });
       const slug = (s: string) => s.replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-|-$/g, '');
-      saveBlob(blob, `${slug(design.basics.name || 'My')}-${slug(type.title)}.pdf`);
+      downloadFile(blob, `${slug(design.basics.name || 'My')}-${slug(type.title)}.pdf`);
       refresh();
     });
   const remove = () =>
-    act('delete', async () => {
+    act('delete', async (signal) => {
       if (!confirm('Delete this letter? This can’t be undone.')) return;
-      await lettersApi.remove(saved.id);
+      await lettersApi.remove(saved.id, { signal, ownerUid, expectedRevision: revisionOf(saved) });
       toast.show({ message: 'Letter deleted' });
       router.push('/documents?type=letters');
     });
@@ -220,6 +309,53 @@ function Editor({ initial }: { initial: SavedLetter }) {
             {draft.subject || type.title}
           </h1>
         </div>
+        <ConflictNotice
+          details={conflict}
+          onKeepDraft={
+            conflict?.current
+              ? () => {
+                  setSaved(conflict.current as SavedLetter);
+                  setConflict(null);
+                }
+              : undefined
+          }
+          onApply={
+            conflict?.generated
+              ? () => {
+                  const generated = conflict.generated as Partial<SavedLetter> & {
+                    letter?: Partial<SavedLetter>;
+                  };
+                  setDraft(editable({ ...saved, ...draft, ...(generated.letter ?? generated) }));
+                  if (conflict.current) setSaved(conflict.current as SavedLetter);
+                  setConflict(null);
+                }
+              : undefined
+          }
+        />
+        {suggestion && (
+          <Banner
+            tone="info"
+            title="Your generated draft is ready"
+            action={
+              <Button
+                size="sm"
+                onClick={() => {
+                  setDraft(suggestion);
+                  setSuggestion(null);
+                }}
+              >
+                {tx('Use generated draft')}
+              </Button>
+            }
+          >
+            <details>
+              <summary>{tx('Review generated draft')}</summary>
+              <p className="whitespace-pre-wrap">
+                {[suggestion.greeting, ...suggestion.paragraphs, suggestion.closing].join('\n\n')}
+              </p>
+            </details>
+          </Banner>
+        )}
         {problem && (
           <Banner
             tone="error"

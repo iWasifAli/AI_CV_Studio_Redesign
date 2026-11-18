@@ -1,8 +1,8 @@
 'use client';
 
 import { useT } from '@/i18n/client';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import Link from '@/features/workspace/navigation';
+import { useWorkspaceRouter as useRouter } from '@/features/workspace/navigation';
 import { useEffect, useRef, useState } from 'react';
 import {
   Copy,
@@ -52,9 +52,13 @@ export function MyCvs({ only }: { only?: (doc: ResumeDocument) => boolean } = {}
   const [docs, setDocs] = useState<ResumeDocument[]>(load);
   const fileInput = useRef<HTMLInputElement>(null);
   const refresh = () => setDocs(load());
-  // CVs can also arrive from the account (sync on another device).
-  useEffect(() => getRepository().subscribe(() => setDocs(load())), []);
   const repo = getRepository();
+  // Account resolution replaces the repository; re-read and subscribe to that owner's records.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- external repository snapshot
+    setDocs(load());
+    return repo.subscribe(() => setDocs(load()));
+  }, [repo]);
   const account = useAccount();
   const signedIn = account.status === 'signedIn';
   const profile = docs.find(isProfile);

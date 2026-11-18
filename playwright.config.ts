@@ -53,6 +53,8 @@ export default defineConfig({
     {
       command: `npm run start -- -p ${PORT}`,
       env: {
+        // Verify ordinary navigation by default; the separate workspace suite enables tabs.
+        WORKSPACE_TABS_ENABLED: process.env.WORKSPACE_TABS_ENABLED ?? '0',
         RATE_LIMIT_PDF_PER_MINUTE: '1000',
         RATE_LIMIT_IMPORT_PER_MINUTE: '1000',
         MAKEOVER_VISITOR_PER_DAY: '100000',

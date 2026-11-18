@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { NextResponse } from 'next/server';
 import { apiError } from '@/lib/http';
 import { runTask } from '@/modules/ai/run';
@@ -14,7 +15,7 @@ export const maxDuration = 90;
  * POST { document } → { document: tailored copy } (not saved here: the browser saves it like any
  * CV, so it syncs). Only the order of the person's own facts and a guarded summary change.
  */
-export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
+async function handlePOST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const p = await prepareJobAi(req, ctx);
   if ('error' in p) return p.error;
   await noteUse(p.user.uid, 'cv');
@@ -43,3 +44,5 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     { headers: { 'Cache-Control': 'no-store' } },
   );
 }
+
+export const POST = withWorkspaceOwnerErrors(handlePOST);

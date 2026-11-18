@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { NextResponse } from 'next/server';
 import { apiError, requestId } from '@/lib/http';
 import { currentUser } from '@/modules/identity/session';
@@ -10,7 +11,7 @@ type Ctx = { params: Promise<{ id: string }> };
 const valid = (id: string) => /^[\w-]{1,40}$/.test(id);
 
 /** GET → one of your own pictures (for the settings screen and your preview). */
-export async function GET(_req: Request, ctx: Ctx) {
+async function handleGET(_req: Request, ctx: Ctx) {
   const rid = requestId();
   const user = await currentUser();
   if (!user) return apiError('SIGN_IN_REQUIRED', 'Please sign in.', rid);
@@ -21,7 +22,7 @@ export async function GET(_req: Request, ctx: Ctx) {
 }
 
 /** DELETE → removes one of your pictures. */
-export async function DELETE(_req: Request, ctx: Ctx) {
+async function handleDELETE(_req: Request, ctx: Ctx) {
   const rid = requestId();
   const user = await currentUser();
   if (!user) return apiError('SIGN_IN_REQUIRED', 'Please sign in.', rid);
@@ -30,3 +31,6 @@ export async function DELETE(_req: Request, ctx: Ctx) {
   await getUserStore().deletePortfolioImage(user.uid, id);
   return NextResponse.json({ ok: true }, { headers: { 'Cache-Control': 'no-store' } });
 }
+
+export const GET = withWorkspaceOwnerErrors(handleGET);
+export const DELETE = withWorkspaceOwnerErrors(handleDELETE);

@@ -1,9 +1,11 @@
 'use client';
 
+import { useWorkspaceState, useWorkspaceScope } from '@/features/workspace/context';
+
 import { useT } from '@/i18n/client';
 import { Check, Crown } from 'lucide-react';
 import { isPremiumDesign, useEntitlements } from '@/features/account/entitlements';
-import { useId, useMemo, useState } from 'react';
+import { useId, useMemo } from 'react';
 import { SelectableCard } from '@/components/ui/card';
 import { StyleAssist } from '@/features/ai/style-assist';
 import { CheckboxField } from './fields';
@@ -75,6 +77,7 @@ export function DesignPanel({
   status?: PreviewStatus | null;
 }) {
   const tx = useT();
+  const scope = useWorkspaceScope();
   const { doc, update } = editor;
   const d = doc.design;
   const set = (patch: Partial<DesignSpec>) => update((x) => ops.setDesign(x, patch));
@@ -84,7 +87,7 @@ export function DesignPanel({
     ent !== null && ent.plan !== 'premium' && isPremiumDesign(ent, id);
   const current = currentDesignId(d);
   const meta = current ? DESIGN_META[current] : null;
-  const [browsing, setBrowsing] = useState(false);
+  const [browsing, setBrowsing] = useWorkspaceState('editor.designpanel.browsing', false);
   const favs = useFavourites();
   const popularity = usePopularity();
   const items = useMemo(
@@ -94,8 +97,8 @@ export function DesignPanel({
   // One undo step: the design and its colour theme change together.
   const use = (id: DesignId, theme = 'own') => {
     update((x) => inTheme(ops.useDesign(x, id), theme === 'own' ? undefined : theme));
-    noteChosen(id, theme === 'own' ? undefined : theme);
-    noteRecent(id);
+    noteChosen(id, theme === 'own' ? undefined : theme, Date.now(), scope);
+    noteRecent(id, scope);
   };
   const retired = !!current && ent?.designs.find((x) => x.id === current)?.status === 'retired';
   // The person's CV as the picker previews show it: rebuilt only when the words or their own

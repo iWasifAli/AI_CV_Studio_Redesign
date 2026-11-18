@@ -35,18 +35,85 @@ export type BackupFile = {
 };
 
 const PREFIX = 'cvstudio:v1:doc:';
+const OWNER_PREFIX = 'cvstudio:v1:doc-owner:';
+const LEGACY_SYNC_PREFIX = 'cvstudio:v1:sync:';
+
+/** Omit for isolated repositories; production instances capture their account generation. */
+export type RepositoryAccess = { ownerUid: string | null; isCurrent: () => boolean };
+const staleOwner = () =>
+  new DOMException('This document belongs to a different account session.', 'AbortError');
+
 const QUARANTINE = 'cvstudio:v1:quarantine:';
 
 type KV = Pick<Storage, 'getItem' | 'setItem' | 'removeItem' | 'key'> & { readonly length: number };
 
 export class BrowserDocumentRepository implements DocumentRepository {
   private listeners = new Set<(e: RepositoryEvent) => void>();
-  constructor(private readonly store: KV) {}
+  constructor(
+    private readonly store: KV,
+    private readonly access?: RepositoryAccess,
+  ) {
+    if (!access) return;
+    // Migrate the old successful-sync map before treating any remaining unowned CVs as guests.
+    const legacy = new Map<string, string | null>();
+    for (let i = 0; i < store.length; i++) {
+      const key = store.key(i);
+      if (!key?.startsWith(LEGACY_SYNC_PREFIX)) continue;
+      let ids: unknown;
+      try {
+        ids = JSON.parse(store.getItem(key) ?? '[]');
+      } catch {
+        continue;
+      }
+      if (!Array.isArray(ids)) continue;
+      const uid = key.slice(LEGACY_SYNC_PREFIX.length);
+      for (const id of ids)
+        if (typeof id === 'string')
+          legacy.set(id, legacy.has(id) && legacy.get(id) !== uid ? null : uid);
+    }
+    for (const [id, uid] of legacy) {
+      if (store.getItem(OWNER_PREFIX + id) === null)
+        store.setItem(OWNER_PREFIX + id, uid === null ? '{"conflict":true}' : JSON.stringify(uid));
+    }
+    if (access.ownerUid)
+      for (const key of this.keys()) {
+        const id = key.slice(PREFIX.length);
+        if (
+          store.getItem(OWNER_PREFIX + id) === null ||
+          store.getItem(OWNER_PREFIX + id) === 'null'
+        )
+          store.setItem(OWNER_PREFIX + id, JSON.stringify(access.ownerUid));
+      }
+  }
+
+  private visible(id: string) {
+    if (!this.access) return true;
+    if (!this.access.isCurrent()) return false;
+    const owner = this.store.getItem(OWNER_PREFIX + id);
+    return owner === null
+      ? this.access.ownerUid === null
+      : owner === JSON.stringify(this.access.ownerUid);
+  }
+  private writable(id: string) {
+    if (!this.access) return;
+    if (!this.access.isCurrent()) throw staleOwner();
+    const owner = this.store.getItem(OWNER_PREFIX + id);
+    if (owner !== null && owner !== JSON.stringify(this.access.ownerUid)) throw staleOwner();
+  }
 
   subscribe(listener: (e: RepositoryEvent) => void) {
     this.listeners.add(listener);
+    const onStorage = (event: StorageEvent) => {
+      if (!this.access?.isCurrent() || !event.key?.startsWith(PREFIX)) return;
+      const id = event.key.slice(PREFIX.length);
+      if (this.visible(id)) listener({ type: event.newValue === null ? 'remove' : 'save', id });
+    };
+    if (this.access && typeof window !== 'undefined')
+      window.addEventListener?.('storage', onStorage);
     return () => {
       this.listeners.delete(listener);
+      if (this.access && typeof window !== 'undefined')
+        window.removeEventListener?.('storage', onStorage);
     };
   }
 
@@ -64,6 +131,7 @@ export class BrowserDocumentRepository implements DocumentRepository {
   }
 
   get(id: string): ResumeDocument | null {
+    if (!this.visible(id)) return null;
     const raw = this.store.getItem(PREFIX + id);
     if (!raw) return null;
     try {
@@ -97,11 +165,16 @@ export class BrowserDocumentRepository implements DocumentRepository {
   }
 
   save(doc: ResumeDocument): void {
+    this.writable(doc.id);
+    // Claim first: a failed metadata write must never leave an unowned account document.
+    if (this.access)
+      this.store.setItem(OWNER_PREFIX + doc.id, JSON.stringify(this.access.ownerUid));
     this.store.setItem(PREFIX + doc.id, JSON.stringify(doc));
     this.emit({ type: 'save', id: doc.id });
   }
 
   remove(id: string): void {
+    this.writable(id);
     this.store.removeItem(PREFIX + id);
     this.emit({ type: 'remove', id });
   }
@@ -158,18 +231,43 @@ export class MemoryStore implements KV {
 }
 
 let singleton: DocumentRepository | null = null;
+let productionStorage: KV | null = null;
+let ownerUid: string | null = null;
+let generation = 0;
 
 /** The repository for this browser. Falls back to memory if storage is blocked. */
 export function getRepository(): DocumentRepository {
   if (singleton) return singleton;
   let store: KV;
-  try {
-    window.localStorage.setItem('cvstudio:probe', '1');
-    window.localStorage.removeItem('cvstudio:probe');
-    store = window.localStorage;
-  } catch {
-    store = new MemoryStore();
-  }
-  singleton = new BrowserDocumentRepository(store);
+  if (productionStorage) store = productionStorage;
+  else
+    try {
+      window.localStorage.setItem('cvstudio:probe', '1');
+      window.localStorage.removeItem('cvstudio:probe');
+      store = window.localStorage;
+    } catch {
+      store = new MemoryStore();
+    }
+  productionStorage = store;
+  const capturedGeneration = generation;
+  const capturedOwner = ownerUid;
+  singleton = new BrowserDocumentRepository(store, {
+    ownerUid: capturedOwner,
+    isCurrent: () => generation === capturedGeneration && ownerUid === capturedOwner,
+  });
   return singleton;
+}
+
+/**
+ * Call synchronously before publishing an auth identity change. Existing handles become inert
+ * for reads and throw AbortError for mutations. Owner metadata includes unsynced local saves.
+ * No documents are deleted: explicit sign-out cleanup must use the current handle first.
+ */
+export function setRepositoryOwner(uid: string | null): void {
+  if (uid === ownerUid) return;
+  generation++;
+  ownerUid = uid;
+  singleton = null;
+  // Adoption is synchronous, so a guest CV cannot be adopted by a later unrelated account.
+  getRepository();
 }

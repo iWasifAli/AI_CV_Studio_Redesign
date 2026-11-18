@@ -1,16 +1,24 @@
 'use client';
 
+import { workspaceFetch } from '@/features/workspace/request';
+
+import { useWorkspaceTask } from '@/features/workspace/context';
+
+import { useWorkspaceState, useWorkspaceClean } from '@/features/workspace/context';
+
 import { useT } from '@/i18n/client';
-import { useRouter } from 'next/navigation';
+import { useWorkspaceRouter as useRouter } from '@/features/workspace/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Lock, Send, Sparkles, Trash2 } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/components/ui/toast';
+import { useAccount, useRepositoryVersion } from '@/features/account/account-context';
 import { useEntitlements } from '@/features/account/entitlements';
 import { AskText } from '@/features/ai/suggestion';
 import { jobAiApi, JobsError } from '@/features/jobs/api';
+import { newerConversation, type CoachConversation } from './snapshot';
 import type { CoachAction, CoachThread } from '@/modules/coach/thread';
 import { defaultSourceCv } from '@/modules/jobs/source-cv';
 import type { Job } from '@/modules/jobs/schema';
@@ -60,29 +68,70 @@ function label(a: CoachAction, jobs: Job[]): string {
  * checks apply; nothing happens until the person chooses it.
  */
 export function CoachChat({ jobs }: { jobs: Job[] }) {
+  const runTask = useWorkspaceTask();
+  const account = useAccount();
+  const markClean = useWorkspaceClean();
+
   const t = useT();
   const router = useRouter();
   const toast = useToast();
   const { ent, refresh } = useEntitlements();
-  const [thread, setThread] = useState<CoachThread | null | undefined>(undefined);
-  const [message, setMessage] = useState('');
+  const [conversation, setConversation] = useWorkspaceState<CoachConversation | null>(
+    'coach.CoachChat.conversation',
+    null,
+    { dirty: false },
+  );
+  const thread = conversation?.thread;
+  const [sourcePrompt, setSourcePrompt] = useWorkspaceState('coach.CoachChat.sourcePrompt', '', {
+    dirty: true,
+  });
+  const [suggestion, setSuggestion] = useWorkspaceState<unknown>(
+    'coach.CoachChat.suggestion',
+    null,
+    { dirty: false },
+  );
+  const [message, setMessage] = useWorkspaceState('coach.CoachChat.message', '', { dirty: true });
   const [busy, setBusy] = useState<string | null>(null);
-  const [problem, setProblem] = useState<{ message: string; premium?: boolean } | null>(null);
+  const [problem, setProblem] = useWorkspaceState<{ message: string; premium?: boolean } | null>(
+    'coach.CoachChat.problem',
+    null,
+    { dirty: false },
+  );
   const end = useRef<HTMLLIElement>(null);
+  const repositoryVersion = useRepositoryVersion();
   const repo = typeof window === 'undefined' ? null : getRepository();
-  const cvs = useMemo(() => repo?.list() ?? [], [repo]);
+  const cvs = useMemo(() => repo?.list() ?? [], [repo, repositoryVersion]); // eslint-disable-line react-hooks/exhaustive-deps -- repository event revision
   const sourceId = defaultSourceCv(cvs);
   const source = (sourceId && repo?.get(sourceId)) || null;
   const locked = ent ? ent.limits['ai.action'] === 0 : false;
 
   useEffect(() => {
-    fetch('/api/coach', { cache: 'no-store' })
-      .then((r) => r.json() as Promise<{ thread: CoachThread | null }>)
-      .then(
-        (j) => setThread(j.thread),
-        () => setThread(null),
-      );
-  }, []);
+    let live = true;
+    const controller = new AbortController();
+    workspaceFetch('/api/coach', {
+      cache: 'no-store',
+      signal: controller.signal,
+      headers: account.user?.uid ? { 'X-Workspace-Owner': account.user.uid } : undefined,
+    })
+      .then(async (r) => {
+        if (!r.ok) throw new Error('Could not load conversation.');
+        return r.json() as Promise<CoachConversation>;
+      })
+      .then((j) => {
+        if (live)
+          setConversation((current) =>
+            newerConversation(current, { thread: j.thread, revision: j.revision ?? 0 }),
+          );
+      })
+      .catch(() => {
+        if (live)
+          setProblem({ message: 'Could not load the saved conversation. Please try again.' });
+      });
+    return () => {
+      live = false;
+      controller.abort();
+    };
+  }, [account.user?.uid, setConversation, setProblem]);
   useEffect(() => {
     end.current?.scrollIntoView({ block: 'nearest' });
   }, [thread?.messages.length]);
@@ -95,93 +144,188 @@ export function CoachChat({ jobs }: { jobs: Job[] }) {
     );
 
   const send = async (text: string) => {
-    if (!source || !text.trim()) return;
-    setBusy('send');
-    setProblem(null);
-    try {
-      const r = await fetch('/api/coach', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ document: source, message: text }),
-      });
-      const j = (await r.json().catch(() => null)) as {
-        thread?: CoachThread;
-        error?: { message: string };
-      } | null;
-      if (!r.ok || !j?.thread)
-        throw new JobsError(j?.error?.message ?? 'The coach couldn’t reply.', r.status);
-      setThread(j.thread);
-      setMessage('');
-      refresh();
-    } catch (e) {
-      fail(e);
-    } finally {
-      setBusy(null);
-    }
+    return runTask('coach.CoachChat.send', async (signal) => {
+      if (!source || !text.trim() || !conversation) return;
+      setSourcePrompt(text);
+      setBusy('send');
+      setProblem(null);
+      try {
+        const r = await workspaceFetch('/api/coach', {
+          signal,
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            ...(account.user?.uid ? { 'X-Workspace-Owner': account.user.uid } : {}),
+          },
+          body: JSON.stringify({
+            document: source,
+            message: text,
+            expectedRevision: conversation.revision,
+          }),
+        });
+        signal.throwIfAborted();
+        const j = (await r.json().catch(() => null)) as {
+          thread?: CoachThread;
+          revision?: number;
+          error?: {
+            message: string;
+            details?: { current?: CoachConversation; generated?: unknown };
+          };
+          current?: CoachConversation;
+          generated?: unknown;
+        } | null;
+        signal.throwIfAborted();
+        if (r.status === 409) {
+          const current = j?.current ?? j?.error?.details?.current;
+          if (current) setConversation((previous) => newerConversation(previous, current));
+          setSuggestion(j?.generated ?? j?.error?.details?.generated ?? null);
+          setProblem({
+            message:
+              'The saved conversation changed. Your question and generated suggestion are kept; review the latest conversation before sending again.',
+          });
+          return;
+        }
+        if (!r.ok || !j?.thread)
+          throw new JobsError(j?.error?.message ?? 'The coach couldn’t reply.', r.status);
+        setConversation((current) =>
+          newerConversation(current, {
+            thread: j.thread!,
+            revision: j.revision ?? conversation.revision + 1,
+          }),
+        );
+        let unchanged = false;
+        setMessage((current) => {
+          unchanged = current === text;
+          return unchanged ? '' : current;
+        });
+        if (unchanged) markClean();
+        refresh();
+      } catch (e) {
+        signal.throwIfAborted();
+        fail(e);
+      } finally {
+        setBusy(null);
+      }
+    }).catch((error: unknown) => {
+      if (!(error instanceof Error && error.name === 'AbortError')) throw error;
+    });
   };
 
   const act = async (a: CoachAction) => {
-    const key = `${a.tool}:${a.arg}`;
-    setBusy(key);
-    setProblem(null);
-    try {
-      switch (a.tool) {
-        case 'tailor_cv': {
-          if (!source) return;
-          const { document } = await jobAiApi.tailor(a.arg, source);
-          getRepository().save(document);
-          toast.show({ tone: 'success', message: 'Tailored CV created' });
-          router.push(`/cv/${document.id}`);
-          break;
+    return runTask(`coach.CoachChat.act.${a.tool}.${a.arg}`, async (signal) => {
+      const key = `${a.tool}:${a.arg}`;
+      setBusy(key);
+      setProblem(null);
+      try {
+        switch (a.tool) {
+          case 'tailor_cv': {
+            if (!source) return;
+            const { document } = await jobAiApi.tailor(a.arg, source, {
+              signal,
+              ownerUid: account.user?.uid,
+            });
+            signal.throwIfAborted();
+            getRepository().save(document);
+            toast.show({ tone: 'success', message: 'Tailored CV created' });
+            router.push(`/cv/${document.id}`);
+            break;
+          }
+          case 'application_kit': {
+            if (!source) return;
+            const { document } = await jobAiApi.kit(a.arg, source, 'warm', {
+              signal,
+              ownerUid: account.user?.uid,
+            });
+            signal.throwIfAborted();
+            getRepository().save(document);
+            router.push(`/jobs/${a.arg}#kit`);
+            break;
+          }
+          case 'cover_letter':
+            if (!source) return;
+            await jobAiApi.letter(a.arg, source, 'warm', { signal, ownerUid: account.user?.uid });
+            signal.throwIfAborted();
+            router.push(`/jobs/${a.arg}#letter`);
+            break;
+          case 'job_match':
+            if (!source) return;
+            await jobAiApi.match(a.arg, source, { signal, ownerUid: account.user?.uid });
+            signal.throwIfAborted();
+            router.push(`/jobs/${a.arg}`);
+            break;
+          case 'mock_interview':
+            router.push(`/jobs/${a.arg}#mock`);
+            break;
+          case 'write_letter':
+            router.push(`/letters/new?type=${a.arg}`);
+            break;
+          case 'ats_check':
+            router.push(source ? `/cv/${source.id}?tab=check` : '/documents');
+            break;
+          case 'add_job':
+            router.push('/jobs?new=1');
+            break;
+          case 'design':
+            router.push(source ? `/cv/${source.id}?tab=design` : '/documents');
+            break;
+          case 'skill_gap':
+            router.push(a.arg ? `/skills?job=${a.arg}` : '/skills');
+            break;
         }
-        case 'application_kit': {
-          if (!source) return;
-          const { document } = await jobAiApi.kit(a.arg, source, 'warm');
-          getRepository().save(document);
-          router.push(`/jobs/${a.arg}#kit`);
-          break;
-        }
-        case 'cover_letter':
-          if (!source) return;
-          await jobAiApi.letter(a.arg, source, 'warm');
-          router.push(`/jobs/${a.arg}#letter`);
-          break;
-        case 'job_match':
-          if (!source) return;
-          await jobAiApi.match(a.arg, source);
-          router.push(`/jobs/${a.arg}`);
-          break;
-        case 'mock_interview':
-          router.push(`/jobs/${a.arg}#mock`);
-          break;
-        case 'write_letter':
-          router.push(`/letters/new?type=${a.arg}`);
-          break;
-        case 'ats_check':
-          router.push(source ? `/cv/${source.id}?tab=check` : '/documents');
-          break;
-        case 'add_job':
-          router.push('/jobs?new=1');
-          break;
-        case 'design':
-          router.push(source ? `/cv/${source.id}?tab=design` : '/documents');
-          break;
-        case 'skill_gap':
-          router.push(a.arg ? `/skills?job=${a.arg}` : '/skills');
-          break;
+        refresh();
+      } catch (e) {
+        signal.throwIfAborted();
+        fail(e);
+      } finally {
+        setBusy(null);
       }
-      refresh();
-    } catch (e) {
-      fail(e);
-    } finally {
-      setBusy(null);
-    }
+    }).catch((error: unknown) => {
+      if (!(error instanceof Error && error.name === 'AbortError')) throw error;
+    });
   };
 
   const clear = async () => {
-    if (!confirm('Clear the conversation?')) return;
-    await fetch('/api/coach', { method: 'DELETE' });
-    setThread(null);
+    if (!conversation || !confirm('Clear the conversation?')) return;
+    return runTask('coach.CoachChat.clear', async (signal) => {
+      setBusy('clear');
+      try {
+        const r = await workspaceFetch('/api/coach', {
+          signal,
+          method: 'DELETE',
+          headers: {
+            'content-type': 'application/json',
+            ...(account.user?.uid ? { 'X-Workspace-Owner': account.user.uid } : {}),
+          },
+          body: JSON.stringify({ expectedRevision: conversation.revision }),
+        });
+        const j = (await r.json()) as Partial<CoachConversation> & {
+          error?: { message?: string; details?: { current?: CoachConversation } };
+          current?: CoachConversation;
+        };
+        signal.throwIfAborted();
+        if (!r.ok) {
+          const current = j.current ?? j.error?.details?.current;
+          if (current) setConversation((previous) => newerConversation(previous, current));
+          setProblem({
+            message: j.error?.message ?? 'The conversation changed. Review it before clearing.',
+          });
+          return;
+        }
+        setConversation((current) =>
+          newerConversation(current, {
+            thread: null,
+            revision: j.revision ?? conversation.revision + 1,
+          }),
+        );
+      } catch (error) {
+        signal.throwIfAborted();
+        fail(error);
+      } finally {
+        setBusy(null);
+      }
+    }).catch((error: unknown) => {
+      if (!(error instanceof Error && error.name === 'AbortError')) throw error;
+    });
   };
 
   return (
@@ -206,6 +350,15 @@ export function CoachChat({ jobs }: { jobs: Job[] }) {
         {t('and the jobs you track. It never makes up experience for you.')}
       </p>
 
+      {suggestion != null && (
+        <details className="border-line rounded-lg border p-3">
+          <summary>{t('Retained Coach suggestion')}</summary>
+          <p className="whitespace-pre-wrap">{sourcePrompt}</p>
+          <pre className="text-sm whitespace-pre-wrap">
+            {typeof suggestion === 'string' ? suggestion : JSON.stringify(suggestion, null, 2)}
+          </pre>
+        </details>
+      )}
       {locked ? (
         <Banner
           tone="info"

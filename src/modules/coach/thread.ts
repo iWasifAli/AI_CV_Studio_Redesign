@@ -16,7 +16,7 @@ export type CoachMessage = {
   at: string;
   actions?: CoachAction[];
 };
-export type CoachThread = { messages: CoachMessage[]; updatedAt: string };
+export type CoachThread = { revision?: number; messages: CoachMessage[]; updatedAt: string };
 
 const JOB_TOOLS = new Set<CoachTool>([
   'tailor_cv',

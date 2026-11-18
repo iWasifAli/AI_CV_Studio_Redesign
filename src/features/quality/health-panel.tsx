@@ -1,8 +1,10 @@
 'use client';
 
+import { useWorkspaceState } from '@/features/workspace/context';
+
 import { useT } from '@/i18n/client';
-import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import Link from '@/features/workspace/navigation';
+import { useMemo } from 'react';
 import { CircleAlert, CircleCheck, Lightbulb } from 'lucide-react';
 import { healthCheck, type Finding } from '@/modules/quality/health';
 import { scoreCv } from '@/modules/quality/score';
@@ -22,7 +24,7 @@ export function HealthPanel({
   const t = useT();
   const report = useMemo(() => healthCheck(doc, { pages }), [doc, pages]);
   const score = useMemo(() => scoreCv(doc, { pages }), [doc, pages]);
-  const [showPassed, setShowPassed] = useState(false);
+  const [showPassed, setShowPassed] = useWorkspaceState('quality.healthpanel.showPassed', false);
   const fixes = report.findings.filter((f) => f.severity === 'fix');
   const improve = report.findings.filter((f) => f.severity === 'improve');
 

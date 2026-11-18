@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { aiModels, getAiProvider } from '@/modules/ai/config';
 import { sharedAiLimiter } from '@/modules/ai/limits';
 import { aiBudgetSpent } from '@/modules/metrics/server';
@@ -36,7 +37,7 @@ const INTERNAL = new Set<string>([
 const limiter = sharedAiLimiter();
 
 /** POST /api/ai/:task — docs/engineering/api-contracts.md. Logs never contain user text. */
-export async function POST(req: Request, ctx: { params: Promise<{ task: string }> }) {
+async function handlePOST(req: Request, ctx: { params: Promise<{ task: string }> }) {
   const rid = requestId();
   const { task } = await ctx.params;
   // Import and makeover tasks are internal (their routes have their own checks).
@@ -145,3 +146,5 @@ export async function POST(req: Request, ctx: { params: Promise<{ task: string }
   };
   return Response.json(res, { headers: { 'Cache-Control': 'no-store', 'x-request-id': rid } });
 }
+
+export const POST = withWorkspaceOwnerErrors(handlePOST);

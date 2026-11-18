@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { NextResponse } from 'next/server';
 import { apiError, readJson, requestId } from '@/lib/http';
 import { getBusinessConfig, planFor } from '@/modules/billing/server';
@@ -14,7 +15,7 @@ export const dynamic = 'force-dynamic';
 const noStore = { headers: { 'Cache-Control': 'no-store' } };
 
 /** GET → this account's portfolio settings (or null). */
-export async function GET() {
+async function handleGET() {
   const rid = requestId();
   const user = await currentUser();
   if (!user) return apiError('SIGN_IN_REQUIRED', 'Please sign in.', rid);
@@ -26,7 +27,7 @@ export async function GET() {
  * PUT { slug, docId, published, showEmail, showPhone, theme, sections, projects, contact } →
  * saves (Premium). Contact messages go to the owner's sign-in address, kept when they save.
  */
-export async function PUT(req: Request) {
+async function handlePUT(req: Request) {
   const rid = requestId();
   const user = await currentUser();
   if (user) await noteUse(user.uid, 'portfolio');
@@ -111,10 +112,14 @@ export async function PUT(req: Request) {
 }
 
 /** DELETE → removes the page. */
-export async function DELETE() {
+async function handleDELETE() {
   const rid = requestId();
   const user = await currentUser();
   if (!user) return apiError('SIGN_IN_REQUIRED', 'Please sign in.', rid);
   await getUserStore().deletePortfolioOf(user.uid);
   return NextResponse.json({ ok: true }, noStore);
 }
+
+export const GET = withWorkspaceOwnerErrors(handleGET);
+export const PUT = withWorkspaceOwnerErrors(handlePUT);
+export const DELETE = withWorkspaceOwnerErrors(handleDELETE);

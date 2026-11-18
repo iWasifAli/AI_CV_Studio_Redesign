@@ -83,6 +83,7 @@ export const jobInput = z.object({
 export type JobInput = z.input<typeof jobInput>;
 
 export const job = jobInput.extend({
+  revision: z.number().int().nonnegative().optional(),
   id: z.string().max(64),
   /** Last CV-vs-advert check (written by the server only). */
   match: z.custom<MatchResult>().optional(),

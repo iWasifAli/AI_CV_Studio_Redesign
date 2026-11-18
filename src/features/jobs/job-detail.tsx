@@ -1,8 +1,16 @@
 'use client';
 
+import {
+  useWorkspaceState,
+  useWorkspaceTask,
+  useWorkspace,
+  useWorkspaceClean,
+} from '@/features/workspace/context';
+
+import { useWorkspaceTitle } from '@/features/workspace/use-title';
 import { useT } from '@/i18n/client';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import Link from '@/features/workspace/navigation';
+import { useWorkspaceRouter as useRouter } from '@/features/workspace/navigation';
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { ArrowLeft, ExternalLink, Trash2 } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
@@ -21,7 +29,9 @@ import {
   type JobStage,
 } from '@/modules/jobs/schema';
 import { getRepository } from '@/modules/storage/repository';
-import { jobsApi } from './api';
+import { jobsApi, JobsError, type ConflictDetails } from './api';
+import { keepLaterEdits, revisionOf } from './workspace-state';
+import { ConflictNotice } from './conflict-notice';
 import { JobTools } from './job-tools';
 import { CompanyBrief } from './company-brief';
 import { RemindersCard } from './reminders-card';
@@ -66,31 +76,57 @@ function useCvList() {
 
 export function JobDetail({ id }: { id: string }) {
   const t = useT();
-  const router = useRouter();
-  const toast = useToast();
-  const cvs = useCvList();
-  const { ent } = useEntitlements();
-  const [job, setJob] = useState<Job | null>(null);
-  const [draft, setDraft] = useState<Draft | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
-
+  const { ownerUid } = useWorkspace();
+  const [job, setJob] = useWorkspaceState<Job | null>('jobs.JobDetail.job', null, { dirty: false });
+  const [error, setError] = useWorkspaceState<string | null>('jobs.JobDetail.error', null, {
+    dirty: false,
+  });
   useEffect(() => {
-    jobsApi.get(id).then(
+    let live = true;
+    jobsApi.get(id, { ownerUid }).then(
       (j) => {
-        setJob(j);
-        setDraft(pick(j));
+        if (live) setJob((current) => current ?? j);
       },
-      (e: Error) => setError(e.message),
+      (e: Error) => {
+        if (live) setError(e.message);
+      },
     );
-  }, [id]);
-
-  if (!job || !draft)
+    return () => {
+      live = false;
+    };
+  }, [id, ownerUid, setJob, setError]);
+  if (!job)
     return error ? (
       <Banner tone="error" title={error} action={<Link href="/jobs">{t('Back to jobs')}</Link>} />
     ) : (
       <div className="skeleton h-96 rounded-lg" aria-busy="true" aria-label={t('Loading')} />
     );
+  return <JobDetailForm initial={job} />;
+}
+
+function JobDetailForm({ initial }: { initial: Job }) {
+  const t = useT();
+  const router = useRouter();
+  const runTask = useWorkspaceTask();
+  const { ownerUid, store, tabId, routeKey } = useWorkspace();
+  const markClean = useWorkspaceClean();
+  const [conflict, setConflict] = useWorkspaceState<ConflictDetails | null>(
+    'jobs.JobDetail.conflict',
+    null,
+    { dirty: false },
+  );
+  const toast = useToast();
+  const cvs = useCvList();
+  const { ent } = useEntitlements();
+  const [job, setJob] = useWorkspaceState<Job>('jobs.JobDetail.job', initial, { dirty: false });
+  const [draft, setDraft] = useWorkspaceState<Draft>('jobs.JobDetail.draft', () => pick(initial), {
+    dirty: true,
+  });
+  const [error, setError] = useWorkspaceState<string | null>('jobs.JobDetail.error', null, {
+    dirty: false,
+  });
+  useWorkspaceTitle([draft.title, draft.company].filter(Boolean).join(' · '));
+  const [saving, setSaving] = useState(false);
 
   const dirty = JSON.stringify(pick(job)) !== JSON.stringify(draft);
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setDraft((d) => d && { ...d, [k]: v });
@@ -99,11 +135,31 @@ export function JobDetail({ id }: { id: string }) {
     setSaving(true);
     setError(null);
     try {
-      const next = await jobsApi.update(job.id, draft);
-      setJob(next);
-      setDraft(pick(next));
-      toast.show({ tone: 'success', message: 'Saved' });
+      await runTask('jobs.JobDetail.save', async (signal) => {
+        const next = await jobsApi.update(job.id, draft, {
+          signal,
+          ownerUid,
+          expectedRevision: revisionOf(job),
+        });
+        const latest =
+          store && tabId ? store.readFeature(tabId, `${routeKey}:jobs.JobDetail.draft`) : draft;
+        setJob(next);
+        setDraft((current) => keepLaterEdits(current, draft, pick(next)));
+        const otherDrafts =
+          store &&
+          tabId &&
+          Object.entries(store.getTab(tabId)?.features ?? {}).some(
+            ([key, value]) =>
+              key.startsWith(`${routeKey}:`) &&
+              key !== `${routeKey}:jobs.JobDetail.draft` &&
+              value.dirty,
+          );
+        if (!otherDrafts && JSON.stringify(latest) === JSON.stringify(draft)) markClean();
+        setConflict(null);
+        toast.show({ tone: 'success', message: 'Saved' });
+      });
     } catch (e) {
+      if (e instanceof JobsError && e.status === 409) setConflict(e.details ?? {});
       setError((e as Error).message);
     } finally {
       setSaving(false);
@@ -113,10 +169,13 @@ export function JobDetail({ id }: { id: string }) {
   const remove = async () => {
     if (!confirm(`Remove “${job.title}” from your jobs?`)) return;
     try {
-      await jobsApi.remove(job.id);
+      await runTask('jobs.JobDetail.remove', (signal) =>
+        jobsApi.remove(job.id, { signal, ownerUid, expectedRevision: revisionOf(job) }),
+      );
       toast.show({ tone: 'success', message: 'Job removed' });
       router.push('/jobs');
     } catch (e) {
+      if (e instanceof JobsError && e.status === 409) setConflict(e.details ?? {});
       setError((e as Error).message);
     }
   };
@@ -146,13 +205,24 @@ export function JobDetail({ id }: { id: string }) {
           </a>
         )}
       </div>
+      <ConflictNotice
+        details={conflict}
+        onKeepDraft={
+          conflict?.current
+            ? () => {
+                setJob(conflict.current as Job);
+                setConflict(null);
+              }
+            : undefined
+        }
+      />
       {error && (
         <Banner tone="error" title={t('That didn’t work')} onDismiss={() => setError(null)}>
           {t(error)}
         </Banner>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <div className="flex flex-col gap-6">
           <Card className="flex flex-col gap-4 p-5">
             <h2 className="text-lg font-semibold">{t('Where you are')}</h2>
@@ -274,14 +344,14 @@ export function JobDetail({ id }: { id: string }) {
             job={job}
             onJobChange={(j) => {
               setJob(j);
-              setDraft(pick(j));
+              setDraft((current) => keepLaterEdits(current, pick(job), pick(j)));
             }}
           />
           <CompanyBrief
             job={job}
             onJobChange={(j) => {
               setJob(j);
-              setDraft(pick(j));
+              setDraft((current) => keepLaterEdits(current, pick(job), pick(j)));
             }}
           />
         </div>

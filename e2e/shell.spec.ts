@@ -85,7 +85,9 @@ test('home → start → choose a profession navigates to the builder', async ({
   await page.getByRole('link', { name: 'Create my CV' }).first().click();
   await expect(page).toHaveURL(/\/start$/);
   await page.getByRole('button', { name: /Driving & delivery/ }).click();
-  await expect(page).toHaveURL(/\/cv\/new\?work=driver/);
+  // Creation immediately replaces its intent URL with the new guided document.
+  await expect(page).toHaveURL(/\/cv\/[\w-]+\/guided/);
+  await expect(page.getByLabel('Full name')).toBeVisible();
 });
 
 test.describe('visitor keyboard', () => {

@@ -1,7 +1,11 @@
 'use client';
 
+import { workspaceFetch as fetch } from '@/features/workspace/request';
+
+import { useWorkspaceState, useWorkspaceTask } from '@/features/workspace/context';
+
 import { useT } from '@/i18n/client';
-import Link from 'next/link';
+import Link from '@/features/workspace/navigation';
 import { useEffect, useState } from 'react';
 import { CircleAlert, CircleCheck, Info, Lock, ScanSearch } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
@@ -70,10 +74,17 @@ function AtsPanel({
   const account = useAccount();
   const { ent, refresh } = useEntitlements();
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [jobId, setJobId] = useState(doc.jobId ?? '');
+  const [jobId, setJobId] = useWorkspaceState('quality.checkpanel.jobId', doc.jobId ?? '');
+  const runTask = useWorkspaceTask();
   const [busy, setBusy] = useState(false);
-  const [report, setReport] = useState<AtsReport | null>(null);
-  const [problem, setProblem] = useState<{ message: string; premium?: boolean } | null>(null);
+  const [report, setReport] = useWorkspaceState<AtsReport | null>(
+    'quality.checkpanel.report',
+    null,
+  );
+  const [problem, setProblem] = useWorkspaceState<{ message: string; premium?: boolean } | null>(
+    'quality.checkpanel.problem',
+    null,
+  );
   const signedIn = account.status === 'signedIn';
   const premium = ent?.plan === 'premium';
   useEffect(() => {
@@ -90,25 +101,30 @@ function AtsPanel({
     setBusy(true);
     setProblem(null);
     try {
-      const r = await fetch('/api/quality/ats', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ document: doc, jobId: premium ? jobId : '' }),
-      });
-      const j = (await r.json().catch(() => null)) as {
-        report?: AtsReport;
-        error?: { message: string };
-      } | null;
-      if (!r.ok || !j?.report) {
-        setProblem({
-          message: j?.error?.message ?? 'We couldn’t check this CV just now.',
-          premium: r.status === 402,
+      await runTask('quality.checkpanel.run', async (signal) => {
+        const r = await fetch('/api/quality/ats', {
+          method: 'POST',
+          signal,
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ document: doc, jobId: premium ? jobId : '' }),
         });
-        return;
-      }
-      setReport(j.report);
-      refresh();
-    } catch {
+        const j = (await r.json().catch(() => null)) as {
+          report?: AtsReport;
+          error?: { message: string };
+        } | null;
+        signal.throwIfAborted();
+        if (!r.ok || !j?.report) {
+          setProblem({
+            message: j?.error?.message ?? 'We couldn’t check this CV just now.',
+            premium: r.status === 402,
+          });
+          return;
+        }
+        setReport(j.report);
+        refresh();
+      });
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') return;
       setProblem({ message: 'You seem to be offline. Please try again.' });
     } finally {
       setBusy(false);

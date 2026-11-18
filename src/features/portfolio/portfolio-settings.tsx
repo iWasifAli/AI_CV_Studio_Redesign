@@ -1,7 +1,13 @@
 'use client';
 
+import { workspaceFetch } from '@/features/workspace/request';
+
+import { useWorkspaceTask } from '@/features/workspace/context';
+
+import { useWorkspaceState, useWorkspaceClean } from '@/features/workspace/context';
+
 import { useT } from '@/i18n/client';
-import Link from 'next/link';
+import Link from '@/features/workspace/navigation';
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { ExternalLink, Eye, Globe } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
@@ -44,6 +50,9 @@ export function PortfolioSettings() {
 }
 
 function Settings() {
+  const runTask = useWorkspaceTask();
+  const markClean = useWorkspaceClean();
+
   const tx = useT();
   const account = useAccount();
   const { ent } = useEntitlements();
@@ -51,20 +60,33 @@ function Settings() {
   const repo = getRepository();
   const cvs = useMemo(() => repo.list(), [repo]);
   const [saved, setSaved] = useState<PortfolioView | null | undefined>(undefined);
-  const [form, setForm] = useState<Form | null>(null);
+  const [draft, setForm] = useWorkspaceState<Form | null>('portfolio.Settings.form', null, {
+    dirty: true,
+  });
+  const [initialForm, setInitialForm] = useState<Form | null>(null);
+  const form = draft ?? initialForm;
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useWorkspaceState<string | null>('portfolio.Settings.error', null, {
+    dirty: false,
+  });
   const signedIn = account.status === 'signedIn';
   const premium = ent?.plan === 'premium';
 
   useEffect(() => {
     if (!signedIn) return;
-    fetch('/api/portfolio', { cache: 'no-store' })
+    let live = true;
+    const controller = new AbortController();
+    workspaceFetch('/api/portfolio', {
+      cache: 'no-store',
+      signal: controller.signal,
+      headers: account.user?.uid ? { 'X-Workspace-Owner': account.user.uid } : undefined,
+    })
       .then((r) => r.json() as Promise<{ portfolio: PortfolioView | null }>)
       .then(({ portfolio }) => {
+        if (!live) return;
         setSaved(portfolio);
         const source = cvs.find((c) => c.role === 'profile') ?? cvs[0];
-        setForm(
+        setInitialForm(
           portfolio
             ? fromView(portfolio)
             : {
@@ -80,8 +102,14 @@ function Settings() {
               },
         );
       })
-      .catch(() => setSaved(null));
-  }, [signedIn, cvs]);
+      .catch(() => {
+        if (live) setSaved(null);
+      });
+    return () => {
+      live = false;
+      controller.abort();
+    };
+  }, [signedIn, account.user?.uid, cvs]);
 
   const url = (slug: string) => `${window.location.origin}/p/${slug}`;
   const problem = form ? slugProblem(form.slug) : null;
@@ -93,40 +121,72 @@ function Settings() {
   /** Opens the preview in a new tab with these settings (saved or not). */
   function preview(theme?: Theme) {
     if (!form) return;
-    saveDraft(form);
-    window.open(`/portfolio-preview${theme ? `?theme=${theme}` : ''}`, '_blank', 'noopener');
+    const key = saveDraft(form, account.user?.uid ?? null);
+    const query = new URLSearchParams({ draft: key });
+    if (theme) query.set('theme', theme);
+    window.open(`/portfolio-preview?${query}`, '_blank', 'noopener');
   }
 
   async function save() {
-    if (!form) return;
-    setBusy(true);
-    setError(null);
-    try {
-      const r = await fetch('/api/portfolio', {
-        method: 'PUT',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(form),
-      });
-      const j = (await r.json()) as { portfolio?: PortfolioView; error?: { message: string } };
-      if (!r.ok || !j.portfolio) throw new Error(j.error?.message ?? 'That didn’t work.');
-      setSaved(j.portfolio);
-      setForm(fromView(j.portfolio));
-      toast.show({
-        tone: 'success',
-        message: j.portfolio.published ? 'Your page is live' : 'Saved. Your page is hidden.',
-      });
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
+    return runTask('portfolio.Settings.save', async (signal) => {
+      if (!form) return;
+      setBusy(true);
+      setError(null);
+      try {
+        const r = await workspaceFetch('/api/portfolio', {
+          signal,
+          method: 'PUT',
+          headers: {
+            'content-type': 'application/json',
+            ...(account.user?.uid ? { 'X-Workspace-Owner': account.user.uid } : {}),
+          },
+          body: JSON.stringify(form),
+        });
+        signal.throwIfAborted();
+        const j = (await r.json()) as { portfolio?: PortfolioView; error?: { message: string } };
+        signal.throwIfAborted();
+        if (!r.ok || !j.portfolio) throw new Error(j.error?.message ?? 'That didn’t work.');
+        setSaved(j.portfolio);
+        setInitialForm(fromView(j.portfolio));
+        let unchanged = false;
+        setForm((current) => {
+          unchanged = JSON.stringify(current ?? initialForm) === JSON.stringify(form);
+          return unchanged ? fromView(j.portfolio!) : current;
+        });
+        if (unchanged) markClean();
+        toast.show({
+          tone: 'success',
+          message: j.portfolio.published ? 'Your page is live' : 'Saved. Your page is hidden.',
+        });
+      } catch (e) {
+        signal.throwIfAborted();
+        setError((e as Error).message);
+      } finally {
+        setBusy(false);
+      }
+    }).catch((error: unknown) => {
+      if (!(error instanceof Error && error.name === 'AbortError')) throw error;
+    });
   }
 
   async function remove() {
-    if (!confirm('Delete your portfolio page? The address will become free for others.')) return;
-    await fetch('/api/portfolio', { method: 'DELETE' });
-    setSaved(null);
-    toast.show({ tone: 'success', message: 'Portfolio page deleted' });
+    return runTask('portfolio.Settings.remove', async (signal) => {
+      if (!confirm('Delete your portfolio page? The address will become free for others.')) return;
+      const response = await workspaceFetch('/api/portfolio', {
+        signal,
+        method: 'DELETE',
+        headers: account.user?.uid ? { 'X-Workspace-Owner': account.user.uid } : undefined,
+      });
+      signal.throwIfAborted();
+      if (!response.ok) {
+        setError('The portfolio could not be deleted. Please try again.');
+        return;
+      }
+      setSaved(null);
+      toast.show({ tone: 'success', message: 'Portfolio page deleted' });
+    }).catch((error: unknown) => {
+      if (!(error instanceof Error && error.name === 'AbortError')) throw error;
+    });
   }
 
   return (
@@ -277,7 +337,15 @@ function Settings() {
             />
             <ProjectsEditor
               value={form.projects}
-              onChange={(projects) => setForm({ ...form, projects })}
+              onChange={(projects) =>
+                setForm((current) => {
+                  const latest = current ?? form;
+                  return {
+                    ...latest,
+                    projects: typeof projects === 'function' ? projects(latest.projects) : projects,
+                  };
+                })
+              }
             />
           </Card>
           <Card className="flex flex-col gap-4 p-5">

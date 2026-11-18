@@ -1,7 +1,14 @@
 'use client';
 
+import { sameSnapshotValue } from '@/features/workspace/equality';
+import { useCurrentWorkspaceValue } from '@/features/workspace/use-current-value';
+
+import { useWorkspaceTask } from '@/features/workspace/context';
+
+import { useWorkspaceState, useWorkspaceClean } from '@/features/workspace/context';
+
 import { useT } from '@/i18n/client';
-import Link from 'next/link';
+import Link from '@/features/workspace/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { BookOpen, Lock, Pencil, Plus, Sparkles, Trash2 } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
@@ -10,7 +17,7 @@ import { Badge, Chip } from '@/components/ui/chip';
 import { TextArea, TextField } from '@/components/ui/field';
 import { Skeleton } from '@/components/ui/misc';
 import { useToast } from '@/components/ui/toast';
-import { useAccount } from '@/features/account/account-context';
+import { useAccount, useRepositoryVersion } from '@/features/account/account-context';
 import { useEntitlements } from '@/features/account/entitlements';
 import { JobsError } from '@/features/jobs/api';
 import { profileDigest } from '@/modules/jobs/digest';
@@ -44,24 +51,42 @@ const QUESTION = /\{\{\?[^}]*\}\}/;
  * Writing is free up to the plan's number; drafting one from a CV point is a Premium AI action.
  */
 export function StoryBank() {
+  const runTask = useWorkspaceTask();
+  const markClean = useWorkspaceClean();
+
   const t = useT();
   const account = useAccount();
   const { ent, refresh } = useEntitlements();
   const toast = useToast();
-  const [data, setData] = useState<{ stories: Story[]; max: number; enabled: boolean } | null>(
-    null,
-  );
+  const [stories, setStories] = useWorkspaceState<Story[]>('stories.StoryBank.stories', [], {
+    dirty: false,
+  });
+  const [access, setAccess] = useState<{ max: number; enabled: boolean } | null>(null);
+  const data = access ? { ...access, stories } : null;
   const [error, setError] = useState<string | null>(null);
-  const [editing, setEditing] = useState<Draft | null>(null);
+  const [editing, setEditing] = useWorkspaceState<Draft | null>('stories.StoryBank.editing', null, {
+    dirty: true,
+  });
+  const currentEditing = useCurrentWorkspaceValue('stories.StoryBank.editing', editing);
+  const [suggestion, setSuggestion] = useWorkspaceState<Draft | null>(
+    'stories.StoryBank.suggestion',
+    null,
+    { dirty: false },
+  );
   const [busy, setBusy] = useState<string | null>(null);
-  const [problem, setProblem] = useState<{ message: string; premium?: boolean } | null>(null);
+  const [problem, setProblem] = useWorkspaceState<{ message: string; premium?: boolean } | null>(
+    'stories.StoryBank.problem',
+    null,
+    { dirty: false },
+  );
 
+  const repositoryVersion = useRepositoryVersion();
   const repo = typeof window === 'undefined' ? null : getRepository();
   const source = useMemo(() => {
     const cvs = repo?.list() ?? [];
     const id = defaultSourceCv(cvs);
     return (id && repo?.get(id)) || null;
-  }, [repo]);
+  }, [repo, repositoryVersion]); // eslint-disable-line react-hooks/exhaustive-deps -- repository event revision
   const digest = useMemo(() => (source ? profileDigest(source) : null), [source]);
   const points = useMemo(
     () => (source && digest ? storyPoints(source, digest) : []),
@@ -70,8 +95,26 @@ export function StoryBank() {
 
   useEffect(() => {
     if (account.status !== 'signedIn') return;
-    storiesApi.list().then(setData, (e: Error) => setError(e.message));
-  }, [account.status]);
+    const baseline = stories;
+    let live = true;
+    const controller = new AbortController();
+    storiesApi.list({ signal: controller.signal, ownerUid: account.user?.uid }).then(
+      (data) => {
+        if (!live) return;
+        setStories((current) => (current === baseline ? data.stories : current));
+        setAccess({ max: data.max, enabled: data.enabled });
+      },
+      (e: Error) => {
+        if (live) setError(e.message);
+      },
+    );
+    return () => {
+      live = false;
+      controller.abort();
+    };
+    // Revalidate on arrival/account change; a late GET cannot replace completed task writes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [account.status, account.user?.uid, setStories]);
 
   const fail = (e: unknown) =>
     setProblem(
@@ -99,43 +142,57 @@ export function StoryBank() {
   const aiLocked = ent ? ent.limits['ai.action'] === 0 : false;
 
   const save = async () => {
-    if (!editing) return;
-    setBusy('save');
-    setProblem(null);
-    try {
-      const input: StoryInput = {
-        title: editing.title,
-        situation: editing.situation,
-        task: editing.task,
-        action: editing.action,
-        result: editing.result,
-        skills: editing.skills,
-        ...(editing.source ? { source: editing.source } : {}),
-      };
-      const saved = editing.id
-        ? await storiesApi.update(editing.id, input)
-        : await storiesApi.create(input);
-      setData({
-        ...data,
-        stories: [saved, ...data.stories.filter((s) => s.id !== saved.id)],
-      });
-      setEditing(null);
-      toast.show({ tone: 'success', message: 'Story saved' });
-    } catch (e) {
-      fail(e);
-    } finally {
-      setBusy(null);
-    }
+    return runTask('stories.StoryBank.save', async (signal) => {
+      if (!editing) return;
+      setBusy('save');
+      setProblem(null);
+      try {
+        const input: StoryInput = {
+          title: editing.title,
+          situation: editing.situation,
+          task: editing.task,
+          action: editing.action,
+          result: editing.result,
+          skills: editing.skills,
+          ...(editing.source ? { source: editing.source } : {}),
+        };
+        const saved = editing.id
+          ? await storiesApi.update(editing.id, input, { signal, ownerUid: account.user?.uid })
+          : await storiesApi.create(input, { signal, ownerUid: account.user?.uid });
+        signal.throwIfAborted();
+        setStories((current) => [saved, ...current.filter((s) => s.id !== saved.id)]);
+        let unchanged = false;
+        setEditing((current) => {
+          unchanged = JSON.stringify(current) === JSON.stringify(editing);
+          return unchanged ? null : current;
+        });
+        if (unchanged) markClean();
+        toast.show({ tone: 'success', message: 'Story saved' });
+      } catch (e) {
+        signal.throwIfAborted();
+        fail(e);
+      } finally {
+        setBusy(null);
+      }
+    }).catch((error: unknown) => {
+      if (!(error instanceof Error && error.name === 'AbortError')) throw error;
+    });
   };
 
   const remove = async (s: Story) => {
-    if (!confirm(`Delete “${s.title}”?`)) return;
-    try {
-      await storiesApi.remove(s.id);
-      setData({ ...data, stories: data.stories.filter((x) => x.id !== s.id) });
-    } catch (e) {
-      fail(e);
-    }
+    return runTask(`stories.StoryBank.remove.${s.id}`, async (signal) => {
+      if (!confirm(`Delete “${s.title}”?`)) return;
+      try {
+        await storiesApi.remove(s.id, { signal, ownerUid: account.user?.uid });
+        signal.throwIfAborted();
+        setStories((current) => current.filter((x) => x.id !== s.id));
+      } catch (e) {
+        signal.throwIfAborted();
+        fail(e);
+      }
+    }).catch((error: unknown) => {
+      if (!(error instanceof Error && error.name === 'AbortError')) throw error;
+    });
   };
 
   return (
@@ -194,8 +251,28 @@ export function StoryBank() {
         />
       )}
 
+      {suggestion && (
+        <section className="border-line rounded-lg border p-4">
+          <h2 className="font-semibold">
+            {t('Suggested story: {title}', { title: suggestion.title })}
+          </h2>
+          <p>{suggestion.situation}</p>
+          <p>{suggestion.task}</p>
+          <p>{suggestion.action}</p>
+          <p>{suggestion.result}</p>
+          <Button
+            onClick={() => {
+              setEditing(suggestion);
+              setSuggestion(null);
+            }}
+          >
+            {t('Use this story')}
+          </Button>
+        </section>
+      )}
       {editing && (
         <StoryEditor
+          key={editing.id ?? 'new'}
           draft={editing}
           onChange={setEditing}
           onSave={save}
@@ -205,19 +282,36 @@ export function StoryBank() {
           points={editing.id ? [] : points}
           aiLocked={aiLocked}
           drafting={busy === 'draft'}
-          onDraft={async (point, notes) => {
-            if (!source) return;
-            setBusy('draft');
-            setProblem(null);
-            try {
-              const d = await storiesApi.draft(source, point, notes);
-              setEditing({ ...d, source: d.source });
-              refresh();
-            } catch (e) {
-              fail(e);
-            } finally {
-              setBusy(null);
-            }
+          onDraft={async (point, notes, inputsUnchanged) => {
+            return runTask('stories.StoryBank.onDraft', async (signal) => {
+              if (!source) return;
+              setBusy('draft');
+              setProblem(null);
+              try {
+                const d = await storiesApi.draft(source, point, notes, {
+                  signal,
+                  ownerUid: account.user?.uid,
+                });
+                signal.throwIfAborted();
+                const next = { ...d, source: d.source };
+                if (
+                  inputsUnchanged() &&
+                  sameSnapshotValue(currentEditing(), editing) &&
+                  sameSnapshotValue(repo?.get(source.id), source)
+                ) {
+                  setEditing(next);
+                  setSuggestion(null);
+                } else setSuggestion(next);
+                refresh();
+              } catch (e) {
+                signal.throwIfAborted();
+                fail(e);
+              } finally {
+                setBusy(null);
+              }
+            }).catch((error: unknown) => {
+              if (!(error instanceof Error && error.name === 'AbortError')) throw error;
+            });
           }}
         />
       )}
@@ -316,14 +410,44 @@ function StoryEditor({
   points: { id: string; text: string; role: string }[];
   aiLocked: boolean;
   drafting: boolean;
-  onDraft: (point: string, notes: string) => void;
+  onDraft: (point: string, notes: string, inputsUnchanged: () => boolean) => void;
 }) {
   const t = useT();
-  const [point, setPoint] = useState(points[0]?.id ?? '');
-  const [notes, setNotes] = useState('');
-  const [tag, setTag] = useState('');
+  const [point, setPoint] = useWorkspaceState(
+    `stories.StoryEditor.point.${draft.id ?? 'new'}`,
+    points[0]?.id ?? '',
+    {
+      dirty: true,
+    },
+  );
+  useEffect(() => {
+    const next = points[0]?.id;
+    if (!point && next) setPoint((current) => current || next);
+  }, [points, point, setPoint]);
+  const [notes, setNotes] = useWorkspaceState(
+    `stories.StoryEditor.notes.${draft.id ?? 'new'}`,
+    '',
+    { dirty: true },
+  );
+  const [tag, setTag] = useWorkspaceState(`stories.StoryEditor.tag.${draft.id ?? 'new'}`, '', {
+    dirty: true,
+  });
+  const currentPoint = useCurrentWorkspaceValue(
+    `stories.StoryEditor.point.${draft.id ?? 'new'}`,
+    point,
+  );
+  const currentNotes = useCurrentWorkspaceValue(
+    `stories.StoryEditor.notes.${draft.id ?? 'new'}`,
+    notes,
+  );
   // Open the "draft from my CV" panel for a new, empty story; decided once, so typing never closes it.
-  const [draftOpen] = useState(!draft.title);
+  const [draftOpen] = useWorkspaceState(
+    `stories.StoryEditor.draftOpen.${draft.id ?? 'new'}`,
+    !draft.title,
+    {
+      dirty: false,
+    },
+  );
   const set = (patch: Partial<Draft>) => onChange({ ...draft, ...patch });
   const addTag = (t: string) => {
     const v = t.trim().slice(0, 40);
@@ -386,7 +510,9 @@ function StoryEditor({
               icon={aiLocked ? <Lock aria-hidden size={16} /> : <Sparkles aria-hidden size={16} />}
               loading={drafting}
               disabled={!point || drafting}
-              onClick={() => onDraft(point, notes)}
+              onClick={() =>
+                onDraft(point, notes, () => currentPoint() === point && currentNotes() === notes)
+              }
             >
               {t('Draft with AI')}
             </Button>

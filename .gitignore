@@ -3,6 +3,7 @@ node_modules/
 out/
 coverage/
 playwright-report/
+playwright-workspace-report/
 test-results/
 *.log
 .env

@@ -1,7 +1,7 @@
 'use client';
 
 import { useT } from '@/i18n/client';
-import { useRouter } from 'next/navigation';
+import { useWorkspaceRouter as useRouter } from '@/features/workspace/navigation';
 import { useId, useMemo, useState } from 'react';
 import { Dialog } from '@/components/ui/dialog';
 import { getRepository } from '@/modules/storage/repository';

@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { NextResponse } from 'next/server';
 import { apiError, clientKey, createRateLimiter, requestId } from '@/lib/http';
 import { denialCode, getBusinessConfig, reserve } from '@/modules/billing/server';
@@ -19,7 +20,7 @@ const limiter = createRateLimiter({ capacity: PER_MINUTE * 2, refillPerMinute: P
  * discarded; nothing is stored here (the browser saves the new CV, which then syncs).
  * Counts one "import.cv" use, only when the import succeeds.
  */
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   const rid = requestId();
   if (!limiter(clientKey(req)).ok)
     return apiError('RATE_LIMITED', 'Too many uploads. Please wait a minute.', rid);
@@ -84,3 +85,5 @@ export async function POST(req: Request) {
     );
   }
 }
+
+export const POST = withWorkspaceOwnerErrors(handlePOST);

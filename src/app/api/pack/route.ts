@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { apiError, clientKey, createRateLimiter, requestId } from '@/lib/http';
 import { checkDesign, denialCode, getBusinessConfig, reserve } from '@/modules/billing/server';
 import { pdfFilename } from '@/modules/export/filename';
@@ -34,7 +35,7 @@ const limiter = createRateLimiter({ capacity: PER_MINUTE, refillPerMinute: PER_M
  * files[] } → the CV, the letter and the added documents as one PDF or one ZIP. Counts as one PDF
  * download. Added files are read for this download only; nothing is stored.
  */
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   const rid = requestId();
   if (!limiter(clientKey(req)).ok)
     return apiError('RATE_LIMITED', 'Too many downloads in a short time. Please wait.', rid);
@@ -169,3 +170,5 @@ export async function POST(req: Request) {
     return apiError('RENDER_FAILED', 'We couldn’t put your pack together just now.', rid);
   }
 }
+
+export const POST = withWorkspaceOwnerErrors(handlePOST);

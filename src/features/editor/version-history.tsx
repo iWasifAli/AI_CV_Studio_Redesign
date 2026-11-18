@@ -1,5 +1,9 @@
 'use client';
 
+import { workspaceFetch as fetch } from '@/features/workspace/request';
+
+import { useWorkspaceState, useWorkspaceTask } from '@/features/workspace/context';
+
 import { useT } from '@/i18n/client';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, History, Pencil, RotateCcw, Star, Trash2 } from 'lucide-react';
@@ -23,6 +27,7 @@ async function call<T>(path: string, init?: RequestInit): Promise<T> {
     headers: init?.body ? { 'content-type': 'application/json' } : undefined,
   });
   const j = (await r.json().catch(() => null)) as (T & { error?: { message?: string } }) | null;
+  init?.signal?.throwIfAborted();
   if (!r.ok || !j) throw new Error(j?.error?.message || 'That didn’t work. Please try again.');
   return j;
 }
@@ -44,7 +49,7 @@ export function versionLabel(v: VersionMeta) {
 
 export function VersionHistoryButton({ editor }: { editor: DocumentEditor }) {
   const t = useT();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useWorkspaceState('editor.versionHistory.open', false);
   return (
     <>
       <IconButton
@@ -74,12 +79,20 @@ function VersionHistory({ editor, onDone }: { editor: DocumentEditor; onDone: ()
   const base = `/api/documents/${encodeURIComponent(doc.id)}/versions`;
   const [list, setList] = useState<VersionMeta[] | null>(null);
   const [maxNamed, setMaxNamed] = useState(20);
-  const [error, setError] = useState('');
-  const [name, setName] = useState('');
+  const [error, setError] = useWorkspaceState('editor.versionHistory.error', '');
+  const runTask = useWorkspaceTask();
+  const [name, setName] = useWorkspaceState('editor.versionHistory.name', '', { dirty: true });
   const [busy, setBusy] = useState('');
-  const [open, setOpen] = useState<{ meta: VersionMeta; doc: ResumeDocument } | null>(null);
+  const [open, setOpen] = useWorkspaceState<{ meta: VersionMeta; doc: ResumeDocument } | null>(
+    'editor.versionHistory.comparison',
+    null,
+  );
   const [confirm, setConfirm] = useState(false);
-  const [renaming, setRenaming] = useState<{ id: string; name: string } | null>(null);
+  const [renaming, setRenaming] = useWorkspaceState<{ id: string; name: string } | null>(
+    'editor.versionHistory.renaming',
+    null,
+    { dirty: true },
+  );
 
   const load = useCallback(() => {
     call<{ versions: VersionMeta[]; maxNamed: number }>(base).then(
@@ -89,21 +102,25 @@ function VersionHistory({ editor, onDone }: { editor: DocumentEditor; onDone: ()
       },
       (e: Error) => setError(e.message),
     );
-  }, [base]);
+  }, [base, setError]);
   useEffect(load, [load]);
 
   const save = async () => {
     setBusy('save');
     setError('');
     try {
-      await call(base, {
-        method: 'POST',
-        body: JSON.stringify({ kind: 'named', name, document: doc }),
+      await runTask('editor.versionHistory.save', async (signal) => {
+        await call(base, {
+          method: 'POST',
+          signal,
+          body: JSON.stringify({ kind: 'named', name, document: doc }),
+        });
+        setName('');
+        toast.show({ tone: 'success', message: 'Version saved' });
+        load();
       });
-      setName('');
-      toast.show({ tone: 'success', message: 'Version saved' });
-      load();
     } catch (e) {
+      if (e instanceof Error && e.name === 'AbortError') return;
       setError((e as Error).message);
     } finally {
       setBusy('');
@@ -114,12 +131,16 @@ function VersionHistory({ editor, onDone }: { editor: DocumentEditor; onDone: ()
     setBusy(meta.id);
     setError('');
     try {
-      const r = await call<{ version: VersionMeta & { doc: unknown } }>(
-        `${base}/${encodeURIComponent(meta.id)}`,
-      );
-      setOpen({ meta, doc: parseResumeDocument(r.version.doc) });
-      setConfirm(false);
+      await runTask('editor.versionHistory.view', async (signal) => {
+        const r = await call<{ version: VersionMeta & { doc: unknown } }>(
+          `${base}/${encodeURIComponent(meta.id)}`,
+          { signal },
+        );
+        setOpen({ meta, doc: parseResumeDocument(r.version.doc) });
+        setConfirm(false);
+      });
     } catch (e) {
+      if (e instanceof Error && e.name === 'AbortError') return;
       setError((e as Error).message);
     } finally {
       setBusy('');
@@ -132,23 +153,38 @@ function VersionHistory({ editor, onDone }: { editor: DocumentEditor; onDone: ()
     setError('');
     const label = `${versionLabel(open.meta)} (${when(open.meta.savedAt)})`;
     try {
-      // Keep the CV as it is now first, so going back can itself be undone from History.
-      await call(base, {
-        method: 'POST',
-        body: JSON.stringify({
-          kind: 'restore',
-          name: `Before going back to ${label}`.slice(0, 60),
-          document: doc,
-        }),
+      await runTask('editor.versionHistory.restore', async (signal) => {
+        // Keep the CV as it is now first, so going back can itself be undone from History.
+        await call(base, {
+          method: 'POST',
+          signal,
+          body: JSON.stringify({
+            kind: 'restore',
+            name: `Before going back to ${label}`.slice(0, 60),
+            document: doc,
+          }),
+        });
+        const back = open.doc;
+        let applied = false;
+        editor.update((current) => {
+          if (current.updatedAt !== doc.updatedAt) return current;
+          applied = true;
+          return { ...back, id: doc.id };
+        }, `restore.${Date.now()}`);
+        if (!applied) {
+          setError(
+            'The CV changed while this version was loading. Review the comparison and restore again.',
+          );
+          return;
+        }
+        toast.show({
+          tone: 'success',
+          message: 'Your CV is back to that version. Undo, or History, brings the newer one back.',
+        });
+        onDone();
       });
-      const back = open.doc;
-      editor.update(() => ({ ...back, id: doc.id }), `restore.${Date.now()}`);
-      toast.show({
-        tone: 'success',
-        message: 'Your CV is back to that version. Undo, or History, brings the newer one back.',
-      });
-      onDone();
     } catch (e) {
+      if (e instanceof Error && e.name === 'AbortError') return;
       setError((e as Error).message);
       setBusy('');
     }
@@ -157,10 +193,13 @@ function VersionHistory({ editor, onDone }: { editor: DocumentEditor; onDone: ()
   const remove = async (v: VersionMeta) => {
     setBusy(v.id);
     try {
-      await call(`${base}/${encodeURIComponent(v.id)}`, { method: 'DELETE' });
-      setList((l) => l?.filter((x) => x.id !== v.id) ?? l);
-      if (open?.meta.id === v.id) setOpen(null);
+      await runTask('editor.versionHistory.remove', async (signal) => {
+        await call(`${base}/${encodeURIComponent(v.id)}`, { method: 'DELETE', signal });
+        setList((l) => l?.filter((x) => x.id !== v.id) ?? l);
+        if (open?.meta.id === v.id) setOpen(null);
+      });
     } catch (e) {
+      if (e instanceof Error && e.name === 'AbortError') return;
       setError((e as Error).message);
     } finally {
       setBusy('');
@@ -171,13 +210,17 @@ function VersionHistory({ editor, onDone }: { editor: DocumentEditor; onDone: ()
     if (!renaming) return;
     setBusy(renaming.id);
     try {
-      const r = await call<{ name: string }>(`${base}/${encodeURIComponent(renaming.id)}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ name: renaming.name }),
+      await runTask('editor.versionHistory.rename', async (signal) => {
+        const r = await call<{ name: string }>(`${base}/${encodeURIComponent(renaming.id)}`, {
+          method: 'PATCH',
+          signal,
+          body: JSON.stringify({ name: renaming.name }),
+        });
+        setList((l) => l?.map((x) => (x.id === renaming.id ? { ...x, name: r.name } : x)) ?? l);
+        setRenaming(null);
       });
-      setList((l) => l?.map((x) => (x.id === renaming.id ? { ...x, name: r.name } : x)) ?? l);
-      setRenaming(null);
     } catch (e) {
+      if (e instanceof Error && e.name === 'AbortError') return;
       setError((e as Error).message);
     } finally {
       setBusy('');
@@ -371,7 +414,7 @@ function Compare({
 }) {
   const t = useT();
   const changes = useMemo(() => diffDocs(then, now), [then, now]);
-  const [side, setSide] = useState<'then' | 'now'>('then');
+  const [side, setSide] = useWorkspaceState<'then' | 'now'>('editor.versionHistory.side', 'then');
   return (
     <div className="flex flex-col gap-4" data-testid="compare">
       <button

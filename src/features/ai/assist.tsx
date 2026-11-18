@@ -1,7 +1,8 @@
 'use client';
 
 import { useT } from '@/i18n/client';
-import { useState } from 'react';
+import { useWorkspaceState } from '@/features/workspace/context';
+import { useAiField } from './context';
 import { PenLine, Sparkles, Wand2, Scissors, Briefcase, ListPlus, PowerOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Chip } from '@/components/ui/chip';
@@ -125,8 +126,11 @@ export function BulletsAssist({
   const improve = useSuggestion('write.improveBullets');
   const notes = useSuggestion('write.fromNotes');
   const off = useTurnOff();
-  const [notesOpen, setNotesOpen] = useState(false);
-  const [notesText, setNotesText] = useState('');
+  const field = useAiField();
+  const [notesOpen, setNotesOpen] = useWorkspaceState(`ai.bullets.${field}.notesOpen`, false);
+  const [notesText, setNotesText] = useWorkspaceState(`ai.bullets.${field}.notesText`, '', {
+    dirty: true,
+  });
   if (!ai.show) return null;
   const lines = bullets.map((b) => b.trim()).filter(Boolean);
   const base = { presetId, role: role.slice(0, 160), organization: organization.slice(0, 160) };
@@ -250,7 +254,8 @@ export function SkillsAssist({
   const ai = useAi();
   const doc = useAiDoc();
   const s = useSuggestion('suggest.skills');
-  const [picked, setPicked] = useState<string[]>([]);
+  const field = useAiField();
+  const [picked, setPicked] = useWorkspaceState<string[]>(`ai.skills.${field}.picked`, []);
   if (!ai.show || !doc) return null;
   const have = new Set(existing.map((x) => x.toLowerCase()));
   return (

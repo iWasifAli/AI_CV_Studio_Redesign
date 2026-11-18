@@ -1,7 +1,9 @@
 'use client';
 
+import { useWorkspaceState, useWorkspaceTask, useWorkspace } from '@/features/workspace/context';
+
 import { useT } from '@/i18n/client';
-import Link from 'next/link';
+import Link from '@/features/workspace/navigation';
 import { useState } from 'react';
 import { Bell, BellRing, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,7 +13,9 @@ import { CheckboxField } from '@/features/editor/fields';
 import { addDays, defaultNote, todayIn } from '@/modules/jobs/reminders';
 import type { Job } from '@/modules/jobs/schema';
 import { cn } from '@/lib/cn';
-import { JobsError, jobsApi } from './api';
+import { keepLaterEdits, revisionOf } from './workspace-state';
+import { ConflictNotice } from './conflict-notice';
+import { JobsError, jobsApi, type ConflictDetails } from './api';
 
 const zone = () => {
   try {
@@ -44,23 +48,35 @@ const PRESETS = [
  */
 export function RemindersCard({ job, onJobChange }: { job: Job; onJobChange: (j: Job) => void }) {
   const t = useT();
+  const runTask = useWorkspaceTask();
+  const { ownerUid } = useWorkspace();
+  const [conflict, setConflict] = useWorkspaceState<ConflictDetails | null>(
+    'jobs.RemindersCard.conflict',
+    null,
+    { dirty: false },
+  );
   const tz = zone();
   const today = todayIn(tz);
-  const [on, setOn] = useState(addDays(today, 3));
-  const [note, setNote] = useState('');
+  const [on, setOn] = useWorkspaceState('jobs.RemindersCard.on', addDays(today, 3), {
+    dirty: true,
+  });
+  const [note, setNote] = useWorkspaceState('jobs.RemindersCard.note', '', { dirty: true });
   const [busy, setBusy] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useWorkspaceState<string | null>('jobs.RemindersCard.error', null, {
+    dirty: false,
+  });
   const list = [...(job.reminders ?? [])].sort((a, b) => a.on.localeCompare(b.on));
   const open = list.filter((r) => !r.done);
   const done = list.filter((r) => r.done);
   const suggest = job.stage === 'applied' && open.length === 0;
 
-  const act = async (key: string, f: () => Promise<Job>, rollback?: Job) => {
+  const act = async (key: string, f: (signal: AbortSignal) => Promise<Job>, rollback?: Job) => {
     setBusy(key);
     setError(null);
     try {
-      onJobChange(await f());
+      onJobChange(await runTask(`jobs.RemindersCard.${key}`, f));
     } catch (e) {
+      if (e instanceof JobsError && e.status === 409) setConflict(e.details ?? {});
       if (rollback) onJobChange(rollback);
       setError(e instanceof JobsError ? e.message : 'That didn’t work. Please try again.');
     } finally {
@@ -68,13 +84,17 @@ export function RemindersCard({ job, onJobChange }: { job: Job; onJobChange: (j:
     }
   };
   const add = (day: string, text = note) =>
-    act('add', async () => {
-      const j = await jobsApi.addReminder(job.id, {
-        on: day,
-        note: text.trim() || defaultNote(job, t),
-        tz,
-      });
-      setNote('');
+    act('add', async (signal) => {
+      const j = await jobsApi.addReminder(
+        job.id,
+        {
+          on: day,
+          note: text.trim() || defaultNote(job, t),
+          tz,
+        },
+        { signal, ownerUid, expectedRevision: revisionOf(job) },
+      );
+      setNote((current) => keepLaterEdits(current, note, ''));
       return j;
     });
 
@@ -120,7 +140,14 @@ export function RemindersCard({ job, onJobChange }: { job: Job; onJobChange: (j:
                   label={r.note}
                   checked={false}
                   onChange={() =>
-                    act(r.id, () => jobsApi.updateReminder(job.id, r.id, { done: true }))
+                    act(r.id, (signal) =>
+                      jobsApi.updateReminder(
+                        job.id,
+                        r.id,
+                        { done: true },
+                        { signal, ownerUid, expectedRevision: revisionOf(job) },
+                      ),
+                    )
                   }
                 />
                 <span
@@ -135,7 +162,15 @@ export function RemindersCard({ job, onJobChange }: { job: Job; onJobChange: (j:
                   className="text-ink-muted hover:text-danger ml-auto rounded-sm p-1.5"
                   aria-label={t('Delete reminder “{note}”', { note: r.note })}
                   disabled={busy === r.id}
-                  onClick={() => act(r.id, () => jobsApi.removeReminder(job.id, r.id))}
+                  onClick={() =>
+                    act(r.id, (signal) =>
+                      jobsApi.removeReminder(job.id, r.id, {
+                        signal,
+                        ownerUid,
+                        expectedRevision: revisionOf(job),
+                      }),
+                    )
+                  }
                 >
                   <Trash2 aria-hidden size={16} />
                 </button>
@@ -189,6 +224,17 @@ export function RemindersCard({ job, onJobChange }: { job: Job; onJobChange: (j:
         </p>
       </div>
 
+      <ConflictNotice
+        details={conflict}
+        onKeepDraft={
+          conflict?.current
+            ? () => {
+                onJobChange(conflict.current as Job);
+                setConflict(null);
+              }
+            : undefined
+        }
+      />
       {error && (
         <p role="alert" className="text-danger text-sm">
           {t(error)}
@@ -209,7 +255,14 @@ export function RemindersCard({ job, onJobChange }: { job: Job; onJobChange: (j:
                   type="button"
                   className="text-primary ml-auto text-xs underline"
                   onClick={() =>
-                    act(r.id, () => jobsApi.updateReminder(job.id, r.id, { done: false }))
+                    act(r.id, (signal) =>
+                      jobsApi.updateReminder(
+                        job.id,
+                        r.id,
+                        { done: false },
+                        { signal, ownerUid, expectedRevision: revisionOf(job) },
+                      ),
+                    )
                   }
                 >
                   {t('Not done')}

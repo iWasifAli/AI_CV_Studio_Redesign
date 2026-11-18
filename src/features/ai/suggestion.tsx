@@ -1,13 +1,22 @@
 'use client';
 
 import { useT } from '@/i18n/client';
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from 'react';
 import { Check, Crown, RotateCcw, Sparkles, X } from 'lucide-react';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/cn';
 import { splitPlaceholders } from '@/modules/ai/placeholders';
 import type { AiResponse, TaskId, TaskInput } from '@/modules/ai/schemas';
+import { useWorkspace, useWorkspaceState, useWorkspaceTask } from '@/features/workspace/context';
+import { useAiField } from './context';
 import { callAi } from './client';
 import { useEntitlements } from '@/features/account/entitlements';
 
@@ -23,48 +32,102 @@ type State<T extends TaskId> =
   | { kind: 'error'; message: string; label: string; code: string };
 
 /** Runs one AI task for a field and keeps the suggestion state. */
-export function useSuggestion<T extends TaskId>(task: T) {
-  const [state, setState] = useState<State<T>>({ kind: 'idle' });
-  const [attempt, setAttempt] = useState(0);
-  const last = useRef<{ input: TaskInput<T>; label: string } | null>(null);
+export function useSuggestion<T extends TaskId>(task: T, fieldKey = '') {
+  const field = useAiField();
+  const key = `ai.suggestion.${field}.${fieldKey}.${task}`;
+  const { store, tabId, routeKey } = useWorkspace();
+  const runTask = useWorkspaceTask();
+  const [snapshot, setSnapshot] = useWorkspaceState<{
+    state: State<T>;
+    attempt: number;
+    generation: string;
+    last: { input: TaskInput<T>; label: string } | null;
+  }>(key, { state: { kind: 'idle' }, attempt: 0, generation: '', last: null });
+  const [loading, setLoading] = useState(false);
   const abort = useRef<AbortController | null>(null);
-
-  useEffect(() => () => abort.current?.abort(), []);
-
+  // Visitor behavior remains cancellable on unmount; workspace requests outlive their UI.
+  useEffect(
+    () => () => {
+      if (!store) abort.current?.abort();
+    },
+    [store],
+  );
+  const taskKey = `${routeKey}:${key}.${snapshot.generation}`;
+  const getBusy = useCallback(
+    () => !!(store && tabId && store.getTab(tabId)?.tasks[taskKey]?.status === 'running'),
+    [store, tabId, taskKey],
+  );
+  const workspaceBusy = useSyncExternalStore(
+    store?.subscribe ?? (() => () => {}),
+    getBusy,
+    () => false,
+  );
   const run = useCallback(
     async (input: TaskInput<T>, label: string, nextAttempt = 0) => {
       abort.current?.abort();
       const ctrl = new AbortController();
       abort.current = ctrl;
-      last.current = { input, label };
-      setAttempt(nextAttempt);
-      setState({ kind: 'loading', label });
-      const r = await callAi(task, input, nextAttempt, ctrl.signal);
-      if (ctrl.signal.aborted) return;
-      setState(
-        r.ok
-          ? { kind: 'done', data: r.data, label }
-          : { kind: 'error', message: r.message, label, code: r.code },
-      );
+      const generation = crypto.randomUUID();
+      setSnapshot({
+        state: { kind: 'idle' },
+        attempt: nextAttempt,
+        generation,
+        last: { input, label },
+      });
+      setLoading(true);
+      try {
+        const r = await runTask(`${key}.${generation}`, (signal) =>
+          callAi(task, input, nextAttempt, store ? signal : ctrl.signal),
+        );
+        if (ctrl.signal.aborted) return;
+        setSnapshot((previous) =>
+          previous.generation !== generation
+            ? previous
+            : {
+                ...previous,
+                state: r.ok
+                  ? { kind: 'done', data: r.data, label }
+                  : { kind: 'error', message: r.message, label, code: r.code },
+              },
+        );
+      } catch (error) {
+        if (!(error instanceof Error && error.name === 'AbortError'))
+          setSnapshot((previous) =>
+            previous.generation !== generation
+              ? previous
+              : {
+                  ...previous,
+                  state: {
+                    kind: 'error',
+                    message: 'Please try again.',
+                    label,
+                    code: 'REQUEST_FAILED',
+                  },
+                },
+          );
+      } finally {
+        if (abort.current === ctrl) setLoading(false);
+      }
     },
-    [task],
+    [key, task, runTask, setSnapshot, store],
   );
-
   const tryAgain = useCallback(() => {
-    if (last.current) void run(last.current.input, last.current.label, attempt + 1);
-  }, [attempt, run]);
-
+    if (snapshot.last) void run(snapshot.last.input, snapshot.last.label, snapshot.attempt + 1);
+  }, [snapshot, run]);
   const dismiss = useCallback(() => {
     abort.current?.abort();
-    setState({ kind: 'idle' });
-  }, []);
-
-  return { state, run, tryAgain, dismiss, canRetry: attempt + 1 < MAX_ATTEMPTS };
+    setLoading(false);
+    setSnapshot((previous) => ({ ...previous, generation: '', state: { kind: 'idle' } }));
+  }, [setSnapshot]);
+  const state: State<T> =
+    (store ? workspaceBusy : loading) && snapshot.last
+      ? { kind: 'loading', label: snapshot.last.label }
+      : snapshot.state;
+  return { state, run, tryAgain, dismiss, canRetry: snapshot.attempt + 1 < MAX_ATTEMPTS };
 }
 
 /** Text with `{{?…}}` markers shown as highlighted questions. */
 export function AskText({ text }: { text: string }) {
-  const tx = useT();
   return (
     <>
       {splitPlaceholders(text).map((p, i) =>

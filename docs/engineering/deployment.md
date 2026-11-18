@@ -47,3 +47,42 @@ The owner's existing Firebase project `ai-cv-studio` serves `aicvstudio.app`. Th
 - Secret: `GEMINI_API_KEY` comes from Cloud Secret Manager secret `GEMINI_API_KEY`; `firebase-app-hosting-compute@ai-cv-studio.iam.gserviceaccount.com` has Secret Accessor on it. Without it AI help is off; everything else works.
 - Rollouts: the backend is connected to GitHub `nisar87/AI_CV_Studio_Redesign`, branch `main`; every push to `main` deploys.
 - Domain: `aicvstudio.app` moves from the old Hosting site to the App Hosting backend (Firebase console → App Hosting → backend → Settings → Domains); DNS records shown there must be set at the domain registrar.
+
+### Internal workspace tabs rollout
+
+`WORKSPACE_TABS_ENABLED=1` enables persistent internal tabs for signed-in users. It is a server
+setting; leave it unset or `0` during the compatibility deployment, then enable it after validation.
+Deploy the revision, idempotency, and `X-Workspace-Owner` API guards in the same release before
+turning on the UI. Older clients can omit these optional request fields. Returning the flag to `0`
+restores ordinary navigation while keeping browser workspace recovery data for a later rollout.
+
+Workspaces and uploaded draft files are stored in IndexedDB on the same browser/device. They are
+account scoped and window scoped; they are not cloud synchronization. Saved CVs, jobs, letters,
+and other account records remain canonical. A browser restart marks unfinished tasks interrupted
+and never repeats AI work automatically. Sign-out checks other windows and offers recovery or an
+explicit discard decision when local-only or unverified work remains.
+
+Verify the default navigation suite with `npm run test:e2e`. To exercise the new tabs separately,
+run `WORKSPACE_TABS_ENABLED=1 PORT=3101 npm run test:e2e -- e2e/workspace-tabs.spec.ts e2e/pwa.spec.ts --project=desktop --project=mobile`
+after a production build. The separate port prevents reuse of a server running with the flag off.
+CI runs this enabled suite separately and retains its screenshots and report. `npm run test:store`
+includes the revision/idempotency reliability contracts against both memory and Firestore.
+
+Validation on November 19, 2026:
+
+- `npm run verify`: passed lint, TypeScript, formatting, 1,018 unit tests, and production build.
+  The unit run skipped 12 emulator-only tests; lint retained eight existing warnings and no errors.
+  A final production rebuild also passed after the selected-tab resize adjustment.
+- `npm run test:store`: 21 tests passed with the Firestore emulator, including both store backends.
+- Enabled tabs: all 38 desktop/mobile workspace and offline scenarios passed. Screenshots of the
+  home strip and CV editor were inspected on both sizes; selected tabs remain visible and controls
+  remain reachable. Coverage includes keyboard/accessibility, independent drafts and undo histories,
+  persisted uploads, late AI results, reload without replay, account replacement and multiwindow sign-out.
+- The default-flag regression run passed 711 tests and skipped 445. Two external-link cases and
+  the mobile kit download initially failed; their fixes passed all 16 job-link/kit checks on the final
+  build. The gallery timing check failed under concurrent build/browser load and passed in isolation
+  at 1,195 ms against its 2,000 ms budget. All 39 admin-dependent tests subsequently passed separately.
+
+Browser tests use the deterministic AI mock and Firebase emulators. Production AI providers and
+deployment were outside this validation. Draft restoration remains limited to the same browser;
+blocked/full browser storage exposes recovery actions instead of claiming durable saves.

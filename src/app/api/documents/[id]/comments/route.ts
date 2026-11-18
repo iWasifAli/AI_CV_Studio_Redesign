@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { NextResponse } from 'next/server';
 import { apiError, requestId } from '@/lib/http';
 import { currentUser } from '@/modules/identity/session';
@@ -9,7 +10,7 @@ export const dynamic = 'force-dynamic';
 type Ctx = { params: Promise<{ id: string }> };
 
 /** GET → every reviewer comment on this CV (open first, then newest), for its owner. */
-export async function GET(_req: Request, ctx: Ctx) {
+async function handleGET(_req: Request, ctx: Ctx) {
   const rid = requestId();
   const user = await currentUser();
   if (!user) return apiError('SIGN_IN_REQUIRED', 'Please sign in.', rid);
@@ -27,3 +28,5 @@ export async function GET(_req: Request, ctx: Ctx) {
     .map((c) => ownerComment(c, stored.doc));
   return NextResponse.json({ comments }, { headers: { 'Cache-Control': 'no-store' } });
 }
+
+export const GET = withWorkspaceOwnerErrors(handleGET);

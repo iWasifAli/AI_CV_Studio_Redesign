@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { NextResponse } from 'next/server';
 import { apiError, readJson, requestId } from '@/lib/http';
 import { denialCode, reserve } from '@/modules/billing/server';
@@ -13,7 +14,7 @@ export const dynamic = 'force-dynamic';
  * POST { makeoverId } → { ok } when the makeover may be saved to this account. A preview counts
  * one import.cv use now; a "full" makeover was counted when it ran. Each makeover is saved once.
  */
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   const rid = requestId();
   const user = await currentUser();
   if (!user) return apiError('SIGN_IN_REQUIRED', 'Please sign in to save your CV.', rid);
@@ -44,3 +45,5 @@ export async function POST(req: Request) {
   await noteReveal(user.uid);
   return NextResponse.json({ ok: true });
 }
+
+export const POST = withWorkspaceOwnerErrors(handlePOST);

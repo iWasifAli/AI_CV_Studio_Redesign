@@ -1,3 +1,10 @@
+import {
+  assertRevision,
+  withRevision,
+  type CreationReceipt,
+  type CreateResult,
+  type CoachState,
+} from './types';
 import type { CommunityDesign, CommunityStatus } from '@/modules/community/types';
 import type { Activity } from '@/modules/metrics/numbers';
 import type { ShareComment } from '@/modules/share/comments';
@@ -88,24 +95,31 @@ export class MemoryUserStore implements UserStore {
     return b;
   }
   async listJobs(uid: string) {
-    return structuredClone([...this.jobBucket(uid).values()]).sort((a, b) =>
+    return structuredClone([...this.jobBucket(uid).values()].map(withRevision)).sort((a, b) =>
       b.updatedAt.localeCompare(a.updatedAt),
     );
   }
   async getJob(uid: string, id: string) {
     const j = this.jobBucket(uid).get(id);
-    return j ? structuredClone(j) : null;
+    return j ? withRevision(structuredClone(j)) : null;
   }
   async putJob(uid: string, job: Job) {
     await this.withJobLock(uid, () => {
-      this.jobBucket(uid).set(job.id, structuredClone(job));
+      this.jobBucket(uid).set(
+        job.id,
+        structuredClone({ ...job, revision: (this.jobBucket(uid).get(job.id)?.revision ?? 0) + 1 }),
+      );
     });
   }
-  async updateJob(uid: string, id: string, edit: JobEditor) {
+  async updateJob(uid: string, id: string, edit: JobEditor, expectedRevision?: number) {
     return this.withJobLock(uid, async () => {
       const current = this.jobBucket(uid).get(id);
+      assertRevision(current ? withRevision(current) : null, expectedRevision);
       if (!current) return null;
-      const next = await edit(structuredClone(current));
+      const next = {
+        ...(await edit(withRevision(structuredClone(current)))),
+        revision: (current.revision ?? 0) + 1,
+      };
       if (next.id !== id) throw new Error('A job update cannot change its ID.');
       this.jobBucket(uid).set(id, structuredClone(next));
       return structuredClone(next);
@@ -119,8 +133,15 @@ export class MemoryUserStore implements UserStore {
   }
   async moveJobOnBoard(uid: string, input: JobBoardMove, edit: JobEditor) {
     return this.withJobLock(uid, async () => {
-      const planned = planJobMove(await this.listJobs(uid), this.jobBoards.get(uid), input);
-      const job = planned.stageChanged ? await edit(structuredClone(planned.job)) : planned.job;
+      const jobs = await this.listJobs(uid);
+      assertRevision(jobs.find((job) => job.id === input.jobId) ?? null, input.expectedRevision);
+      const planned = planJobMove(jobs, this.jobBoards.get(uid), input);
+      const job = planned.stageChanged
+        ? {
+            ...(await edit(structuredClone(planned.job))),
+            revision: (planned.job.revision ?? 0) + 1,
+          }
+        : planned.job;
       if (job.id !== input.jobId || (planned.stageChanged && job.stage !== input.toStage))
         throw new Error('Invalid job stage transition.');
       if (planned.changed) {
@@ -130,24 +151,37 @@ export class MemoryUserStore implements UserStore {
       return structuredClone({ job, board: planned.board });
     });
   }
-  async deleteJob(uid: string, id: string) {
+  async deleteJob(uid: string, id: string, expectedRevision?: number) {
     await this.withJobLock(uid, () => {
+      assertRevision(this.jobBucket(uid).get(id) ?? null, expectedRevision);
       this.jobBucket(uid).delete(id);
       const board = this.jobBoards.get(uid);
       if (board) this.jobBoards.set(uid, removeFromJobBoard(board, id));
     });
   }
 
-  private coach = new Map<string, CoachThread>();
+  private coach = new Map<string, CoachState>();
+  async getCoachState(uid: string): Promise<CoachState> {
+    return structuredClone(this.coach.get(uid) ?? { thread: null, revision: 0 });
+  }
   async getCoachThread(uid: string) {
-    const t = this.coach.get(uid);
-    return t ? structuredClone(t) : null;
+    return (await this.getCoachState(uid)).thread;
   }
-  async putCoachThread(uid: string, t: CoachThread) {
-    this.coach.set(uid, structuredClone(t));
+  private async writeCoach(uid: string, thread: CoachThread | null, expectedRevision?: number) {
+    return this.withJobLock(uid, () => {
+      const current = this.coach.get(uid) ?? { thread: null, revision: 0 };
+      assertRevision(current, expectedRevision);
+      const revision = current.revision + 1;
+      const next = { thread: thread ? { ...thread, revision } : null, revision };
+      this.coach.set(uid, structuredClone(next));
+      return structuredClone(next);
+    });
   }
-  async deleteCoachThread(uid: string) {
-    this.coach.delete(uid);
+  async putCoachThread(uid: string, t: CoachThread, expectedRevision?: number) {
+    return this.writeCoach(uid, t, expectedRevision);
+  }
+  async deleteCoachThread(uid: string, expectedRevision?: number) {
+    return this.writeCoach(uid, null, expectedRevision);
   }
 
   private letters = new Map<string, Map<string, SavedLetter>>();
@@ -157,19 +191,89 @@ export class MemoryUserStore implements UserStore {
     return b;
   }
   async listLetters(uid: string) {
-    return structuredClone([...this.letterBucket(uid).values()]).sort((a, b) =>
+    return structuredClone([...this.letterBucket(uid).values()].map(withRevision)).sort((a, b) =>
       b.updatedAt.localeCompare(a.updatedAt),
     );
   }
   async getLetter(uid: string, id: string) {
     const l = this.letterBucket(uid).get(id);
-    return l ? structuredClone(l) : null;
+    return l ? withRevision(structuredClone(l)) : null;
   }
   async putLetter(uid: string, letter: SavedLetter) {
-    this.letterBucket(uid).set(letter.id, structuredClone(letter));
+    await this.withJobLock(uid, () => {
+      this.letterBucket(uid).set(
+        letter.id,
+        structuredClone({
+          ...letter,
+          revision: (this.letterBucket(uid).get(letter.id)?.revision ?? 0) + 1,
+        }),
+      );
+    });
   }
-  async deleteLetter(uid: string, id: string) {
-    this.letterBucket(uid).delete(id);
+  async updateLetter(
+    uid: string,
+    id: string,
+    edit: (cur: SavedLetter) => SavedLetter | Promise<SavedLetter>,
+    expectedRevision?: number,
+  ) {
+    return this.withJobLock(uid, async () => {
+      const current = this.letterBucket(uid).get(id);
+      assertRevision(current ? withRevision(current) : null, expectedRevision);
+      if (!current) return null;
+      const next = {
+        ...(await edit(withRevision(structuredClone(current)))),
+        revision: (current.revision ?? 0) + 1,
+      };
+      if (next.id !== id) throw new Error('A letter update cannot change its ID.');
+      this.letterBucket(uid).set(id, structuredClone(next));
+      return structuredClone(next);
+    });
+  }
+  async deleteLetter(uid: string, id: string, expectedRevision?: number) {
+    await this.withJobLock(uid, () => {
+      assertRevision(this.letterBucket(uid).get(id) ?? null, expectedRevision);
+      this.letterBucket(uid).delete(id);
+    });
+  }
+  private receipts = new Map<string, Map<string, { fingerprint: string; id: string }>>();
+  private async createResource<T extends Job | SavedLetter>(
+    uid: string,
+    operation: string,
+    getBucket: () => Map<string, T>,
+    value: T,
+    max: number,
+    receipt?: CreationReceipt,
+  ): Promise<CreateResult<T>> {
+    return this.withJobLock(uid, () => {
+      const bucket = getBucket();
+      let receipts = this.receipts.get(uid);
+      if (!receipts) this.receipts.set(uid, (receipts = new Map()));
+      const key = `${operation}:${receipt?.key}`;
+      const previous = receipt && receipts.get(key);
+      if (previous) {
+        const current = bucket.get(previous.id);
+        if (previous.fingerprint !== receipt!.fingerprint || !current)
+          return {
+            ok: false,
+            reason: 'conflict',
+            current: current ? withRevision(structuredClone(current)) : null,
+          };
+        return { ok: true, value: withRevision(structuredClone(current)) };
+      }
+      if (max !== -1 && bucket.size >= max) return { ok: false, reason: 'limit' };
+      if (bucket.has(value.id))
+        return { ok: false, reason: 'conflict', current: structuredClone(bucket.get(value.id)!) };
+      const next = { ...value, revision: 1 };
+      bucket.set(value.id, structuredClone(next));
+      if (receipt) receipts.set(key, { fingerprint: receipt.fingerprint, id: value.id });
+      return { ok: true, value: structuredClone(next) };
+    });
+  }
+  async createJob(uid: string, job: Job, max: number, receipt?: CreationReceipt) {
+    return this.createResource(uid, 'jobs', () => this.jobBucket(uid), job, max, receipt);
+  }
+  async createLetter(uid: string, letter: SavedLetter, max: number, receipt?: CreationReceipt) {
+    return this.createResource(uid, 'letters', () => this.letterBucket(uid), letter, max, receipt);
   }
 
   private stories = new Map<string, Map<string, Story>>();
@@ -316,12 +420,13 @@ export class MemoryUserStore implements UserStore {
     await this.withJobLock(uid, () => {
       this.jobs.delete(uid);
       this.jobBoards.delete(uid);
+      this.receipts.delete(uid);
+      this.letters.delete(uid);
+      this.coach.delete(uid);
     });
-    this.letters.delete(uid);
     this.stories.delete(uid);
     this.skillPlans.delete(uid);
     this.reminderQueue.delete(uid);
-    this.coach.delete(uid);
     this.designs.delete(uid);
     for (const [t, sh] of this.shares) if (sh.uid === uid) this.shares.delete(t);
     for (const [k, v] of this.portfolios) if (v.uid === uid) this.portfolios.delete(k);

@@ -1,5 +1,7 @@
 'use client';
 
+import { workspaceFetch as fetch } from '@/features/workspace/request';
+
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import type { AiResponse, TaskId, TaskInput } from '@/modules/ai/schemas';
 
@@ -87,32 +89,54 @@ export async function callAi<T extends TaskId>(
   signal?: AbortSignal,
 ): Promise<AiCallResult<T>> {
   const timeout = AbortSignal.timeout(CLIENT_TIMEOUT_MS);
-  const combined = signal ? AbortSignal.any([signal, timeout]) : timeout;
+  // Keep the exact task signal: workspaceFetch uses its registered owner identity.
+  // A timeout settles the UI even if the server has already begun its work.
+  const request = async (): Promise<AiCallResult<T>> => {
+    try {
+      const res = await fetch(`/api/ai/${task}`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-device-id': deviceId() },
+        body: JSON.stringify({ input, attempt }),
+        signal: signal ?? timeout,
+      });
+      const json = (await res.json().catch(() => null)) as
+        AiResponse<T> | { error?: { code?: string; message?: string } } | null;
+      if (res.ok && json && 'result' in json) return { ok: true, data: json };
+      const err = json && 'error' in json ? json.error : undefined;
+      return {
+        ok: false,
+        code: err?.code ?? 'AI_UNAVAILABLE',
+        message:
+          err?.message ?? 'AI help is not available right now. You can keep writing yourself.',
+      };
+    } catch (e) {
+      if (signal?.aborted) return { ok: false, code: 'ABORTED', message: '' };
+      return {
+        ok: false,
+        code: 'AI_UNAVAILABLE',
+        message:
+          (e as Error).name === 'TimeoutError'
+            ? 'AI help is taking too long right now. Please try again, or keep writing yourself.'
+            : 'We couldn’t reach AI help. Check your connection, or keep writing yourself.',
+      };
+    }
+  };
+  let onTimeout: (() => void) | undefined;
   try {
-    const res = await fetch(`/api/ai/${task}`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-device-id': deviceId() },
-      body: JSON.stringify({ input, attempt }),
-      signal: combined,
-    });
-    const json = (await res.json().catch(() => null)) as
-      AiResponse<T> | { error?: { code?: string; message?: string } } | null;
-    if (res.ok && json && 'result' in json) return { ok: true, data: json };
-    const err = json && 'error' in json ? json.error : undefined;
-    return {
-      ok: false,
-      code: err?.code ?? 'AI_UNAVAILABLE',
-      message: err?.message ?? 'AI help is not available right now. You can keep writing yourself.',
-    };
-  } catch (e) {
-    if (signal?.aborted) return { ok: false, code: 'ABORTED', message: '' };
-    return {
-      ok: false,
-      code: 'AI_UNAVAILABLE',
-      message:
-        (e as Error).name === 'TimeoutError'
-          ? 'AI help is taking too long right now. Please try again, or keep writing yourself.'
-          : 'We couldn’t reach AI help. Check your connection, or keep writing yourself.',
-    };
+    return await Promise.race([
+      request(),
+      new Promise<AiCallResult<T>>((resolve) => {
+        onTimeout = () =>
+          resolve({
+            ok: false,
+            code: 'AI_UNAVAILABLE',
+            message:
+              'AI help is taking too long right now. Please try again, or keep writing yourself.',
+          });
+        timeout.addEventListener('abort', onTimeout, { once: true });
+      }),
+    ]);
+  } finally {
+    if (onTimeout) timeout.removeEventListener('abort', onTimeout);
   }
 }

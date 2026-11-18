@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { NextResponse } from 'next/server';
 import { apiError, readJson, requestId } from '@/lib/http';
 import { aiModels, getAiProvider } from '@/modules/ai/config';
@@ -19,7 +20,7 @@ export const maxDuration = 60;
 const noStore = { headers: { 'Cache-Control': 'no-store' } };
 
 /** GET → { plans, max, enabled } (the signed-in person's skill gap plans). */
-export async function GET() {
+async function handleGET() {
   const rid = requestId();
   const user = await currentUser();
   if (!user) return apiError('SIGN_IN_REQUIRED', 'Please sign in.', rid);
@@ -34,7 +35,7 @@ export async function GET() {
  * POST { document, jobId? , role? } → { plan }: a skill gap and learning plan for a tracked job
  * (its advert) or a typed role. One AI action (Premium); kept in the account.
  */
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   const rid = requestId();
   const user = await currentUser();
   if (user) await noteUse(user.uid, 'skills');
@@ -107,3 +108,6 @@ export async function POST(req: Request) {
   await store.putSkillPlan(user.uid, plan);
   return NextResponse.json({ plan }, noStore);
 }
+
+export const GET = withWorkspaceOwnerErrors(handleGET);
+export const POST = withWorkspaceOwnerErrors(handlePOST);

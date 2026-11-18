@@ -1,9 +1,12 @@
 'use client';
 
+import { useWorkspaceState, useWorkspaceScope } from '@/features/workspace/context';
+
 import { useT } from '@/i18n/client';
-import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import Link from '@/features/workspace/navigation';
+import { useSearchParams } from 'next/navigation';
+import { useWorkspaceRouter as useRouter } from '@/features/workspace/navigation';
+import { useEffect, useMemo } from 'react';
 import { ArrowLeft, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { isPremiumDesign, useEntitlements } from '@/features/account/entitlements';
@@ -42,14 +45,23 @@ export function DesignDetail({ id }: { id: DesignId }) {
   const t = useT();
   const meta = DESIGN_META[id];
   const router = useRouter();
+  const scope = useWorkspaceScope();
   const params = useSearchParams();
   const { ent } = useEntitlements();
   const own = useShowWith();
-  const [choice, setChoice] = useState<string | null>(null);
+  const [choice, setChoice] = useWorkspaceState<string | null>(
+    'gallery.DesignDetail.choice',
+    null,
+    { dirty: false },
+  );
   const show =
     choice ??
     (params.get('cv') ? `own:${params.get('cv')}` : own[0] ? `own:${own[0].id}` : 'sample:teacher');
-  const [view, setView] = useState<'design' | 'ats' | 'letter' | 'portfolio'>('design');
+  const [view, setView] = useWorkspaceState<'design' | 'ats' | 'letter' | 'portfolio'>(
+    'gallery.DesignDetail.view',
+    'design',
+    { dirty: false },
+  );
 
   const theme = themeById(params.get('theme') ?? undefined)?.id;
   const { doc, ownId } = useMemo(() => {
@@ -86,14 +98,14 @@ export function DesignDetail({ id }: { id: DesignId }) {
       const cv = getRepository().get(ownId);
       if (cv) {
         getRepository().save(inTheme(ops.useDesign(cv, id), theme));
-        noteChosen(id, theme);
-        noteRecent(id);
+        noteChosen(id, theme, Date.now(), scope);
+        noteRecent(id, scope);
         router.push(`/cv/${ownId}`);
         return;
       }
     }
-    noteChosen(id, theme);
-    noteRecent(id);
+    noteChosen(id, theme, Date.now(), scope);
+    noteRecent(id, scope);
     router.push(`/start?design=${id}`);
   }
 

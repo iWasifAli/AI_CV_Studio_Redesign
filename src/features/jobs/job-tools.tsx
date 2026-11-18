@@ -1,9 +1,21 @@
 'use client';
 
+import { useRepositoryVersion } from '@/features/account/account-context';
+
+import {
+  useWorkspaceState,
+  useWorkspaceTask,
+  useWorkspace,
+  useWorkspaceDownload,
+} from '@/features/workspace/context';
+
+import { useWorkspaceAcknowledge } from '@/features/workspace/use-acknowledge';
+import { sameSnapshotValue } from '@/features/workspace/equality';
+import { useCurrentWorkspaceValue } from '@/features/workspace/use-current-value';
 import { useT } from '@/i18n/client';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import Link from '@/features/workspace/navigation';
+import { useWorkspaceRouter as useRouter } from '@/features/workspace/navigation';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   CircleCheck,
   CircleDashed,
@@ -23,7 +35,6 @@ import { Card } from '@/components/ui/card';
 import { TextArea, TextField } from '@/components/ui/field';
 import { useToast } from '@/components/ui/toast';
 import { useEntitlements } from '@/features/account/entitlements';
-import { saveBlob } from '@/lib/save-blob';
 import { ScaledPage, resolvePage } from '@/features/letters/scaled-page';
 import type { InterviewKind } from '@/modules/jobs/interview';
 import type { MatchResult } from '@/modules/jobs/match';
@@ -33,7 +44,9 @@ import { buildLetterHtml } from '@/modules/letters/build-letter';
 import type { Letter } from '@/modules/letters/schema';
 import type { ResumeDocument } from '@/modules/resume/schema';
 import { getRepository } from '@/modules/storage/repository';
-import { jobAiApi, jobsApi, JobsError } from './api';
+import { jobAiApi, jobsApi, JobsError, type ConflictDetails } from './api';
+import { revisionOf } from './workspace-state';
+import { ConflictNotice } from './conflict-notice';
 import { KitSection } from './kit-section';
 import { MockInterview } from './mock-interview';
 
@@ -41,10 +54,14 @@ type Busy = null | 'kit' | 'match' | 'tailor' | 'letter' | 'save' | 'pdf' | 'int
 const MIN_ADVERT = 80;
 
 /** Problem shown under the tools, with the right next step for sign-in or Premium denials. */
-type Problem = { message: string; premium?: boolean };
+type Problem = { message: string; premium?: boolean; details?: ConflictDetails };
 const toProblem = (e: unknown): Problem =>
   e instanceof JobsError
-    ? { message: e.message, premium: e.status === 402 }
+    ? {
+        message: e.message,
+        premium: e.status === 402,
+        details: e.status === 409 ? (e.details ?? {}) : undefined,
+      }
     : { message: 'You seem to be offline. Please try again.' };
 
 /**
@@ -55,23 +72,40 @@ export function JobTools({ job, onJobChange }: { job: Job; onJobChange: (j: Job)
   const tx = useT();
   const router = useRouter();
   const toast = useToast();
+  const runTask = useWorkspaceTask();
+  const { ownerUid } = useWorkspace();
   const { ent, refresh } = useEntitlements();
+  const repositoryVersion = useRepositoryVersion();
   const repo = typeof window === 'undefined' ? null : getRepository();
-  const cvs = useMemo(() => repo?.list() ?? [], [repo]);
-  const [sourceId, setSourceId] = useState(() => defaultSourceCv(cvs));
+  const cvs = useMemo(() => repo?.list() ?? [], [repo, repositoryVersion]); // eslint-disable-line react-hooks/exhaustive-deps -- repository event revision
+  const [sourceId, setSourceId] = useWorkspaceState(
+    'jobs.JobTools.sourceId',
+    () => defaultSourceCv(cvs),
+    { dirty: true },
+  );
+  useEffect(() => {
+    const next = defaultSourceCv(cvs);
+    // A sync may supply the first CV after this form has mounted.
+    if (!sourceId && next) setSourceId((current) => current || next);
+  }, [cvs, sourceId, setSourceId]);
   const [busy, setBusy] = useState<Busy>(null);
-  const [problem, setProblem] = useState<Problem | null>(null);
+  const [problem, setProblem] = useWorkspaceState<Problem | null>('jobs.JobTools.problem', null, {
+    dirty: false,
+  });
 
   const source = (sourceId && repo?.get(sourceId)) || null;
   const aiLocked = ent ? ent.limits['ai.action'] === 0 : false;
   const advertShort = job.advert.trim().length < MIN_ADVERT;
 
-  async function run(kind: Exclude<Busy, null>, fn: (doc: ResumeDocument) => Promise<void>) {
+  async function run(
+    kind: Exclude<Busy, null>,
+    fn: (doc: ResumeDocument, signal: AbortSignal) => Promise<void>,
+  ) {
     if (!source) return;
     setBusy(kind);
     setProblem(null);
     try {
-      await fn(source);
+      await runTask(`jobs.JobTools.${kind}`, (signal) => fn(source, signal));
       refresh();
     } catch (e) {
       setProblem(toProblem(e));
@@ -81,34 +115,48 @@ export function JobTools({ job, onJobChange }: { job: Job; onJobChange: (j: Job)
   }
 
   const checkMatch = () =>
-    run('match', async (doc) => {
-      onJobChange(await jobAiApi.match(job.id, doc));
+    run('match', async (doc, signal) => {
+      onJobChange(
+        await jobAiApi.match(job.id, doc, { signal, ownerUid, expectedRevision: revisionOf(job) }),
+      );
     });
 
   const tailor = () =>
-    run('tailor', async (doc) => {
-      const { document } = await jobAiApi.tailor(job.id, doc);
-      getRepository().save(document);
+    run('tailor', async (doc, signal) => {
+      const { document } = await jobAiApi.tailor(job.id, doc, {
+        signal,
+        ownerUid,
+        expectedRevision: revisionOf(job),
+      });
+      repo?.save(document);
       onJobChange(
-        await jobsApi.update(job.id, {
-          documentIds: [...job.documentIds.filter((x) => x !== document.id), document.id].slice(
-            -10,
-          ),
-        }),
+        await jobsApi.update(
+          job.id,
+          {
+            documentIds: [...job.documentIds.filter((x) => x !== document.id), document.id].slice(
+              -10,
+            ),
+          },
+          { signal, ownerUid, expectedRevision: revisionOf(job) },
+        ),
       );
       toast.show({ tone: 'success', message: 'Tailored CV created' });
       router.push(`/cv/${document.id}`);
     });
 
   const makeKit = () =>
-    run('kit', async (doc) => {
+    run('kit', async (doc, signal) => {
       if (
         job.kit &&
         !confirm('Make a new kit? Your letter is replaced; the earlier tailored CV is kept.')
       )
         return;
-      const { document, job: next } = await jobAiApi.kit(job.id, doc, job.letter?.tone ?? 'warm');
-      getRepository().save(document);
+      const { document, job: next } = await jobAiApi.kit(job.id, doc, job.letter?.tone ?? 'warm', {
+        signal,
+        ownerUid,
+        expectedRevision: revisionOf(job),
+      });
+      repo?.save(document);
       onJobChange(next);
       toast.show({
         tone: 'success',
@@ -221,6 +269,17 @@ export function JobTools({ job, onJobChange }: { job: Job; onJobChange: (j: Job)
             </Button>
           </div>
 
+          <ConflictNotice
+            details={problem?.details}
+            onKeepDraft={
+              problem?.details?.current
+                ? () => {
+                    onJobChange(problem.details!.current as Job);
+                    setProblem(null);
+                  }
+                : undefined
+            }
+          />
           {problem && (
             <Banner
               tone="error"
@@ -249,7 +308,6 @@ export function JobTools({ job, onJobChange }: { job: Job; onJobChange: (j: Job)
           )}
 
           <LetterEditor
-            key={`letter:${job.letter?.updatedAt ?? 'none'}`}
             job={job}
             source={source}
             disabled={advertShort || !source}
@@ -261,7 +319,6 @@ export function JobTools({ job, onJobChange }: { job: Job; onJobChange: (j: Job)
           />
 
           <InterviewPrepSection
-            key={`interview:${job.interview?.at ?? 'none'}`}
             job={job}
             source={source}
             disabled={advertShort || !source}
@@ -389,18 +446,53 @@ function InterviewPrepSection({
 }) {
   const tx = useT();
   const toast = useToast();
+  const [conflict, setConflict] = useWorkspaceState<ConflictDetails | null>(
+    'jobs.InterviewPrepSection.conflict',
+    null,
+    { dirty: false },
+  );
+  const runTask = useWorkspaceTask();
+  const { ownerUid, store, tabId, routeKey } = useWorkspace();
+  const [suggestion, setSuggestion] = useWorkspaceState<Job | null>(
+    'jobs.InterviewPrepSection.suggestion',
+    null,
+    { dirty: false },
+  );
+  const acknowledgeNotes = useWorkspaceAcknowledge<string[]>('jobs.InterviewPrepSection.notes');
   const prep = job.interview;
-  const [notes, setNotes] = useState<string[]>(job.interviewNotes ?? []);
+  const [notes, setNotes] = useWorkspaceState<string[]>(
+    'jobs.InterviewPrepSection.notes',
+    job.interviewNotes ?? [],
+    { dirty: true },
+  );
   const dirty = JSON.stringify(notes) !== JSON.stringify(job.interviewNotes ?? []);
   const cvId = source?.id ?? '';
+  const latestInputs = useRef({ notes, sourceId: cvId, job });
+  useEffect(() => {
+    latestInputs.current = { notes, sourceId: cvId, job };
+  }, [notes, cvId, job]);
+  const generationInputs = () =>
+    JSON.stringify(
+      store && tabId
+        ? {
+            notes: store.readFeature(tabId, `${routeKey}:jobs.InterviewPrepSection.notes`) ?? notes,
+            sourceId: store.readFeature(tabId, `${routeKey}:jobs.JobTools.sourceId`) ?? cvId,
+            job: store.readFeature(tabId, `${routeKey}:jobs.JobDetail.job`) ?? job,
+            jobDraft: store.readFeature(tabId, `${routeKey}:jobs.JobDetail.draft`),
+          }
+        : latestInputs.current,
+    );
 
-  async function act(kind: Exclude<Busy, null>, fn: () => Promise<void>) {
+  async function act(kind: Exclude<Busy, null>, fn: (signal: AbortSignal) => Promise<void>) {
     setBusy(kind);
     onProblem(null);
     try {
-      await fn();
+      await runTask(`jobs.InterviewPrepSection.${kind}`, fn);
     } catch (e) {
-      onProblem(toProblem(e));
+      if (e instanceof JobsError && e.status === 409) {
+        setConflict(e.details ?? {});
+        onProblem({ message: e.message });
+      } else onProblem(toProblem(e));
     } finally {
       setBusy(null);
     }
@@ -411,15 +503,33 @@ function InterviewPrepSection({
       !confirm('New questions replace the current ones and your notes on them. Continue?')
     )
       return;
-    void act('interview', async () => {
+    void act('interview', async (signal) => {
       if (!source) return;
-      onJobChange(await jobAiApi.interview(job.id, source));
+      const submitted = generationInputs();
+      const next = await jobAiApi.interview(job.id, source, {
+        signal,
+        ownerUid,
+        expectedRevision: revisionOf(job),
+      });
+      if (generationInputs() === submitted) {
+        onJobChange(next);
+        setNotes(next.interviewNotes ?? []);
+        acknowledgeNotes(next.interviewNotes ?? []);
+        setSuggestion(null);
+      } else setSuggestion(next);
       refresh();
     });
   };
   const save = () =>
-    act('notes', async () => {
-      onJobChange(await jobsApi.update(job.id, { interviewNotes: notes }));
+    act('notes', async (signal) => {
+      onJobChange(
+        await jobsApi.update(
+          job.id,
+          { interviewNotes: notes },
+          { signal, ownerUid, expectedRevision: revisionOf(job) },
+        ),
+      );
+      acknowledgeNotes(notes);
       toast.show({ tone: 'success', message: 'Notes saved' });
     });
 
@@ -442,6 +552,52 @@ function InterviewPrepSection({
       >
         {prep ? tx('New questions') : tx('Prepare for the interview')}
       </Button>
+      <ConflictNotice
+        details={conflict}
+        onKeepDraft={
+          conflict?.current
+            ? () => {
+                onJobChange(conflict.current as Job);
+                setConflict(null);
+              }
+            : undefined
+        }
+        onApply={
+          conflict?.generated
+            ? () => {
+                const generated = conflict.generated as Job & { job?: Job };
+                setSuggestion(generated.job ?? generated);
+                if (conflict.current) onJobChange(conflict.current as Job);
+                setConflict(null);
+              }
+            : undefined
+        }
+      />
+      {suggestion && (
+        <Banner
+          tone="info"
+          title="New interview questions are ready"
+          action={
+            <Button
+              size="sm"
+              onClick={() => {
+                onJobChange(suggestion);
+                setNotes(suggestion.interviewNotes ?? []);
+                setSuggestion(null);
+              }}
+            >
+              {tx('Use new questions')}
+            </Button>
+          }
+        >
+          <details>
+            <summary>{tx('Review new questions')}</summary>
+            {suggestion.interview?.questions.map((q, i) => (
+              <p key={i}>{q.question}</p>
+            ))}
+          </details>
+        </Banner>
+      )}
       {prep && (
         <div className="flex flex-col gap-3" data-testid="interview">
           <ol className="flex flex-col gap-3">
@@ -664,8 +820,66 @@ function LetterEditor({
 }) {
   const tx = useT();
   const toast = useToast();
-  const [tone, setTone] = useState<'warm' | 'formal'>(job.letter?.tone ?? 'warm');
-  const [draft, setDraft] = useState<Letter | null>(job.letter ?? null);
+  const [conflict, setConflict] = useWorkspaceState<ConflictDetails | null>(
+    'jobs.LetterEditor.conflict',
+    null,
+    { dirty: false },
+  );
+  const runTask = useWorkspaceTask();
+  const { ownerUid, store, tabId, routeKey } = useWorkspace();
+  const [tone, setTone] = useWorkspaceState<'warm' | 'formal'>(
+    'jobs.LetterEditor.tone',
+    job.letter?.tone ?? 'warm',
+    { dirty: true },
+  );
+  const [draft, setDraft] = useWorkspaceState<Letter | null>(
+    'jobs.LetterEditor.draft',
+    job.letter ?? null,
+    { dirty: true },
+  );
+
+  const [suggestion, setSuggestion] = useWorkspaceState<Letter | null>(
+    'jobs.LetterEditor.suggestion',
+    null,
+    { dirty: false },
+  );
+  const downloadFile = useWorkspaceDownload();
+  const latestInputs = useRef({ draft, tone, sourceId: source?.id ?? '' });
+  useEffect(() => {
+    latestInputs.current = { draft, tone, sourceId: source?.id ?? '' };
+  }, [draft, tone, source]);
+  const generationInputs = () =>
+    JSON.stringify(
+      store && tabId
+        ? {
+            draft: store.readFeature(tabId, `${routeKey}:jobs.LetterEditor.draft`) ?? draft,
+            tone: store.readFeature(tabId, `${routeKey}:jobs.LetterEditor.tone`) ?? tone,
+            sourceId:
+              store.readFeature(tabId, `${routeKey}:jobs.JobTools.sourceId`) ?? source?.id ?? '',
+            jobDraft: store.readFeature(tabId, `${routeKey}:jobs.JobDetail.draft`),
+          }
+        : latestInputs.current,
+    );
+
+  const currentDraft = useCurrentWorkspaceValue('jobs.LetterEditor.draft', draft);
+  const acknowledgeLetter = useWorkspaceAcknowledge<Letter | null>('jobs.LetterEditor.draft');
+  const previousLetter = useRef(job.letter ?? null);
+  useEffect(() => {
+    const fullKey = `${routeKey}:jobs.LetterEditor.draft`;
+    const feature = store && tabId ? store.getTab(tabId)?.features[fullKey] : undefined;
+    const baseline = feature?.baseline ? feature.baseline.value : previousLetter.current;
+    const next = job.letter ?? null;
+    // A kit or another saved server operation can replace the canonical letter.
+    // Refresh only an untouched draft; keep personal edits available for comparison.
+    if (sameSnapshotValue(currentDraft(), baseline)) {
+      setDraft(next);
+      if (store && tabId) {
+        const updated = store.getTab(tabId)?.features[fullKey];
+        if (updated) store.markClean(tabId, fullKey, { [fullKey]: { ...updated, value: next } });
+      }
+    }
+    previousLetter.current = next;
+  }, [job.letter, currentDraft, setDraft, store, tabId, routeKey]);
 
   // The letter uses the design of the CV it was written from (or the chosen one).
   const design = (draft?.documentId && getRepository().get(draft.documentId)) || source || null;
@@ -683,42 +897,59 @@ function LetterEditor({
     ? ([draft.greeting, ...draft.paragraphs, draft.closing].join(' ').match(/\{\{\?/g)?.length ?? 0)
     : 0;
 
-  async function act(kind: Exclude<Busy, null>, fn: () => Promise<void>) {
+  async function act(kind: Exclude<Busy, null>, fn: (signal: AbortSignal) => Promise<void>) {
     setBusy(kind);
     onProblem(null);
     try {
-      await fn();
+      await runTask(`jobs.LetterEditor.${kind}`, fn);
     } catch (e) {
-      onProblem(toProblem(e));
+      if (e instanceof JobsError && e.status === 409) {
+        setConflict(e.details ?? {});
+        onProblem({ message: e.message });
+      } else onProblem(toProblem(e));
     } finally {
       setBusy(null);
     }
   }
 
   const write = () =>
-    act('letter', async () => {
+    act('letter', async (signal) => {
       if (!source) return;
-      const r = await jobAiApi.letter(job.id, source, tone);
+      const submitted = generationInputs();
+      const r = await jobAiApi.letter(job.id, source, tone, {
+        signal,
+        ownerUid,
+        expectedRevision: revisionOf(job),
+      });
+      const unchanged = generationInputs() === submitted;
       onJobChange(r.job);
+      if (unchanged) {
+        setDraft(r.job.letter ?? null);
+        acknowledgeLetter(r.job.letter ?? null);
+        setSuggestion(null);
+      } else setSuggestion(r.job.letter ?? null);
       refresh();
       toast.show({ tone: 'success', message: 'Draft ready. Read it through and make it yours.' });
     });
   const save = () =>
-    act('save', async () => {
+    act('save', async (signal) => {
       if (!draft) return;
-      onJobChange(
-        await jobsApi.update(job.id, {
-          letter: { ...draft, paragraphs: draft.paragraphs.filter((p) => p.trim()) },
-        }),
+      const next = await jobsApi.update(
+        job.id,
+        { letter: { ...draft, paragraphs: draft.paragraphs.filter((p) => p.trim()) } },
+        { signal, ownerUid, expectedRevision: revisionOf(job) },
       );
+      onJobChange(next);
+      if (sameSnapshotValue(currentDraft(), draft)) setDraft(next.letter ?? null);
+      acknowledgeLetter(next.letter ?? null);
       toast.show({ tone: 'success', message: 'Letter saved' });
     });
   const pdf = () =>
-    act('pdf', async () => {
+    act('pdf', async (signal) => {
       if (!design) return;
-      const blob = await jobAiApi.letterPdf(job.id, design);
+      const blob = await jobAiApi.letterPdf(job.id, design, { signal, ownerUid });
       const name = (design.basics.name || 'Cover').replace(/[^\p{L}\p{N}]+/gu, '-');
-      saveBlob(blob, `${name}-Cover-Letter.pdf`);
+      downloadFile(blob, `${name}-Cover-Letter.pdf`);
       refresh();
     });
 
@@ -731,6 +962,28 @@ function LetterEditor({
       aria-label={tx('Cover letter')}
       className="border-line flex scroll-mt-20 flex-col gap-4 border-t pt-5"
     >
+      <ConflictNotice
+        details={conflict}
+        onKeepDraft={
+          conflict?.current
+            ? () => {
+                onJobChange(conflict.current as Job);
+                setConflict(null);
+              }
+            : undefined
+        }
+        onApply={
+          conflict?.generated
+            ? () => {
+                const generated = conflict.generated as Job & { job?: Job };
+                const letter = (generated.job ?? generated).letter;
+                if (letter) setDraft(letter);
+                if (conflict.current) onJobChange(conflict.current as Job);
+                setConflict(null);
+              }
+            : undefined
+        }
+      />
       <div className="flex flex-wrap items-end justify-between gap-3">
         <h3 className="flex items-center gap-2 font-semibold">
           <FileText aria-hidden size={18} /> {tx('Cover letter')}
@@ -768,6 +1021,30 @@ function LetterEditor({
         {draft ? tx('Write a new draft') : tx('Write a cover letter')}
       </Button>
 
+      {(suggestion || (!draft && job.letter)) && (
+        <Banner
+          tone="info"
+          title="Your generated letter is ready"
+          action={
+            <Button
+              size="sm"
+              onClick={() => {
+                setDraft(suggestion ?? job.letter ?? null);
+                setSuggestion(null);
+              }}
+            >
+              {tx('Use generated letter')}
+            </Button>
+          }
+        >
+          <details>
+            <summary>{tx('Review generated letter')}</summary>
+            <p className="whitespace-pre-wrap">
+              {(suggestion ?? job.letter)?.paragraphs.join('\n\n')}
+            </p>
+          </details>
+        </Banner>
+      )}
       {draft && (
         <div className="flex flex-col gap-3" data-testid="letter-editor">
           {asks > 0 && (

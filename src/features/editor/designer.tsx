@@ -1,7 +1,11 @@
 'use client';
 
+import { workspaceFetch as fetch } from '@/features/workspace/request';
+
+import { useWorkspaceState, useWorkspaceTask } from '@/features/workspace/context';
+
 import { useT } from '@/i18n/client';
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useId, useRef, useState } from 'react';
 import { Crown, ImagePlus, Sparkles, Wand2, X } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
 import { Button, ButtonLink } from '@/components/ui/button';
@@ -170,25 +174,26 @@ export function Designer({ editor }: { editor: DocumentEditor }) {
   // Retired and draft designs are never offered (CVs that already use one keep it).
   const offered = (id: DesignId) => !ent || isLive(ent.designs.find((x) => x.id === id));
   const id = useId();
-  const [text, setText] = useState('');
-  const [image, setImage] = useState<{ name: string; data: string; url: string } | null>(null);
+  const [text, setText] = useWorkspaceState('editor.designer.text', '', { dirty: true });
+  const [image, setImage] = useWorkspaceState<{ name: string; data: string; url: string } | null>(
+    'editor.designer.image',
+    null,
+    { dirty: true },
+  );
+  const runTask = useWorkspaceTask();
   const [busy, setBusy] = useState<null | 'compose' | 'refine'>(null);
-  const [error, setError] = useState<{
+  const [error, setError] = useWorkspaceState<{
     message: string;
     premium?: boolean;
     signIn?: boolean;
-  } | null>(null);
-  const [shown, setShown] = useState<Shown[]>([]);
-  const [refineText, setRefineText] = useState('');
-  const [note, setNote] = useState<string | null>(null);
+  } | null>('editor.designer.error', null);
+  const [shown, setShown] = useWorkspaceState<Shown[]>('editor.designer.shown', []);
+  const [refineText, setRefineText] = useWorkspaceState('editor.designer.refineText', '', {
+    dirty: true,
+  });
+  const [note, setNote] = useWorkspaceState<string | null>('editor.designer.note', null);
   const fileRef = useRef<HTMLInputElement>(null);
   const attempt = useRef(0);
-  useEffect(
-    () => () => {
-      if (image) URL.revokeObjectURL(image.url);
-    },
-    [image],
-  );
 
   if (!ai.show || !ent?.features.designer) return null;
   const limit = ent.limits['design.ai'];
@@ -208,39 +213,44 @@ export function Designer({ editor }: { editor: DocumentEditor }) {
     setError(null);
     setNote(null);
     try {
-      const res = await fetch('/api/designs/compose', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json', 'x-device-id': deviceId() },
-        body: JSON.stringify({
-          input: {
-            description: text.trim().slice(0, 600),
-            presetId: doc.presetId,
-            stats: designStats(doc),
-            ...currentForPrompt(doc.design),
-          },
-          ...(image ? { image: { data: image.data } } : {}),
-          attempt: attempt.current++,
-        }),
+      await runTask('editor.designer.compose', async (signal) => {
+        const res = await fetch('/api/designs/compose', {
+          method: 'POST',
+          signal,
+          headers: { 'content-type': 'application/json', 'x-device-id': deviceId() },
+          body: JSON.stringify({
+            input: {
+              description: text.trim().slice(0, 600),
+              presetId: doc.presetId,
+              stats: designStats(doc),
+              ...currentForPrompt(doc.design),
+            },
+            ...(image ? { image: { data: image.data } } : {}),
+            attempt: attempt.current++,
+          }),
+        });
+        const json = (await res.json().catch(() => null)) as {
+          result?: { candidates: ComposeCandidate[] };
+          error?: { code?: string; message?: string };
+        } | null;
+        signal.throwIfAborted();
+        if (!res.ok || !json?.result) {
+          fail(
+            json?.error?.code ?? 'AI_UNAVAILABLE',
+            json?.error?.message ?? 'The AI Designer couldn’t answer just now.',
+          );
+          return;
+        }
+        const list = candidateSpecs(json.result.candidates, doc.design, {
+          description: text,
+          doc,
+          offered,
+        });
+        setShown(list.map((c, i) => ({ ...c, key: `${attempt.current}-${i}` })));
+        refresh();
       });
-      const json = (await res.json().catch(() => null)) as {
-        result?: { candidates: ComposeCandidate[] };
-        error?: { code?: string; message?: string };
-      } | null;
-      if (!res.ok || !json?.result) {
-        fail(
-          json?.error?.code ?? 'AI_UNAVAILABLE',
-          json?.error?.message ?? 'The AI Designer couldn’t answer just now.',
-        );
-        return;
-      }
-      const list = candidateSpecs(json.result.candidates, doc.design, {
-        description: text,
-        doc,
-        offered,
-      });
-      setShown(list.map((c, i) => ({ ...c, key: `${attempt.current}-${i}` })));
-      refresh();
-    } catch {
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') return;
       fail(
         'AI_UNAVAILABLE',
         'We couldn’t reach the AI Designer. Check your connection and try again.',
@@ -279,35 +289,58 @@ export function Designer({ editor }: { editor: DocumentEditor }) {
     setError(null);
     setNote(null);
     try {
-      const res = await fetch('/api/designs/refine', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json', 'x-device-id': deviceId() },
-        body: JSON.stringify({
-          input: {
-            instruction: refineText.trim().slice(0, 300),
-            current: currentForPrompt(doc.design).current,
-          },
-        }),
+      await runTask('editor.designer.refine', async (signal) => {
+        const res = await fetch('/api/designs/refine', {
+          method: 'POST',
+          signal,
+          headers: { 'content-type': 'application/json', 'x-device-id': deviceId() },
+          body: JSON.stringify({
+            input: {
+              instruction: refineText.trim().slice(0, 300),
+              current: currentForPrompt(doc.design).current,
+            },
+          }),
+        });
+        const json = (await res.json().catch(() => null)) as {
+          result?: { changes: { field: string; value: string }[]; note: string };
+          error?: { code?: string; message?: string };
+        } | null;
+        signal.throwIfAborted();
+        if (!res.ok || !json?.result) {
+          fail(
+            json?.error?.code ?? 'AI_UNAVAILABLE',
+            json?.error?.message ?? 'The AI Designer couldn’t answer just now.',
+          );
+          return;
+        }
+        const { changes, note: said } = json.result;
+        const out = applyRefine(specOf(doc.design), changes, doc.design);
+        if (out.applied.length) {
+          let applied = false;
+          update((x) => {
+            if (x.updatedAt !== doc.updatedAt) return x;
+            applied = true;
+            return ops.setSpec(x, out.spec);
+          });
+          if (!applied)
+            setShown((previous) => [
+              {
+                key: crypto.randomUUID(),
+                name: 'Refined design',
+                explanation: said,
+                spec: out.spec,
+                startFrom: doc.design.templateId,
+                unmet: [],
+                done: out.applied,
+              },
+              ...previous,
+            ]);
+          setRefineText((current) => (current === refineText ? '' : current));
+        }
+        setNote(said || (out.applied.length ? 'Done.' : 'Nothing to change for that.'));
       });
-      const json = (await res.json().catch(() => null)) as {
-        result?: { changes: { field: string; value: string }[]; note: string };
-        error?: { code?: string; message?: string };
-      } | null;
-      if (!res.ok || !json?.result) {
-        fail(
-          json?.error?.code ?? 'AI_UNAVAILABLE',
-          json?.error?.message ?? 'The AI Designer couldn’t answer just now.',
-        );
-        return;
-      }
-      const { changes, note: said } = json.result;
-      const out = applyRefine(specOf(doc.design), changes, doc.design);
-      if (out.applied.length) {
-        update((x) => ops.setSpec(x, out.spec));
-        setRefineText('');
-      }
-      setNote(said || (out.applied.length ? 'Done.' : 'Nothing to change for that.'));
-    } catch {
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') return;
       fail(
         'AI_UNAVAILABLE',
         'We couldn’t reach the AI Designer. Check your connection and try again.',
@@ -326,7 +359,7 @@ export function Designer({ editor }: { editor: DocumentEditor }) {
     const reader = new FileReader();
     reader.onload = () => {
       const data = String(reader.result).split(',')[1] ?? '';
-      setImage({ name: file.name, data, url: URL.createObjectURL(file) });
+      setImage({ name: file.name, data, url: String(reader.result) });
     };
     reader.readAsDataURL(file);
   }

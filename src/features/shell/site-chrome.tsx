@@ -1,5 +1,7 @@
 'use client';
 
+import { WorkspaceBoundary } from '@/features/workspace/context';
+import { WorkspaceTabBar } from '@/features/workspace/tab-bar';
 import { usePathname } from 'next/navigation';
 import { useEffect, useSyncExternalStore, type ReactNode } from 'react';
 import { AnnouncementBar } from '@/components/layout/announcement-bar';
@@ -33,7 +35,7 @@ export function SiteChrome({ children }: { children: ReactNode }) {
       else if (status === 'signedOut') localStorage.removeItem(HINT);
     } catch {}
   }, [status]);
-  const shell = status === 'signedIn' || (status === 'loading' && hint);
+  const shell = status === 'signedIn' || status === 'offline' || (status === 'loading' && hint);
   // The visitor home page wears the new look (see `.landing` in globals.css).
   const landing = usePathname() === '/' && !shell;
   // One tree for both chromes: <main> keeps its place so the page never remounts on a switch.
@@ -53,7 +55,8 @@ export function SiteChrome({ children }: { children: ReactNode }) {
         id="main"
         className={shell ? 'min-h-dvh pb-20 md:pb-0' : 'min-h-[calc(100dvh-4rem)] flex-1'}
       >
-        {children}
+        <WorkspaceTabBar />
+        <WorkspaceBoundary>{children}</WorkspaceBoundary>
       </main>
       <Bottom shell={shell} />
     </div>

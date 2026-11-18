@@ -1,5 +1,7 @@
 'use client';
 
+import { workspaceFetch } from '@/features/workspace/request';
+
 import { useT } from '@/i18n/client';
 import { useState } from 'react';
 import { Send } from 'lucide-react';
@@ -53,7 +55,7 @@ export function ContactForm({
     setBusy(true);
     setError(null);
     try {
-      const r = await fetch(`/api/p/${encodeURIComponent(slug)}/contact`, {
+      const r = await workspaceFetch(`/api/p/${encodeURIComponent(slug)}/contact`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ name: from, email, message, website }),

@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { NextResponse } from 'next/server';
 import { apiError, readJson } from '@/lib/http';
 import { storyInput, type Story } from '@/modules/stories/schema';
@@ -9,14 +10,14 @@ export const dynamic = 'force-dynamic';
 
 const noStore = { headers: { 'Cache-Control': 'no-store' } };
 
-export async function GET(_req: Request, ctx: StoryCtx) {
+async function handleGET(_req: Request, ctx: StoryCtx) {
   const r = await loadStory(ctx);
   if ('error' in r) return r.error;
   return NextResponse.json({ story: r.story }, noStore);
 }
 
 /** PUT partial StoryInput → the updated story (where it came from stays). */
-export async function PUT(req: Request, ctx: StoryCtx) {
+async function handlePUT(req: Request, ctx: StoryCtx) {
   const r = await loadStory(ctx);
   if ('error' in r) return r.error;
   const body = await readJson(req, 32 * 1024);
@@ -38,9 +39,13 @@ export async function PUT(req: Request, ctx: StoryCtx) {
   return NextResponse.json({ story }, noStore);
 }
 
-export async function DELETE(_req: Request, ctx: StoryCtx) {
+async function handleDELETE(_req: Request, ctx: StoryCtx) {
   const r = await loadStory(ctx);
   if ('error' in r) return r.error;
   await getUserStore().deleteStory(r.user.uid, r.story.id);
   return NextResponse.json({ ok: true }, noStore);
 }
+
+export const GET = withWorkspaceOwnerErrors(handleGET);
+export const PUT = withWorkspaceOwnerErrors(handlePUT);
+export const DELETE = withWorkspaceOwnerErrors(handleDELETE);

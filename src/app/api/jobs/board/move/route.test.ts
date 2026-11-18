@@ -49,7 +49,7 @@ describe('board move API', () => {
     const response = await POST(request({ ...input, toStage: 'saved' }));
     expect(response.status).toBe(200);
     expect(await response.json()).toMatchObject({ job: original, board: { revision: 0 } });
-    expect(await store.getJob('u', 'a')).toEqual(original);
+    expect(await store.getJob('u', 'a')).toEqual({ ...original, revision: 1 });
   });
   it('rejects visitors, another account’s job, and invalid payloads', async () => {
     user = null;
@@ -69,6 +69,6 @@ describe('board move API', () => {
     for (const patch of [{ revision: 2 }, { fromStage: 'offer' }, { beforeId: 'missing' }])
       expect((await POST(request({ ...input, ...patch }))).status).toBe(409);
     expect((await store.getJobBoard('u')).board.revision).toBe(0);
-    expect(await store.getJob('u', 'a')).toEqual(original);
+    expect(await store.getJob('u', 'a')).toEqual({ ...original, revision: 1 });
   });
 });

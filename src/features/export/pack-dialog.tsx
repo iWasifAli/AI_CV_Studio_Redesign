@@ -1,5 +1,13 @@
 'use client';
 
+import { workspaceFetch as fetch } from '@/features/workspace/request';
+
+import {
+  useWorkspaceState,
+  useWorkspaceTask,
+  useWorkspaceDownload,
+} from '@/features/workspace/context';
+
 import { useT } from '@/i18n/client';
 import { useRef, useState } from 'react';
 import { Banner } from '@/components/ui/banner';
@@ -8,7 +16,6 @@ import { Dialog } from '@/components/ui/dialog';
 import { Segmented } from '@/components/ui/segmented';
 import { CheckboxField } from '@/features/editor/fields';
 import { useEntitlements } from '@/features/account/entitlements';
-import { saveBlob } from '@/lib/save-blob';
 import {
   PACK_MAX_FILE_BYTES,
   PACK_MAX_FILES,
@@ -36,7 +43,7 @@ export function PackButton({
 }) {
   const tx = useT();
   const { ent } = useEntitlements();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useWorkspaceState('export.packdialog.open', false);
   if (!cv || (ent && ent.features.pack === false)) return null;
   return (
     <>
@@ -58,10 +65,14 @@ function PackDialog({
   onClose: () => void;
 }) {
   const t = useT();
-  const [format, setFormat] = useState<'pdf' | 'zip'>('pdf');
-  const [withLetter, setWithLetter] = useState(!!letter);
-  const [files, setFiles] = useState<File[]>([]);
-  const [problem, setProblem] = useState<string | null>(null);
+  const [format, setFormat] = useWorkspaceState<'pdf' | 'zip'>('export.packdialog.format', 'pdf');
+  const [withLetter, setWithLetter] = useWorkspaceState('export.packdialog.withLetter', !!letter);
+  const [files, setFiles] = useWorkspaceState<File[]>('export.packdialog.files', [], {
+    dirty: true,
+  });
+  const [problem, setProblem] = useWorkspaceState<string | null>('export.packdialog.problem', null);
+  const runTask = useWorkspaceTask();
+  const saveBlob = useWorkspaceDownload();
   const [busy, setBusy] = useState(false);
   const input = useRef<HTMLInputElement>(null);
   const total = files.reduce((n, f) => n + f.size, 0);
@@ -107,23 +118,29 @@ function PackDialog({
     setBusy(true);
     setProblem(null);
     try {
-      const body = new FormData();
-      body.set('document', JSON.stringify(cv));
-      body.set('format', format);
-      if (letter && withLetter) body.set('letter', letter);
-      files.forEach((f) => body.append('files', f, f.name));
-      const r = await fetch('/api/pack', { method: 'POST', body });
-      if (!r.ok) {
-        const j = (await r.json().catch(() => null)) as { error?: { message?: string } } | null;
-        setProblem(j?.error?.message ?? 'We couldn’t put your pack together just now.');
-        return;
-      }
-      const name =
-        /filename="([^"]+)"/.exec(r.headers.get('content-disposition') ?? '')?.[1] ??
-        `Application.${format}`;
-      saveBlob(await r.blob(), name);
-      onClose();
-    } catch {
+      await runTask('export.packdialog.download', async (signal) => {
+        const body = new FormData();
+        body.set('document', JSON.stringify(cv));
+        body.set('format', format);
+        if (letter && withLetter) body.set('letter', letter);
+        files.forEach((f) => body.append('files', f, f.name));
+        const r = await fetch('/api/pack', { method: 'POST', signal, body });
+        if (!r.ok) {
+          const j = (await r.json().catch(() => null)) as { error?: { message?: string } } | null;
+          signal.throwIfAborted();
+          setProblem(j?.error?.message ?? 'We couldn’t put your pack together just now.');
+          return;
+        }
+        const name =
+          /filename="([^"]+)"/.exec(r.headers.get('content-disposition') ?? '')?.[1] ??
+          `Application.${format}`;
+        const blob = await r.blob();
+        signal.throwIfAborted();
+        saveBlob(blob, name);
+        onClose();
+      });
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') return;
       setProblem('You seem to be offline. Please try again.');
     } finally {
       setBusy(false);

@@ -1,5 +1,9 @@
 'use client';
 
+import { workspaceFetch as fetch } from '@/features/workspace/request';
+
+import { useWorkspaceState, useWorkspaceTask } from '@/features/workspace/context';
+
 import { useT } from '@/i18n/client';
 import { HeaderPicture, HeadingPicture, LayoutPicture } from './studio-pictures';
 import { type ReactNode, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
@@ -263,18 +267,29 @@ export function DesignStudio({
   );
 
   // ---- Fit to one page
+  const fittingMounted = useRef(true);
+  useEffect(() => {
+    fittingMounted.current = true;
+    return () => {
+      fittingMounted.current = false;
+    };
+  }, []);
   const statusRef = useRef(status);
   useEffect(() => {
     statusRef.current = status;
   }, [status]);
   const [fitting, setFitting] = useState(false);
-  const [fitReport, setFitReport] = useState<string | null>(null);
-  const [target, setTarget] = useState<PageTarget>(1);
+  const [fitReport, setFitReport] = useWorkspaceState<string | null>(
+    'editor.designstudio.fitReport',
+    null,
+  );
+  const [target, setTarget] = useWorkspaceState<PageTarget>('editor.designstudio.target', 1);
   const [cuts, setCuts] = useState<Cut[]>([]);
   const pagesWord = (n: number) => (n === 1 ? 'one page' : `${n} pages`);
   const waitForLayout = async (prev: PreviewStatus | null) => {
     for (let i = 0; i < 60; i++) {
       await new Promise((r) => setTimeout(r, 100));
+      if (!fittingMounted.current) return null;
       if (statusRef.current && statusRef.current !== prev) return statusRef.current;
     }
     return statusRef.current;
@@ -335,6 +350,7 @@ export function DesignStudio({
       edit(step, { keepBase });
       done.push(label);
       await waitForLayout(prev);
+      if (!fittingMounted.current) return;
     }
     const pages = statusRef.current?.pages ?? 0;
     setFitting(false);
@@ -361,8 +377,12 @@ export function DesignStudio({
 
   // ---- Saved designs
   const [saved, setSaved] = useState<Saved[] | null>(null);
-  const [name, setName] = useState('');
-  const [saveMsg, setSaveMsg] = useState<string | null>(null);
+  const runTask = useWorkspaceTask();
+  const [name, setName] = useWorkspaceState('editor.designstudio.name', '', { dirty: true });
+  const [saveMsg, setSaveMsg] = useWorkspaceState<string | null>(
+    'editor.designstudio.saveMsg',
+    null,
+  );
   const signedIn = account.status === 'signedIn';
   const community = useCommunity();
   const [shareTick, setShareTick] = useState(0);
@@ -379,24 +399,41 @@ export function DesignStudio({
   }, [signedIn]);
   const save = async () => {
     setSaveMsg(null);
-    const r = await fetch('/api/designs', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ name, spec }),
-    });
-    const j = (await r.json().catch(() => null)) as
-      { design: Saved } | { error: { message: string } } | null;
-    if (!r.ok || !j || 'error' in j) {
-      setSaveMsg((j && 'error' in j && j.error.message) || 'That didn’t work. Please try again.');
-      return;
+    try {
+      await runTask('editor.designStudio.save', async (signal) => {
+        const r = await fetch('/api/designs', {
+          method: 'POST',
+          signal,
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ name, spec }),
+        });
+        const j = (await r.json().catch(() => null)) as
+          { design: Saved } | { error: { message: string } } | null;
+        signal.throwIfAborted();
+        if (!r.ok || !j || 'error' in j) {
+          setSaveMsg(
+            (j && 'error' in j && j.error.message) || 'That didn’t work. Please try again.',
+          );
+          return;
+        }
+        setSaved((s) => [j.design, ...(s ?? [])]);
+        setName((current) => (current === name ? '' : current));
+        setSaveMsg(`Saved “${j.design.name}”.`);
+      });
+    } catch (error) {
+      if (!(error instanceof Error && error.name === 'AbortError')) setSaveMsg('Please try again.');
     }
-    setSaved((s) => [j.design, ...(s ?? [])]);
-    setName('');
-    setSaveMsg(`Saved “${j.design.name}”.`);
   };
   const remove = async (id: string) => {
-    const r = await fetch(`/api/designs/${id}`, { method: 'DELETE' });
-    if (r.ok) setSaved((s) => (s ?? []).filter((d) => d.id !== id));
+    try {
+      await runTask(`editor.designStudio.remove.${id}`, async (signal) => {
+        const r = await fetch(`/api/designs/${id}`, { method: 'DELETE', signal });
+        signal.throwIfAborted();
+        if (r.ok) setSaved((s) => (s ?? []).filter((d) => d.id !== id));
+      });
+    } catch (error) {
+      if (!(error instanceof Error && error.name === 'AbortError')) setSaveMsg('Please try again.');
+    }
   };
 
   const present = new Set(doc.sections.filter((s) => !s.hidden).map((s) => s.kind as string));
@@ -983,7 +1020,9 @@ export function DesignStudio({
           doc={doc}
           onUse={(d) => {
             update((x) => ops.setSpec(x, d.spec));
-            void fetch('/api/community/used', { method: 'POST' }).catch(() => {});
+            void runTask('editor.designStudio.communityUsed', (signal) =>
+              fetch('/api/community/used', { method: 'POST', signal }),
+            ).catch(() => {});
           }}
         />
       )}

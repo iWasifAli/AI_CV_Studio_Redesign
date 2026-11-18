@@ -1,7 +1,7 @@
 'use client';
 
 import { useT } from '@/i18n/client';
-import Link from 'next/link';
+import Link from '@/features/workspace/navigation';
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { Check, Crown, Heart } from 'lucide-react';
 import { cn } from '@/lib/cn';
@@ -93,6 +93,7 @@ export type CardProps = {
   theme: string;
   onTheme: (theme: string) => void;
   favourite: boolean;
+  favouritesReady?: boolean;
   onFavourite: () => void;
   comparing: boolean;
   canCompare: boolean;
@@ -175,6 +176,7 @@ export const DesignCard = memo(function DesignCard(p: CardProps) {
         <button
           type="button"
           onClick={p.onFavourite}
+          disabled={p.favouritesReady === false}
           aria-pressed={p.favourite}
           aria-label={tx('Favourite: {name}', { name })}
           className="bg-surface/90 shadow-1 hover:bg-surface absolute top-2 right-2 z-[2] inline-flex size-9 items-center justify-center rounded-full"

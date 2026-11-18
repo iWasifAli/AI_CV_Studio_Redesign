@@ -1,7 +1,7 @@
 'use client';
 
 import { useT } from '@/i18n/client';
-import Link from 'next/link';
+import Link from '@/features/workspace/navigation';
 import { useEffect, useState } from 'react';
 import { BookOpen, Briefcase, GraduationCap, MessagesSquare, Target } from 'lucide-react';
 import { ButtonLink } from '@/components/ui/button';
@@ -20,11 +20,17 @@ export function CoachHome() {
   const [jobs, setJobs] = useState<Job[] | null>(null);
   useEffect(() => {
     if (account.status !== 'signedIn') return;
-    jobsApi.list().then(
-      (r) => setJobs(r.jobs.filter((j) => j.stage !== 'closed')),
-      () => setJobs([]),
+    const controller = new AbortController();
+    jobsApi.list({ signal: controller.signal, ownerUid: account.user?.uid }).then(
+      (r) => {
+        if (!controller.signal.aborted) setJobs(r.jobs.filter((j) => j.stage !== 'closed'));
+      },
+      () => {
+        if (!controller.signal.aborted) setJobs([]);
+      },
     );
-  }, [account.status]);
+    return () => controller.abort();
+  }, [account.status, account.user?.uid]);
   return (
     <div className="flex flex-col gap-8">
       {account.status === 'signedIn' && jobs !== null && ent?.features.coach !== false && (

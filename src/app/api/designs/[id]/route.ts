@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { NextResponse } from 'next/server';
 import { apiError, requestId } from '@/lib/http';
 import { currentUser } from '@/modules/identity/session';
@@ -7,7 +8,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /** DELETE → removes one of the account's saved designs. */
-export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string }> }) {
+async function handleDELETE(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   const rid = requestId();
   const user = await currentUser();
   if (!user) return apiError('SIGN_IN_REQUIRED', 'Please sign in.', rid);
@@ -17,3 +18,5 @@ export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string 
   if (!ok) return apiError('NOT_FOUND', 'That design was not found.', rid);
   return new NextResponse(null, { status: 204 });
 }
+
+export const DELETE = withWorkspaceOwnerErrors(handleDELETE);

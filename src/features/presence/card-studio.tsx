@@ -1,5 +1,11 @@
 'use client';
 
+import { workspaceFetch } from '@/features/workspace/request';
+
+import { useWorkspaceTask, useWorkspaceDownload } from '@/features/workspace/context';
+
+import { useWorkspaceState } from '@/features/workspace/context';
+
 import { useT } from '@/i18n/client';
 import { useEffect, useMemo, useState } from 'react';
 import { Copy, Download } from 'lucide-react';
@@ -9,7 +15,6 @@ import { TextField } from '@/components/ui/field';
 import { useToast } from '@/components/ui/toast';
 import { useAccount } from '@/features/account/account-context';
 import { CheckboxField } from '@/features/editor/fields';
-import { saveBlob } from '@/lib/save-blob';
 import {
   businessCardHtml,
   qrDataUrl,
@@ -22,20 +27,40 @@ import { getRepository } from '@/modules/storage/repository';
 
 /** Email signature and business card (spec §10.1), from one of the person's CVs. */
 export function CardStudio() {
+  const runTask = useWorkspaceTask();
+  const downloadBlob = useWorkspaceDownload();
+
   const tx = useT();
   const account = useAccount();
   const toast = useToast();
   const [docs, setDocs] = useState<{ id: string; title: string }[]>([]);
-  const [docId, setDocId] = useState('');
-  const [opts, setOpts] = useState<CardOptions>({
-    phone: true,
-    email: true,
-    location: false,
-    links: false,
-    url: '',
-  });
+  const [docId, setDocId] = useWorkspaceState('presence.CardStudio.docId', '', { dirty: false });
+  const [settings, setOpts] = useWorkspaceState<Omit<CardOptions, 'url'> & { url: string | null }>(
+    'presence.CardStudio.opts',
+    {
+      phone: true,
+      email: true,
+      location: false,
+      links: false,
+      url: null,
+    },
+    { dirty: true },
+  );
+  const [portfolioUrl, setPortfolioUrl] = useState('');
+  const opts = useMemo<CardOptions>(
+    () => ({ ...settings, url: settings.url ?? portfolioUrl }),
+    [settings, portfolioUrl],
+  );
+  const [downloadResult, setDownloadResult] = useWorkspaceState<{
+    blob: Blob;
+    name: string;
+  } | null>('presence.CardStudio.downloadResult', null, { dirty: false });
   const [busy, setBusy] = useState(false);
-  const [problem, setProblem] = useState<string | null>(null);
+  const [problem, setProblem] = useWorkspaceState<string | null>(
+    'presence.CardStudio.problem',
+    null,
+    { dirty: false },
+  );
 
   useEffect(() => {
     const t = window.setTimeout(() => {
@@ -46,24 +71,28 @@ export function CardStudio() {
       setDocId((cur) => cur || list[0]?.id || '');
     }, 0);
     return () => window.clearTimeout(t);
-  }, []);
+  }, [setDocId]);
   // The portfolio page is the natural link for the card's QR code.
   useEffect(() => {
     if (account.status !== 'signedIn') return;
     let live = true;
-    fetch('/api/portfolio', { cache: 'no-store' })
+    const controller = new AbortController();
+    workspaceFetch('/api/portfolio', {
+      cache: 'no-store',
+      signal: controller.signal,
+      headers: account.user?.uid ? { 'X-Workspace-Owner': account.user.uid } : undefined,
+    })
       .then((r) => (r.ok ? r.json() : null))
       .then((j: { portfolio: { slug: string; published: boolean } | null } | null) => {
         if (live && j?.portfolio?.published)
-          setOpts((o) =>
-            o.url ? o : { ...o, url: `${window.location.origin}/p/${j.portfolio!.slug}` },
-          );
+          setPortfolioUrl(`${window.location.origin}/p/${j.portfolio.slug}`);
       })
       .catch(() => {});
     return () => {
       live = false;
+      controller.abort();
     };
-  }, [account.status]);
+  }, [account.status, account.user?.uid]);
 
   const doc: ResumeDocument | null = useMemo(
     () => (docId ? getRepository().get(docId) : null),
@@ -117,34 +146,54 @@ export function CardStudio() {
     }
   };
   const download = async () => {
-    if (!doc) return;
-    setBusy(true);
-    setProblem(null);
-    try {
-      const r = await fetch('/api/card', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ document: doc, options: opts }),
-      });
-      if (!r.ok) {
-        const j = (await r.json().catch(() => null)) as { error?: { message: string } } | null;
-        setProblem(j?.error?.message ?? 'We couldn’t create the card just now.');
-        return;
+    return runTask('presence.CardStudio.download', async (signal) => {
+      if (!doc) return;
+      setBusy(true);
+      setProblem(null);
+      try {
+        const r = await workspaceFetch('/api/card', {
+          signal,
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            ...(account.user?.uid ? { 'X-Workspace-Owner': account.user.uid } : {}),
+          },
+          body: JSON.stringify({ document: doc, options: opts }),
+        });
+        signal.throwIfAborted();
+        if (!r.ok) {
+          const j = (await r.json().catch(() => null)) as { error?: { message: string } } | null;
+          signal.throwIfAborted();
+          setProblem(j?.error?.message ?? 'We couldn’t create the card just now.');
+          return;
+        }
+        const name =
+          /filename="([^"]+)"/.exec(r.headers.get('content-disposition') ?? '')?.[1] ??
+          'Business-Card.pdf';
+        const blob = await r.blob();
+        signal.throwIfAborted();
+        setDownloadResult({ blob, name });
+        downloadBlob(blob, name);
+        signal.throwIfAborted();
+      } catch {
+        signal.throwIfAborted();
+        setProblem('You seem to be offline. Please try again.');
+      } finally {
+        setBusy(false);
       }
-      const name =
-        /filename="([^"]+)"/.exec(r.headers.get('content-disposition') ?? '')?.[1] ??
-        'Business-Card.pdf';
-      saveBlob(await r.blob(), name);
-    } catch {
-      setProblem('You seem to be offline. Please try again.');
-    } finally {
-      setBusy(false);
-    }
+    }).catch((error: unknown) => {
+      if (!(error instanceof Error && error.name === 'AbortError')) throw error;
+    });
   };
 
   return (
     <div className="mt-6 grid gap-8 lg:grid-cols-[18rem_1fr]">
       <div className="flex flex-col gap-3" data-testid="card-options">
+        {downloadResult && (
+          <Button onClick={() => downloadBlob(downloadResult.blob, downloadResult.name)}>
+            {tx('Download ready card')}
+          </Button>
+        )}
         <label className="flex flex-col gap-1.5 text-sm font-semibold">
           {tx('Details from')}
           <select

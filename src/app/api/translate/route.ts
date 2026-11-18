@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { NextResponse } from 'next/server';
 import { apiError, readJson, requestId } from '@/lib/http';
 import { aiModels, getAiProvider } from '@/modules/ai/config';
@@ -20,7 +21,7 @@ export const maxDuration = 120;
  * and links never reach the model (locked tokens); a piece whose tokens came back wrong keeps
  * its original text (`kept`). Counts as `aiWeights.translate` AI actions.
  */
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   const rid = requestId();
   const user = await currentUser();
   if (!user) return apiError('SIGN_IN_REQUIRED', 'Please sign in.', rid);
@@ -89,3 +90,5 @@ export async function POST(req: Request) {
     { headers: { 'Cache-Control': 'no-store' } },
   );
 }
+
+export const POST = withWorkspaceOwnerErrors(handlePOST);

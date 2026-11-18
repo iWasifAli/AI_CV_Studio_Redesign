@@ -12,6 +12,7 @@ import {
   Plus,
   Trash2,
 } from 'lucide-react';
+import { useWorkspaceState } from '@/features/workspace/context';
 import { useState } from 'react';
 import { IconButton } from '@/components/ui/icon-button';
 import { Menu } from '@/components/ui/menu';
@@ -40,7 +41,7 @@ export function SectionCard({ editor, section, index, count, preset, expanded, t
   const { update } = editor;
   const toast = useToast();
   const info = KIND_INFO[section.kind];
-  const [renaming, setRenaming] = useState(false);
+  const [renaming, setRenaming] = useWorkspaceState(`editor.section.${section.id}.renaming`, false);
   const titleId = `section-${section.id}-title`;
   // Drag to reorder (pointer); the arrow buttons stay as the keyboard and screen-reader path.
   const [over, setOver] = useState<'section' | number | null>(null);

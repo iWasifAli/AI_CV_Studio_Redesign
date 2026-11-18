@@ -1,3 +1,5 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
+import { parseRevisionCondition, RevisionConflict } from '@/modules/store/types';
 import { NextResponse } from 'next/server';
 import { apiError, readJson, requestId } from '@/lib/http';
 import { aiModels, getAiProvider } from '@/modules/ai/config';
@@ -21,27 +23,38 @@ export const maxDuration = 60;
 const noStore = { headers: { 'Cache-Control': 'no-store' } };
 
 /** GET → { thread } (null when the person hasn't talked to the coach yet). */
-export async function GET() {
+async function handleGET() {
   const rid = requestId();
   const user = await currentUser();
   if (!user) return apiError('SIGN_IN_REQUIRED', 'Please sign in.', rid);
-  return NextResponse.json({ thread: await getUserStore().getCoachThread(user.uid) }, noStore);
+  return NextResponse.json(await getUserStore().getCoachState(user.uid), noStore);
 }
 
 /** DELETE → clears the conversation. */
-export async function DELETE() {
+async function handleDELETE(req?: Request) {
   const rid = requestId();
   const user = await currentUser();
   if (!user) return apiError('SIGN_IN_REQUIRED', 'Please sign in.', rid);
-  await getUserStore().deleteCoachThread(user.uid);
-  return NextResponse.json({ ok: true }, noStore);
+  const body = req?.body ? await readJson(req, 1024) : { ok: true as const, value: {} };
+  if (!body.ok) return apiError(body.code, 'Invalid request.', rid);
+  const condition = parseRevisionCondition(body.value);
+  if (!condition.ok)
+    return apiError('INVALID_INPUT', 'expectedRevision must be a nonnegative integer.', rid);
+  try {
+    const state = await getUserStore().deleteCoachThread(user.uid, condition.value);
+    return NextResponse.json({ ok: true, ...state }, noStore);
+  } catch (error) {
+    if (error instanceof RevisionConflict)
+      return apiError('CONFLICT', error.message, rid, { current: error.current });
+    throw error;
+  }
 }
 
 /**
  * POST { document, message } → { thread }: one coach turn (an AI action, Premium). The coach knows
  * the chosen CV and the person's tracked jobs; the actions it offers are checked here.
  */
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   const rid = requestId();
   const user = await currentUser();
   if (user) await noteUse(user.uid, 'coach');
@@ -54,6 +67,12 @@ export async function POST(req: Request) {
   const raw = await readJson(req, 512 * 1024);
   if (!raw.ok) return apiError(raw.code, 'Invalid request.', rid);
   const body = (raw.value ?? {}) as { document?: unknown; message?: unknown };
+  const condition = parseRevisionCondition(raw.value);
+  if (!condition.ok)
+    return apiError('INVALID_INPUT', 'expectedRevision must be a nonnegative integer.', rid);
+  const state = await getUserStore().getCoachState(user.uid);
+  if (condition.value !== undefined && condition.value !== state.revision)
+    return apiError('CONFLICT', 'The conversation changed.', rid, { current: state });
   const message = typeof body.message === 'string' ? body.message.trim().slice(0, 2000) : '';
   if (!message) return apiError('INVALID_INPUT', 'Type a question for the coach.', rid);
   const doc = safeParseResumeDocument(body.document);
@@ -70,11 +89,8 @@ export async function POST(req: Request) {
     return apiError('RATE_LIMITED', 'Too many messages. Please wait a little.', rid);
   }
   const store = getUserStore();
-  const [thread, jobs, stories] = await Promise.all([
-    store.getCoachThread(user.uid),
-    store.listJobs(user.uid),
-    storiesForAi(user.uid),
-  ]);
+  const thread = state.thread;
+  const [jobs, stories] = await Promise.all([store.listJobs(user.uid), storiesForAi(user.uid)]);
   const open = jobs.filter((j) => j.stage !== 'closed').slice(0, 30);
   const r = await runTask(
     'coach.chat',
@@ -99,6 +115,17 @@ export async function POST(req: Request) {
     reply: r.result.reply,
     actions: checkActions(r.result.actions, new Set(open.map((j) => j.id))),
   });
-  await store.putCoachThread(user.uid, next);
-  return NextResponse.json({ thread: next }, noStore);
+  try {
+    const saved = await store.putCoachThread(user.uid, next, condition.value ?? state.revision);
+    return NextResponse.json(saved, noStore);
+  } catch (error) {
+    await gate.release();
+    if (error instanceof RevisionConflict)
+      return apiError('CONFLICT', error.message, rid, { current: error.current, generated: next });
+    throw error;
+  }
 }
+
+export const GET = withWorkspaceOwnerErrors(handleGET);
+export const DELETE = withWorkspaceOwnerErrors(handleDELETE);
+export const POST = withWorkspaceOwnerErrors(handlePOST);

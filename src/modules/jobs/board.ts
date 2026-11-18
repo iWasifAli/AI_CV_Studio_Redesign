@@ -10,6 +10,7 @@ export type JobBoardResult = { job: Job; board: JobBoardState };
 const id = z.string().regex(/^[\w-]{1,64}$/);
 export const jobBoardMove = z
   .object({
+    expectedRevision: z.number().int().nonnegative().optional(),
     jobId: id,
     fromStage: z.enum(JOB_STAGES),
     toStage: z.enum(JOB_STAGES),

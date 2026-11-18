@@ -1,7 +1,7 @@
 'use client';
 
 import { useT } from '@/i18n/client';
-import Link from 'next/link';
+import Link from '@/features/workspace/navigation';
 import { useId } from 'react';
 import { cn } from '@/lib/cn';
 

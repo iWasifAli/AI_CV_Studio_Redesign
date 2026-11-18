@@ -1,7 +1,12 @@
 'use client';
 
+import { useAccount } from '@/features/account/account-context';
+import { workspaceFetch } from '@/features/workspace/request';
+
+import { useWorkspaceTask, useWorkspaceState } from '@/features/workspace/context';
+
 import { useT } from '@/i18n/client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 import { ArrowDown, ArrowUp, Download, ImagePlus, Plus, Trash2, X } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
@@ -370,7 +375,7 @@ async function shrink(file: File): Promise<Blob> {
   throw new Error('That picture is too large. Try a smaller one.');
 }
 
-async function upload(file: File): Promise<string> {
+async function upload(file: File, signal?: AbortSignal, ownerUid?: string): Promise<string> {
   let blob: Blob;
   try {
     blob = await shrink(file);
@@ -381,15 +386,18 @@ async function upload(file: File): Promise<string> {
         : 'That file couldn’t be read as a picture. Use a JPG, PNG or WebP.',
     );
   }
-  const r = await fetch('/api/portfolio/images', {
+  signal?.throwIfAborted();
+  const r = await workspaceFetch('/api/portfolio/images', {
+    signal,
     method: 'POST',
-    headers: { 'content-type': blob.type },
+    headers: { 'content-type': blob.type, ...(ownerUid ? { 'X-Workspace-Owner': ownerUid } : {}) },
     body: blob,
   });
   const j = (await r.json().catch(() => null)) as {
     image?: { id: string };
     error?: { message: string };
   } | null;
+  signal?.throwIfAborted();
   if (!r.ok || !j?.image) throw new Error(j?.error?.message ?? 'The picture didn’t upload.');
   return j.image.id;
 }
@@ -399,36 +407,58 @@ export function ProjectsEditor({
   onChange,
 }: {
   value: PortfolioProject[];
-  onChange: (v: PortfolioProject[]) => void;
+  onChange: Dispatch<SetStateAction<PortfolioProject[]>>;
 }) {
+  const runTask = useWorkspaceTask();
+  const account = useAccount();
+
   const tx = useT();
   const [busy, setBusy] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  // Uploads finish one by one; each must add to the list as it is by then.
-  const latest = useRef(value);
-  useEffect(() => {
-    latest.current = value;
-  }, [value]);
-  const set = (id: string, patch: (p: PortfolioProject) => Partial<PortfolioProject>) =>
-    onChange(latest.current.map((p) => (p.id === id ? { ...p, ...patch(p) } : p)));
+  const [error, setError] = useWorkspaceState<string | null>(
+    'portfolio.ProjectsEditor.error',
+    null,
+    { dirty: false },
+  );
+  const [pendingFiles, setPendingFiles] = useWorkspaceState<Record<string, File[]>>(
+    'portfolio.ProjectsEditor.pendingFiles',
+    {},
+    { dirty: true },
+  );
 
-  const add = async (p: PortfolioProject, files: FileList | null) => {
-    if (!files?.length) return;
-    setError(null);
-    setBusy(p.id);
-    try {
-      const room = MAX_IMAGES_PER_PROJECT - p.images.length;
-      for (const f of [...files].slice(0, room)) {
-        const id = await upload(f);
-        set(p.id, (cur) => ({ images: [...cur.images, { id, alt: '' }] }));
+  const set = (id: string, patch: (p: PortfolioProject) => Partial<PortfolioProject>) =>
+    onChange((current) => current.map((p) => (p.id === id ? { ...p, ...patch(p) } : p)));
+
+  const add = async (p: PortfolioProject, files: FileList | File[] | null) => {
+    const selected = files ? [...files] : [];
+    if (!selected.length) return;
+    setPendingFiles((current) => ({ ...current, [p.id]: selected }));
+    return runTask(`portfolio.ProjectsEditor.add.${p.id}`, async (signal) => {
+      setError(null);
+      setBusy(p.id);
+      try {
+        const room = MAX_IMAGES_PER_PROJECT - p.images.length;
+        for (const f of selected.slice(0, room)) {
+          const id = await upload(f, signal, account.user?.uid);
+          signal.throwIfAborted();
+          set(p.id, (cur) => ({
+            images: [...cur.images, { id, alt: '' }].slice(0, MAX_IMAGES_PER_PROJECT),
+          }));
+          setPendingFiles((current) => ({
+            ...current,
+            [p.id]: (current[p.id] ?? []).filter((file) => file !== f),
+          }));
+        }
+        if (selected.length > room)
+          setError(`Up to ${MAX_IMAGES_PER_PROJECT} pictures per project; the rest were left out.`);
+      } catch (e) {
+        signal.throwIfAborted();
+        setError((e as Error).message);
+      } finally {
+        setBusy(null);
       }
-      if (files.length > room)
-        setError(`Up to ${MAX_IMAGES_PER_PROJECT} pictures per project; the rest were left out.`);
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(null);
-    }
+    }).catch((error: unknown) => {
+      if (!(error instanceof Error && error.name === 'AbortError')) throw error;
+    });
   };
 
   return (
@@ -437,6 +467,28 @@ export function ProjectsEditor({
       className="flex flex-col gap-3"
       data-testid="projects-editor"
     >
+      {Object.entries(pendingFiles)
+        .filter(([, files]) => files.length)
+        .map(([id, files]) => (
+          <div key={id} className="flex items-center gap-2">
+            <span>{files.map((file) => file.name).join(', ')}</span>
+            <Button
+              disabled={busy === id || !value.some((p) => p.id === id)}
+              onClick={() => {
+                const project = value.find((p) => p.id === id);
+                if (project) void add(project, files);
+              }}
+            >
+              {tx('Retry selected pictures')}
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => setPendingFiles((current) => ({ ...current, [id]: [] }))}
+            >
+              {tx('Dismiss')}
+            </Button>
+          </div>
+        ))}
       <div>
         <h2 id="projects-h" className="font-semibold">
           {tx('Projects')}

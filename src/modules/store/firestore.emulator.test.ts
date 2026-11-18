@@ -20,6 +20,37 @@ const store = () => {
 const uid = () => `u-${Math.random().toString(36).slice(2)}`;
 
 describe.skipIf(!on)('Firestore store (emulator)', () => {
+  it('reads legacy jobs, letters and Coach as revision zero, then atomically advances them', async () => {
+    const s = store(),
+      u = uid();
+    const account = getFirestore(getApps()[0]!).collection('users').doc(u);
+    const legacy = {
+      ...jobInput.parse({ title: 'Legacy' }),
+      id: 'legacy',
+      createdAt: 'now',
+      updatedAt: 'now',
+    };
+    await account.collection('jobs').doc('legacy').set(legacy);
+    await account
+      .collection('letters')
+      .doc('legacy')
+      .set({ id: 'legacy', type: 'cover', updatedAt: 'now', createdAt: 'now' });
+    await account.collection('coach').doc('main').set({ messages: [], updatedAt: 'now' });
+    expect((await s.getJob(u, 'legacy'))?.revision).toBe(0);
+    expect((await s.listJobs(u))[0]?.revision).toBe(0);
+    expect((await s.getJobBoard(u)).jobs[0]?.revision).toBe(0);
+    expect((await s.getLetter(u, 'legacy'))?.revision).toBe(0);
+    expect((await s.listLetters(u))[0]?.revision).toBe(0);
+    expect(await s.getCoachState(u)).toMatchObject({
+      thread: { messages: [], revision: 0 },
+      revision: 0,
+    });
+    expect((await s.updateJob(u, 'legacy', (cur) => cur, 0))?.revision).toBe(1);
+    expect((await s.updateLetter(u, 'legacy', (cur) => cur, 0))?.revision).toBe(1);
+    expect(await s.deleteCoachThread(u, 0)).toEqual({ thread: null, revision: 1 });
+    await s.deleteUserData(u);
+  }, 30_000);
+
   it('serializes job moves and scoped saves without changing ordering-only timestamps', async () => {
     const s = store();
     const u = uid();
@@ -42,7 +73,7 @@ describe.skipIf(!on)('Firestore store (emulator)', () => {
     await s.moveJobOnBoard(u, input, () => {
       throw new Error('order-only must skip transition');
     });
-    expect(await s.getJob(u, 'a')).toEqual(original);
+    expect(await s.getJob(u, 'a')).toEqual({ ...original, revision: 1 });
     const revision = (await s.getJobBoard(u)).board.revision;
     await Promise.all([
       s.moveJobOnBoard(u, { ...input, toStage: 'applied', revision }, (cur) => ({

@@ -1,6 +1,9 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { workspaceFetch } from '@/features/workspace/request';
+
+import { useWorkspaceRouter as useRouter } from '@/features/workspace/navigation';
+import { useWorkspaceScope } from '@/features/workspace/context';
 import { useEffect } from 'react';
 import { DropZone } from './drop-zone';
 import { handOff } from './state';
@@ -8,6 +11,7 @@ import { handOff } from './state';
 /** The home page drop zone: hands the file to /makeover, which starts at once. */
 export function LandingDrop() {
   const router = useRouter();
+  const scope = useWorkspaceScope();
   useEffect(() => {
     // Funnel: landing → upload → reveal → saved (Admin overview).
     try {
@@ -16,7 +20,7 @@ export function LandingDrop() {
     } catch {
       // Counted every time when storage is blocked; harmless.
     }
-    void fetch('/api/metrics/event', {
+    void workspaceFetch('/api/metrics/event', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ name: 'landing_view' }),
@@ -28,8 +32,8 @@ export function LandingDrop() {
       id="landing-file"
       compact
       onFile={(f) => {
-        handOff(f);
-        router.push('/makeover');
+        const key = handOff(f, scope);
+        router.push(scope ? `/makeover?handoff=${encodeURIComponent(key)}` : '/makeover');
       }}
     />
   );

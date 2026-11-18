@@ -3,7 +3,7 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { ArrowDown, ArrowUp, ChevronDown, GripVertical } from 'lucide-react';
-import Link from 'next/link';
+import Link from '@/features/workspace/navigation';
 import type { ReactNode } from 'react';
 import { useT } from '@/i18n/client';
 import {

@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { NextResponse } from 'next/server';
 import { apiError, readJson, requestId } from '@/lib/http';
 import { currentUser } from '@/modules/identity/session';
@@ -11,7 +12,7 @@ const IDS = new Set<string>(DESIGN_IDS);
 const MAX = 200;
 
 /** GET → { ids } — the signed-in person's favourite designs (visitors keep theirs on the device). */
-export async function GET() {
+async function handleGET() {
   const rid = requestId();
   const user = await currentUser();
   if (!user) return apiError('UNAUTHORIZED', 'Please sign in.', rid);
@@ -22,7 +23,7 @@ export async function GET() {
 }
 
 /** PUT { ids } — replaces the list (unknown designs are dropped). */
-export async function PUT(req: Request) {
+async function handlePUT(req: Request) {
   const rid = requestId();
   const user = await currentUser();
   if (!user) return apiError('UNAUTHORIZED', 'Please sign in.', rid);
@@ -35,3 +36,6 @@ export async function PUT(req: Request) {
   await getUserStore().setFavouriteDesigns(user.uid, clean);
   return NextResponse.json({ ids: clean });
 }
+
+export const GET = withWorkspaceOwnerErrors(handleGET);
+export const PUT = withWorkspaceOwnerErrors(handlePUT);

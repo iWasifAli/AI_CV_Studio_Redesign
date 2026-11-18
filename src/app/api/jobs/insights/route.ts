@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { NextResponse } from 'next/server';
 import { apiError, requestId } from '@/lib/http';
 import { getBusinessConfig } from '@/modules/billing/server';
@@ -15,7 +16,7 @@ export const dynamic = 'force-dynamic';
  * GET → the person's application results (R9.10): sent, replies, interviews and offers, by CV
  * and by design. Worked out from their own jobs on each request; nothing extra is stored.
  */
-export async function GET() {
+async function handleGET() {
   const rid = requestId();
   const user = await currentUser();
   if (user) await noteUse(user.uid, 'insights');
@@ -44,3 +45,5 @@ export async function GET() {
     { headers: { 'Cache-Control': 'no-store' } },
   );
 }
+
+export const GET = withWorkspaceOwnerErrors(handleGET);

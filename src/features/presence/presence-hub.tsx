@@ -1,7 +1,11 @@
 'use client';
 
+import { workspaceFetch } from '@/features/workspace/request';
+
+import { useWorkspaceTask } from '@/features/workspace/context';
+
 import { useT } from '@/i18n/client';
-import Link from 'next/link';
+import Link from '@/features/workspace/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, Copy, ExternalLink, Globe, IdCard, Link2, Mail } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
@@ -53,6 +57,8 @@ const when = (iso: string | null) =>
 
 /** Presence (spec §11.1): portfolio, LinkedIn and share links, with how often each is opened. */
 export function PresenceHub() {
+  const runTask = useWorkspaceTask();
+
   const t = useT();
   const account = useAccount();
   const toast = useToast();
@@ -68,36 +74,59 @@ export function PresenceHub() {
 
   useEffect(() => {
     if (account.status !== 'signedIn') return;
+    let live = true;
+    const controller = new AbortController();
+    const init: RequestInit = {
+      cache: 'no-store',
+      signal: controller.signal,
+      headers: account.user?.uid ? { 'X-Workspace-Owner': account.user.uid } : undefined,
+    };
     Promise.all([
-      fetch('/api/portfolio', { cache: 'no-store' }).then(
+      workspaceFetch('/api/portfolio', init).then(
         (r) => r.json() as Promise<{ portfolio: PortfolioView | null }>,
       ),
-      fetch('/api/shares', { cache: 'no-store' }).then(
-        (r) => r.json() as Promise<{ shares: ShareView[] }>,
-      ),
+      workspaceFetch('/api/shares', init).then((r) => r.json() as Promise<{ shares: ShareView[] }>),
     ]).then(
       ([p, s]) => {
+        if (!live) return;
         setPortfolio(p.portfolio ?? null);
         setShares(s.shares ?? []);
       },
-      () => setError('You seem to be offline. Please try again.'),
+      () => {
+        if (live) setError('You seem to be offline. Please try again.');
+      },
     );
-  }, [account.status]);
+    return () => {
+      live = false;
+      controller.abort();
+    };
+  }, [account.status, account.user?.uid]);
 
   const toggle = async (s: ShareView) => {
-    const r = await fetch(`/api/shares/${s.token}`, {
-      method: 'PATCH',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ enabled: !s.enabled }),
-    });
-    if (!r.ok) return toast.show({ tone: 'error', message: 'That didn’t work. Please try again.' });
-    const { share } = (await r.json()) as { share: ShareView };
-    setShares(
-      (list) => list && list.map((x) => (x.token === share.token ? { ...x, ...share } : x)),
-    );
-    toast.show({
-      tone: 'success',
-      message: share.enabled ? 'Link switched on' : 'Link switched off',
+    return runTask(`presence.PresenceHub.toggle.${s.token}`, async (signal) => {
+      const r = await workspaceFetch(`/api/shares/${s.token}`, {
+        signal,
+        method: 'PATCH',
+        headers: {
+          'content-type': 'application/json',
+          ...(account.user?.uid ? { 'X-Workspace-Owner': account.user.uid } : {}),
+        },
+        body: JSON.stringify({ enabled: !s.enabled }),
+      });
+      signal.throwIfAborted();
+      if (!r.ok)
+        return toast.show({ tone: 'error', message: 'That didn’t work. Please try again.' });
+      const { share } = (await r.json()) as { share: ShareView };
+      signal.throwIfAborted();
+      setShares(
+        (list) => list && list.map((x) => (x.token === share.token ? { ...x, ...share } : x)),
+      );
+      toast.show({
+        tone: 'success',
+        message: share.enabled ? 'Link switched on' : 'Link switched off',
+      });
+    }).catch((error: unknown) => {
+      if (!(error instanceof Error && error.name === 'AbortError')) throw error;
     });
   };
   const copy = async (url: string) => {

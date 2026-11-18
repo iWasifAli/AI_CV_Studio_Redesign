@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { apiError, readJson } from '@/lib/http';
 import { denialCode, reserve } from '@/modules/billing/server';
 import { getBrowser, readFontBase64 } from '@/modules/export/pdf';
@@ -13,7 +14,7 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 /** POST { document } → the letter as a PDF in that CV's design. Counts as a PDF download. */
-export async function POST(req: Request, ctx: LetterCtx) {
+async function handlePOST(req: Request, ctx: LetterCtx) {
   const r = await loadLetter(ctx);
   if ('error' in r) return r.error;
   const { rid, user, letter } = r;
@@ -67,3 +68,5 @@ export async function POST(req: Request, ctx: LetterCtx) {
     return apiError('RENDER_FAILED', 'We couldn’t create the PDF just now.', rid);
   }
 }
+
+export const POST = withWorkspaceOwnerErrors(handlePOST);

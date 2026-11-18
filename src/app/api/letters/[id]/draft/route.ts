@@ -1,3 +1,5 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
+import { parseRevisionCondition, RevisionConflict } from '@/modules/store/types';
 import { NextResponse } from 'next/server';
 import { apiError, readJson } from '@/lib/http';
 import { aiModels, getAiProvider } from '@/modules/ai/config';
@@ -23,7 +25,7 @@ export const maxDuration = 90;
  * POST { document, tone } → the letter with an AI draft (task letter.generic). Facts may come only
  * from the person's answers and the CV; anything else is marked for them to fill in.
  */
-export async function POST(req: Request, ctx: LetterCtx) {
+async function handlePOST(req: Request, ctx: LetterCtx) {
   const r = await loadLetter(ctx);
   if ('error' in r) return r.error;
   const { rid, user, letter } = r;
@@ -34,6 +36,11 @@ export async function POST(req: Request, ctx: LetterCtx) {
   const raw = await readJson(req, 256 * 1024);
   if (!raw.ok) return apiError(raw.code, 'Invalid request.', rid);
   const body = (raw.value ?? {}) as Record<string, unknown>;
+  const condition = parseRevisionCondition(body);
+  if (!condition.ok)
+    return apiError('INVALID_INPUT', 'expectedRevision must be a nonnegative integer.', rid);
+  if (condition.value !== undefined && condition.value !== (letter.revision ?? 0))
+    return apiError('CONFLICT', 'This letter changed.', rid, { current: letter });
   const doc = resumeDocument.safeParse(body.document);
   if (!doc.success) return apiError('INVALID_INPUT', 'Choose a CV to use.', rid);
   const tone = body.tone === 'formal' ? 'formal' : 'warm';
@@ -84,9 +91,25 @@ export async function POST(req: Request, ctx: LetterCtx) {
     documentId: doc.data.id,
     updatedAt: new Date().toISOString(),
   };
-  await getUserStore().putLetter(user.uid, next);
+  try {
+    const saved = await getUserStore().updateLetter(
+      user.uid,
+      letter.id,
+      () => next,
+      condition.value ?? letter.revision ?? 0,
+    );
+    if (!saved) throw new RevisionConflict(null);
+    next.revision = saved.revision;
+  } catch (error) {
+    await gate.release();
+    if (error instanceof RevisionConflict)
+      return apiError('CONFLICT', error.message, rid, { current: error.current, generated: next });
+    throw error;
+  }
   return NextResponse.json(
     { letter: next, findings: result.findings.length },
     { headers: { 'Cache-Control': 'no-store' } },
   );
 }
+
+export const POST = withWorkspaceOwnerErrors(handlePOST);

@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { NextResponse } from 'next/server';
 import { apiError, readJson, requestId } from '@/lib/http';
 import { currentUser } from '@/modules/identity/session';
@@ -15,7 +16,7 @@ const MAX_BODY = 768 * 1024; // same as a CV save: it may carry a small photo
 const validId = (id: string) => /^[\w-]{1,64}$/.test(id);
 
 /** GET → the CV's earlier versions, newest first (spec §9.1). */
-export async function GET(_req: Request, ctx: Ctx) {
+async function handleGET(_req: Request, ctx: Ctx) {
   const rid = requestId();
   const user = await currentUser();
   if (!user) return apiError('UNAUTHORIZED', 'Please sign in.', rid);
@@ -32,7 +33,7 @@ export async function GET(_req: Request, ctx: Ctx) {
  * POST { kind: 'named', name, document } → keeps the CV as it is now under a name.
  * POST { kind: 'restore', name, document } → the copy taken just before going back to a version.
  */
-export async function POST(req: Request, ctx: Ctx) {
+async function handlePOST(req: Request, ctx: Ctx) {
   const rid = requestId();
   const user = await currentUser();
   if (user) await noteUse(user.uid, 'versions');
@@ -66,3 +67,6 @@ export async function POST(req: Request, ctx: Ctx) {
     );
   return NextResponse.json({ version: versionMeta(saved) }, { status: 201 });
 }
+
+export const GET = withWorkspaceOwnerErrors(handleGET);
+export const POST = withWorkspaceOwnerErrors(handlePOST);

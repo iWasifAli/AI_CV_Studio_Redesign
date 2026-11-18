@@ -38,6 +38,24 @@ export type PutResult =
   | { ok: false; reason: 'conflict'; current: StoredDoc }
   | { ok: false; reason: 'limit' };
 
+/** Optional on old records/fixtures; stores always expose a numeric revision. */
+export function withRevision<T extends { revision?: number }>(value: T): T & { revision: number } {
+  return { ...value, revision: value.revision ?? 0 };
+}
+export class RevisionConflict extends Error {
+  constructor(readonly current: unknown) {
+    super('This resource changed. Reload or keep your draft.');
+  }
+}
+export function assertRevision(current: { revision?: number } | null, expected?: number) {
+  if (expected !== undefined && (!current || (current.revision ?? 0) !== expected))
+    throw new RevisionConflict(current);
+}
+export type CreationReceipt = { key: string; fingerprint: string };
+export type CreateResult<T> =
+  { ok: true; value: T } | { ok: false; reason: 'limit' | 'conflict'; current?: T | null };
+export type CoachState = { thread: CoachThread | null; revision: number };
+
 export interface UserStore {
   touchUser(uid: string, info: { email: string | null; name: string | null }): Promise<void>;
   /** The person's interface language, so emails to them are in it ('en' when never set). */
@@ -55,22 +73,46 @@ export interface UserStore {
   listJobs(uid: string): Promise<Job[]>;
   getJob(uid: string, id: string): Promise<Job | null>;
   putJob(uid: string, job: Job): Promise<void>;
+  createJob(
+    uid: string,
+    job: Job,
+    max: number,
+    receipt?: CreationReceipt,
+  ): Promise<CreateResult<Job>>;
   /** Retryable callback on the latest job; no external side effects. Missing jobs stay deleted. */
-  updateJob(uid: string, id: string, edit: JobEditor): Promise<Job | null>;
+  updateJob(
+    uid: string,
+    id: string,
+    edit: JobEditor,
+    expectedRevision?: number,
+  ): Promise<Job | null>;
   getJobBoard(uid: string): Promise<JobBoardSnapshot>;
   moveJobOnBoard(uid: string, input: JobBoardMove, edit: JobEditor): Promise<JobBoardResult>;
-  deleteJob(uid: string, id: string): Promise<void>;
+  deleteJob(uid: string, id: string, expectedRevision?: number): Promise<void>;
 
   // Career coach (R9): one conversation per account.
   getCoachThread(uid: string): Promise<CoachThread | null>;
-  putCoachThread(uid: string, t: CoachThread): Promise<void>;
-  deleteCoachThread(uid: string): Promise<void>;
+  getCoachState(uid: string): Promise<CoachState>;
+  putCoachThread(uid: string, t: CoachThread, expectedRevision?: number): Promise<CoachState>;
+  deleteCoachThread(uid: string, expectedRevision?: number): Promise<CoachState>;
 
   // Letter library (R8.2)
   listLetters(uid: string): Promise<SavedLetter[]>;
   getLetter(uid: string, id: string): Promise<SavedLetter | null>;
   putLetter(uid: string, letter: SavedLetter): Promise<void>;
-  deleteLetter(uid: string, id: string): Promise<void>;
+  createLetter(
+    uid: string,
+    letter: SavedLetter,
+    max: number,
+    receipt?: CreationReceipt,
+  ): Promise<CreateResult<SavedLetter>>;
+  updateLetter(
+    uid: string,
+    id: string,
+    edit: (current: SavedLetter) => SavedLetter | Promise<SavedLetter>,
+    expectedRevision?: number,
+  ): Promise<SavedLetter | null>;
+  deleteLetter(uid: string, id: string, expectedRevision?: number): Promise<void>;
   // Story bank (R9.3)
   listStories(uid: string): Promise<Story[]>;
   getStory(uid: string, id: string): Promise<Story | null>;
@@ -381,3 +423,27 @@ export type ReminderQueue = {
   token: string;
   updatedAt: string;
 };
+
+/** Stable JSON for a validated creation payload; object key order is not an input change. */
+export function canonicalJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
+  if (value !== null && typeof value === 'object')
+    return `{${Object.entries(value)
+      .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+      .map(([k, v]) => `${JSON.stringify(k)}:${canonicalJson(v)}`)
+      .join(',')}}`;
+  return JSON.stringify(value);
+}
+
+export function parseRevisionCondition(
+  body: unknown,
+): { ok: true; value: number | undefined } | { ok: false } {
+  const value =
+    body && typeof body === 'object'
+      ? (body as { expectedRevision?: unknown }).expectedRevision
+      : undefined;
+  return value === undefined ||
+    (typeof value === 'number' && Number.isSafeInteger(value) && value >= 0)
+    ? { ok: true, value }
+    : { ok: false };
+}

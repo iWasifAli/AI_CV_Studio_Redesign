@@ -1,8 +1,10 @@
 'use client';
 
 import { useT } from '@/i18n/client';
-import { useRef, useState, type SyntheticEvent } from 'react';
+import { useState, type SyntheticEvent } from 'react';
 import { Languages, Scissors, SpellCheck, Sparkles, Wand2 } from 'lucide-react';
+import { useWorkspaceState } from '@/features/workspace/context';
+import { useAiField } from './context';
 import { useAi } from './client';
 import { AskText, SuggestionCard, useSuggestion } from './suggestion';
 
@@ -20,12 +22,20 @@ const MODES: { mode: Mode; label: string; icon: typeof Wand2 }[] = [
  * offers Improve · Shorten · Expand · Fix grammar · Change tone for just those words. The result is
  * shown as before → after and replaces the selection only when the person uses it (one undo step).
  */
-export function useSelectionAssist(value: string, onReplace: (next: string) => void) {
+export function useSelectionAssist(
+  value: string,
+  onReplace: (next: string) => void,
+  fieldKey = 'summary',
+) {
   const tx = useT();
   const ai = useAi();
-  const s = useSuggestion('write.rewrite');
+  const field = useAiField();
+  const s = useSuggestion('write.rewrite', fieldKey);
   const [sel, setSel] = useState<{ start: number; end: number } | null>(null);
-  const asked = useRef<{ start: number; end: number; text: string } | null>(null);
+  const [asked, setAsked] = useWorkspaceState<{ start: number; end: number; text: string } | null>(
+    `ai.selection.${field}.${fieldKey}.asked`,
+    null,
+  );
 
   const onSelect = (
     e: SyntheticEvent<HTMLTextAreaElement> | { currentTarget: HTMLTextAreaElement },
@@ -37,7 +47,7 @@ export function useSelectionAssist(value: string, onReplace: (next: string) => v
   const run = (mode: Mode, label: string) => {
     if (!sel) return;
     const text = value.slice(sel.start, sel.end);
-    asked.current = { ...sel, text };
+    setAsked({ ...sel, text });
     void s.run({ text, mode, tone: 'formal', context: value.slice(0, 3000) }, label);
   };
 
@@ -68,7 +78,7 @@ export function useSelectionAssist(value: string, onReplace: (next: string) => v
         demo={ai.demo}
         useLabel={tx('Replace the selection')}
         onUse={(d) => {
-          const a = asked.current;
+          const a = asked;
           // Only if the text box still has those words where they were.
           if (a && value.slice(a.start, a.end) === a.text)
             onReplace(value.slice(0, a.start) + d.result.text + value.slice(a.end));
@@ -78,7 +88,7 @@ export function useSelectionAssist(value: string, onReplace: (next: string) => v
       >
         {(d) => (
           <p className="flex flex-col gap-1">
-            <span className="text-ink-muted line-through">{asked.current?.text}</span>
+            <span className="text-ink-muted line-through">{asked?.text}</span>
             <span>
               <AskText text={d.result.text} />
             </span>

@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { NextResponse } from 'next/server';
 import { apiError, readJson, requestId } from '@/lib/http';
 import { currentUser } from '@/modules/identity/session';
@@ -20,14 +21,14 @@ async function load(ctx: Ctx) {
   return { rid, user, plan };
 }
 
-export async function GET(_req: Request, ctx: Ctx) {
+async function handleGET(_req: Request, ctx: Ctx) {
   const r = await load(ctx);
   if ('error' in r) return r.error;
   return NextResponse.json({ plan: r.plan }, noStore);
 }
 
 /** PUT { steps: ['todo' | 'learning' | 'done', …] } → the plan with the person's progress. */
-export async function PUT(req: Request, ctx: Ctx) {
+async function handlePUT(req: Request, ctx: Ctx) {
   const r = await load(ctx);
   if ('error' in r) return r.error;
   const body = await readJson(req, 4 * 1024);
@@ -43,9 +44,13 @@ export async function PUT(req: Request, ctx: Ctx) {
   return NextResponse.json({ plan }, noStore);
 }
 
-export async function DELETE(_req: Request, ctx: Ctx) {
+async function handleDELETE(_req: Request, ctx: Ctx) {
   const r = await load(ctx);
   if ('error' in r) return r.error;
   await getUserStore().deleteSkillPlan(r.user.uid, r.plan.id);
   return NextResponse.json({ ok: true }, noStore);
 }
+
+export const GET = withWorkspaceOwnerErrors(handleGET);
+export const PUT = withWorkspaceOwnerErrors(handlePUT);
+export const DELETE = withWorkspaceOwnerErrors(handleDELETE);

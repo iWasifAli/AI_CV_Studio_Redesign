@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { LANG_COOKIE, isLang } from '@/i18n/core';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
@@ -24,7 +25,7 @@ const PER_MINUTE = Number(process.env.RATE_LIMIT_SESSION_PER_MINUTE ?? 10);
 const limiter = createRateLimiter({ capacity: PER_MINUTE * 2, refillPerMinute: PER_MINUTE });
 
 /** POST { idToken } → sets the session cookie. */
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   const rid = requestId();
   if (!limiter(clientKey(req)).ok)
     return apiError('RATE_LIMITED', 'Too many sign-in attempts. Please wait a minute.', rid);
@@ -80,10 +81,13 @@ export async function POST(req: Request) {
 }
 
 /** DELETE → signs out (this device; ?everywhere=1 revokes all sessions). */
-export async function DELETE(req: Request) {
+async function handleDELETE(req: Request) {
   const user = await currentUser();
   if (user && new URL(req.url).searchParams.get('everywhere') === '1')
     await revokeSessions(user.uid).catch(() => {});
   await clearSessionCookie();
   return NextResponse.json({ ok: true });
 }
+
+export const POST = withWorkspaceOwnerErrors(handlePOST);
+export const DELETE = withWorkspaceOwnerErrors(handleDELETE);

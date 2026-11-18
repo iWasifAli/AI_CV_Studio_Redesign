@@ -1,8 +1,12 @@
 'use client';
 
+import { workspaceFetch as fetch } from '@/features/workspace/request';
+
+import { useWorkspaceState, useWorkspaceTask } from '@/features/workspace/context';
+
 import { useT } from '@/i18n/client';
-import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import Link from '@/features/workspace/navigation';
+import { useMemo, useState } from 'react';
 import { Check, Hash } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
 import { Button, ButtonLink } from '@/components/ui/button';
@@ -24,16 +28,17 @@ type Step =
   | { kind: 'stale' };
 
 /** Steps per point, kept while the editor is open (Show me switches tabs). */
-const kept = new Map<string, Record<string, Step>>();
 const keyOf = (p: Unmeasured) => `${p.sectionId}/${p.itemId}/${p.index}/${p.text}`;
 
-async function post<T>(body: unknown): Promise<T> {
+async function post<T>(body: unknown, signal: AbortSignal): Promise<T> {
   const r = await fetch('/api/quality/quantify', {
     method: 'POST',
+    signal,
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(body),
   });
   const j = (await r.json().catch(() => null)) as (T & { error?: { message?: string } }) | null;
+  signal.throwIfAborted();
   if (!r.ok || !j)
     throw Object.assign(new Error(j?.error?.message || 'That didn’t work. Please try again.'), {
       premium: r.status === 402,
@@ -56,28 +61,54 @@ export function QuantifyPanel({
 }) {
   const t = useT();
   const account = useAccount();
+  const runTask = useWorkspaceTask();
+  const [busySteps, setBusySteps] = useState<Record<string, Step>>({});
   const { ent, refresh } = useEntitlements();
   const points = useMemo(() => unmeasured(doc), [doc]);
-  const [steps, setSteps] = useState<Record<string, Step>>(() => kept.get(doc.id) ?? {});
-  const [problem, setProblem] = useState<{ message: string; premium?: boolean } | null>(null);
-  const [showAll, setShowAll] = useState(false);
-  useEffect(() => {
-    kept.set(doc.id, steps);
-  }, [doc.id, steps]);
+  const [steps, setSteps] = useWorkspaceState<Record<string, Step>>(
+    'quality.quantifypanel.steps',
+    {},
+  );
+  const [answerDrafts, setAnswerDrafts] = useWorkspaceState<Record<string, string[]>>(
+    'quality.quantify.answers',
+    {},
+    { dirty: true },
+  );
+  const [problem, setProblem] = useWorkspaceState<{ message: string; premium?: boolean } | null>(
+    'quality.quantifypanel.problem',
+    null,
+  );
+  const [showAll, setShowAll] = useWorkspaceState('quality.quantifypanel.showAll', false);
   if (ent && ent.features.quantify === false) return null;
   const signedIn = account.status === 'signedIn';
   const premiumOnly = !!ent && ent.plan !== 'premium' && ent.limits['ai.action'] === 0;
-  const set = (k: string, s: Step) => setSteps((all) => ({ ...all, [k]: s }));
+  const clearBusy = (k: string) =>
+    setBusySteps((all) => {
+      const next = { ...all };
+      delete next[k];
+      return next;
+    });
+  const set = (k: string, s: Step) => {
+    if (s.kind === 'asking' || s.kind === 'adding') setBusySteps((all) => ({ ...all, [k]: s }));
+    else {
+      clearBusy(k);
+      setSteps((all) => ({ ...all, [k]: s }));
+    }
+  };
 
   const ask = async (p: Unmeasured) => {
     const k = keyOf(p);
     set(k, { kind: 'asking' });
     setProblem(null);
     try {
-      const r = await post<{ questions: Question[] }>({ mode: 'ask', point: p.text, job: p.job });
+      const r = await runTask(`quality.quantify.ask.${k}`, (signal) =>
+        post<{ questions: Question[] }>({ mode: 'ask', point: p.text, job: p.job }, signal),
+      );
       set(k, { kind: 'questions', questions: r.questions, answers: r.questions.map(() => '') });
       refresh();
     } catch (e) {
+      clearBusy(k);
+      if (e instanceof Error && e.name === 'AbortError') return;
       set(k, { kind: 'idle' });
       setProblem({ message: (e as Error).message, premium: (e as { premium?: boolean }).premium });
     }
@@ -87,14 +118,30 @@ export function QuantifyPanel({
     set(k, { kind: 'adding', questions, answers });
     setProblem(null);
     try {
-      const r = await post<{ point: string }>({
-        mode: 'insert',
-        point: p.text,
-        job: p.job,
-        answers: questions.map((q, i) => ({ question: q.question, answer: answers[i] ?? '' })),
-      });
-      set(k, { kind: 'review', questions, answers, next: r.point });
+      const r = await runTask(`quality.quantify.add.${k}`, (signal) =>
+        post<{ point: string }>(
+          {
+            mode: 'insert',
+            point: p.text,
+            job: p.job,
+            answers: questions.map((q, i) => ({ question: q.question, answer: answers[i] ?? '' })),
+          },
+          signal,
+        ),
+      );
+      clearBusy(k);
+      setSteps((all) => ({
+        ...all,
+        [k]: {
+          kind: 'review',
+          questions,
+          answers: all[k] && 'answers' in all[k] ? all[k].answers : answers,
+          next: r.point,
+        },
+      }));
     } catch (e) {
+      clearBusy(k);
+      if (e instanceof Error && e.name === 'AbortError') return;
       set(k, { kind: 'questions', questions, answers });
       setProblem({ message: (e as Error).message });
     }
@@ -177,7 +224,11 @@ export function QuantifyPanel({
           <ul className="flex flex-col gap-3">
             {shown.map((p) => {
               const k = keyOf(p);
-              const st = steps[k] ?? { kind: 'idle' };
+              const baseStep = busySteps[k] ?? steps[k] ?? { kind: 'idle' };
+              const st: Step =
+                'answers' in baseStep
+                  ? { ...baseStep, answers: answerDrafts[k] ?? baseStep.answers }
+                  : baseStep;
               return (
                 <li
                   key={k}
@@ -211,10 +262,10 @@ export function QuantifyPanel({
                             value={st.answers[i] ?? ''}
                             maxLength={200}
                             onChange={(e) =>
-                              set(k, {
-                                ...st,
-                                answers: st.answers.map((a, j) => (j === i ? e.target.value : a)),
-                              })
+                              setAnswerDrafts((all) => ({
+                                ...all,
+                                [k]: st.answers.map((a, j) => (j === i ? e.target.value : a)),
+                              }))
                             }
                           />
                           {q.hint && <span className="text-ink-muted text-xs">{t(q.hint)}</span>}

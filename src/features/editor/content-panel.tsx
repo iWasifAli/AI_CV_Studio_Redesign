@@ -1,8 +1,10 @@
 'use client';
 
+import { useWorkspaceState } from '@/features/workspace/context';
+
 import { useT } from '@/i18n/client';
 import { useSelectionAssist } from '@/features/ai/selection-assist';
-import { forwardRef, useImperativeHandle, useState } from 'react';
+import { forwardRef, useImperativeHandle } from 'react';
 import { ChevronDown, Plus } from 'lucide-react';
 import { TextArea } from '@/components/ui/field';
 import { cn } from '@/lib/cn';
@@ -31,7 +33,7 @@ function Collapsible({
   id: string;
 }) {
   const tx = useT();
-  const [open, setOpen] = useState(defaultOpen);
+  const [open, setOpen] = useWorkspaceState(`editor.collapsible.${id}.open`, defaultOpen);
   return (
     <section className="border-line bg-surface shadow-1 rounded-lg border" id={id}>
       <h3>
@@ -59,9 +61,12 @@ export const ContentPanel = forwardRef<ContentPanelHandle, { editor: DocumentEdi
     const t = useT();
     const { doc, update } = editor;
     const preset = getPreset(doc.presetId);
-    const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
-    const [adding, setAdding] = useState(false);
-    const [filter, setFilter] = useState('');
+    const [expanded, setExpanded] = useWorkspaceState<Set<string>>(
+      'editor.contentpanel.expanded',
+      () => new Set(),
+    );
+    const [adding, setAdding] = useWorkspaceState('editor.contentpanel.adding', false);
+    const [filter, setFilter] = useWorkspaceState('editor.contentpanel.filter', '');
     const summaryAssist = useSelectionAssist(doc.basics.summary, (summary) =>
       update((d) => ops.updateBasics(d, { summary }), `basics.summary.ai.${Date.now()}`),
     );

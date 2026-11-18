@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { apiError, clientKey, createRateLimiter, readJson, requestId } from '@/lib/http';
 import { getBrowser, readFontBase64 } from '@/modules/export/pdf';
 import { renderPdfFromHtml } from '@/modules/export/render';
@@ -14,7 +15,7 @@ export const maxDuration = 30;
 const limiter = createRateLimiter({ capacity: 6, refillPerMinute: 3 });
 
 /** POST { document, options } → a business card PDF (85 × 55 mm, front and back). Free. */
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   const rid = requestId();
   const user = await currentUser();
   if (!user) return apiError('SIGN_IN_REQUIRED', 'Please sign in.', rid);
@@ -57,3 +58,5 @@ export async function POST(req: Request) {
     return apiError('RENDER_FAILED', 'We couldn’t create the card just now.', rid);
   }
 }
+
+export const POST = withWorkspaceOwnerErrors(handlePOST);

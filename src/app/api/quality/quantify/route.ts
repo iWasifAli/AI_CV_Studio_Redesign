@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { NextResponse } from 'next/server';
 import { apiError, readJson, requestId } from '@/lib/http';
 import { aiModels, getAiProvider } from '@/modules/ai/config';
@@ -22,7 +23,7 @@ const clean = (v: unknown, max: number) =>
  * POST { mode: 'insert', point, job, answers } → { point } — the answers worked into the point,
  * fact-guarded; part of the same action, so not counted again (like AI Designer refines).
  */
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   const rid = requestId();
   const user = await currentUser();
   if (user) await noteUse(user.uid, 'quantify');
@@ -77,3 +78,5 @@ export async function POST(req: Request) {
     { headers: { 'Cache-Control': 'no-store' } },
   );
 }
+
+export const POST = withWorkspaceOwnerErrors(handlePOST);

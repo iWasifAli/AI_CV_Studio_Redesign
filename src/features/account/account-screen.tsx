@@ -220,8 +220,8 @@ export function AccountScreen() {
           onClick={() =>
             void run('out', async () => {
               leaving.current = true;
-              await account.signOut();
-              router.replace('/');
+              if (await account.signOut()) router.replace('/');
+              else leaving.current = false;
             })
           }
         >
@@ -233,8 +233,8 @@ export function AccountScreen() {
           onClick={() =>
             void run('all', async () => {
               leaving.current = true;
-              await account.signOut(true);
-              router.replace('/');
+              if (await account.signOut(true)) router.replace('/');
+              else leaving.current = false;
             })
           }
         >
@@ -264,7 +264,7 @@ export function AccountScreen() {
               void run('delete', async () => {
                 const r = await fetch('/api/me', {
                   method: 'DELETE',
-                  headers: { 'content-type': 'application/json' },
+                  headers: { 'content-type': 'application/json', 'X-Workspace-Owner': u.uid },
                   body: JSON.stringify({ confirm }),
                 });
                 if (!r.ok) {
@@ -274,7 +274,7 @@ export function AccountScreen() {
                   throw new AuthUiError(j?.error?.message ?? 'That didn’t work. Please try again.');
                 }
                 leaving.current = true;
-                await account.signOut();
+                await account.finishAccountDeletion();
                 toast.show({ tone: 'success', message: 'Your account has been deleted.' });
                 router.replace('/');
               });

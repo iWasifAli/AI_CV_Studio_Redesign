@@ -1,16 +1,19 @@
 'use client';
 
+import { useWorkspaceState, useWorkspaceTask, useWorkspace } from '@/features/workspace/context';
+
 import { useT } from '@/i18n/client';
-import Link from 'next/link';
+import Link from '@/features/workspace/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { ArrowLeft, BarChart3, Lock } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
-import { ButtonLink } from '@/components/ui/button';
+import { Button, ButtonLink } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/components/ui/toast';
 import { useAccount } from '@/features/account/account-context';
 import { FEW, pct, type Group, type Insights } from '@/modules/jobs/insights';
 import { JOB_OUTCOMES, OUTCOME_LABEL, type JobOutcome } from '@/modules/jobs/schema';
+import { revisionOf } from './workspace-state';
 import { JobsError, jobsApi } from './api';
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
@@ -26,8 +29,18 @@ export function JobInsights() {
   const t = useT();
   const account = useAccount();
   const toast = useToast();
+  const runTask = useWorkspaceTask();
+  const { ownerUid } = useWorkspace();
+  const [pendingOutcome, setPendingOutcome] = useWorkspaceState<{
+    id: string;
+    outcome: JobOutcome;
+  } | null>('jobs.JobInsights.pendingOutcome', null, { dirty: true });
   const [data, setData] = useState<{ insights: Insights; total: number } | null>(null);
-  const [error, setError] = useState<{ message: string; off: boolean } | null>(null);
+  const [error, setError] = useWorkspaceState<{ message: string; off: boolean } | null>(
+    'jobs.JobInsights.error',
+    null,
+    { dirty: false },
+  );
 
   const load = useCallback(() => {
     jobsApi
@@ -35,14 +48,23 @@ export function JobInsights() {
       .then(setData, (e: Error) =>
         setError({ message: e.message, off: e instanceof JobsError && e.reason === 'disabled' }),
       );
-  }, []);
+  }, [setError]);
   useEffect(() => {
     if (account.status === 'signedIn') load();
   }, [account.status, load]);
 
   const setOutcome = async (id: string, outcome: JobOutcome) => {
+    setPendingOutcome({ id, outcome });
     try {
-      await jobsApi.update(id, { outcome });
+      await runTask('jobs.JobInsights.outcome', async (signal) => {
+        const job = await jobsApi.get(id, { signal, ownerUid });
+        await jobsApi.update(
+          id,
+          { outcome },
+          { signal, ownerUid, expectedRevision: revisionOf(job) },
+        );
+      });
+      setPendingOutcome(null);
       toast.show({ tone: 'success', message: 'Saved' });
       load();
     } catch (e) {
@@ -102,6 +124,17 @@ export function JobInsights() {
   const maxWeek = Math.max(1, ...s.weeks.map((w) => w.count));
   return (
     <div className="flex flex-col gap-6" data-testid="insights">
+      {pendingOutcome && error && (
+        <Banner
+          tone="warning"
+          title="Your selected outcome is kept"
+          action={
+            <Button size="sm" onClick={() => setOutcome(pendingOutcome.id, pendingOutcome.outcome)}>
+              {t('Retry outcome')}
+            </Button>
+          }
+        />
+      )}
       {error && (
         <Banner tone="error" title={t('That didn’t work')} onDismiss={() => setError(null)}>
           {error.message}

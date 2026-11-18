@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { NextResponse } from 'next/server';
 import { apiError, readJson, requestId } from '@/lib/http';
 import { currentUser } from '@/modules/identity/session';
@@ -31,7 +32,7 @@ async function load(ctx: Ctx): Promise<Loaded> {
 }
 
 /** PATCH { status: 'open' | 'done' } → mark a comment as dealt with (or not). */
-export async function PATCH(req: Request, ctx: Ctx) {
+async function handlePATCH(req: Request, ctx: Ctx) {
   const rid = requestId();
   const r = await load(ctx);
   if (r.error)
@@ -54,7 +55,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
 }
 
 /** DELETE → removes the comment for good. */
-export async function DELETE(_req: Request, ctx: Ctx) {
+async function handleDELETE(_req: Request, ctx: Ctx) {
   const rid = requestId();
   const r = await load(ctx);
   if (r.error)
@@ -66,3 +67,6 @@ export async function DELETE(_req: Request, ctx: Ctx) {
   await r.store.deleteComment(r.user.uid, r.id, r.c.id);
   return NextResponse.json({ ok: true }, { headers: { 'Cache-Control': 'no-store' } });
 }
+
+export const PATCH = withWorkspaceOwnerErrors(handlePATCH);
+export const DELETE = withWorkspaceOwnerErrors(handleDELETE);

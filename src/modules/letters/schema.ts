@@ -43,6 +43,7 @@ export const savedLetterInput = z.object({
 export type SavedLetterInput = z.input<typeof savedLetterInput>;
 
 export const savedLetter = savedLetterInput.extend({
+  revision: z.number().int().nonnegative().optional(),
   id: z.string().max(64),
   createdAt: z.string(),
   updatedAt: z.string(),

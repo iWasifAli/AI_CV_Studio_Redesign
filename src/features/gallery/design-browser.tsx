@@ -1,7 +1,9 @@
 'use client';
 
+import { useWorkspaceState, useWorkspaceScope } from '@/features/workspace/context';
+
 import { useT } from '@/i18n/client';
-import { useEffect, useId, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo } from 'react';
 import { Columns3, Heart, Search, SlidersHorizontal, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog } from '@/components/ui/dialog';
@@ -61,23 +63,46 @@ export type BrowserProps = {
 export function DesignBrowser(p: BrowserProps) {
   const tx = useT();
   const ids = useId();
+  const scope = useWorkspaceScope();
   const { ent } = useEntitlements();
   const favs = useFavourites();
   const popularity = usePopularity();
-  const [filters, setFilters] = useState<Filters>(NO_FILTERS);
-  const [sort, setSort] = useState<Sort>('best');
-  const [themes, setThemes] = useState<Record<string, string>>({});
-  const [compare, setCompare] = useState<string[]>([]);
-  const [drawer, setDrawer] = useState(false);
-  const [preview, setPreview] = useState<CatalogueItem | null>(null);
-  const [comparing, setComparing] = useState(false);
-  useEffect(() => newVisit(), []);
+  const [filters, setFilters] = useWorkspaceState<Filters>(
+    'gallery.DesignBrowser.filters',
+    NO_FILTERS,
+    { dirty: false },
+  );
+  const [sort, setSort] = useWorkspaceState<Sort>('gallery.DesignBrowser.sort', 'best', {
+    dirty: false,
+  });
+  const [themes, setThemes] = useWorkspaceState<Record<string, string>>(
+    'gallery.DesignBrowser.themes',
+    {},
+    { dirty: false },
+  );
+  const [compare, setCompare] = useWorkspaceState<string[]>('gallery.DesignBrowser.compare', [], {
+    dirty: false,
+  });
+  const [drawer, setDrawer] = useWorkspaceState('gallery.DesignBrowser.drawer', false, {
+    dirty: false,
+  });
+  const [previewKey, setPreviewKey] = useWorkspaceState<string | null>(
+    'gallery.DesignBrowser.preview',
+    null,
+    { dirty: false },
+  );
+  const [comparing, setComparing] = useWorkspaceState('gallery.DesignBrowser.comparing', false, {
+    dirty: false,
+  });
+  useEffect(() => newVisit(scope), [scope]);
   const { base, sample, current, seed } = p;
 
   const all = useMemo(() => {
     const items = catalogueItems(ent?.designs ?? null, current ?? undefined);
     return seed ? seeded(items, seed) : items;
   }, [ent, current, seed]);
+  const preview = all.find((item) => item.key === previewKey) ?? null;
+  const setPreview = (item: CatalogueItem | null) => setPreviewKey(item?.key ?? null);
   const shown = useMemo(
     () =>
       sortItems(filterItems(all, filters, favs.set), sort, {
@@ -330,6 +355,7 @@ export function DesignBrowser(p: BrowserProps) {
             onTheme={(t) => setThemes((m) => ({ ...m, [d.id]: t }))}
             favourite={favs.set.has(d.id)}
             onFavourite={() => favs.toggle(d.id)}
+            favouritesReady={favs.ready}
             comparing={compare.includes(d.key)}
             canCompare={compare.length < MAX_COMPARE}
             onCompare={() =>

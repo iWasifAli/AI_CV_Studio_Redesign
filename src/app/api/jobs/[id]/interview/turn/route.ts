@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { NextResponse } from 'next/server';
 import { apiError, requestId } from '@/lib/http';
 import { runTask } from '@/modules/ai/run';
@@ -5,7 +6,7 @@ import { getBusinessConfig } from '@/modules/billing/server';
 import { prepareJobAi } from '@/modules/jobs/ai-route';
 import { profileDigest } from '@/modules/jobs/digest';
 import { advance, MOCK_QUESTIONS } from '@/modules/jobs/mock';
-import { JobUpdateError, saveJobUpdate } from '@/modules/jobs/updates';
+import { JobUpdateError, saveGeneratedJobUpdate } from '@/modules/jobs/updates';
 import { storyLines } from '@/modules/stories/schema';
 import { storiesForAi } from '@/modules/stories/server';
 import { noteUse } from '@/modules/metrics/activity';
@@ -19,7 +20,7 @@ export const maxDuration = 90;
  * question, or feedback on `answer` plus the next question (or the summary at the end).
  * Each turn is an AI action (weight in Console → AI weights).
  */
-export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
+async function handlePOST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const { value: cfg } = await getBusinessConfig();
   if (!cfg.features.mockInterview)
     return apiError('DISABLED', 'Mock interviews are switched off right now.', requestId(), {
@@ -65,7 +66,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   const mock = advance(session, r.result, answer);
   const finished = !mock.current && mock.turns.length > 0;
   const now = new Date().toISOString();
-  const saved = await saveJobUpdate(p.user.uid, p.job.id, p.rid, (latest) => {
+  const saved = await saveGeneratedJobUpdate(p, (latest) => {
     if (JSON.stringify(latest.mock) !== expectedMock)
       throw new JobUpdateError(
         'CONFLICT',
@@ -93,3 +94,5 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   const { job } = saved;
   return NextResponse.json({ job }, { headers: { 'Cache-Control': 'no-store' } });
 }
+
+export const POST = withWorkspaceOwnerErrors(handlePOST);

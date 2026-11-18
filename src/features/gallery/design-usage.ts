@@ -1,5 +1,8 @@
 'use client';
 
+import { workspaceFetch } from '@/features/workspace/request';
+
+import { useWorkspaceScope } from '@/features/workspace/context';
 import { useEffect, type RefObject } from 'react';
 import { SWITCH_WINDOW_MS, type UsageNote } from '@/modules/design/usage';
 
@@ -24,7 +27,7 @@ let send: Sender = (events, beacon) => {
     navigator.sendBeacon('/api/metrics/design', new Blob([body], { type: 'application/json' }));
     return;
   }
-  void fetch('/api/metrics/design', {
+  void workspaceFetch('/api/metrics/design', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body,
@@ -48,13 +51,14 @@ if (typeof window !== 'undefined')
   window.addEventListener('pagehide', () => flushUsage(true), { capture: true });
 
 /** A new page visit (a list mounted): designs may be counted as shown again. */
-export function newVisit() {
-  shownOnce = new Set();
+export function newVisit(scope: string | null = null) {
+  for (const key of shownOnce) if (key.startsWith(`${scope ?? 'guest'}:`)) shownOnce.delete(key);
 }
 
-export function noteShown(id: string) {
-  if (shownOnce.has(id)) return;
-  shownOnce.add(id);
+export function noteShown(id: string, scope: string | null = null) {
+  const key = `${scope ?? 'guest'}:${id}`;
+  if (shownOnce.has(key)) return;
+  shownOnce.add(key);
   push({ id, kind: 'shown' });
 }
 
@@ -62,17 +66,23 @@ export function notePreviewed(id: string, theme?: string) {
   push({ id, kind: 'previewed', ...(theme ? { theme } : {}) });
 }
 
-export function noteChosen(id: string, theme?: string, now = Date.now()) {
+export function noteChosen(
+  id: string,
+  theme?: string,
+  now = Date.now(),
+  scope: string | null = null,
+) {
+  const key = scope ? `${LAST_KEY}:${scope}` : LAST_KEY;
   let last: { id: string; theme?: string; at: number } | null = null;
   try {
-    last = JSON.parse(sessionStorage.getItem(LAST_KEY) ?? 'null');
+    last = JSON.parse(sessionStorage.getItem(key) ?? 'null');
   } catch {
     last = null;
   }
   if (last && last.id !== id && now - last.at < SWITCH_WINDOW_MS)
     push({ id: last.id, kind: 'switched', ...(last.theme ? { theme: last.theme } : {}) });
   try {
-    sessionStorage.setItem(LAST_KEY, JSON.stringify({ id, theme, at: now }));
+    sessionStorage.setItem(key, JSON.stringify({ id, theme, at: now }));
   } catch {
     // Storage may be unavailable (private mode); switching is then not counted.
   }
@@ -81,13 +91,14 @@ export function noteChosen(id: string, theme?: string, now = Date.now()) {
 
 /** Counts a card as shown once at least half of it is on screen. */
 export function useShown(ref: RefObject<Element | null>, id: string) {
+  const scope = useWorkspaceScope();
   useEffect(() => {
     const el = ref.current;
     if (!el || typeof IntersectionObserver === 'undefined') return;
     const io = new IntersectionObserver(
       (entries) => {
         if (entries.some((e) => e.isIntersecting)) {
-          noteShown(id);
+          noteShown(id, scope);
           io.disconnect();
         }
       },
@@ -95,7 +106,7 @@ export function useShown(ref: RefObject<Element | null>, id: string) {
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [ref, id]);
+  }, [ref, id, scope]);
 }
 
 /** For tests: capture what would be sent. */

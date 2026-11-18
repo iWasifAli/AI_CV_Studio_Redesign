@@ -1,6 +1,7 @@
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
+import { useWorkspaceRouter as useRouter } from '@/features/workspace/navigation';
 import { useState } from 'react';
 import type { PresetId } from '@/modules/resume/professions';
 import { DescribeBox } from './describe-box';
@@ -14,12 +15,14 @@ export function StartFlow() {
   function choose(id: PresetId) {
     setBusy(id);
     const design = params.get('design');
-    router.push(`/cv/new?work=${id}${design ? `&design=${encodeURIComponent(design)}` : ''}`);
+    router.push(
+      `/cv/new?work=${id}${design ? `&design=${encodeURIComponent(design)}` : ''}&creation=${crypto.randomUUID()}`,
+    );
   }
 
   return (
     <>
-      <DescribeBox onCreate={(href) => router.push(href)} />
+      <DescribeBox onCreate={(href) => router.push(`${href}&creation=${crypto.randomUUID()}`)} />
       <ProfessionPicker onChoose={choose} busy={busy} />
     </>
   );

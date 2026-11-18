@@ -46,6 +46,12 @@ test('Premium: create the kit, see the three pieces together, download CV and le
   expect(ent.usage['ai.action']).toBe(3);
   // The letter editor below shows the same letter.
   await expect(page.getByTestId('letter-editor')).toBeVisible();
+  // Long tailored CV names must not widen the mobile layout and offset its fixed controls.
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    ),
+  ).toBeLessThanOrEqual(1);
 
   const downloads: string[] = [];
   page.on('download', (d) => downloads.push(d.suggestedFilename()));

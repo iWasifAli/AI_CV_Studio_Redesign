@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { NextResponse } from 'next/server';
 import { apiError, readJson, requestId } from '@/lib/http';
 import { safeParseResumeDocument } from '@/modules/resume/schema';
@@ -12,7 +13,7 @@ type Ctx = { params: Promise<{ id: string }> };
 const MAX_BODY = 768 * 1024; // documents may carry a small photo
 const validId = (id: string) => /^[\w-]{1,64}$/.test(id);
 
-export async function GET(_req: Request, ctx: Ctx) {
+async function handleGET(_req: Request, ctx: Ctx) {
   const rid = requestId();
   const user = await currentUser();
   if (!user) return apiError('UNAUTHORIZED', 'Please sign in.', rid);
@@ -24,7 +25,7 @@ export async function GET(_req: Request, ctx: Ctx) {
 }
 
 /** PUT { document } → saves if not older than the stored copy (409 with the newer copy otherwise). */
-export async function PUT(req: Request, ctx: Ctx) {
+async function handlePUT(req: Request, ctx: Ctx) {
   const rid = requestId();
   const user = await currentUser();
   if (user) await noteUse(user.uid, 'cv');
@@ -53,7 +54,7 @@ export async function PUT(req: Request, ctx: Ctx) {
   return apiError('LIMIT_REACHED', 'You have reached the maximum number of saved CVs.', rid);
 }
 
-export async function DELETE(req: Request, ctx: Ctx) {
+async function handleDELETE(req: Request, ctx: Ctx) {
   const rid = requestId();
   const user = await currentUser();
   if (!user) return apiError('UNAUTHORIZED', 'Please sign in.', rid);
@@ -67,3 +68,7 @@ export async function DELETE(req: Request, ctx: Ctx) {
   );
   return NextResponse.json({ ok: true });
 }
+
+export const GET = withWorkspaceOwnerErrors(handleGET);
+export const PUT = withWorkspaceOwnerErrors(handlePUT);
+export const DELETE = withWorkspaceOwnerErrors(handleDELETE);

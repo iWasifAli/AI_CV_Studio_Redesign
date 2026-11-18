@@ -1,4 +1,7 @@
 'use client';
+import { RecoveryBanner } from '@/features/editor/recovery-banner';
+
+import { useWorkspaceState } from '@/features/workspace/context';
 
 import { useT } from '@/i18n/client';
 import { AiDocProvider } from '@/features/ai/context';
@@ -71,9 +74,12 @@ export function EditorScreen({ initial }: { initial: ResumeDocument }) {
   const { doc, update } = editor;
   const signedIn = useAccount().status === 'signedIn';
   const params = useSearchParams();
-  const [welcome, setWelcome] = useState(params.get('welcome') === '1');
+  const [welcome, setWelcome] = useWorkspaceState(
+    'editor.editorscreen.welcome',
+    params.get('welcome') === '1',
+  );
   // ?tab=design opens the Look panel straight away (Studio Home and next-best-step links).
-  const [view, setView] = useState<View>(() => {
+  const [view, setView] = useWorkspaceState<View>('editor.editorscreen.view', () => {
     const t = params.get('tab');
     return t === 'design' || t === 'check' ? t : 'content';
   });
@@ -144,7 +150,7 @@ export function EditorScreen({ initial }: { initial: ResumeDocument }) {
 
   return (
     <AiDocProvider value={doc}>
-      <div className="bg-paper flex h-dvh flex-col">
+      <div className="bg-paper flex h-[calc(100dvh-var(--workspace-tab-height,0px))] flex-col">
         <StudioBar
           editor={editor}
           backHref="/documents"
@@ -158,6 +164,7 @@ export function EditorScreen({ initial }: { initial: ResumeDocument }) {
             </>
           }
         />
+        <RecoveryBanner editor={editor} />
         <div className="flex min-h-0 flex-1">
           <main
             id="main"

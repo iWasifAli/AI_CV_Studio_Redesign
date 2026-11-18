@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { NextResponse } from 'next/server';
 import { apiError, clientKey, readJson, requestId } from '@/lib/http';
 import { aiModels, getAiProvider } from '@/modules/ai/config';
@@ -18,7 +19,7 @@ const limiter = sharedAiLimiter();
  * against the current design ("make the sidebar narrower"). Not counted on its own; needs a plan
  * that includes the AI Designer. The browser applies the patch; only the named fields change.
  */
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   const rid = requestId();
   const { provider } = getAiProvider();
   if (!provider)
@@ -80,3 +81,5 @@ export async function POST(req: Request) {
   await track('design_refine');
   return NextResponse.json({ result: r.result, version: r.version });
 }
+
+export const POST = withWorkspaceOwnerErrors(handlePOST);

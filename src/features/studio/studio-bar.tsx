@@ -1,7 +1,7 @@
 'use client';
 
 import { useT } from '@/i18n/client';
-import Link from 'next/link';
+import Link from '@/features/workspace/navigation';
 import type { ReactNode } from 'react';
 import { ArrowLeft, CircleAlert, Cloud, Redo2, Undo2 } from 'lucide-react';
 import { IconButton } from '@/components/ui/icon-button';

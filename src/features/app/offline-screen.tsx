@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { WifiOff } from 'lucide-react';
 import { Container } from '@/components/ui/misc';
 import { getRepository } from '@/modules/storage/repository';
+import { useAccount, useRepositoryVersion } from '@/features/account/account-context';
 
 /**
  * Shown by the installed app when a page can't be reached without a connection. CVs are kept on
@@ -13,23 +14,32 @@ import { getRepository } from '@/modules/storage/repository';
  */
 export function OfflineScreen() {
   const tx = useT();
-  const [docs, setDocs] = useState<{ id: string; title: string }[] | null>(null);
+  const account = useAccount();
+  const owner = account.user?.uid ?? null;
+  const version = useRepositoryVersion();
+  const [cached, setCached] = useState<{
+    owner: string | null;
+    docs: { id: string; title: string }[];
+  } | null>(null);
+  const docs = account.status !== 'loading' && cached?.owner === owner ? cached.docs : null;
   useEffect(() => {
+    if (account.status === 'loading') return;
     // Read after the first paint (this device's storage isn't available on the server).
     const t = window.setTimeout(() => {
       try {
-        setDocs(
-          getRepository()
+        setCached({
+          owner,
+          docs: getRepository()
             .list()
             .slice(0, 20)
             .map((d) => ({ id: d.id, title: d.title || d.name || 'Untitled CV' })),
-        );
+        });
       } catch {
-        setDocs([]);
+        setCached({ owner, docs: [] });
       }
     }, 0);
     return () => window.clearTimeout(t);
-  }, []);
+  }, [owner, account.status, version]);
   return (
     <Container className="max-w-[640px] py-12">
       <WifiOff aria-hidden size={28} className="text-primary" />

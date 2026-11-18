@@ -1,9 +1,17 @@
 'use client';
 
+import { workspaceFetch as fetch } from '@/features/workspace/request';
+
+import {
+  useWorkspaceState,
+  useWorkspaceTask,
+  useWorkspaceDownload,
+} from '@/features/workspace/context';
+
 import { useT } from '@/i18n/client';
 import { tierDesignId } from '@/modules/design/catalogue';
 import { DESIGN_META } from '@/modules/design/designs';
-import Link from 'next/link';
+import Link from '@/features/workspace/navigation';
 import { useState } from 'react';
 import {
   ArrowLeft,
@@ -30,7 +38,6 @@ import { pdfFilename } from '@/modules/export/filename';
 import type { ResumeDocument } from '@/modules/resume/schema';
 import { buildDocumentHtml } from '@/modules/templates/build-document';
 import { HealthPanel } from '@/features/quality/health-panel';
-import { saveBlob } from '@/lib/save-blob';
 import { SharePanel } from '@/features/share/share-panel';
 
 type Blocked = {
@@ -43,12 +50,18 @@ export function DownloadScreen({ doc: initialDoc }: { doc: ResumeDocument }) {
   const toast = useToast();
   const account = useAccount();
   const { ent, refresh } = useEntitlements();
+  const runTask = useWorkspaceTask();
+  const saveBlob = useWorkspaceDownload();
+  const [repository] = useState(getRepository);
   const [doc, setDoc] = useState(initialDoc);
   const [status, setStatus] = useState<PreviewStatus | null>(null);
   const [busy, setBusy] = useState(false);
   const [busyWord, setBusyWord] = useState(false);
   const [busyAts, setBusyAts] = useState(false);
-  const [failed, setFailed] = useState<string | null>(null);
+  const [failed, setFailed] = useWorkspaceState<string | null>(
+    'download.downloadscreen.failed',
+    null,
+  );
   const [blocked, setBlocked] = useState<Blocked | null>(null);
   const editHref = `/cv/${doc.id}`;
   const here = `/cv/${doc.id}/download`;
@@ -65,7 +78,7 @@ export function DownloadScreen({ doc: initialDoc }: { doc: ResumeDocument }) {
     const free = ent?.designs.find((d) => d.enabled && d.tier === 'free');
     if (!free) return;
     const next = ops.useDesign(doc, free.id);
-    getRepository().save(next);
+    repository.save(next);
     setDoc(next);
     setBlocked(null);
     toast.show({
@@ -80,51 +93,49 @@ export function DownloadScreen({ doc: initialDoc }: { doc: ResumeDocument }) {
     setB(true);
     setFailed(null);
     try {
-      // The ATS PDF: the same words in one plain column, in reading order (Dual CV Export).
-      const document =
-        kind === 'ats' ? ops.setSpec(doc, { ...specOf(doc.design), atsSafe: true }) : doc;
-      const res = await fetch(kind === 'docx' ? '/api/docx' : '/api/pdf', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ document }),
-      });
-      if (!res.ok) {
-        const body = (await res.json().catch(() => null)) as {
-          error?: { code?: string; message?: string };
-        } | null;
-        const code = body?.error?.code;
-        if (
-          code === 'SIGN_IN_REQUIRED' ||
-          code === 'PREMIUM_REQUIRED' ||
-          code === 'LIMIT_REACHED' ||
-          code === 'DISABLED'
-        ) {
-          setBlocked({ code, message: body?.error?.message ?? '' });
-          refresh();
-          return;
+      await runTask(`download.screen.${kind}`, async (signal) => {
+        // The ATS PDF: the same words in one plain column, in reading order (Dual CV Export).
+        const document =
+          kind === 'ats' ? ops.setSpec(doc, { ...specOf(doc.design), atsSafe: true }) : doc;
+        const res = await fetch(kind === 'docx' ? '/api/docx' : '/api/pdf', {
+          method: 'POST',
+          signal,
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ document }),
+        });
+        if (!res.ok) {
+          const body = (await res.json().catch(() => null)) as {
+            error?: { code?: string; message?: string };
+          } | null;
+          signal.throwIfAborted();
+          const code = body?.error?.code;
+          if (
+            code === 'SIGN_IN_REQUIRED' ||
+            code === 'PREMIUM_REQUIRED' ||
+            code === 'LIMIT_REACHED' ||
+            code === 'DISABLED'
+          ) {
+            setBlocked({ code, message: body?.error?.message ?? '' });
+            refresh();
+            return;
+          }
+          throw new Error(body?.error?.message ?? 'We couldn’t create the file just now.');
         }
-        throw new Error(body?.error?.message ?? 'We couldn’t create the file just now.');
-      }
-      const name = pdfFilename(doc.basics.name);
-      saveBlob(
-        await res.blob(),
-        kind === 'pdf'
-          ? name
-          : kind === 'ats'
-            ? name.replace(/\.pdf$/, '-ATS.pdf')
-            : name.replace(/\.pdf$/, '.docx'),
-      );
-      toast.show({
-        message:
+        const name = pdfFilename(doc.basics.name);
+        const blob = await res.blob();
+        signal.throwIfAborted();
+        saveBlob(
+          blob,
           kind === 'pdf'
-            ? 'Your PDF is downloading'
+            ? name
             : kind === 'ats'
-              ? 'Your ATS PDF is downloading'
-              : 'Your Word file is downloading',
-        tone: 'success',
+              ? name.replace(/\.pdf$/, '-ATS.pdf')
+              : name.replace(/\.pdf$/, '.docx'),
+        );
+        refresh();
       });
-      refresh();
     } catch (e) {
+      if (e instanceof Error && e.name === 'AbortError') return;
       setFailed(
         e instanceof Error && e.message !== 'Failed to fetch'
           ? e.message
@@ -160,7 +171,7 @@ export function DownloadScreen({ doc: initialDoc }: { doc: ResumeDocument }) {
   }
 
   return (
-    <div className="bg-paper flex min-h-dvh flex-col">
+    <div className="bg-paper flex min-h-[calc(100dvh-var(--workspace-tab-height,0px))] flex-col">
       <header className="border-line bg-surface flex h-16 items-center gap-3 border-b px-2 sm:px-4">
         <Link
           href={editHref}

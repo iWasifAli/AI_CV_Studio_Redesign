@@ -1,7 +1,11 @@
 'use client';
 
+import { useRepositoryVersion } from '@/features/account/account-context';
+
+import { useWorkspaceState, useWorkspaceTask, useWorkspace } from '@/features/workspace/context';
+
 import { useT } from '@/i18n/client';
-import Link from 'next/link';
+import Link from '@/features/workspace/navigation';
 import { useMemo, useState } from 'react';
 import { Building2, Copy } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
@@ -13,7 +17,9 @@ import { useEntitlements } from '@/features/account/entitlements';
 import type { Job } from '@/modules/jobs/schema';
 import { defaultSourceCv } from '@/modules/jobs/source-cv';
 import { getRepository } from '@/modules/storage/repository';
-import { JobsError, jobAiApi } from './api';
+import { revisionOf } from './workspace-state';
+import { ConflictNotice } from './conflict-notice';
+import { JobsError, jobAiApi, type ConflictDetails } from './api';
 
 /**
  * Company brief (spec §10.2): one page on the employer from the advert and anything the person
@@ -23,17 +29,34 @@ export function CompanyBrief({ job, onJobChange }: { job: Job; onJobChange: (j: 
   const t = useT();
   const { ent, refresh } = useEntitlements();
   const toast = useToast();
-  const [pages, setPages] = useState('');
+  const runTask = useWorkspaceTask();
+  const { ownerUid } = useWorkspace();
+  const [conflict, setConflict] = useWorkspaceState<ConflictDetails | null>(
+    'jobs.CompanyBrief.conflict',
+    null,
+    { dirty: false },
+  );
+  const [pages, setPages] = useWorkspaceState('jobs.CompanyBrief.pages', '', { dirty: true });
   const [busy, setBusy] = useState(false);
-  const [problem, setProblem] = useState<{ message: string; premium?: boolean } | null>(null);
+  const [problem, setProblem] = useWorkspaceState<{ message: string; premium?: boolean } | null>(
+    'jobs.CompanyBrief.problem',
+    null,
+    { dirty: false },
+  );
+  const [preview, setPreview] = useWorkspaceState<Job['brief'] | null>(
+    'jobs.CompanyBrief.preview',
+    null,
+    { dirty: false },
+  );
+  const repositoryVersion = useRepositoryVersion();
+  const repo = typeof window === 'undefined' ? null : getRepository();
   const source = useMemo(() => {
-    if (typeof window === 'undefined') return null;
-    const repo = getRepository();
+    if (!repo) return null;
     const id = defaultSourceCv(repo.list());
     return (id && repo.get(id)) || null;
-  }, []);
+  }, [repo, repositoryVersion]); // eslint-disable-line react-hooks/exhaustive-deps -- repository event revision
   if (ent && ent.features.companyBrief === false) return null;
-  const b = job.brief;
+  const b = preview ?? job.brief;
   const locked = !!ent && ent.limits['ai.action'] === 0;
   const short = job.advert.trim().length < 80;
 
@@ -42,9 +65,19 @@ export function CompanyBrief({ job, onJobChange }: { job: Job; onJobChange: (j: 
     setBusy(true);
     setProblem(null);
     try {
-      onJobChange(await jobAiApi.brief(job.id, source, pages));
+      onJobChange(
+        await runTask('jobs.CompanyBrief.make', (signal) =>
+          jobAiApi.brief(job.id, source, pages, {
+            signal,
+            ownerUid,
+            expectedRevision: revisionOf(job),
+          }),
+        ),
+      );
+      setPreview(null);
       refresh();
     } catch (e) {
+      if (e instanceof JobsError && e.status === 409) setConflict(e.details ?? {});
       setProblem(
         e instanceof JobsError
           ? { message: e.message, premium: e.status === 402 }
@@ -74,6 +107,17 @@ export function CompanyBrief({ job, onJobChange }: { job: Job; onJobChange: (j: 
       <h2 className="flex items-center gap-2 text-lg font-semibold">
         <Building2 aria-hidden size={20} className="text-primary" /> {t('Company brief')}
       </h2>
+      {preview && (
+        <Banner
+          tone="info"
+          title="Preview of the generated brief"
+          action={
+            <Button size="sm" onClick={() => setPreview(null)}>
+              {t('Show saved brief')}
+            </Button>
+          }
+        />
+      )}
       {b ? (
         <div className="flex flex-col gap-4 text-[15px]" data-testid="brief-body">
           <p>{b.company}</p>
@@ -154,6 +198,28 @@ export function CompanyBrief({ job, onJobChange }: { job: Job; onJobChange: (j: 
         value={pages}
         onChange={(e) => setPages(e.target.value)}
       />
+      <ConflictNotice
+        details={conflict}
+        onKeepDraft={
+          conflict?.current
+            ? () => {
+                onJobChange(conflict.current as Job);
+                setConflict(null);
+              }
+            : undefined
+        }
+      />
+      {conflict?.generated !== undefined && (
+        <Button
+          variant="secondary"
+          onClick={() => {
+            const generated = conflict.generated as Job & { job?: Job };
+            setPreview((generated.job ?? generated).brief ?? null);
+          }}
+        >
+          {t('Preview generated brief')}
+        </Button>
+      )}
       {problem && (
         <Banner
           tone="error"

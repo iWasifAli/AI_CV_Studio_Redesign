@@ -3956,4 +3956,135 @@ export const de: Dict = {
   'Yours, wherever you are': 'Ihrer, wo immer Sie sind',
   'ZIP of separate files': 'ZIP mit einzelnen Dateien',
   Zoom: 'Zoom',
+  Workspaces: 'Arbeitsbereiche',
+  'Close workspace': 'Arbeitsbereich schließen',
+  Complete: 'Abgeschlossen',
+  'New workspace': 'Neuer Arbeitsbereich',
+  'Needs attention': 'Aufmerksamkeit erforderlich',
+  'Open in app tab': 'In App-Tab öffnen',
+  'Open in browser tab': 'In Browser-Tab öffnen',
+  'Recently closed workspaces': 'Zuletzt geschlossene Arbeitsbereiche',
+  'No recently closed workspaces': 'Keine zuletzt geschlossenen Arbeitsbereiche',
+  Reopen: 'Wieder öffnen',
+  'Workspace activity': 'Aktivität im Arbeitsbereich',
+  Working: 'In Bearbeitung',
+  'Working in this workspace…': 'Dieser Arbeitsbereich wird bearbeitet…',
+  'Work completed.': 'Arbeit abgeschlossen.',
+  'Check this workspace before retrying.':
+    'Prüfen Sie diesen Arbeitsbereich, bevor Sie es erneut versuchen.',
+  'Restoring workspace…': 'Arbeitsbereich wird wiederhergestellt…',
+  'Link actions': 'Link-Aktionen',
+  'Could not sign out. Your local work has been kept.':
+    'Abmelden fehlgeschlagen. Ihre lokale Arbeit wurde beibehalten.',
+  'Keep your work before signing out': 'Arbeit vor dem Abmelden sichern',
+  'Stay signed in': 'Angemeldet bleiben',
+  'Retry saving': 'Speichern erneut versuchen',
+  'Download recovery copy': 'Wiederherstellungskopie herunterladen',
+  'Discard local work and sign out': 'Lokale Arbeit verwerfen und abmelden',
+  'Some workspace drafts or background work are only on this device. Signing out clears these tabs and drafts from this device.':
+    'Einige Entwürfe oder laufende Arbeiten sind nur auf diesem Gerät gespeichert. Beim Abmelden werden diese Tabs und Entwürfe von diesem Gerät entfernt.',
+  'Downloading a recovery copy keeps you signed in. Review the copy before choosing to discard local work.':
+    'Beim Herunterladen einer Wiederherstellungskopie bleiben Sie angemeldet. Prüfen Sie die Kopie, bevor Sie lokale Arbeit verwerfen.',
+  'The recovery download failed. Your local work has been kept.':
+    'Die Wiederherstellungskopie konnte nicht heruntergeladen werden. Ihre lokale Arbeit wurde beibehalten.',
+  'Some CVs could not sync. Retry or download a recovery copy before leaving.':
+    'Einige Lebensläufe konnten nicht synchronisiert werden. Versuchen Sie es erneut oder laden Sie vor dem Verlassen eine Wiederherstellungskopie herunter.',
+  'Some work could not be saved. Keep this window open, retry, or download a recovery copy.':
+    'Einige Arbeiten konnten nicht gespeichert werden. Lassen Sie dieses Fenster offen, versuchen Sie es erneut oder laden Sie eine Wiederherstellungskopie herunter.',
+  'Recovery storage is unavailable. Download a copy before leaving.':
+    'Der Wiederherstellungsspeicher ist nicht verfügbar. Laden Sie vor dem Verlassen eine Kopie herunter.',
+  'Another app window did not respond. Its latest work could not be checked. Return to that window or explicitly discard local work.':
+    'Ein anderes App-Fenster hat nicht geantwortet. Seine neuesten Änderungen konnten nicht geprüft werden. Kehren Sie zu diesem Fenster zurück oder verwerfen Sie die lokale Arbeit ausdrücklich.',
+  'Workspace recovery is unavailable. Keep this window open until saving is available.':
+    'Die Wiederherstellung des Arbeitsbereichs ist nicht verfügbar. Lassen Sie dieses Fenster offen, bis wieder gespeichert werden kann.',
+  'Could not save your workspace. Keep this window open or download a recovery copy.':
+    'Ihr Arbeitsbereich konnte nicht gespeichert werden. Lassen Sie dieses Fenster offen oder laden Sie eine Wiederherstellungskopie herunter.',
+  'Interrupted when the app closed. Check your saved work before retrying.':
+    'Beim Schließen der App unterbrochen. Prüfen Sie Ihre gespeicherte Arbeit, bevor Sie es erneut versuchen.',
+  'This item changed while you were working': 'Dieser Eintrag wurde während Ihrer Arbeit geändert',
+  'Your draft is kept. Review the current version and any generated suggestion before saving again.':
+    'Ihr Entwurf bleibt erhalten. Prüfen Sie die aktuelle Version und generierte Vorschläge, bevor Sie erneut speichern.',
+  'Current saved version': 'Aktuell gespeicherte Version',
+  'Generated suggestion': 'Generierter Vorschlag',
+  'Keep my draft against this version': 'Meinen Entwurf auf Grundlage dieser Version behalten',
+  'Use suggestion in my draft': 'Vorschlag in meinen Entwurf übernehmen',
+  'Retained Coach suggestion': 'Gesicherter Coach-Vorschlag',
+  'Could not load the saved conversation. Please try again.':
+    'Die gespeicherte Unterhaltung konnte nicht geladen werden. Bitte versuchen Sie es erneut.',
+  'The saved conversation changed. Your question and generated suggestion are kept; review the latest conversation before sending again.':
+    'Die gespeicherte Unterhaltung wurde geändert. Ihre Frage und der generierte Vorschlag bleiben erhalten. Prüfen Sie die neueste Unterhaltung, bevor Sie erneut senden.',
+  'The conversation changed. Review it before clearing.':
+    'Die Unterhaltung wurde geändert. Prüfen Sie sie vor dem Löschen.',
+  'Close selected workspace': 'Ausgewählten Arbeitsbereich schließen',
+  'Press Delete to close a focused workspace.':
+    'Drücken Sie Entf, um den fokussierten Arbeitsbereich zu schließen.',
+  'This saved workspace uses an unsupported format. Its recovery data has been kept on this device.':
+    'Dieser gespeicherte Arbeitsbereich verwendet ein nicht unterstütztes Format. Seine Wiederherstellungsdaten bleiben auf diesem Gerät erhalten.',
+  'A newer saved CV was found. Your earlier draft is kept for recovery.':
+    'Eine neuere gespeicherte Version Ihres Lebenslaufs wurde gefunden. Ihr bisheriger Entwurf bleibt zur Wiederherstellung erhalten.',
+  'Restore my draft': 'Meinen Entwurf wiederherstellen',
+  'Download draft': 'Entwurf herunterladen',
+  'Keep saved CV': 'Gespeicherten Lebenslauf behalten',
+  'Use uploaded photo': 'Hochgeladenes Foto verwenden',
+  'Finish photo upload': 'Foto-Upload abschließen',
+  'Use uploaded signature': 'Hochgeladene Unterschrift verwenden',
+  'Finish signature upload': 'Unterschriften-Upload abschließen',
+  'We couldn’t save your CV. Retry to continue with the same CV.':
+    'Ihr Lebenslauf konnte nicht gespeichert werden. Versuchen Sie es erneut, um mit demselben Lebenslauf fortzufahren.',
+  'Continue with suggested CV': 'Mit dem vorgeschlagenen Lebenslauf fortfahren',
+  'Preview of the generated brief': 'Vorschau der erstellten Unternehmensübersicht',
+  'Show saved brief': 'Gespeicherte Unternehmensübersicht anzeigen',
+  'Preview generated brief': 'Erstellte Unternehmensübersicht ansehen',
+  'Your selected outcome is kept': 'Ihr ausgewähltes Ergebnis bleibt erhalten',
+  'Retry outcome': 'Ergebnis erneut speichern',
+  'New interview questions are ready': 'Neue Fragen für das Vorstellungsgespräch sind bereit',
+  'Use new questions': 'Neue Fragen übernehmen',
+  'Review new questions': 'Neue Fragen ansehen',
+  'Your generated letter is ready': 'Ihr erstelltes Schreiben ist bereit',
+  'Use generated letter': 'Erstelltes Schreiben übernehmen',
+  'Review generated letter': 'Erstelltes Schreiben ansehen',
+  'Your board change is kept': 'Ihre Änderung an der Bewerbungsübersicht bleibt erhalten',
+  'Retry this change': 'Änderung erneut speichern',
+  'Advert details are ready': 'Die Angaben aus der Stellenanzeige sind bereit',
+  'Use advert details': 'Angaben aus der Stellenanzeige übernehmen',
+  'Review advert details': 'Angaben aus der Stellenanzeige prüfen',
+  'Your generated draft is ready': 'Ihr erstellter Entwurf ist bereit',
+  'Use generated draft': 'Erstellten Entwurf übernehmen',
+  'Review generated draft': 'Erstellten Entwurf ansehen',
+  'Could not save the suggestion.': 'Der Vorschlag konnte nicht gespeichert werden.',
+  'Your letter has been created': 'Ihr Schreiben wurde erstellt',
+  'Open saved letter': 'Gespeichertes Schreiben öffnen',
+  'New review of {file}': 'Neue Prüfung von {file}',
+  'Target: {target}': 'Ziel: {target}',
+  'Current work': 'Aktuelle Tätigkeit',
+  'Use this suggestion': 'Diesen Vorschlag übernehmen',
+  'Use this review': 'Diese Prüfung übernehmen',
+  'Retry selected pictures': 'Ausgewählte Bilder erneut hochladen',
+  'Download ready card': 'Fertige Visitenkarte herunterladen',
+  'Suggestions for: {prompt}': 'Vorschläge für: {prompt}',
+  'Suggested story: {title}': 'Vorgeschlagene Geschichte: {title}',
+  'The CV changed while this version was loading. Review the comparison and restore again.':
+    'Der Lebenslauf wurde geändert, während diese Version geladen wurde. Prüfen Sie den Vergleich und stellen Sie die Version erneut wieder her.',
+  'Your CV and letter are ready to download':
+    'Ihr Lebenslauf und Ihr Schreiben stehen zum Herunterladen bereit',
+  'The portfolio could not be deleted. Please try again.':
+    'Das Portfolio konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.',
+  'Your CV could not sync because the account limit was reached.':
+    'Ihr Lebenslauf konnte nicht synchronisiert werden, weil das Limit Ihres Kontos erreicht wurde.',
+  'Your CV could not sync.': 'Ihr Lebenslauf konnte nicht synchronisiert werden.',
+  'Close the other app windows to clear local files.':
+    'Schließen Sie die anderen App-Fenster, um lokale Dateien zu löschen.',
+  'Close older app windows to enable workspace saving.':
+    'Schließen Sie ältere App-Fenster, damit Arbeitsbereiche gespeichert werden können.',
+  'This operation failed.': 'Diese Aktion ist fehlgeschlagen.',
+  'The workspace belongs to a different or expired session.':
+    'Der Arbeitsbereich gehört zu einer anderen oder abgelaufenen Sitzung.',
+  'This resource changed. Reload or keep your draft.':
+    'Dieser Eintrag wurde geändert. Laden Sie ihn neu oder behalten Sie Ihren Entwurf.',
+  'This job changed. Reload or keep your draft.':
+    'Diese Stelle wurde geändert. Laden Sie sie neu oder behalten Sie Ihren Entwurf.',
+  'The conversation changed.': 'Die Unterhaltung wurde geändert.',
+  'This letter changed.': 'Dieses Schreiben wurde geändert.',
+  'This creation key was already used with a different payload or its result was deleted.':
+    'Für diesen Erstellungsvorgang wurden bereits andere Angaben verwendet oder das Ergebnis wurde gelöscht.',
 };

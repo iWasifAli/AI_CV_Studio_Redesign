@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { NextResponse } from 'next/server';
 import { apiError, readJson } from '@/lib/http';
 import { loadJobForReminders } from '@/modules/jobs/reminder-route';
@@ -20,7 +21,7 @@ export const dynamic = 'force-dynamic';
 const noStore = { headers: { 'Cache-Control': 'no-store' } };
 
 /** POST { on, note?, tz } → { job }: a reminder on this job, emailed at 8:00 on that day. */
-export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
+async function handlePOST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const r = await loadJobForReminders(ctx);
   if ('error' in r) return r.error;
   const body = await readJson(req, 4 * 1024);
@@ -41,26 +42,34 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     emailedAt: '',
     createdAt: now,
   };
-  const saved = await saveJobUpdate(r.user.uid, r.job.id, r.rid, (latest) => {
-    const list = latest.reminders ?? [];
-    if (list.filter((x) => !x.done).length >= MAX_REMINDERS)
-      throw new JobUpdateError(
-        'LIMIT_REACHED',
-        `A job can have up to ${MAX_REMINDERS} open reminders.`,
-        { reason: 'limit' },
-      );
-    return {
-      ...latest,
-      // Kept in date order; at most 30 including done ones (the oldest done ones go first).
-      reminders: [...list, { ...reminder, note: reminder.note || defaultNote(latest) }]
-        .sort((a, b) => a.on.localeCompare(b.on))
-        .filter((x, i, all) => !x.done || all.length - i <= 30),
-      updatedAt: now,
-    };
-  });
+  const saved = await saveJobUpdate(
+    r.user.uid,
+    r.job.id,
+    r.rid,
+    (latest) => {
+      const list = latest.reminders ?? [];
+      if (list.filter((x) => !x.done).length >= MAX_REMINDERS)
+        throw new JobUpdateError(
+          'LIMIT_REACHED',
+          `A job can have up to ${MAX_REMINDERS} open reminders.`,
+          { reason: 'limit' },
+        );
+      return {
+        ...latest,
+        // Kept in date order; at most 30 including done ones (the oldest done ones go first).
+        reminders: [...list, { ...reminder, note: reminder.note || defaultNote(latest) }]
+          .sort((a, b) => a.on.localeCompare(b.on))
+          .filter((x, i, all) => !x.done || all.length - i <= 30),
+        updatedAt: now,
+      };
+    },
+    { expectedRevision: (body.value as { expectedRevision?: unknown } | null)?.expectedRevision },
+  );
   if ('error' in saved) return saved.error;
   const { job } = saved;
   await syncQueue(r.user, { tz });
   await track('reminder_set');
   return NextResponse.json({ job }, noStore);
 }
+
+export const POST = withWorkspaceOwnerErrors(handlePOST);

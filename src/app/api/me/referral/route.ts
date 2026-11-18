@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { NextResponse } from 'next/server';
 import { apiError, requestId } from '@/lib/http';
 import { getBusinessConfig } from '@/modules/billing/server';
@@ -9,7 +10,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /** GET → this person's invite link details, or { enabled: false } when invites are off. */
-export async function GET() {
+async function handleGET() {
   const rid = requestId();
   const user = await currentUser();
   if (!user) return apiError('SIGN_IN_REQUIRED', 'Please sign in.', rid);
@@ -33,3 +34,5 @@ export async function GET() {
     noStore,
   );
 }
+
+export const GET = withWorkspaceOwnerErrors(handleGET);

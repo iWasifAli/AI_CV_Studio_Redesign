@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { NextResponse } from 'next/server';
 import { apiError, requestId } from '@/lib/http';
 import { runTask } from '@/modules/ai/run';
@@ -6,7 +7,7 @@ import { prepareJobAi } from '@/modules/jobs/ai-route';
 import { profileDigest } from '@/modules/jobs/digest';
 import { noteUse } from '@/modules/metrics/activity';
 import { track } from '@/modules/metrics/server';
-import { saveJobUpdate } from '@/modules/jobs/updates';
+import { saveGeneratedJobUpdate } from '@/modules/jobs/updates';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -17,7 +18,7 @@ export const maxDuration = 60;
  * and values (from the advert and text the person pasted), what the role needs, how the CV fits,
  * and questions to ask. One AI action.
  */
-export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
+async function handlePOST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const { value: cfg } = await getBusinessConfig();
   if (!cfg.features.companyBrief)
     return apiError('DISABLED', 'Company briefs are switched off right now.', requestId(), {
@@ -51,7 +52,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     );
   await track('brief_ok');
   const now = new Date().toISOString();
-  const saved = await saveJobUpdate(p.user.uid, p.job.id, p.rid, (latest) => ({
+  const saved = await saveGeneratedJobUpdate(p, (latest) => ({
     ...latest,
     brief: { ...r.result, at: now },
     updatedAt: now,
@@ -60,3 +61,5 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   const { job } = saved;
   return NextResponse.json({ job }, { headers: { 'Cache-Control': 'no-store' } });
 }
+
+export const POST = withWorkspaceOwnerErrors(handlePOST);

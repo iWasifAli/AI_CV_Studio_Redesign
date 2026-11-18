@@ -38,7 +38,11 @@ const STAGE_LABEL: Record<(typeof JOB_STAGES)[number], string> = {
 function useDocuments() {
   const repo = getRepository();
   const [list, setList] = useState(() => repo.list());
-  useEffect(() => repo.subscribe(() => setList(repo.list())), [repo]);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- account-scoped repository snapshot
+    setList(repo.list());
+    return repo.subscribe(() => setList(repo.list()));
+  }, [repo]);
   return list;
 }
 

@@ -1,15 +1,22 @@
 'use client';
 
+import { sameSnapshotValue } from '@/features/workspace/equality';
+import { useCurrentWorkspaceValue } from '@/features/workspace/use-current-value';
+
+import { useWorkspaceTask } from '@/features/workspace/context';
+
+import { useWorkspaceState, useWorkspaceScope } from '@/features/workspace/context';
+
 import { useT } from '@/i18n/client';
-import Link from 'next/link';
+import Link, { useWorkspaceRouter } from '@/features/workspace/navigation';
 import { useSearchParams } from 'next/navigation';
-import { useMemo, useState, useSyncExternalStore } from 'react';
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { Sparkles } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { TextField } from '@/components/ui/field';
-import { useAccount } from '@/features/account/account-context';
+import { useAccount, useRepositoryVersion } from '@/features/account/account-context';
 import { Tabs, tabId, tabPanelId } from '@/components/ui/tabs';
 import { useEntitlements } from '@/features/account/entitlements';
 import { callAi } from '@/features/ai/client';
@@ -27,10 +34,12 @@ type Result = {
 /** `{{?confirm: X}}` → `[confirm: X]` so the person can see and replace it in a plain text box. */
 const visible = (s: string) => s.replace(/\{\{\?([^{}]*)\}\}/g, '[$1]');
 const LIMITS = { headline: 220, about: 2600, experience: 2000 };
-const cacheKey = (id: string) => `cvstudio:v1:linkedin:${id}`;
+const cacheKey = (id: string, scope: string | null) =>
+  `cvstudio:v1:linkedin:${scope ? `${scope}:` : ''}${id}`;
 
 /** LinkedIn profile writer (Premium): headline, About and job descriptions, ready to paste. */
 export function LinkedinScreen() {
+  const router = useWorkspaceRouter();
   const tx = useT();
   // CVs live in this browser: render after mounting so server and client agree.
   const mounted = useSyncExternalStore(
@@ -39,8 +48,10 @@ export function LinkedinScreen() {
     () => false,
   );
   const params = useSearchParams();
-  const [tab, setTab] = useState<'write' | 'review'>(
+  const [tab, setTab] = useWorkspaceState<'write' | 'review'>(
+    'linkedin.LinkedinScreen.tab',
     params.get('tab') === 'review' ? 'review' : 'write',
+    { dirty: false },
   );
   if (!mounted)
     return <div className="skeleton mx-auto my-8 h-80 max-w-[860px] rounded-lg" aria-busy="true" />;
@@ -49,7 +60,7 @@ export function LinkedinScreen() {
     const url = new URL(window.location.href);
     if (t === 'review') url.searchParams.set('tab', 'review');
     else url.searchParams.delete('tab');
-    window.history.replaceState(null, '', url);
+    router.replace(url.pathname + url.search + url.hash, { scroll: false });
   };
   return (
     <div className="mx-auto flex max-w-[860px] flex-col gap-6 px-4 py-8 md:px-8">
@@ -90,71 +101,122 @@ export function LinkedinScreen() {
 }
 
 function LinkedinWriter() {
+  const runTask = useWorkspaceTask();
+
   const tx = useT();
   const account = useAccount();
+  const scope = useWorkspaceScope();
   const { ent, refresh } = useEntitlements();
   const params = useSearchParams();
+  const repositoryVersion = useRepositoryVersion();
   const repo = typeof window === 'undefined' ? null : getRepository();
-  const cvs = useMemo(() => repo?.list() ?? [], [repo]);
-  const [docId, setDocId] = useState(
+  const cvs = useMemo(() => repo?.list() ?? [], [repo, repositoryVersion]); // eslint-disable-line react-hooks/exhaustive-deps -- repository event revision
+  const [docId, setDocId] = useWorkspaceState(
+    'linkedin.LinkedinWriter.docId',
     params.get('doc') ?? cvs.find((c) => c.role === 'profile')?.id ?? cvs[0]?.id ?? '',
+    { dirty: true },
   );
-  const [target, setTarget] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<{ message: string; premium?: boolean } | null>(null);
-  const [result, setResult] = useState<Result | null>(() => {
-    try {
-      const raw = typeof window === 'undefined' ? null : localStorage.getItem(cacheKey(docId));
-      return raw ? (JSON.parse(raw) as Result) : null;
-    } catch {
-      return null;
-    }
+  useEffect(() => {
+    const next = cvs.find((c) => c.role === 'profile')?.id ?? cvs[0]?.id ?? '';
+    if (!docId && next) setDocId((current) => current || next);
+  }, [cvs, docId, setDocId]);
+  const [target, setTarget] = useWorkspaceState('linkedin.LinkedinWriter.target', '', {
+    dirty: true,
   });
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useWorkspaceState<{ message: string; premium?: boolean } | null>(
+    'linkedin.LinkedinWriter.error',
+    null,
+    { dirty: false },
+  );
+  const [result, setResult] = useWorkspaceState<Result | null>(
+    `linkedin.LinkedinWriter.result.${docId}`,
+    () => {
+      try {
+        const raw =
+          scope || typeof window === 'undefined'
+            ? null
+            : localStorage.getItem(cacheKey(docId, scope));
+        return raw ? (JSON.parse(raw) as Result) : null;
+      } catch {
+        return null;
+      }
+    },
+    { dirty: true },
+  );
+
+  const [generated, setGenerated] = useWorkspaceState<{
+    result: Result;
+    target: string;
+    docId: string;
+  } | null>(`linkedin.LinkedinWriter.generated.${docId}`, null, { dirty: false });
+
+  const currentDocId = useCurrentWorkspaceValue('linkedin.LinkedinWriter.docId', docId);
+  const currentTarget = useCurrentWorkspaceValue('linkedin.LinkedinWriter.target', target);
+  const currentResult = useCurrentWorkspaceValue(`linkedin.LinkedinWriter.result.${docId}`, result);
 
   const locked = ent ? ent.limits['ai.action'] === 0 : false;
   const signedOut = account.status === 'signedOut';
 
   async function write() {
-    const doc = repo?.get(docId);
-    if (!doc) return;
-    setBusy(true);
-    setError(null);
-    const digest = profileDigest(doc);
-    const r = await callAi('linkedin.write', { profile: digest.text.slice(0, 24_000), target });
-    setBusy(false);
-    refresh();
-    if (!r.ok) {
-      if (r.code !== 'ABORTED')
-        setError({
-          message: r.message,
-          premium: r.code === 'PREMIUM_REQUIRED' || r.code === 'LIMIT_REACHED',
-        });
-      return;
-    }
-    const o = r.data.result;
-    const next: Result = {
-      headline: visible(o.headline),
-      about: visible(o.about),
-      experience: o.experience.map((e) => ({
-        job: e.job,
-        title: digest.lines.get(e.job)?.text ?? e.job,
-        text: visible(e.text),
-      })),
-      skills: o.skills,
-    };
-    setResult(next);
-    try {
-      localStorage.setItem(cacheKey(docId), JSON.stringify(next));
-    } catch {
-      /* storage full or blocked: the result still shows */
-    }
+    return runTask(`linkedin.LinkedinWriter.write.${docId}`, async (signal) => {
+      const doc = repo?.get(docId);
+      if (!doc) return;
+      setBusy(true);
+      setError(null);
+      const digest = profileDigest(doc);
+      const r = await callAi(
+        'linkedin.write',
+        { profile: digest.text.slice(0, 24_000), target },
+        0,
+        signal,
+      );
+      signal.throwIfAborted();
+      setBusy(false);
+      refresh();
+      if (!r.ok) {
+        if (r.code !== 'ABORTED')
+          setError({
+            message: r.message,
+            premium: r.code === 'PREMIUM_REQUIRED' || r.code === 'LIMIT_REACHED',
+          });
+        return;
+      }
+      const o = r.data.result;
+      const next: Result = {
+        headline: visible(o.headline),
+        about: visible(o.about),
+        experience: o.experience.map((e) => ({
+          job: e.job,
+          title: digest.lines.get(e.job)?.text ?? e.job,
+          text: visible(e.text),
+        })),
+        skills: o.skills,
+      };
+      if (
+        currentDocId() === docId &&
+        currentTarget() === target &&
+        sameSnapshotValue(currentResult(), result) &&
+        sameSnapshotValue(repo?.get(docId), doc)
+      ) {
+        setResult(next);
+        setGenerated(null);
+        if (!scope) {
+          try {
+            localStorage.setItem(cacheKey(docId, scope), JSON.stringify(next));
+          } catch {}
+        }
+      } else setGenerated({ result: next, target, docId });
+    }).catch((error: unknown) => {
+      if (!(error instanceof Error && error.name === 'AbortError')) throw error;
+    });
   }
 
   const edit = (patch: Partial<Result>) =>
     setResult((r) => {
       const next = r && { ...r, ...patch };
       try {
-        if (next) localStorage.setItem(cacheKey(docId), JSON.stringify(next));
+        if (next && !scope) localStorage.setItem(cacheKey(docId, scope), JSON.stringify(next));
       } catch {
         /* ignore */
       }
@@ -200,8 +262,9 @@ function LinkedinWriter() {
               value={docId}
               onChange={(e) => {
                 setDocId(e.target.value);
+                if (scope) return;
                 try {
-                  const raw = localStorage.getItem(cacheKey(e.target.value));
+                  const raw = localStorage.getItem(cacheKey(e.target.value, scope));
                   setResult(raw ? (JSON.parse(raw) as Result) : null);
                 } catch {
                   setResult(null);
@@ -256,6 +319,28 @@ function LinkedinWriter() {
         </Card>
       )}
 
+      {generated && !signedOut && !locked && (
+        <Card className="flex flex-col gap-3 p-5">
+          <h2 className="font-semibold">{tx('Generated suggestion')}</h2>
+          <p className="text-sm">{generated.target || tx('Current work')}</p>
+          <p>{generated.result.headline}</p>
+          <p className="whitespace-pre-wrap">{generated.result.about}</p>
+          {generated.result.experience.map((item) => (
+            <p key={item.job} className="whitespace-pre-wrap">
+              {item.title}: {item.text}
+            </p>
+          ))}
+          <Button
+            disabled={generated.docId !== docId}
+            onClick={() => {
+              setResult(generated.result);
+              setGenerated(null);
+            }}
+          >
+            {tx('Use this suggestion')}
+          </Button>
+        </Card>
+      )}
       {result && !signedOut && !locked && (
         <section
           aria-label={tx('Your LinkedIn text')}

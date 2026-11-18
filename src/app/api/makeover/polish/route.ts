@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { apiError, clientKey, readJson, requestId } from '@/lib/http';
@@ -25,7 +26,7 @@ const body = z.object({
  * "Fix wording" is free once per makeover; otherwise each call is one AI action (Premium).
  * Every suggestion has passed the truth guard; one with an unsupported fact is never returned.
  */
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   const rid = requestId();
   const { value: cfg } = await getBusinessConfig();
   const { provider } = getAiProvider();
@@ -93,3 +94,5 @@ export async function POST(req: Request) {
   );
   return NextResponse.json({ items: r.result.items }, { headers: { 'Cache-Control': 'no-store' } });
 }
+
+export const POST = withWorkspaceOwnerErrors(handlePOST);

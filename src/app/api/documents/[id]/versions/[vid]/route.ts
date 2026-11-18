@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { NextResponse } from 'next/server';
 import { apiError, readJson, requestId } from '@/lib/http';
 import { currentUser } from '@/modules/identity/session';
@@ -21,7 +22,7 @@ async function args(ctx: Ctx) {
 }
 
 /** GET → one version with the CV as it was. */
-export async function GET(_req: Request, ctx: Ctx) {
+async function handleGET(_req: Request, ctx: Ctx) {
   const a = await args(ctx);
   if ('error' in a) return a.error;
   const v = await getUserStore().getVersion(a.uid, a.id, a.vid);
@@ -33,7 +34,7 @@ export async function GET(_req: Request, ctx: Ctx) {
 }
 
 /** PATCH { name } → renames a named version. */
-export async function PATCH(req: Request, ctx: Ctx) {
+async function handlePATCH(req: Request, ctx: Ctx) {
   const a = await args(ctx);
   if ('error' in a) return a.error;
   const body = await readJson(req, 4 * 1024);
@@ -45,10 +46,14 @@ export async function PATCH(req: Request, ctx: Ctx) {
   return NextResponse.json({ ok: true, name });
 }
 
-export async function DELETE(_req: Request, ctx: Ctx) {
+async function handleDELETE(_req: Request, ctx: Ctx) {
   const a = await args(ctx);
   if ('error' in a) return a.error;
   const ok = await getUserStore().deleteVersion(a.uid, a.id, a.vid);
   if (!ok) return apiError('NOT_FOUND', 'This version was not found.', a.rid);
   return NextResponse.json({ ok: true });
 }
+
+export const GET = withWorkspaceOwnerErrors(handleGET);
+export const PATCH = withWorkspaceOwnerErrors(handlePATCH);
+export const DELETE = withWorkspaceOwnerErrors(handleDELETE);

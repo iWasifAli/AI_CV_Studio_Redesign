@@ -44,15 +44,17 @@ export function fileProblem(f: File): string | null {
   return null;
 }
 
-// A file chosen on the home page, handed to /makeover by client-side navigation.
-let handoff: File | null = null;
-export function handOff(f: File) {
-  handoff = f;
+// Explicit opaque handoffs avoid a landing page in one tab consuming another tab's file.
+const handoffs = new Map<string, File>();
+export function handOff(file: File, scope: string | null = null): string {
+  const key = scope ? crypto.randomUUID() : 'guest';
+  handoffs.set(key, file);
+  return key;
 }
-export function takeHandOff(): File | null {
-  const f = handoff;
-  handoff = null;
-  return f;
+export function takeHandOff(key = 'guest'): File | null {
+  const file = handoffs.get(key) ?? null;
+  handoffs.delete(key);
+  return file;
 }
 
 /** A makeover kept through sign-in / sign-up (this browser only, for a day). */
@@ -64,22 +66,23 @@ export type Pending = {
   at: number;
 };
 const KEY = 'cvs_makeover';
+const pendingKey = (scope: string | null) => (scope ? `${KEY}:${scope}` : KEY);
 const DAY = 86_400_000;
 
-export function savePending(p: Omit<Pending, 'at'>) {
+export function savePending(p: Omit<Pending, 'at'>, scope: string | null = null) {
   try {
-    localStorage.setItem(KEY, JSON.stringify({ ...p, at: Date.now() }));
+    localStorage.setItem(pendingKey(scope), JSON.stringify({ ...p, at: Date.now() }));
   } catch {
     // Storage full or blocked: the person can upload again after signing in.
   }
 }
-export function loadPending(): Pending | null {
+export function loadPending(scope: string | null = null): Pending | null {
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = localStorage.getItem(pendingKey(scope));
     if (!raw) return null;
     const p = JSON.parse(raw) as Pending;
     if (!p?.result?.makeoverId || Date.now() - p.at > DAY) {
-      localStorage.removeItem(KEY);
+      localStorage.removeItem(pendingKey(scope));
       return null;
     }
     return p;
@@ -87,10 +90,10 @@ export function loadPending(): Pending | null {
     return null;
   }
 }
-export function clearPending() {
-  void savePendingFile(null);
+export function clearPending(scope: string | null = null) {
+  void savePendingFile(null, scope);
   try {
-    localStorage.removeItem(KEY);
+    localStorage.removeItem(pendingKey(scope));
   } catch {
     // ignore
   }
@@ -113,14 +116,17 @@ function fileDb(): Promise<IDBDatabase | null> {
     }
   });
 }
-export async function savePendingFile(file: File | null): Promise<void> {
+export async function savePendingFile(
+  file: File | null,
+  scope: string | null = null,
+): Promise<void> {
   const db = await fileDb();
   if (!db) return;
   await new Promise<void>((resolve) => {
     try {
       const tx = db.transaction('f', 'readwrite');
-      if (file) tx.objectStore('f').put(file, 'file');
-      else tx.objectStore('f').delete('file');
+      if (file) tx.objectStore('f').put(file, scope ?? 'file');
+      else tx.objectStore('f').delete(scope ?? 'file');
       tx.oncomplete = () => resolve();
       tx.onerror = () => resolve();
     } catch {
@@ -128,12 +134,15 @@ export async function savePendingFile(file: File | null): Promise<void> {
     }
   });
 }
-export async function loadPendingFile(): Promise<File | null> {
+export async function loadPendingFile(scope: string | null = null): Promise<File | null> {
   const db = await fileDb();
   if (!db) return null;
   return new Promise((resolve) => {
     try {
-      const req = db.transaction('f').objectStore('f').get('file');
+      const req = db
+        .transaction('f')
+        .objectStore('f')
+        .get(scope ?? 'file');
       req.onsuccess = () => resolve(req.result instanceof File ? req.result : null);
       req.onerror = () => resolve(null);
     } catch {

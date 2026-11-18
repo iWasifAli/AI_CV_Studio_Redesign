@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { NextResponse } from 'next/server';
 import { apiError, requestId } from '@/lib/http';
 import { aiModels, getAiProvider } from '@/modules/ai/config';
@@ -24,7 +25,7 @@ const NOT_LINKEDIN =
  * optional; target = the role they want, optional) → { review }. One AI action (Premium). The
  * file is read in memory and never stored; nothing is kept on the server.
  */
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   const rid = requestId();
   const user = await currentUser();
   if (user) await noteUse(user.uid, 'linkedin');
@@ -111,3 +112,5 @@ export async function POST(req: Request) {
     { headers: { 'Cache-Control': 'no-store' } },
   );
 }
+
+export const POST = withWorkspaceOwnerErrors(handlePOST);

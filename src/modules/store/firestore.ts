@@ -1,3 +1,10 @@
+import {
+  assertRevision,
+  withRevision,
+  type CreationReceipt,
+  type CreateResult,
+  type CoachState,
+} from './types';
 import type { ShareComment } from '@/modules/share/comments';
 import 'server-only';
 import type { Activity } from '@/modules/metrics/numbers';
@@ -50,12 +57,13 @@ import {
  *   passes/{uid}                             Pass (Premium access until expiresAt) + uid, email
  *   usage/{uid}_{yyyy-mm}                    { uid, month, 'pdf.download': n, ... }
  *   users/{uid}/jobs/{id}                    Job (tracker; deleted with the account)
+ *   users/{uid}/creationReceipts/{operation-key}  { fingerprint, id }; kept until account deletion
  *   users/{uid}/letters/{id}                 SavedLetter (letter library; deleted with the account)
  *   users/{uid}/stories/{id}                 Story (story bank; deleted with the account)
  *   users/{uid}/skillPlans/{id}              SkillPlan (skill gap plans; deleted with the account)
  *   reminderQueue/{uid}                      ReminderQueue (next reminder email; deleted with the account)
  *   leases/{name}                            { until } (one hourly sender at a time)
- *   users/{uid}/coach/main                   CoachThread (career coach; deleted with the account)
+ *   users/{uid}/coach/main                   { thread: CoachThread | null, revision } (legacy thread accepted)
  *   portfolios/{slug}                        Portfolio (public page; one per account)
  *   referralCodes/{code}                     { uid }  (invite link; users/{uid}.referralCode, .referredBy)
  *   shares/{token}                           Share (read-only CV link; deleted with the CV/account)
@@ -83,21 +91,28 @@ export class FirestoreUserStore implements UserStore {
   }
   async listJobs(uid: string) {
     const snap = await this.jobsCol(uid).orderBy('updatedAt', 'desc').limit(500).get();
-    return snap.docs.map((d) => d.data() as Job);
+    return snap.docs.map((d) => withRevision(d.data() as Job));
   }
   async getJob(uid: string, id: string) {
     const s = await this.jobsCol(uid).doc(id).get();
-    return s.exists ? (s.data() as Job) : null;
+    return s.exists ? withRevision(s.data() as Job) : null;
   }
   async putJob(uid: string, job: Job) {
-    await this.jobsCol(uid).doc(job.id).set(job);
+    const ref = this.jobsCol(uid).doc(job.id);
+    await this.db.runTransaction(async (tx) => {
+      const snap = await tx.get(ref);
+      tx.set(ref, { ...job, revision: (snap.data()?.revision ?? 0) + 1 });
+    });
   }
-  async updateJob(uid: string, id: string, edit: JobEditor) {
+  async updateJob(uid: string, id: string, edit: JobEditor, expectedRevision?: number) {
     const ref = this.jobsCol(uid).doc(id);
     return this.db.runTransaction(async (tx) => {
       const snap = await tx.get(ref);
-      if (!snap.exists) return null;
-      const next = await edit(snap.data() as Job);
+      const current = snap.exists ? withRevision(snap.data() as Job) : null;
+      assertRevision(current, expectedRevision);
+      if (!current) return null;
+      const revision = current.revision + 1;
+      const next = { ...(await edit(current)), revision };
       if (next.id !== id) throw new Error('A job update cannot change its ID.');
       tx.set(ref, next);
       return next;
@@ -113,7 +128,7 @@ export class FirestoreUserStore implements UserStore {
           tx.get(this.jobsCol(uid).orderBy('updatedAt', 'desc').limit(500)),
           tx.get(this.jobBoardRef(uid)),
         ]);
-        const jobs = jobsSnap.docs.map((doc) => doc.data() as Job);
+        const jobs = jobsSnap.docs.map((doc) => withRevision(doc.data() as Job));
         return {
           jobs,
           board: resolveJobBoard(
@@ -138,15 +153,19 @@ export class FirestoreUserStore implements UserStore {
           ? Promise.resolve(null)
           : tx.get(this.jobsCol(uid).doc(input.beforeId)),
       ]);
-      const observed = new Map(jobsSnap.docs.map((doc) => [doc.id, doc.data() as Job]));
-      if (jobSnap.exists) observed.set(jobSnap.id, jobSnap.data() as Job);
-      if (anchorSnap?.exists) observed.set(anchorSnap.id, anchorSnap.data() as Job);
+      const observed = new Map(
+        jobsSnap.docs.map((doc) => [doc.id, withRevision(doc.data() as Job)]),
+      );
+      if (jobSnap.exists) observed.set(jobSnap.id, withRevision(jobSnap.data() as Job));
+      if (anchorSnap?.exists) observed.set(anchorSnap.id, withRevision(anchorSnap.data() as Job));
+      assertRevision(observed.get(input.jobId) ?? null, input.expectedRevision);
       const planned = planJobMove(
         [...observed.values()],
         boardSnap.exists ? (boardSnap.data() as JobBoardState) : undefined,
         input,
       );
-      const job = planned.stageChanged ? await edit(planned.job) : planned.job;
+      const revision = (planned.job.revision ?? 0) + 1;
+      const job = planned.stageChanged ? { ...(await edit(planned.job)), revision } : planned.job;
       if (job.id !== input.jobId || (planned.stageChanged && job.stage !== input.toStage))
         throw new Error('Invalid job stage transition.');
       if (planned.changed) {
@@ -156,10 +175,12 @@ export class FirestoreUserStore implements UserStore {
       return { job, board: planned.board };
     });
   }
-  async deleteJob(uid: string, id: string) {
+  async deleteJob(uid: string, id: string, expectedRevision?: number) {
     const ref = this.jobBoardRef(uid);
     await this.db.runTransaction(async (tx) => {
       const board = await tx.get(ref);
+      const current = await tx.get(this.jobsCol(uid).doc(id));
+      assertRevision(current.exists ? withRevision(current.data() as Job) : null, expectedRevision);
       tx.delete(this.jobsCol(uid).doc(id));
       if (board.exists) {
         const current = board.data() as JobBoardState;
@@ -172,15 +193,34 @@ export class FirestoreUserStore implements UserStore {
   private coachDoc(uid: string) {
     return this.db.collection('users').doc(uid).collection('coach').doc('main');
   }
+  private coachState(data: FirebaseFirestore.DocumentData | undefined): CoachState {
+    if (!data) return { thread: null, revision: 0 };
+    if ('thread' in data) return data as CoachState;
+    const thread = withRevision(data as CoachThread);
+    return { thread, revision: thread.revision };
+  }
+  async getCoachState(uid: string) {
+    return this.coachState((await this.coachDoc(uid).get()).data());
+  }
   async getCoachThread(uid: string) {
-    const s = await this.coachDoc(uid).get();
-    return s.exists ? (s.data() as CoachThread) : null;
+    return (await this.getCoachState(uid)).thread;
   }
-  async putCoachThread(uid: string, t: CoachThread) {
-    await this.coachDoc(uid).set(t);
+  private async writeCoach(uid: string, thread: CoachThread | null, expectedRevision?: number) {
+    const ref = this.coachDoc(uid);
+    return this.db.runTransaction(async (tx) => {
+      const current = this.coachState((await tx.get(ref)).data());
+      assertRevision(current, expectedRevision);
+      const revision = current.revision + 1;
+      const next = { thread: thread ? { ...thread, revision } : null, revision };
+      tx.set(ref, next);
+      return next;
+    });
   }
-  async deleteCoachThread(uid: string) {
-    await this.coachDoc(uid).delete();
+  async putCoachThread(uid: string, t: CoachThread, expectedRevision?: number) {
+    return this.writeCoach(uid, t, expectedRevision);
+  }
+  async deleteCoachThread(uid: string, expectedRevision?: number) {
+    return this.writeCoach(uid, null, expectedRevision);
   }
 
   private lettersCol(uid: string) {
@@ -188,17 +228,91 @@ export class FirestoreUserStore implements UserStore {
   }
   async listLetters(uid: string) {
     const snap = await this.lettersCol(uid).orderBy('updatedAt', 'desc').limit(500).get();
-    return snap.docs.map((d) => d.data() as SavedLetter);
+    return snap.docs.map((d) => withRevision(d.data() as SavedLetter));
   }
   async getLetter(uid: string, id: string) {
     const s = await this.lettersCol(uid).doc(id).get();
-    return s.exists ? (s.data() as SavedLetter) : null;
+    return s.exists ? withRevision(s.data() as SavedLetter) : null;
   }
   async putLetter(uid: string, letter: SavedLetter) {
-    await this.lettersCol(uid).doc(letter.id).set(letter);
+    const ref = this.lettersCol(uid).doc(letter.id);
+    await this.db.runTransaction(async (tx) => {
+      const snap = await tx.get(ref);
+      tx.set(ref, { ...letter, revision: (snap.data()?.revision ?? 0) + 1 });
+    });
   }
-  async deleteLetter(uid: string, id: string) {
-    await this.lettersCol(uid).doc(id).delete();
+  async updateLetter(
+    uid: string,
+    id: string,
+    edit: (cur: SavedLetter) => SavedLetter | Promise<SavedLetter>,
+    expectedRevision?: number,
+  ) {
+    const ref = this.lettersCol(uid).doc(id);
+    return this.db.runTransaction(async (tx) => {
+      const snap = await tx.get(ref);
+      const current = snap.exists ? withRevision(snap.data() as SavedLetter) : null;
+      assertRevision(current, expectedRevision);
+      if (!current) return null;
+      const revision = current.revision + 1;
+      const next = { ...(await edit(current)), revision };
+      if (next.id !== id) throw new Error('A letter update cannot change its ID.');
+      tx.set(ref, next);
+      return next;
+    });
+  }
+  async deleteLetter(uid: string, id: string, expectedRevision?: number) {
+    const ref = this.lettersCol(uid).doc(id);
+    await this.db.runTransaction(async (tx) => {
+      const snap = await tx.get(ref);
+      assertRevision(
+        snap.exists ? withRevision(snap.data() as SavedLetter) : null,
+        expectedRevision,
+      );
+      tx.delete(ref);
+    });
+  }
+  private async createResource<T extends Job | SavedLetter>(
+    uid: string,
+    operation: 'jobs' | 'letters',
+    value: T,
+    max: number,
+    receipt?: CreationReceipt,
+  ): Promise<CreateResult<T>> {
+    const account = this.db.collection('users').doc(uid);
+    const col = account.collection(operation);
+    const receiptRef = receipt
+      ? account.collection('creationReceipts').doc(`${operation}-${receipt.key}`)
+      : null;
+    return this.db.runTransaction(async (tx) => {
+      // Serialize creates per account, including empty collections and unlimited plans.
+      await tx.get(account);
+      const prior = receiptRef ? await tx.get(receiptRef) : null;
+      if (prior?.exists) {
+        const previous = prior.data()!;
+        const snap = await tx.get(col.doc(previous.id));
+        const current = snap.exists ? withRevision(snap.data() as T) : null;
+        if (previous.fingerprint !== receipt!.fingerprint || !current)
+          return { ok: false, reason: 'conflict', current };
+        return { ok: true, value: current };
+      }
+      const collision = await tx.get(col.doc(value.id));
+      if (collision.exists)
+        return { ok: false, reason: 'conflict', current: withRevision(collision.data() as T) };
+      if (max === 0) return { ok: false, reason: 'limit' };
+      if (max !== -1 && (await tx.get(col.limit(max))).size >= max)
+        return { ok: false, reason: 'limit' };
+      const next = { ...value, revision: 1 };
+      tx.set(col.doc(value.id), next);
+      if (receiptRef) tx.set(receiptRef, { fingerprint: receipt!.fingerprint, id: value.id });
+      tx.set(account, { workspaceMutation: FieldValue.increment(1) }, { merge: true });
+      return { ok: true, value: next };
+    });
+  }
+  async createJob(uid: string, job: Job, max: number, receipt?: CreationReceipt) {
+    return this.createResource(uid, 'jobs', job, max, receipt);
+  }
+  async createLetter(uid: string, letter: SavedLetter, max: number, receipt?: CreationReceipt) {
+    return this.createResource(uid, 'letters', letter, max, receipt);
   }
 
   private storiesCol(uid: string) {

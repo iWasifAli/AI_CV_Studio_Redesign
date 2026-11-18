@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { NextResponse } from 'next/server';
 import { apiError, requestId } from '@/lib/http';
 import { getBusinessConfig } from '@/modules/billing/server';
@@ -6,7 +7,7 @@ import { prepareJobAi } from '@/modules/jobs/ai-route';
 import { profileDigest } from '@/modules/jobs/digest';
 import { applyTailor } from '@/modules/jobs/match';
 import { withSent } from '@/modules/jobs/server';
-import { saveJobUpdate } from '@/modules/jobs/updates';
+import { saveGeneratedJobUpdate } from '@/modules/jobs/updates';
 import { noteUse } from '@/modules/metrics/activity';
 
 export const runtime = 'nodejs';
@@ -18,7 +19,7 @@ export const maxDuration = 90;
  * tailored to the job, a cover letter and a covering email. The tailored CV is returned for the
  * browser to save like any CV (so it syncs); the letter and email are saved on the job.
  */
-export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
+async function handlePOST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   // The kit costs several AI actions (tailored CV, letter, email): Console → AI weights (spec §14).
   const { value: cfg } = await getBusinessConfig();
   if (!cfg.features.kit)
@@ -50,14 +51,19 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     );
   const document = applyTailor(p.doc, tailor.result, digest, p.job);
   const now = new Date().toISOString();
-  const saved = await saveJobUpdate(p.user.uid, p.job.id, p.rid, (latest) =>
-    withSent(p.user.uid, latest, {
-      ...latest,
-      letter: { ...letter.result, tone, documentId: document.id, updatedAt: now },
-      documentIds: [...latest.documentIds.filter((x) => x !== document.id), document.id].slice(-10),
-      kit: { cvId: document.id, at: now },
-      updatedAt: now,
-    }),
+  const saved = await saveGeneratedJobUpdate(
+    p,
+    (latest) =>
+      withSent(p.user.uid, latest, {
+        ...latest,
+        letter: { ...letter.result, tone, documentId: document.id, updatedAt: now },
+        documentIds: [...latest.documentIds.filter((x) => x !== document.id), document.id].slice(
+          -10,
+        ),
+        kit: { cvId: document.id, at: now },
+        updatedAt: now,
+      }),
+    { document },
   );
   if ('error' in saved) return saved.error;
   return NextResponse.json(
@@ -65,3 +71,5 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     { headers: { 'Cache-Control': 'no-store' } },
   );
 }
+
+export const POST = withWorkspaceOwnerErrors(handlePOST);

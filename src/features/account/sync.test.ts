@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { driver, teacher } from '@/modules/resume/fixtures';
 import type { ResumeDocument } from '@/modules/resume/schema';
 import { BrowserDocumentRepository, MemoryStore } from '@/modules/storage/repository';
@@ -107,5 +107,218 @@ describe('cloud sync', () => {
     expect(b.repo.get(teacher.id)).toBeNull();
     expect(strangers.repo.get('local-only')).not.toBeNull();
     syncA.stop();
+  });
+});
+
+describe('account lifetime safety', () => {
+  it('keeps unsynced CVs when sign-out flushing fails', async () => {
+    const a = device();
+    a.repo.save(driver);
+    const api: SyncApi = {
+      list: async () => [],
+      get: async () => null,
+      put: async () => ({ status: 'limit' }),
+      remove: async () => {},
+    };
+    const sync = new CloudSync('u1', a.repo, api, a.kv, 5);
+    await sync.start();
+    await expect(sync.signOutCleanup()).rejects.toThrow();
+    expect(a.repo.get(driver.id)).not.toBeNull();
+    sync.stop();
+  });
+
+  it('discards a late account response after the lifetime ends', async () => {
+    const a = device();
+    let resolve!: (doc: ResumeDocument) => void;
+    const api: SyncApi = {
+      list: async () => [{ id: driver.id, updatedAt: driver.updatedAt, deleted: false }],
+      get: () =>
+        new Promise((r) => {
+          resolve = r;
+        }),
+      put: vi.fn(async () => ({ status: 'ok' as const })),
+      remove: async () => {},
+    };
+    const sync = new CloudSync('u1', a.repo, api, a.kv, 5);
+    const pending = sync.start();
+    await vi.waitFor(() => expect(resolve).toBeTypeOf('function'));
+    sync.stop();
+    resolve(driver);
+    await pending;
+    expect(a.repo.get(driver.id)).toBeNull();
+    expect(api.put).not.toHaveBeenCalled();
+  });
+});
+
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((done) => {
+    resolve = done;
+  });
+  return { promise, resolve };
+}
+
+describe('async canonical document freshness', () => {
+  it.each([
+    ['2026-11-19T10:00:00.000Z', 'Edited during GET'],
+    ['2026-11-17T10:00:00.000Z', 'Remote'],
+  ])(
+    'preserves edits during GET, including unchanged timestamps (%s)',
+    async (updatedAt, canonicalTitle) => {
+      const server = new MemoryUserStore();
+      await server.putDoc('u1', at(driver, '2026-11-18T10:00:00.000Z', { title: 'Remote' }), 50);
+      const a = device();
+      a.repo.save(at(driver, '2026-11-17T10:00:00.000Z'));
+      const requested = deferred<void>();
+      const response = deferred<void>();
+      const base = apiFor(server, 'u1');
+      const sync = new CloudSync(
+        'u1',
+        a.repo,
+        {
+          ...base,
+          async get(id) {
+            const doc = await base.get(id);
+            requested.resolve();
+            await response.promise;
+            return doc;
+          },
+        },
+        a.kv,
+        60_000,
+      );
+      try {
+        const pending = sync.start();
+        await requested.promise;
+        a.repo.save(at(driver, updatedAt, { title: 'Edited during GET' }));
+        response.resolve();
+        await pending;
+        expect(a.repo.get(driver.id)?.title).toBe(canonicalTitle);
+        expect(a.repo.list().some((doc) => doc.title.startsWith('Edited during GET'))).toBe(true);
+        expect(
+          (await server.listDocs('u1')).some((doc) => doc.title?.startsWith('Edited during GET')),
+        ).toBe(true);
+      } finally {
+        sync.stop();
+      }
+    },
+  );
+
+  it('does not resurrect a document deleted while GET was pending', async () => {
+    const server = new MemoryUserStore();
+    await server.putDoc('u1', at(driver, '2026-01-02T10:00:00.000Z'), 50);
+    const a = device();
+    a.repo.save(at(driver, '2026-01-01T10:00:00.000Z'));
+    const requested = deferred<void>();
+    const response = deferred<void>();
+    const base = apiFor(server, 'u1');
+    const sync = new CloudSync(
+      'u1',
+      a.repo,
+      {
+        ...base,
+        async get(id) {
+          const doc = await base.get(id);
+          requested.resolve();
+          await response.promise;
+          return doc;
+        },
+      },
+      a.kv,
+      60_000,
+    );
+    try {
+      const pending = sync.start();
+      await requested.promise;
+      a.repo.remove(driver.id);
+      response.resolve();
+      await pending;
+      expect(a.repo.get(driver.id)).toBeNull();
+      expect((await server.getDoc('u1', driver.id))?.deleted).toBe(true);
+    } finally {
+      sync.stop();
+    }
+  });
+
+  it.each([
+    ['2026-11-19T10:00:00.000Z', 'Edited during PUT'],
+    ['2026-11-17T10:00:00.000Z', 'Remote'],
+  ])(
+    'preserves edits during conflicting PUT, including unchanged timestamps (%s)',
+    async (updatedAt, canonicalTitle) => {
+      const server = new MemoryUserStore();
+      await server.putDoc('u1', at(driver, '2026-11-18T10:00:00.000Z', { title: 'Remote' }), 50);
+      const a = device();
+      a.repo.save(at(driver, '2026-11-17T10:00:00.000Z', { title: 'Submitted' }));
+      const requested = deferred<void>();
+      const response = deferred<void>();
+      const base = apiFor(server, 'u1');
+      let held = false;
+      const sync = new CloudSync(
+        'u1',
+        a.repo,
+        {
+          ...base,
+          async put(doc) {
+            const result = await base.put(doc);
+            if (!held) {
+              held = true;
+              requested.resolve();
+              await response.promise;
+            }
+            return result;
+          },
+        },
+        a.kv,
+      );
+      try {
+        const pending = sync.push(driver.id);
+        await requested.promise;
+        a.repo.save(at(driver, updatedAt, { title: 'Edited during PUT' }));
+        response.resolve();
+        await pending;
+        expect(a.repo.get(driver.id)?.title).toBe(canonicalTitle);
+        expect(a.repo.list().some((doc) => doc.title.startsWith('Edited during PUT'))).toBe(true);
+        expect(
+          (await server.listDocs('u1')).some((doc) => doc.title?.startsWith('Edited during PUT')),
+        ).toBe(true);
+      } finally {
+        sync.stop();
+      }
+    },
+  );
+
+  it('does not recreate a locally deleted document when PUT returns a conflict', async () => {
+    const server = new MemoryUserStore();
+    await server.putDoc('u1', at(driver, '2026-11-18T10:00:00.000Z'), 50);
+    const a = device();
+    a.repo.save(at(driver, '2026-11-17T10:00:00.000Z'));
+    const requested = deferred<void>();
+    const response = deferred<void>();
+    const base = apiFor(server, 'u1');
+    const sync = new CloudSync(
+      'u1',
+      a.repo,
+      {
+        ...base,
+        async put(doc) {
+          const result = await base.put(doc);
+          requested.resolve();
+          await response.promise;
+          return result;
+        },
+      },
+      a.kv,
+    );
+    try {
+      const pending = sync.push(driver.id);
+      await requested.promise;
+      a.repo.remove(driver.id);
+      response.resolve();
+      await pending;
+      expect(a.repo.list()).toEqual([]);
+    } finally {
+      sync.stop();
+    }
   });
 });

@@ -1,3 +1,7 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
+import { createHash } from 'node:crypto';
+import { z } from 'zod';
+import { canonicalJson } from '@/modules/store/types';
 import { NextResponse } from 'next/server';
 import { apiError, readJson, requestId } from '@/lib/http';
 import { currentUser } from '@/modules/identity/session';
@@ -12,7 +16,7 @@ export const dynamic = 'force-dynamic';
 const noStore = { headers: { 'Cache-Control': 'no-store' } };
 
 /** GET → { jobs, max } for the signed-in person. */
-export async function GET() {
+async function handleGET() {
   const rid = requestId();
   const user = await currentUser();
   if (!user) return apiError('SIGN_IN_REQUIRED', 'Please sign in to use the job tracker.', rid);
@@ -24,7 +28,7 @@ export async function GET() {
 }
 
 /** POST JobInput → the new job. Refused past the plan's job limit. */
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   const rid = requestId();
   const user = await currentUser();
   if (user) await noteUse(user.uid, 'jobs');
@@ -34,17 +38,18 @@ export async function POST(req: Request) {
   const parsed = jobInput.safeParse(body.value);
   if (!parsed.success)
     return apiError('INVALID_INPUT', parsed.error.issues[0]?.message ?? 'Invalid job.', rid);
+  const key = req.headers.get('Idempotency-Key');
+  if (key !== null && !z.uuid().safeParse(key).success)
+    return apiError('INVALID_INPUT', 'Idempotency-Key must be a UUID.', rid);
+  const receipt =
+    key === null
+      ? undefined
+      : {
+          key: key.toLowerCase(),
+          fingerprint: createHash('sha256').update(canonicalJson(parsed.data)).digest('hex'),
+        };
   const store = getUserStore();
-  const [{ max }, existing] = await Promise.all([jobAllowance(user), store.listJobs(user.uid)]);
-  if (max !== -1 && existing.length >= max)
-    return apiError(
-      max === 0 ? 'PREMIUM_REQUIRED' : 'LIMIT_REACHED',
-      max === 0
-        ? 'The job tracker isn’t included in your plan.'
-        : `Your plan tracks up to ${max} jobs. Remove one you no longer need, or get Premium for more.`,
-      rid,
-      { reason: max === 0 ? 'premium' : 'limit', limit: max },
-    );
+  const { max } = await jobAllowance(user);
   const now = new Date().toISOString();
   const job: Job = {
     ...parsed.data,
@@ -57,6 +62,26 @@ export async function POST(req: Request) {
         : parsed.data.appliedOn,
   };
   const ready = await withSent(user.uid, null, newJobHistory(job));
-  await store.putJob(user.uid, ready);
-  return NextResponse.json({ job: ready }, noStore);
+  const result = await store.createJob(user.uid, ready, max, receipt);
+  if (!result.ok) {
+    if (result.reason === 'conflict')
+      return apiError(
+        'CONFLICT',
+        'This creation key was already used with a different payload or its result was deleted.',
+        rid,
+        { current: result.current },
+      );
+    return apiError(
+      max === 0 ? 'PREMIUM_REQUIRED' : 'LIMIT_REACHED',
+      max === 0
+        ? 'The job tracker isn’t included in your plan.'
+        : `Your plan tracks up to ${max} jobs. Remove one you no longer need, or get Premium for more.`,
+      rid,
+      { reason: max === 0 ? 'premium' : 'limit', limit: max },
+    );
+  }
+  return NextResponse.json({ job: result.value }, noStore);
 }
+
+export const GET = withWorkspaceOwnerErrors(handleGET);
+export const POST = withWorkspaceOwnerErrors(handlePOST);

@@ -1,7 +1,7 @@
 import { getT } from '@/i18n/server';
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
-import Link from 'next/link';
+import Link from '@/features/workspace/navigation';
 import { FileUp } from 'lucide-react';
 import { Container } from '@/components/ui/misc';
 import { StartFlow } from '@/features/start/start-flow';

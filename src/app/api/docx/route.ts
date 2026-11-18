@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { safeParseResumeDocument } from '@/modules/resume/schema';
 import { pdfFilename } from '@/modules/export/filename';
 import { buildDocx } from '@/modules/export/docx';
@@ -18,7 +19,7 @@ const limiter = createRateLimiter({ capacity: PER_MINUTE * 2, refillPerMinute: P
  * monthly allowance as PDFs. Word keeps the content and accent, not the design's layout, so any
  * design may be exported.
  */
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   const rid = requestId();
   const rate = limiter(clientKey(req));
   if (!rate.ok)
@@ -65,3 +66,5 @@ export async function POST(req: Request) {
     return apiError('RENDER_FAILED', 'We couldn’t create the Word file just now.', rid);
   }
 }
+
+export const POST = withWorkspaceOwnerErrors(handlePOST);

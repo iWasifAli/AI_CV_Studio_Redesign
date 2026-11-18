@@ -1,7 +1,9 @@
 'use client';
 
+import { useWorkspaceState, useWorkspaceTask, useWorkspace } from '@/features/workspace/context';
+
 import { useT } from '@/i18n/client';
-import Link from 'next/link';
+import Link from '@/features/workspace/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import {
   BookmarkPlus,
@@ -21,7 +23,8 @@ import { matchStories, storyAsAnswer, type Story } from '@/modules/stories/schem
 import type { Job } from '@/modules/jobs/schema';
 import type { ResumeDocument } from '@/modules/resume/schema';
 import { cn } from '@/lib/cn';
-import { jobAiApi } from './api';
+import { keepLaterEdits, revisionOf } from './workspace-state';
+import { jobAiApi, workflowCall } from './api';
 
 const VERDICT = {
   strong: { label: 'Strong answer', cls: 'text-success', Icon: CircleCheck },
@@ -96,11 +99,18 @@ export function MockInterview({
   refresh: () => void;
 }) {
   const tx = useT();
-  const [answer, setAnswer] = useState('');
+  const runTask = useWorkspaceTask();
+  const { ownerUid } = useWorkspace();
+  const [answer, setAnswer] = useWorkspaceState('jobs.MockInterview.answer', '', { dirty: true });
   const [busy, setBusy] = useState(false);
   // Story bank (R9.3): stories that fit the question, and saving a good answer as a story.
   const [stories, setStories] = useState<Story[] | null>(null);
-  const [saved, setSaved] = useState<Record<number, 'saving' | 'saved' | string>>({});
+  const [saved, setSaved] = useWorkspaceState<Record<number, string>>(
+    'jobs.MockInterview.saved',
+    {},
+    { dirty: false },
+  );
+  const [savingStory, setSavingStory] = useState<number | null>(null);
   useEffect(() => {
     storiesApi.list().then(
       (r) => setStories(r.enabled ? r.stories : null),
@@ -110,32 +120,51 @@ export function MockInterview({
   const m = job.mock;
   const fits = useMemo(
     () => (stories && m?.current ? matchStories(stories, m.current.question, 2) : []),
-    [stories, m?.current],
+    [stories, m],
   );
   const saveStory = async (i: number, question: string, text: string) => {
-    setSaved((x) => ({ ...x, [i]: 'saving' }));
+    setSavingStory(i);
     try {
-      const story = await storiesApi.create({
-        title: question.replace(/\?$/, '').slice(0, 120),
-        action: text.slice(0, 1200),
-        source: {
-          kind: 'mock',
-          ref: `${job.title}${job.company ? ` at ${job.company}` : ''}`.slice(0, 160),
-        },
-      });
+      const { story } = await runTask(`jobs.MockInterview.story.${i}`, (signal) =>
+        workflowCall<{ story: Story }>(
+          '/api/stories',
+          {
+            method: 'POST',
+            body: JSON.stringify({
+              title: question.replace(/\?$/, '').slice(0, 120),
+              action: text.slice(0, 1200),
+              source: {
+                kind: 'mock',
+                ref: `${job.title}${job.company ? ` at ${job.company}` : ''}`.slice(0, 160),
+              },
+            }),
+          },
+          { signal, ownerUid },
+        ),
+      );
       setStories((x) => (x ? [story, ...x] : [story]));
       setSaved((x) => ({ ...x, [i]: 'saved' }));
     } catch (e) {
       setSaved((x) => ({ ...x, [i]: e instanceof Error ? e.message : 'Couldn’t save it.' }));
+    } finally {
+      setSavingStory(null);
     }
   };
   const turn = async (opts: { answer?: string; restart?: boolean }) => {
     if (!source) return;
     setBusy(true);
     try {
-      onJobChange(await jobAiApi.mockTurn(job.id, source, opts));
-      setAnswer('');
-      refresh();
+      await runTask('jobs.MockInterview.turn', async (signal) => {
+        onJobChange(
+          await jobAiApi.mockTurn(job.id, source, opts, {
+            signal,
+            ownerUid,
+            expectedRevision: revisionOf(job),
+          }),
+        );
+        setAnswer((current) => keepLaterEdits(current, answer, ''));
+        refresh();
+      });
     } catch (e) {
       onError(e);
     } finally {
@@ -214,7 +243,7 @@ export function MockInterview({
                       size="sm"
                       variant="secondary"
                       icon={<BookmarkPlus aria-hidden size={16} />}
-                      loading={saved[i] === 'saving'}
+                      loading={savingStory === i}
                       onClick={() => saveStory(i, t.question, t.answer)}
                     >
                       {tx('Save to my story bank')}

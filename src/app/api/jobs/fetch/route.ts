@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { NextResponse } from 'next/server';
 import { apiError, createRateLimiter, readJson, requestId } from '@/lib/http';
 import { aiModels, getAiProvider } from '@/modules/ai/config';
@@ -27,7 +28,7 @@ const limiter = (g.__jobUrlLimiter ??= createRateLimiter({ capacity: 20, refillP
  * safely (modules/jobs/fetch.ts); its JSON-LD JobPosting is used when there is one, otherwise
  * the fast AI reads the page text as data, and every value is checked against the page.
  */
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   const rid = requestId();
   const user = await currentUser();
   if (!user) return apiError('SIGN_IN_REQUIRED', 'Please sign in to save jobs.', rid);
@@ -165,3 +166,5 @@ async function readWithAi(
   if (!r.ok) return null;
   return fromExtract(url, info, r.result) ?? 'not_a_job';
 }
+
+export const POST = withWorkspaceOwnerErrors(handlePOST);

@@ -1,5 +1,7 @@
 'use client';
 
+import { useWorkspaceState } from '@/features/workspace/context';
+
 import { designLabel } from '@/modules/design/lifecycle';
 import { useT } from '@/i18n/client';
 import { useEffect, useMemo, useState } from 'react';
@@ -50,13 +52,15 @@ export function useShowWith() {
 export function TemplateGallery({ seed }: { seed?: number } = {}) {
   const tx = useT();
   const own = useShowWith();
-  const [show, setShow] = useState<string>('sample:teacher');
+  const [show, setShow] = useWorkspaceState<string>('gallery.TemplateGallery.show', '', {
+    dirty: false,
+  });
 
   // Default to the person's newest CV once it is known.
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- follow the one-time storage read
-    if (own[0]) setShow(`own:${own[0].id}`);
-  }, [own]);
+    const first = own[0];
+    if (first) setShow((current) => current || `own:${first.id}`);
+  }, [own, setShow]);
 
   const { base, sample, label } = useMemo(() => {
     if (show.startsWith('own:')) {

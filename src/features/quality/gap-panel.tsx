@@ -1,7 +1,11 @@
 'use client';
 
+import { workspaceFetch as fetch } from '@/features/workspace/request';
+
+import { useWorkspaceState, useWorkspaceTask } from '@/features/workspace/context';
+
 import { useT } from '@/i18n/client';
-import Link from 'next/link';
+import Link from '@/features/workspace/navigation';
 import { useMemo, useState } from 'react';
 import { CalendarClock, Check, Copy } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
@@ -34,7 +38,6 @@ const monthName = (ym: string) => {
 };
 
 /** Kept while the editor is open, so switching tabs doesn't lose an answer. */
-const kept = new Map<string, { drafts: Record<string, Draft>; words: Record<string, Wording> }>();
 
 /**
  * Explain a gap (spec §9.3): breaks of more than six months, what happened (in the person's own
@@ -51,31 +54,36 @@ export function GapPanel({
   const account = useAccount();
   const { ent, refresh } = useEntitlements();
   const gaps = useMemo(() => findGaps(doc), [doc]);
-  const saved = kept.get(doc.id);
-  const [drafts, setDrafts] = useState<Record<string, Draft>>(saved?.drafts ?? {});
-  const [words, setWords] = useState<Record<string, Wording>>(saved?.words ?? {});
+  const [drafts, setDrafts] = useWorkspaceState<Record<string, Draft>>(
+    'quality.gappanel.drafts',
+    {},
+    { dirty: true },
+  );
+  const [words, setWords] = useWorkspaceState<Record<string, Wording>>(
+    'quality.gappanel.words',
+    {},
+    { dirty: true },
+  );
+  const runTask = useWorkspaceTask();
   const [busy, setBusy] = useState<string | null>(null);
-  const [problem, setProblem] = useState<{ message: string; premium?: boolean } | null>(null);
-  const [added, setAdded] = useState<string | null>(null);
+  const [problem, setProblem] = useWorkspaceState<{ message: string; premium?: boolean } | null>(
+    'quality.gappanel.problem',
+    null,
+  );
+  const [added, setAdded] = useWorkspaceState<string | null>('quality.gappanel.added', null);
   if (ent && ent.features.gapCoach === false) return null;
   if (!gaps.length && !added) return null;
 
   const signedIn = account.status === 'signedIn';
   const canAi = signedIn && !!ent && ent.limits['ai.action'] !== 0;
-  const remember = (d: Record<string, Draft>, w: Record<string, Wording>) =>
-    kept.set(doc.id, { drafts: d, words: w });
-  const setDraft = (k: string, d: Draft) => {
-    const next = { ...drafts, [k]: d };
-    setDrafts(next);
-    remember(next, words);
-  };
-  const setWording = (k: string, w: Wording | null) => {
-    const next = { ...words };
-    if (w) next[k] = w;
-    else delete next[k];
-    setWords(next);
-    remember(drafts, next);
-  };
+  const setDraft = (k: string, d: Draft) => setDrafts((all) => ({ ...all, [k]: d }));
+  const setWording = (k: string, w: Wording | null) =>
+    setWords((all) => {
+      const next = { ...all };
+      if (w) next[k] = w;
+      else delete next[k];
+      return next;
+    });
 
   const word = async (g: Gap, d: Draft, ai: boolean) => {
     if (!d.reason) return;
@@ -91,29 +99,35 @@ export function GapPanel({
     }
     setBusy(g.key);
     try {
-      const r = await fetch('/api/coach/gap', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          reason: d.reason,
-          answer: d.answer,
-          length: gapLength(g.months),
-          after: g.after,
-          before: g.before,
-        }),
-      });
-      const j = (await r.json().catch(() => null)) as
-        (Wording & { error?: undefined }) | { error: { message: string } } | null;
-      if (!r.ok || !j || 'error' in j) {
-        setProblem({
-          message: (j && 'error' in j && j.error?.message) || 'That didn’t work. Please try again.',
-          premium: r.status === 402,
+      await runTask(`quality.gap.word.${g.key}`, async (signal) => {
+        const r = await fetch('/api/coach/gap', {
+          method: 'POST',
+          signal,
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            reason: d.reason,
+            answer: d.answer,
+            length: gapLength(g.months),
+            after: g.after,
+            before: g.before,
+          }),
         });
-        return;
-      }
-      setWording(g.key, { cvLine: j.cvLine, interviewLine: j.interviewLine, ai: true });
-      refresh();
-    } catch {
+        const j = (await r.json().catch(() => null)) as
+          (Wording & { error?: undefined }) | { error: { message: string } } | null;
+        signal.throwIfAborted();
+        if (!r.ok || !j || 'error' in j) {
+          setProblem({
+            message:
+              (j && 'error' in j && j.error?.message) || 'That didn’t work. Please try again.',
+            premium: r.status === 402,
+          });
+          return;
+        }
+        setWording(g.key, { cvLine: j.cvLine, interviewLine: j.interviewLine, ai: true });
+        refresh();
+      });
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') return;
       setProblem({ message: 'You seem to be offline. Please try again.' });
     } finally {
       setBusy(null);

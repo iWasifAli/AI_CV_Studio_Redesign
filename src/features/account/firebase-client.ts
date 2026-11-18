@@ -156,8 +156,16 @@ export async function refreshVerification(): Promise<boolean> {
   return u.emailVerified;
 }
 
-export async function signOutEverywhere(everywhere = false) {
-  await fetch(`/api/session${everywhere ? '?everywhere=1' : ''}`, { method: 'DELETE' });
+export async function signOutEverywhere(everywhere = false, ownerUid?: string) {
+  const response = await fetch(`/api/session${everywhere ? '?everywhere=1' : ''}`, {
+    method: 'DELETE',
+    headers: ownerUid ? { 'X-Workspace-Owner': ownerUid } : undefined,
+  });
+  if (!response.ok) throw new Error('Could not sign out. Your local work has been kept.');
+  await clearClientSession();
+}
+
+export async function clearClientSession() {
   const auth = await getClientAuth();
   const { signOut } = await import('firebase/auth');
   await signOut(auth).catch(() => {});

@@ -1,7 +1,7 @@
 'use client';
 
 import { useT } from '@/i18n/client';
-import Link from 'next/link';
+import Link from '@/features/workspace/navigation';
 import { useSyncExternalStore } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useAccount } from '@/features/account/account-context';
@@ -27,7 +27,7 @@ export function PortfolioPreview() {
     return (
       <div className="skeleton m-8 h-96 rounded-lg" aria-busy="true" aria-label={t('Loading')} />
     );
-  const draft = readDraft();
+  const draft = readDraft(params.get('draft'), account.user?.uid ?? null);
   const doc = draft ? getRepository().get(draft.docId) : null;
   if (!draft || !doc)
     return (

@@ -2,8 +2,9 @@
 
 import { useLang, useT } from '@/i18n/client';
 import { setLanguage } from '@/i18n/language-switch';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import Link from '@/features/workspace/navigation';
+import { usePathname, useRouter as useNativeRouter } from 'next/navigation';
+import { useWorkspaceRouter as useRouter } from '@/features/workspace/navigation';
 import { useEffect, useState } from 'react';
 import { CircleHelp, GraduationCap, CircleUserRound, LogOut, Plus, Search } from 'lucide-react';
 import { Dialog } from '@/components/ui/dialog';
@@ -12,6 +13,8 @@ import { Logo } from '@/components/layout/logo';
 import { useAccount } from '@/features/account/account-context';
 import { cn } from '@/lib/cn';
 import { CommandPalette } from './command-palette';
+import { OpenWorkspaceButton } from '@/features/workspace/link-menu';
+import { useToast } from '@/components/ui/toast';
 import { CREATE, DESTINATIONS, isActive } from './destinations';
 
 /**
@@ -24,7 +27,9 @@ export function ShellTop() {
   const t = useT();
   const pathname = usePathname();
   const router = useRouter();
+  const nativeRouter = useNativeRouter();
   const account = useAccount();
+  const toast = useToast();
   const [create, setCreate] = useState(false);
   const [palette, setPalette] = useState(false);
 
@@ -40,11 +45,23 @@ export function ShellTop() {
   }, []);
 
   const lang = useLang();
-  // One tap, no confirmation (signing back in is easy): the account page keeps the "all devices" option.
+  // Workspace drafts are checked across windows before the account session ends.
   const signOut = () =>
-    void account.signOut().then(() => {
-      router.replace('/');
-    });
+    void account
+      .signOut()
+      .then((signedOut) => {
+        if (!signedOut) return;
+        nativeRouter.replace('/');
+      })
+      .catch((error: unknown) =>
+        toast.show({
+          tone: 'error',
+          message:
+            error instanceof Error
+              ? error.message
+              : t('Could not sign out. Your local work has been kept.'),
+        }),
+      );
   const profileItems = [
     { label: 'Career profile', onSelect: () => router.push('/profile') },
     { label: 'My designs', onSelect: () => router.push('/templates') },
@@ -111,19 +128,21 @@ export function ShellTop() {
           {DESTINATIONS.map((d) => {
             const active = isActive(pathname, d);
             return (
-              <Link
-                key={d.href}
-                href={d.href}
-                aria-current={active ? 'page' : undefined}
-                className={cn(
-                  'inline-flex min-h-11 items-center gap-3 rounded-md px-3 text-[15px] font-semibold',
-                  active
-                    ? 'bg-primary-soft text-primary'
-                    : 'text-ink-muted hover:bg-sunken hover:text-ink',
-                )}
-              >
-                <d.icon aria-hidden size={20} /> {t(d.label)}
-              </Link>
+              <div key={d.href} className="flex items-center">
+                <Link
+                  href={d.href}
+                  aria-current={active ? 'page' : undefined}
+                  className={cn(
+                    'inline-flex min-h-11 min-w-0 flex-1 items-center gap-3 rounded-md px-3 text-[15px] font-semibold',
+                    active
+                      ? 'bg-primary-soft text-primary'
+                      : 'text-ink-muted hover:bg-sunken hover:text-ink',
+                  )}
+                >
+                  <d.icon aria-hidden size={20} /> {t(d.label)}
+                </Link>
+                <OpenWorkspaceButton href={d.href} label={d.label} />
+              </div>
             );
           })}
         </nav>

@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { apiError, readJson, requestId } from '@/lib/http';
@@ -11,7 +12,7 @@ export const dynamic = 'force-dynamic';
 const noStore = { headers: { 'Cache-Control': 'no-store' } };
 
 /** GET → { emails: boolean } (are reminder emails on for me?). */
-export async function GET() {
+async function handleGET() {
   const rid = requestId();
   const user = await currentUser();
   if (!user) return apiError('SIGN_IN_REQUIRED', 'Please sign in.', rid);
@@ -20,7 +21,7 @@ export async function GET() {
 }
 
 /** PUT { emails: boolean } → { emails }. */
-export async function PUT(req: Request) {
+async function handlePUT(req: Request) {
   const rid = requestId();
   const user = await currentUser();
   if (!user) return apiError('SIGN_IN_REQUIRED', 'Please sign in.', rid);
@@ -31,3 +32,6 @@ export async function PUT(req: Request) {
   const q = await syncQueue(user, { off: !p.data.emails });
   return NextResponse.json({ emails: !q.off }, noStore);
 }
+
+export const GET = withWorkspaceOwnerErrors(handleGET);
+export const PUT = withWorkspaceOwnerErrors(handlePUT);

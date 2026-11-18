@@ -1,9 +1,20 @@
 'use client';
+
+import { workspaceFetch } from '@/features/workspace/request';
+
+import { useWorkspaceTask } from '@/features/workspace/context';
+
+import {
+  useWorkspaceState,
+  useWorkspaceScope,
+  useWorkspaceClean,
+} from '@/features/workspace/context';
 import { browserRegion } from '@/modules/resume/region';
 import { Segmented } from '@/components/ui/segmented';
 
 import { useT } from '@/i18n/client';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
+import { useWorkspaceRouter as useRouter } from '@/features/workspace/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Check, Download, PencilLine, RotateCcw, Sparkles } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
@@ -46,7 +57,7 @@ export function withDesign(doc: ResumeDocument, id: DesignId): ResumeDocument {
 }
 
 function event(name: 'makeover_design_switch' | 'landing_view') {
-  void fetch('/api/metrics/event', {
+  void workspaceFetch('/api/metrics/event', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ name }),
@@ -56,28 +67,69 @@ function event(name: 'makeover_design_switch' | 'landing_view') {
 
 /** Instant Makeover (spec §6): drop → watch it work → reveal → optional polish → download. */
 export function MakeoverScreen() {
+  const runTask = useWorkspaceTask();
+  const markClean = useWorkspaceClean();
+
   const tx = useT();
   const router = useRouter();
+  const scope = useWorkspaceScope();
   const params = useSearchParams();
   const account = useAccount();
   const { ent, refresh } = useEntitlements();
-  const [file, setFile] = useState<File | null>(null);
-  const [phase, setPhase] = useState<'idle' | 'working' | 'result'>('idle');
+  const [file, setFile] = useWorkspaceState<File | null>('makeover.MakeoverScreen.file', null, {
+    dirty: true,
+  });
+  const [working, setWorking] = useState(false);
   const [steps, setSteps] = useState<string[]>([]);
   const [step, setStep] = useState(0);
-  const [failure, setFailure] = useState<Failure | null>(null);
-  const [result, setResult] = useState<MakeoverResult | null>(null);
-  // The score when the CV was first read, to show what the polish added.
-  const [firstScore, setFirstScore] = useState<number | null>(null);
-  const [doc, setDoc] = useState<ResumeDocument | null>(null);
-  const [portraitChoice, setPortraitChoice] = useState<'used' | 'left' | null>(null);
-  const [templateId, setDesignId] = useState<DesignId>('clarity');
+  const [failure, setFailure] = useWorkspaceState<Failure | null>(
+    'makeover.MakeoverScreen.failure',
+    null,
+    { dirty: false },
+  );
+  const [result, setResult] = useWorkspaceState<MakeoverResult | null>(
+    'makeover.MakeoverScreen.result',
+    null,
+    { dirty: false },
+  );
+  // Keep the original score with this result, including after tab switches and reload.
+  const [firstScore, setFirstScore] = useWorkspaceState<number | null>(
+    'makeover.MakeoverScreen.firstScore',
+    null,
+    { dirty: false },
+  );
+  const [doc, setDoc] = useWorkspaceState<ResumeDocument | null>(
+    'makeover.MakeoverScreen.doc',
+    null,
+    { dirty: true },
+  );
+  const [portraitChoice, setPortraitChoice] = useWorkspaceState<'used' | 'left' | null>(
+    'makeover.MakeoverScreen.portraitChoice',
+    null,
+    { dirty: false },
+  );
+  const [templateId, setDesignId] = useWorkspaceState<DesignId>(
+    'makeover.MakeoverScreen.templateId',
+    'clarity',
+    { dirty: false },
+  );
   const [saving, setSaving] = useState<'download' | 'edit' | null>(null);
-  const [saveFailure, setSaveFailure] = useState<Failure | null>(null);
-  const [placed, setPlaced] = useState<Record<string, 'added' | 'left'>>({});
+  const [saveFailure, setSaveFailure] = useWorkspaceState<Failure | null>(
+    'makeover.MakeoverScreen.saveFailure',
+    null,
+    { dirty: false },
+  );
+  const [placed, setPlaced] = useWorkspaceState<Record<string, 'added' | 'left'>>(
+    'makeover.MakeoverScreen.placed',
+    {},
+    { dirty: false },
+  );
+  const phase = working ? 'working' : result ? 'result' : 'idle';
   const autoAction = useRef<'download' | 'edit' | null>(null);
   // Offer "use as my career profile" when the account has none yet.
-  const [asProfile, setAsProfile] = useState(false);
+  const [asProfile, setAsProfile] = useWorkspaceState('makeover.MakeoverScreen.asProfile', false, {
+    dirty: true,
+  });
   const hasProfile = useMemo(
     () => phase !== 'result' || getRepository().list().some(isProfile),
     [phase],
@@ -91,109 +143,138 @@ export function MakeoverScreen() {
 
   const upload = useCallback(
     async (f: File) => {
-      setFile(f);
-      setFailure(null);
-      setSaveFailure(null);
-      setPlaced({});
-      const image = /^image\//.test(f.type) || /\.(jpe?g|png|webp|heic|heif)$/i.test(f.name);
-      const list = [
-        'Reading your CV',
-        ...(image ? ['Reading a scanned page'] : []),
-        'Finding your jobs and dates',
-        'Choosing designs for you',
-        'Laying out your pages',
-      ];
-      setSteps(list);
-      setStep(0);
-      setPhase('working');
-      // Real progress: the server streams a line as each stage finishes (read → scan → structure
-      // → designs); the last step ("Laying out your pages") completes with the answer.
-      const at: Record<string, number> = image
-        ? { read: 1, scan: 2, structure: 3, design: 4 }
-        : { read: 1, structure: 2, design: 3 };
-      try {
-        const form = new FormData();
-        form.append('file', f);
-        form.append('locale', `en-${browserRegion()}`);
-        const r = await fetch('/api/makeover', {
-          method: 'POST',
-          body: form,
-          headers: { accept: 'application/x-ndjson' },
-        });
-        type Answer =
-          MakeoverResult | { error: { message: string; details?: { reason?: string } } } | null;
-        let j: Answer = null;
-        let ok = r.ok;
-        if (r.ok && r.body && (r.headers.get('content-type') ?? '').includes('ndjson')) {
-          const reader = r.body.getReader();
-          const dec = new TextDecoder();
-          let buf = '';
-          for (;;) {
-            const { value, done } = await reader.read();
-            if (done) break;
-            buf += dec.decode(value, { stream: true });
-            let nl: number;
-            while ((nl = buf.indexOf('\n')) >= 0) {
-              const line = buf.slice(0, nl);
-              buf = buf.slice(nl + 1);
-              if (!line.trim()) continue;
-              const m = JSON.parse(line) as { step?: string; status?: number; body?: Answer };
-              if (m.step && at[m.step] !== undefined) setStep(at[m.step]!);
-              if (m.status !== undefined) {
-                ok = m.status >= 200 && m.status < 300;
-                j = m.body ?? null;
+      return runTask('makeover.MakeoverScreen.upload', async (signal) => {
+        setFile(f);
+        setResult(null);
+        setDoc(null);
+        setFailure(null);
+        setSaveFailure(null);
+        setPlaced({});
+        const image = /^image\//.test(f.type) || /\.(jpe?g|png|webp|heic|heif)$/i.test(f.name);
+        const list = [
+          'Reading your CV',
+          ...(image ? ['Reading a scanned page'] : []),
+          'Finding your jobs and dates',
+          'Choosing designs for you',
+          'Laying out your pages',
+        ];
+        setSteps(list);
+        setStep(0);
+        setWorking(true);
+        // Real progress: the server streams a line as each stage finishes (read → scan → structure
+        // → designs); the last step ("Laying out your pages") completes with the answer.
+        const at: Record<string, number> = image
+          ? { read: 1, scan: 2, structure: 3, design: 4 }
+          : { read: 1, structure: 2, design: 3 };
+        try {
+          const form = new FormData();
+          form.append('file', f);
+          form.append('locale', `en-${browserRegion()}`);
+          const r = await workspaceFetch('/api/makeover', {
+            signal,
+            method: 'POST',
+            body: form,
+            headers: {
+              accept: 'application/x-ndjson',
+              ...(account.user?.uid ? { 'X-Workspace-Owner': account.user.uid } : {}),
+            },
+          });
+          signal.throwIfAborted();
+          type Answer =
+            MakeoverResult | { error: { message: string; details?: { reason?: string } } } | null;
+          let j: Answer = null;
+          let ok = r.ok;
+          if (r.ok && r.body && (r.headers.get('content-type') ?? '').includes('ndjson')) {
+            const reader = r.body.getReader();
+            const dec = new TextDecoder();
+            let buf = '';
+            for (;;) {
+              const { value, done } = await reader.read();
+              signal.throwIfAborted();
+              if (done) break;
+              buf += dec.decode(value, { stream: true });
+              let nl: number;
+              while ((nl = buf.indexOf('\n')) >= 0) {
+                const line = buf.slice(0, nl);
+                buf = buf.slice(nl + 1);
+                if (!line.trim()) continue;
+                const m = JSON.parse(line) as { step?: string; status?: number; body?: Answer };
+                if (m.step && at[m.step] !== undefined) setStep(at[m.step]!);
+                if (m.status !== undefined) {
+                  ok = m.status >= 200 && m.status < 300;
+                  j = m.body ?? null;
+                }
               }
             }
+          } else j = (await r.json().catch(() => null)) as Answer;
+          signal.throwIfAborted();
+          if (!ok || !j || 'error' in j) {
+            setFailure({
+              message:
+                (j && 'error' in j && j.error.message) ||
+                'That didn’t work. Please try again in a moment.',
+              reason: j && 'error' in j ? j.error.details?.reason : undefined,
+            });
+            setWorking(false);
+            return;
           }
-        } else j = (await r.json().catch(() => null)) as Answer;
-        if (!ok || !j || 'error' in j) {
+          setStep(list.length);
+          const first = j.ranking.find((x) => !locked(x.id)) ?? j.ranking[0];
+          setResult(j);
+          setDoc(j.document);
+          setFirstScore(scoreCv(j.document).total);
+          setPortraitChoice(null);
+          setDesignId(first?.id ?? 'clarity');
+          setWorking(false);
+          refresh();
+        } catch {
+          signal.throwIfAborted();
           setFailure({
-            message:
-              (j && 'error' in j && j.error.message) ||
-              'That didn’t work. Please try again in a moment.',
-            reason: j && 'error' in j ? j.error.details?.reason : undefined,
+            message: 'We couldn’t reach the server. Check your connection and try again.',
           });
-          setPhase('idle');
-          return;
+          setWorking(false);
         }
-        setStep(list.length);
-        const first = j.ranking.find((x) => !locked(x.id)) ?? j.ranking[0];
-        setResult(j);
-        setDoc(j.document);
-        setFirstScore(scoreCv(j.document).total);
-        setPortraitChoice(null);
-        setDesignId(first?.id ?? 'clarity');
-        setPhase('result');
-        refresh();
-      } catch {
-        setFailure({
-          message: 'We couldn’t reach the server. Check your connection and try again.',
-        });
-        setPhase('idle');
-      }
+      }).catch((error: unknown) => {
+        if (!(error instanceof Error && error.name === 'AbortError')) throw error;
+      });
     },
-    [locked, refresh],
+    [
+      account.user?.uid,
+      locked,
+      refresh,
+      runTask,
+      setDesignId,
+      setDoc,
+      setFailure,
+      setFile,
+      setFirstScore,
+      setPlaced,
+      setPortraitChoice,
+      setResult,
+      setSaveFailure,
+    ],
   );
 
   // A file dropped on the home page, or a makeover kept through sign-in. Deferred a tick so it
   // runs once (a cleared timer in React's development double-run does nothing).
   useEffect(() => {
     const t = window.setTimeout(() => {
-      const f = takeHandOff();
+      const f = takeHandOff(params.get('handoff') ?? (scope ? '' : 'guest'));
       if (f) {
         void upload(f);
         return;
       }
       if (params.get('resume') !== '1') return;
-      const p = loadPending();
+      const pendingScope = params.get('pending') ?? scope;
+      const p = loadPending(pendingScope);
       if (!p) return;
       setResult(p.result);
       setDoc(p.doc);
       setFirstScore(scoreCv(p.doc).total);
       setDesignId(p.templateId);
-      setPhase('result');
+      setWorking(false);
       autoAction.current = p.action;
-      void loadPendingFile().then((f) => f && setFile(f));
+      void loadPendingFile(params.get('pending') ?? scope).then((f) => f && setFile(f));
     }, 0);
     return () => window.clearTimeout(t);
     // Only on arrival.
@@ -202,46 +283,95 @@ export function MakeoverScreen() {
 
   const finish = useCallback(
     async (action: 'download' | 'edit') => {
-      if (!result || !doc) return;
-      setSaveFailure(null);
-      if (account.status !== 'signedIn') {
-        savePending({ result, doc, templateId, action });
-        await savePendingFile(file);
-        router.push(`/signin?mode=signup&next=${encodeURIComponent('/makeover?resume=1')}`);
-        return;
-      }
-      setSaving(action);
-      try {
-        const r = await fetch('/api/makeover/claim', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ makeoverId: result.makeoverId }),
-        });
-        const j = (await r.json().catch(() => null)) as
-          { ok: true } | { error: { message: string; details?: { reason?: string } } } | null;
-        if (!r.ok || !j || 'error' in j) {
-          setSaveFailure({
-            message:
-              (j && 'error' in j && j.error.message) || 'That didn’t work. Please try again.',
-            reason: j && 'error' in j ? j.error.details?.reason : undefined,
-          });
+      return runTask('makeover.MakeoverScreen.finish', async (signal) => {
+        if (!result || !doc) return;
+        setSaveFailure(null);
+        if (account.status !== 'signedIn') {
+          const pendingScope = crypto.randomUUID();
+          savePending({ result, doc, templateId, action }, pendingScope);
+          await savePendingFile(file, pendingScope);
+          signal.throwIfAborted();
+          router.push(
+            `/signin?mode=signup&next=${encodeURIComponent(`/makeover?resume=1&pending=${pendingScope}`)}`,
+          );
           return;
         }
-        const now = new Date().toISOString();
-        const designed = withDesign(doc, templateId);
-        const saved = asProfile
-          ? makeProfile(designed)
-          : { ...designed, createdAt: now, updatedAt: now };
-        getRepository().save(saved);
-        clearPending();
-        router.push(action === 'download' ? `/cv/${saved.id}/download` : `/cv/${saved.id}`);
-      } catch {
-        setSaveFailure({ message: 'We couldn’t reach the server. Please try again.' });
-      } finally {
-        setSaving(null);
-      }
+        setSaving(action);
+        try {
+          const r = await workspaceFetch('/api/makeover/claim', {
+            signal,
+            method: 'POST',
+            headers: {
+              'content-type': 'application/json',
+              ...(account.user?.uid ? { 'X-Workspace-Owner': account.user.uid } : {}),
+            },
+            body: JSON.stringify({ makeoverId: result.makeoverId }),
+          });
+          signal.throwIfAborted();
+          const j = (await r.json().catch(() => null)) as
+            { ok: true } | { error: { message: string; details?: { reason?: string } } } | null;
+          signal.throwIfAborted();
+          if (!r.ok || !j || 'error' in j) {
+            setSaveFailure({
+              message:
+                (j && 'error' in j && j.error.message) || 'That didn’t work. Please try again.',
+              reason: j && 'error' in j ? j.error.details?.reason : undefined,
+            });
+            return;
+          }
+          const now = new Date().toISOString();
+          const designed = withDesign(doc, templateId);
+          const saved = asProfile
+            ? makeProfile(designed)
+            : { ...designed, createdAt: now, updatedAt: now };
+          getRepository().save(saved);
+          // A save owns its submitted inputs; edits made while it ran remain dirty.
+          let sameDocument = false;
+          let sameDesign = false;
+          let sameRole = false;
+          setDoc((current) => {
+            sameDocument = JSON.stringify(current) === JSON.stringify(doc);
+            return current;
+          });
+          setDesignId((current) => {
+            sameDesign = current === templateId;
+            return current;
+          });
+          setAsProfile((current) => {
+            sameRole = current === asProfile;
+            return current;
+          });
+          if (sameDocument && sameDesign && sameRole) markClean();
+          clearPending(params.get('pending') ?? scope);
+          router.push(action === 'download' ? `/cv/${saved.id}/download` : `/cv/${saved.id}`);
+        } catch {
+          signal.throwIfAborted();
+          setSaveFailure({ message: 'We couldn’t reach the server. Please try again.' });
+        } finally {
+          setSaving(null);
+        }
+      }).catch((error: unknown) => {
+        if (!(error instanceof Error && error.name === 'AbortError')) throw error;
+      });
     },
-    [account.status, asProfile, doc, file, result, router, templateId],
+    [
+      account.status,
+      account.user?.uid,
+      asProfile,
+      doc,
+      file,
+      result,
+      router,
+      templateId,
+      runTask,
+      scope,
+      params,
+      markClean,
+      setDoc,
+      setDesignId,
+      setAsProfile,
+      setSaveFailure,
+    ],
   );
 
   // Back from sign-in: carry on with what the person clicked.
@@ -602,12 +732,12 @@ export function MakeoverScreen() {
               variant="ghost"
               icon={<RotateCcw aria-hidden size={18} />}
               onClick={() => {
-                clearPending();
+                clearPending(params.get('pending') ?? scope);
                 setResult(null);
                 setDoc(null);
                 setFirstScore(null);
                 setFile(null);
-                setPhase('idle');
+                setWorking(false);
               }}
             >
               {tx('Try another file')}
@@ -635,7 +765,11 @@ function Compare({
   watermark: boolean;
 }) {
   const tx = useT();
-  const [showOriginal, setShowOriginal] = useState(false);
+  const [showOriginal, setShowOriginal] = useWorkspaceState(
+    'makeover.Compare.showOriginal',
+    false,
+    { dirty: false },
+  );
   const hasBefore = !!file;
   return (
     <div className="flex flex-col gap-3">

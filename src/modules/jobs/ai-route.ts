@@ -29,6 +29,7 @@ export async function prepareJobAi(
       body: Record<string, unknown>;
       deps: Parameters<typeof import('@/modules/ai/run').runTask>[3];
       done: (ok: boolean) => Promise<void>;
+      release: () => Promise<void>;
     }
 > {
   const rid = requestId();
@@ -48,6 +49,21 @@ export async function prepareJobAi(
   const raw = await readJson(req, 256 * 1024);
   if (!raw.ok) return { error: apiError(raw.code, 'Invalid request.', rid) };
   const body = (raw.value ?? {}) as Record<string, unknown>;
+  if (
+    body.expectedRevision !== undefined &&
+    (typeof body.expectedRevision !== 'number' ||
+      !Number.isSafeInteger(body.expectedRevision) ||
+      body.expectedRevision < 0)
+  )
+    return {
+      error: apiError('INVALID_INPUT', 'expectedRevision must be a nonnegative integer.', rid),
+    };
+  if (body.expectedRevision !== undefined && body.expectedRevision !== (job.revision ?? 0))
+    return {
+      error: apiError('CONFLICT', 'This job changed. Reload or keep your draft.', rid, {
+        current: job,
+      }),
+    };
   const parsed = resumeDocument.safeParse(body.document);
   if (!parsed.success) return { error: apiError('INVALID_INPUT', 'Choose a CV to use.', rid) };
   const { provider } = getAiProvider();
@@ -72,6 +88,7 @@ export async function prepareJobAi(
     doc: parsed.data,
     body,
     deps: { provider, models: aiModels(), timeoutMs: 60_000 },
+    release: gate.release,
     done: async (ok) => {
       await track(ok ? 'ai_ok' : 'ai_fail');
       if (!ok) await gate.release();

@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { isLive } from '@/modules/design/lifecycle';
 import { NextResponse } from 'next/server';
 import { apiError, clientKey, readJson, requestId } from '@/lib/http';
@@ -23,7 +24,7 @@ const limiter = sharedAiLimiter();
  * three candidate designs as flat choices. One `design.ai` use is counted on success
  * (free: one to try; Premium: 40 a month). Logs never contain the description or the picture.
  */
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   const rid = requestId();
   const { provider } = getAiProvider();
   if (!provider)
@@ -121,3 +122,5 @@ export async function POST(req: Request) {
   if (me) await noteCompose(me.uid, gate.plan === 'free');
   return NextResponse.json({ result: r.result, version: r.version });
 }
+
+export const POST = withWorkspaceOwnerErrors(handlePOST);

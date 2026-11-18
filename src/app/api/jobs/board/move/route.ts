@@ -1,15 +1,17 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { NextResponse } from 'next/server';
 import { apiError, readJson, requestId } from '@/lib/http';
 import { currentUser } from '@/modules/identity/session';
 import { BoardMoveError, jobBoardMove } from '@/modules/jobs/board';
 import { applyJobPatch, withSent } from '@/modules/jobs/server';
+import { RevisionConflict } from '@/modules/store/types';
 import { getUserStore } from '@/modules/store';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /** A move changes application stage and presentation order in one commit. */
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   const rid = requestId();
   const user = await currentUser();
   if (!user) return apiError('SIGN_IN_REQUIRED', 'Please sign in.', rid);
@@ -28,6 +30,8 @@ export async function POST(req: Request) {
       headers: { 'Cache-Control': 'no-store', 'Server-Timing': `move;dur=${Date.now() - started}` },
     });
   } catch (error) {
+    if (error instanceof RevisionConflict)
+      return apiError('CONFLICT', error.message, rid, { current: error.current });
     if (error instanceof BoardMoveError) return apiError(error.code, error.message, rid);
     console.error(
       JSON.stringify({
@@ -39,3 +43,5 @@ export async function POST(req: Request) {
     return apiError('INTERNAL', 'We couldn’t move this job. Refresh the board and try again.', rid);
   }
 }
+
+export const POST = withWorkspaceOwnerErrors(handlePOST);

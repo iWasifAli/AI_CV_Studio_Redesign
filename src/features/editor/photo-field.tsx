@@ -1,7 +1,10 @@
 'use client';
 
+import { useWorkspaceState, useWorkspaceTask, useWorkspace } from '@/features/workspace/context';
+
+import { useAccount } from '@/features/account/account-context';
 import { useT } from '@/i18n/client';
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Eye, EyeOff, ImagePlus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ops } from '@/modules/resume/ops';
@@ -90,8 +93,22 @@ function Slider({
 
 export function PhotoField({ editor }: { editor: DocumentEditor }) {
   const t = useT();
+  const account = useAccount();
+  const owner = useMemo(
+    () => ({ uid: account.user?.uid ?? null, ready: account.status !== 'loading' }),
+    [account.user?.uid, account.status],
+  );
+  const lifetime = useRef<{ owner: typeof owner; controller: AbortController } | null>(null);
   const { doc, update } = editor;
   const id = useId();
+  const { store } = useWorkspace();
+  const runTask = useWorkspaceTask();
+  const [uploadFile, setUploadFile] = useWorkspaceState<File | null>(
+    'editor.photo.uploadFile',
+    null,
+    { dirty: true },
+  );
+  const [prepared, setPrepared] = useWorkspaceState<string | null>('editor.photo.prepared', null);
   const input = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -106,16 +123,36 @@ export function PhotoField({ editor }: { editor: DocumentEditor }) {
   const supports = getTemplate(doc.design.templateId).photo !== 'none';
   const hidden = doc.design.options.showPhoto === false;
 
+  // This lifetime also fences the signed-in flow when workspace tabs are disabled.
+  useLayoutEffect(() => {
+    const controller = new AbortController();
+    lifetime.current = { owner, controller };
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- discard another owner's framing controls
+    setCrop(null);
+    setFromSaved(false);
+    return () => {
+      controller.abort();
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      original.current?.close();
+      original.current = null;
+      originalBlob.current = null;
+    };
+  }, [owner]);
+
   // Reopened editor: find this photo's original on this device, or frame the saved photo.
   useEffect(() => {
-    if (!photo || original.current) return;
+    const started = lifetime.current;
+    if (!photo || original.current || !owner.ready || started?.owner !== owner) return;
     let cancelled = false;
+    const isLive = () =>
+      !cancelled && !started.controller.signal.aborted && (!store || store.isLive());
     void (async () => {
       try {
-        const kept = await loadOriginal(photo);
+        const kept = await loadOriginal(photo, owner.uid, isLive);
+        if (!isLive()) return;
         const blob = kept?.blob ?? (await (await fetch(photo)).blob());
         const bitmap = await createImageBitmap(blob);
-        if (cancelled || original.current) return bitmap.close();
+        if (!isLive() || original.current) return bitmap.close();
         original.current = bitmap;
         originalBlob.current = blob;
         setFromSaved(!kept);
@@ -127,35 +164,79 @@ export function PhotoField({ editor }: { editor: DocumentEditor }) {
     return () => {
       cancelled = true;
     };
-  }, [photo]);
+  }, [photo, owner, store]);
 
   function keep(url: string, next: Crop) {
     if (saveTimer.current) clearTimeout(saveTimer.current);
+    const started = lifetime.current;
+    const blob = originalBlob.current;
+    if (!blob || !owner.ready || started?.owner !== owner) return;
+    const isLive = () => !started.controller.signal.aborted && (!store || store.isLive());
     saveTimer.current = setTimeout(() => {
-      if (originalBlob.current) void saveOriginal(url, originalBlob.current, next);
+      void saveOriginal(url, blob, next, owner.uid, isLive);
     }, 300);
   }
 
   async function onFile(file: File) {
+    const started = lifetime.current;
+    if (!owner.ready || started?.owner !== owner || started.controller.signal.aborted) return;
+    // Workspace tasks can finish after a tab unmounts. Without a workspace, owner cleanup aborts them.
+    const originIsLive = () => (store ? store.isLive() : !started.controller.signal.aborted);
+    if (!originIsLive()) return;
     setBusy(true);
     setError(null);
     try {
       checkFile(file);
-      const bitmap = await createImageBitmap(file);
-      original.current?.close();
-      original.current = bitmap;
-      originalBlob.current = await shrinkForKeeping(bitmap);
-      setFromSaved(false);
-      setCrop(DEFAULT_CROP);
-      const url = cropToDataUrl(bitmap, DEFAULT_CROP);
-      keep(url, DEFAULT_CROP);
-      update((d) =>
-        ops.setDesign(ops.updateBasics(d, { photo: url }), { options: { showPhoto: true } }),
-      );
+      setUploadFile(file);
+      await runTask('editor.photo.upload', async (signal) => {
+        const isLive = () => !signal.aborted && originIsLive();
+        const assertLive = () => {
+          signal.throwIfAborted();
+          if (!originIsLive()) throw new DOMException('Photo operation ended', 'AbortError');
+        };
+        assertLive();
+        const bitmap = await createImageBitmap(file);
+        try {
+          assertLive();
+          const blob = await shrinkForKeeping(bitmap);
+          assertLive();
+          const url = cropToDataUrl(bitmap, DEFAULT_CROP);
+          if (blob) await saveOriginal(url, blob, DEFAULT_CROP, owner.uid, isLive);
+          assertLive();
+          setPrepared(url);
+          let applied = false;
+          update((d) => {
+            if (d.updatedAt !== doc.updatedAt) return d;
+            applied = true;
+            return ops.setDesign(ops.updateBasics(d, { photo: url }), {
+              options: { showPhoto: true },
+            });
+          });
+          if (applied) {
+            setPrepared(null);
+            setUploadFile(null);
+          }
+          if (!started.controller.signal.aborted) {
+            const framing = await createImageBitmap(file);
+            if (!isLive() || started.controller.signal.aborted) {
+              framing.close();
+              return;
+            }
+            original.current?.close();
+            original.current = framing;
+            originalBlob.current = blob;
+            setFromSaved(false);
+            setCrop(DEFAULT_CROP);
+          }
+        } finally {
+          bitmap.close();
+        }
+      });
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'We could not use this photo.');
+      if (!started.controller.signal.aborted && !(e instanceof Error && e.name === 'AbortError'))
+        setError(e instanceof Error ? e.message : 'We could not use this photo.');
     } finally {
-      setBusy(false);
+      if (!started.controller.signal.aborted) setBusy(false);
     }
   }
 
@@ -209,6 +290,7 @@ export function PhotoField({ editor }: { editor: DocumentEditor }) {
               variant="ghost"
               icon={<Trash2 aria-hidden size={16} />}
               onClick={() => {
+                if (saveTimer.current) clearTimeout(saveTimer.current);
                 original.current?.close();
                 original.current = null;
                 originalBlob.current = null;
@@ -234,6 +316,27 @@ export function PhotoField({ editor }: { editor: DocumentEditor }) {
           }}
         />
       </div>
+      {prepared && (
+        <Button
+          size="sm"
+          onClick={() => {
+            update((d) =>
+              ops.setDesign(ops.updateBasics(d, { photo: prepared }), {
+                options: { showPhoto: true },
+              }),
+            );
+            setPrepared(null);
+            setUploadFile(null);
+          }}
+        >
+          {t('Use uploaded photo')}
+        </Button>
+      )}
+      {uploadFile && !prepared && !busy && (
+        <Button size="sm" onClick={() => void onFile(uploadFile)}>
+          {t('Finish photo upload')}
+        </Button>
+      )}
       {photo && crop && (
         <fieldset className="flex flex-col gap-1.5" data-testid="photo-crop">
           <legend className="text-ink mb-1 text-sm font-semibold">{t('Frame your photo')}</legend>

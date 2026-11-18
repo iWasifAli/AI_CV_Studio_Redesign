@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { NextResponse } from 'next/server';
 import { apiError, readJson, requestId } from '@/lib/http';
 import { normalise } from '@/modules/design/normalise';
@@ -11,7 +12,7 @@ export const dynamic = 'force-dynamic';
 const MAX_DESIGNS = 30;
 
 /** GET → the account's saved designs ("Save as my design"). */
-export async function GET() {
+async function handleGET() {
   const rid = requestId();
   const user = await currentUser();
   if (!user) return apiError('SIGN_IN_REQUIRED', 'Please sign in to see your saved designs.', rid);
@@ -23,7 +24,7 @@ export async function GET() {
 }
 
 /** POST { name, spec } → saves a design. The spec is validated and normalised on the server. */
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   const rid = requestId();
   const user = await currentUser();
   if (!user) return apiError('SIGN_IN_REQUIRED', 'Please sign in to save designs.', rid);
@@ -51,3 +52,6 @@ export async function POST(req: Request) {
   await store.putDesign(saved);
   return NextResponse.json({ design: saved }, { status: 201 });
 }
+
+export const GET = withWorkspaceOwnerErrors(handleGET);
+export const POST = withWorkspaceOwnerErrors(handlePOST);

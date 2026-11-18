@@ -1,7 +1,7 @@
 'use client';
 
 import { useT } from '@/i18n/client';
-import Link from 'next/link';
+import Link from '@/features/workspace/navigation';
 import { useEffect, useState } from 'react';
 import { Briefcase, FileText, Plus } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';

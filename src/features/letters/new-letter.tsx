@@ -1,16 +1,24 @@
 'use client';
 
+import {
+  useWorkspaceState,
+  useWorkspaceTask,
+  useWorkspace,
+  useWorkspaceClean,
+} from '@/features/workspace/context';
+
 import { useLang, useT } from '@/i18n/client';
 import { cvWords } from '@/modules/resume/cv-words';
-import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useMemo, useState, type FormEvent } from 'react';
+import Link from '@/features/workspace/navigation';
+import { useSearchParams } from 'next/navigation';
+import { useWorkspaceRouter as useRouter } from '@/features/workspace/navigation';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { ArrowLeft, Lock, PenLine, Sparkles } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { TextArea, TextField } from '@/components/ui/field';
-import { useAccount } from '@/features/account/account-context';
+import { useAccount, useRepositoryVersion } from '@/features/account/account-context';
 import { useEntitlements } from '@/features/account/entitlements';
 import { JobsError } from '@/features/jobs/api';
 import { defaultSourceCv } from '@/modules/jobs/source-cv';
@@ -24,6 +32,10 @@ import {
   type LetterType,
 } from '@/modules/letters/types';
 import { getRepository } from '@/modules/storage/repository';
+import { creationIntent, revisionOf, type CreationIntent } from '@/features/jobs/workspace-state';
+import { ConflictNotice } from '@/features/jobs/conflict-notice';
+import type { ConflictDetails } from '@/features/jobs/api';
+import type { SavedLetter } from '@/modules/letters/schema';
 import { lettersApi } from './api';
 
 /** /letters/new: pick a letter type, answer its 3–5 questions, then write it with AI or yourself. */
@@ -93,16 +105,58 @@ function LetterForm({ type }: { type: LetterType }) {
   const tx = useT();
   const lang = useLang();
   const router = useRouter();
+  const runTask = useWorkspaceTask();
+  const { ownerUid, store, tabId, routeKey } = useWorkspace();
+  const markClean = useWorkspaceClean();
+  const [intent, setIntent] = useWorkspaceState<CreationIntent | null>(
+    'letters.LetterForm.intent',
+    null,
+    { dirty: false },
+  );
+  const [created, setCreated] = useWorkspaceState<SavedLetter | null>(
+    'letters.LetterForm.created',
+    null,
+    { dirty: false },
+  );
+  const [conflict, setConflict] = useWorkspaceState<ConflictDetails | null>(
+    'letters.LetterForm.conflict',
+    null,
+    { dirty: false },
+  );
   const { ent } = useEntitlements();
+  const repositoryVersion = useRepositoryVersion();
   const repo = typeof window === 'undefined' ? null : getRepository();
-  const cvs = useMemo(() => repo?.list() ?? [], [repo]);
-  const [sourceId, setSourceId] = useState(() => defaultSourceCv(cvs));
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [to, setTo] = useState('');
-  const [tone, setTone] = useState<'warm' | 'formal'>(type.id === 'cover' ? 'warm' : 'formal');
+  const cvs = useMemo(() => repo?.list() ?? [], [repo, repositoryVersion]); // eslint-disable-line react-hooks/exhaustive-deps -- repository event revision
+  const [sourceId, setSourceId] = useWorkspaceState(
+    'letters.LetterForm.sourceId',
+    () => defaultSourceCv(cvs),
+    { dirty: true },
+  );
+  useEffect(() => {
+    const next = defaultSourceCv(cvs);
+    // A sync may supply the first CV after this form has mounted.
+    if (!sourceId && next) setSourceId((current) => current || next);
+  }, [cvs, sourceId, setSourceId]);
+  const [answers, setAnswers] = useWorkspaceState<Record<string, string>>(
+    'letters.LetterForm.answers',
+    {},
+    { dirty: true },
+  );
+  const [to, setTo] = useWorkspaceState('letters.LetterForm.to', '', { dirty: true });
+  const [tone, setTone] = useWorkspaceState<'warm' | 'formal'>(
+    'letters.LetterForm.tone',
+    type.id === 'cover' ? 'warm' : 'formal',
+    { dirty: true },
+  );
   const [busy, setBusy] = useState<null | 'ai' | 'self'>(null);
-  const [problem, setProblem] = useState<{ message: string; premium?: boolean } | null>(null);
-  const [touched, setTouched] = useState(false);
+  const [problem, setProblem] = useWorkspaceState<{ message: string; premium?: boolean } | null>(
+    'letters.LetterForm.problem',
+    null,
+    { dirty: false },
+  );
+  const [touched, setTouched] = useWorkspaceState('letters.LetterForm.touched', false, {
+    dirty: false,
+  });
   const aiLocked = ent ? ent.limits['ai.action'] === 0 : false;
   const missing = missingAnswers(type, answers);
 
@@ -114,51 +168,83 @@ function LetterForm({ type }: { type: LetterType }) {
     setBusy(withAi ? 'ai' : 'self');
     setProblem(null);
     try {
-      const letterLocale = source?.locale ?? (lang === 'de' ? 'de-DE' : 'en-GB');
-      const w = cvWords(letterLocale);
-      const start = starterLetter(
-        type,
-        answers,
-        {
-          name: source?.basics.name ?? '',
-          headline: source?.basics.headline ?? '',
-          location: source?.basics.location ?? '',
-        },
-        letterLocale,
-      );
-      const statement = type.form === 'statement';
-      const letter = await lettersApi.create({
-        type: type.id,
-        title: start.subject,
-        to: to
-          .split('\n')
-          .map((l) => l.trim())
-          .filter(Boolean)
-          .slice(0, 5),
-        subject: start.subject,
-        answers: withDefaults(type, answers),
-        paragraphs: start.paragraphs,
-        greeting: statement ? '' : w('Dear Hiring Manager,'),
-        closing: statement ? '' : w(tone === 'formal' ? 'Yours sincerely,' : 'Kind regards,'),
-        tone,
-        documentId: source?.id ?? '',
-      });
-      if (withAi && source) {
-        try {
-          await lettersApi.draft(letter.id, source, tone);
-        } catch (err) {
-          // The letter is kept with the starter draft; say why the AI draft is missing.
-          router.push(`/letters/${letter.id}?ai=${encodeURIComponent((err as Error).message)}`);
-          return;
+      await runTask('letters.LetterForm.create', async (signal) => {
+        const letterLocale = source?.locale ?? (lang === 'de' ? 'de-DE' : 'en-GB');
+        const w = cvWords(letterLocale);
+        const start = starterLetter(
+          type,
+          answers,
+          {
+            name: source?.basics.name ?? '',
+            headline: source?.basics.headline ?? '',
+            location: source?.basics.location ?? '',
+          },
+          letterLocale,
+        );
+        const statement = type.form === 'statement';
+        const input = {
+          type: type.id,
+          title: start.subject,
+          to: to
+            .split('\n')
+            .map((l) => l.trim())
+            .filter(Boolean)
+            .slice(0, 5),
+          subject: start.subject,
+          answers: withDefaults(type, answers),
+          paragraphs: start.paragraphs,
+          greeting: statement ? '' : w('Dear Hiring Manager,'),
+          closing: statement ? '' : w(tone === 'formal' ? 'Yours sincerely,' : 'Kind regards,'),
+          tone,
+          documentId: source?.id ?? '',
+        };
+        const nextIntent = creationIntent(intent, input);
+        setIntent(nextIntent);
+        const letter = await lettersApi.create(input, {
+          signal,
+          ownerUid,
+          idempotencyKey: nextIntent.key,
+        });
+        setCreated(letter);
+        const unchanged =
+          !store ||
+          !tabId ||
+          Object.entries({ sourceId, answers, to, tone }).every(
+            ([field, value]) =>
+              JSON.stringify(
+                store.readFeature(tabId, `${routeKey}:letters.LetterForm.${field}`),
+              ) === JSON.stringify(value),
+          );
+        if (withAi && source) {
+          try {
+            const result = await lettersApi.draft(letter.id, source, tone, {
+              signal,
+              ownerUid,
+              expectedRevision: revisionOf(letter),
+            });
+            setCreated(result.letter);
+          } catch (err) {
+            signal.throwIfAborted();
+            if (err instanceof JobsError && err.status === 409) {
+              setConflict(err.details ?? {});
+              setProblem({ message: err.message });
+              return;
+            }
+            // The letter is kept with the starter draft; say why the AI draft is missing.
+            router.push(`/letters/${letter.id}?ai=${encodeURIComponent((err as Error).message)}`);
+            return;
+          }
         }
-      }
-      router.push(`/letters/${letter.id}`);
+        if (unchanged) markClean();
+        router.push(`/letters/${letter.id}`);
+      });
     } catch (err) {
       setProblem(
         err instanceof JobsError
           ? { message: err.message, premium: err.status === 402 }
           : { message: 'You seem to be offline. Please try again.' },
       );
+    } finally {
       setBusy(null);
     }
   }
@@ -169,6 +255,37 @@ function LetterForm({ type }: { type: LetterType }) {
       onSubmit={(e) => create(!aiLocked && cvs.length > 0, e)}
       aria-label={tx(type.title)}
     >
+      <ConflictNotice
+        details={conflict}
+        onApply={
+          conflict?.generated && conflict.current && created
+            ? () => {
+                void runTask('letters.LetterForm.applySuggestion', async (signal) => {
+                  const next = await lettersApi.update(
+                    created.id,
+                    conflict.generated as SavedLetter,
+                    { signal, ownerUid, expectedRevision: revisionOf(conflict.current as object) },
+                  );
+                  setCreated(next);
+                  setConflict(null);
+                  router.push(`/letters/${next.id}`);
+                }).catch((error: unknown) => {
+                  if (error instanceof JobsError && error.status === 409)
+                    setConflict(error.details ?? {});
+                  setProblem({
+                    message:
+                      error instanceof Error ? error.message : 'Could not save the suggestion.',
+                  });
+                });
+              }
+            : undefined
+        }
+      />
+      {created && (
+        <Banner tone="info" title="Your letter has been created">
+          <Link href={`/letters/${created.id}`}>{tx('Open saved letter')}</Link>
+        </Banner>
+      )}
       <Link
         href="/letters/new"
         className="text-primary inline-flex items-center gap-1 text-sm font-semibold hover:underline"

@@ -1,5 +1,12 @@
 'use client';
 
+import { useAccount } from '@/features/account/account-context';
+import { workspaceFetch } from '@/features/workspace/request';
+
+import { useWorkspaceTask } from '@/features/workspace/context';
+
+import { useWorkspaceState } from '@/features/workspace/context';
+
 import { useT } from '@/i18n/client';
 import { useState } from 'react';
 import { Check, Sparkles, X } from 'lucide-react';
@@ -42,7 +49,9 @@ export function PolishChips({
   onAccept: (s: Suggestion[]) => void;
   onBasics: (patch: Partial<ResumeDocument['basics']>) => void;
 }) {
-  const [open, setOpen] = useState<Chip | null>(null);
+  const [open, setOpen] = useWorkspaceState<Chip | null>('makeover.PolishChips.open', null, {
+    dirty: false,
+  });
   const chips = (['wording', 'bullets', 'gaps'] as const).filter(
     (c) => counts[c] > 0 && (c === 'gaps' || ai),
   );
@@ -95,48 +104,68 @@ function Suggestions({
   makeoverId: string;
   onAccept: (s: Suggestion[]) => void;
 }) {
+  const runTask = useWorkspaceTask();
+  const account = useAccount();
+
   const t = useT();
-  const [state, setState] = useState<
+  const [busy, setBusy] = useState(false);
+  const [state, setState] = useWorkspaceState<
     | { s: 'idle' }
-    | { s: 'busy' }
     | { s: 'done'; items: Suggestion[]; decided: Record<string, 'yes' | 'no'> }
     | { s: 'denied'; d: Denied }
-  >({ s: 'idle' });
+  >(`makeover.Suggestions.${makeoverId}.${chip}.state`, { s: 'idle' }, { dirty: false });
   // The lines as they were when the chip was opened (accepted changes update the document).
-  const [lines] = useState(() => polishLines(doc, chip));
-  const [before] = useState(() => new Map(lines.map((l) => [l.id, l.text])));
+  const [lines] = useWorkspaceState(
+    `makeover.Suggestions.${makeoverId}.${chip}.lines`,
+    () => polishLines(doc, chip),
+    { dirty: false },
+  );
+  const before = new Map(lines.map((l) => [l.id, l.text]));
 
   async function run() {
-    setState({ s: 'busy' });
-    try {
-      const r = await fetch('/api/makeover/polish', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          makeoverId,
-          input: { chip, presetId: doc.presetId, items: lines, context: polishContext(doc) },
-        }),
-      });
-      const j = (await r.json().catch(() => null)) as
-        | { items: Suggestion[] }
-        | { error: { message: string; details?: { reason?: string } } }
-        | null;
-      if (!r.ok || !j || 'error' in j)
-        return setState({
-          s: 'denied',
-          d: {
-            message:
-              (j && 'error' in j && j.error.message) || 'That didn’t work. Please try again.',
-            reason: j && 'error' in j ? j.error.details?.reason : undefined,
+    return runTask(`makeover.Suggestions.run.${makeoverId}.${chip}`, async (signal) => {
+      setBusy(true);
+      try {
+        const r = await workspaceFetch('/api/makeover/polish', {
+          signal,
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            ...(account.user?.uid ? { 'X-Workspace-Owner': account.user.uid } : {}),
           },
+          body: JSON.stringify({
+            makeoverId,
+            input: { chip, presetId: doc.presetId, items: lines, context: polishContext(doc) },
+          }),
         });
-      setState({ s: 'done', items: j.items, decided: {} });
-    } catch {
-      setState({ s: 'denied', d: { message: 'That didn’t work. Please try again.' } });
-    }
+        signal.throwIfAborted();
+        const j = (await r.json().catch(() => null)) as
+          | { items: Suggestion[] }
+          | { error: { message: string; details?: { reason?: string } } }
+          | null;
+        signal.throwIfAborted();
+        if (!r.ok || !j || 'error' in j)
+          return setState({
+            s: 'denied',
+            d: {
+              message:
+                (j && 'error' in j && j.error.message) || 'That didn’t work. Please try again.',
+              reason: j && 'error' in j ? j.error.details?.reason : undefined,
+            },
+          });
+        setState({ s: 'done', items: j.items, decided: {} });
+      } catch {
+        signal.throwIfAborted();
+        setState({ s: 'denied', d: { message: 'That didn’t work. Please try again.' } });
+      } finally {
+        setBusy(false);
+      }
+    }).catch((error: unknown) => {
+      if (!(error instanceof Error && error.name === 'AbortError')) throw error;
+    });
   }
 
-  if (state.s === 'idle')
+  if (!busy && state.s === 'idle')
     return (
       <Card className="flex flex-col items-start gap-3 p-4">
         <p className="text-[15px]">
@@ -153,7 +182,7 @@ function Suggestions({
         </Button>
       </Card>
     );
-  if (state.s === 'busy')
+  if (busy)
     return (
       <Card className="flex items-center gap-3 p-4" role="status">
         <Spinner /> {t('Checking your lines…')}
@@ -176,6 +205,7 @@ function Suggestions({
       </Card>
     );
 
+  if (state.s !== 'done') return null;
   const open = state.items.filter((it) => !state.decided[it.id]);
   const decide = (ids: string[], v: 'yes' | 'no') => {
     const accepted = state.items.filter((it) => ids.includes(it.id) && v === 'yes');
@@ -287,9 +317,9 @@ function GapsList({
           {t(f.label)}
           <input
             className="border-line-strong bg-surface h-11 rounded-md border px-3 text-[15px] font-normal"
-            defaultValue={doc.basics[f.key]}
-            onBlur={(e) => {
-              const v = e.target.value.trim();
+            value={doc.basics[f.key]}
+            onChange={(e) => {
+              const v = e.target.value;
               if (v !== doc.basics[f.key]) onBasics({ [f.key]: v });
             }}
           />

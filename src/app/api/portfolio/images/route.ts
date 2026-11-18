@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { NextResponse } from 'next/server';
 import { apiError, createRateLimiter, readBytes, requestId } from '@/lib/http';
 import { planFor } from '@/modules/billing/server';
@@ -19,7 +20,7 @@ const limit = (g.__portfolioImageLimiter ??= createRateLimiter({
  * POST (the picture's bytes; the browser resizes it first) → { image: { id } }. Premium, like the
  * portfolio. The type comes from the bytes; only WebP, JPEG and PNG up to 600 KB are kept.
  */
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   const rid = requestId();
   const user = await currentUser();
   if (!user) return apiError('SIGN_IN_REQUIRED', 'Please sign in.', rid);
@@ -65,3 +66,5 @@ export async function POST(req: Request) {
     { status: 201, headers: { 'Cache-Control': 'no-store' } },
   );
 }
+
+export const POST = withWorkspaceOwnerErrors(handlePOST);

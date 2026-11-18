@@ -1,4 +1,6 @@
 'use client';
+import { useWorkspaceState, useWorkspaceTask } from '@/features/workspace/context';
+import { useAiField } from '@/features/ai/context';
 
 import { useT } from '@/i18n/client';
 import { useEffect, useId, useRef, useState } from 'react';
@@ -58,7 +60,25 @@ export function SignatureField({
   const pad = useRef<HTMLCanvasElement>(null);
   const file = useRef<HTMLInputElement>(null);
   const drawing = useRef(false);
-  const [editing, setEditing] = useState(!value);
+  const field = useAiField();
+  const runTask = useWorkspaceTask();
+  const [editing, setEditing] = useWorkspaceState(`editor.signature.${field}.editing`, !value);
+  const [pending, setPending] = useWorkspaceState<string | null>(
+    `editor.signature.${field}.pending`,
+    null,
+  );
+  const [uploadFile, setUploadFile] = useWorkspaceState<File | null>(
+    `editor.signature.${field}.upload`,
+    null,
+    { dirty: true },
+  );
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -82,32 +102,45 @@ export function SignatureField({
   async function upload(f: File) {
     setError(null);
     try {
-      if (!/^image\/(png|jpeg|webp)$/.test(f.type))
-        throw new Error('Please choose a PNG or JPG image.');
-      const bmp = await createImageBitmap(f);
-      const c = document.createElement('canvas');
-      const scale = Math.min(1, 1200 / bmp.width, 400 / bmp.height);
-      c.width = Math.round(bmp.width * scale);
-      c.height = Math.round(bmp.height * scale);
-      const ctx = c.getContext('2d')!;
-      ctx.drawImage(bmp, 0, 0, c.width, c.height);
-      bmp.close();
-      // Paper → transparent, ink → dark.
-      const img = ctx.getImageData(0, 0, c.width, c.height);
-      for (let i = 0; i < img.data.length; i += 4) {
-        const lum = 0.3 * img.data[i]! + 0.59 * img.data[i + 1]! + 0.11 * img.data[i + 2]!;
-        const a = lum > 190 ? 0 : Math.min(255, Math.round((190 - lum) * 2.2));
-        img.data[i] = 27;
-        img.data[i + 1] = 35;
-        img.data[i + 2] = 51;
-        img.data[i + 3] = a;
-      }
-      ctx.putImageData(img, 0, 0);
-      const url = finish(c);
-      if (!url) throw new Error('No signature found in that picture.');
-      onChange(url);
-      setEditing(false);
+      setUploadFile(f);
+      await runTask(`editor.signature.${field}.upload`, async (signal) => {
+        if (!/^image\/(png|jpeg|webp)$/.test(f.type))
+          throw new Error('Please choose a PNG or JPG image.');
+        const bmp = await createImageBitmap(f);
+        if (signal.aborted) {
+          bmp.close();
+          signal.throwIfAborted();
+        }
+        const c = document.createElement('canvas');
+        const scale = Math.min(1, 1200 / bmp.width, 400 / bmp.height);
+        c.width = Math.round(bmp.width * scale);
+        c.height = Math.round(bmp.height * scale);
+        const ctx = c.getContext('2d')!;
+        ctx.drawImage(bmp, 0, 0, c.width, c.height);
+        bmp.close();
+        // Paper → transparent, ink → dark.
+        const img = ctx.getImageData(0, 0, c.width, c.height);
+        for (let i = 0; i < img.data.length; i += 4) {
+          const lum = 0.3 * img.data[i]! + 0.59 * img.data[i + 1]! + 0.11 * img.data[i + 2]!;
+          const a = lum > 190 ? 0 : Math.min(255, Math.round((190 - lum) * 2.2));
+          img.data[i] = 27;
+          img.data[i + 1] = 35;
+          img.data[i + 2] = 51;
+          img.data[i + 3] = a;
+        }
+        ctx.putImageData(img, 0, 0);
+        const url = finish(c);
+        if (!url) throw new Error('No signature found in that picture.');
+        setPending(url);
+        if (mounted.current) {
+          onChange(url);
+          setPending(null);
+          setUploadFile(null);
+          setEditing(false);
+        }
+      });
     } catch (e) {
+      if (e instanceof Error && e.name === 'AbortError') return;
       setError(e instanceof Error ? e.message : 'That picture could not be used.');
     }
   }
@@ -117,6 +150,24 @@ export function SignatureField({
       <p id={id} className="text-sm font-semibold">
         {t('Signature')} <span className="text-ink-subtle font-normal">{t('(optional)')}</span>
       </p>
+      {pending && (
+        <Button
+          size="sm"
+          onClick={() => {
+            onChange(pending);
+            setPending(null);
+            setUploadFile(null);
+            setEditing(false);
+          }}
+        >
+          {t('Use uploaded signature')}
+        </Button>
+      )}
+      {uploadFile && !pending && (
+        <Button size="sm" onClick={() => void upload(uploadFile)}>
+          {t('Finish signature upload')}
+        </Button>
+      )}
       {!editing && value ? (
         <div className="flex flex-wrap items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element -- local data URL */}

@@ -1,8 +1,13 @@
 'use client';
 
+import { workspaceFetch as fetch } from '@/features/workspace/request';
+
+import { useWorkspaceState, useWorkspaceTask, useWorkspace } from '@/features/workspace/context';
+
 import { useT } from '@/i18n/client';
-import Link from 'next/link';
+import Link from '@/features/workspace/navigation';
 import { useEffect, useState } from 'react';
+import { getRepository, type DocumentRepository } from '@/modules/storage/repository';
 import { Check, SpellCheck } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
 import { Button, ButtonLink } from '@/components/ui/button';
@@ -25,7 +30,10 @@ type Result = { issues: Issue[]; lines: ProofLine[]; checked: number; unchecked?
  * The last result per CV for this visit to the editor: "Show me" switches to the Content tab
  * (which unmounts the Check tab), and the list must still be there on the way back.
  */
-const kept = new Map<string, { result: Result; state: Record<number, State> }>();
+const kept = new WeakMap<
+  DocumentRepository,
+  Map<string, { result: Result; state: Record<number, State> }>
+>();
 
 /**
  * Proofread the whole CV (spec §9.3): AI lists spelling, grammar and punctuation mistakes; the
@@ -43,13 +51,32 @@ export function ProofreadPanel({
   const t = useT();
   const account = useAccount();
   const { ent, refresh } = useEntitlements();
+  const runTask = useWorkspaceTask();
+  const { store } = useWorkspace();
+  const repository = getRepository();
+  let localCache = kept.get(repository);
+  if (!localCache) {
+    localCache = new Map();
+    kept.set(repository, localCache);
+  }
+  const cache = localCache;
   const [busy, setBusy] = useState(false);
-  const [problem, setProblem] = useState<{ message: string; premium?: boolean } | null>(null);
-  const [result, setResult] = useState<Result | null>(() => kept.get(doc.id)?.result ?? null);
-  const [state, setState] = useState<Record<number, State>>(() => kept.get(doc.id)?.state ?? {});
+  const [problem, setProblem] = useWorkspaceState<{ message: string; premium?: boolean } | null>(
+    'quality.proofreadpanel.problem',
+    null,
+  );
+  const [result, setResult] = useWorkspaceState<Result | null>(
+    'quality.proofreadpanel.result',
+    () => (store ? null : (cache.get(doc.id)?.result ?? null)),
+  );
+  const [state, setState] = useWorkspaceState<Record<number, State>>(
+    'quality.proofreadpanel.state',
+    () => (store ? {} : (cache.get(doc.id)?.state ?? {})),
+  );
   useEffect(() => {
-    if (result) kept.set(doc.id, { result, state });
-  }, [doc.id, result, state]);
+    if (store || !result) return;
+    cache.set(doc.id, { result, state });
+  }, [store, cache, doc.id, result, state]);
   if (ent && ent.features.proofread === false) return null;
   const signedIn = account.status === 'signedIn';
   // Free accounts have no AI actions: say so up front instead of a button that can only fail.
@@ -60,33 +87,38 @@ export function ProofreadPanel({
     setProblem(null);
     const lines = proofLines(doc);
     try {
-      const r = await fetch('/api/quality/proofread', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ document: doc }),
-      });
-      const j = (await r.json().catch(() => null)) as {
-        issues?: Issue[];
-        checked?: number;
-        unchecked?: number;
-        error?: { message: string };
-      } | null;
-      if (!r.ok || !j?.issues) {
-        setProblem({
-          message: j?.error?.message ?? 'We couldn’t proofread this CV just now.',
-          premium: r.status === 402,
+      await runTask('quality.proofreadpanel.run', async (signal) => {
+        const r = await fetch('/api/quality/proofread', {
+          method: 'POST',
+          signal,
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ document: doc }),
         });
-        return;
-      }
-      setResult({
-        issues: j.issues,
-        lines,
-        checked: j.checked ?? lines.length,
-        unchecked: j.unchecked ?? 0,
+        const j = (await r.json().catch(() => null)) as {
+          issues?: Issue[];
+          checked?: number;
+          unchecked?: number;
+          error?: { message: string };
+        } | null;
+        signal.throwIfAborted();
+        if (!r.ok || !j?.issues) {
+          setProblem({
+            message: j?.error?.message ?? 'We couldn’t proofread this CV just now.',
+            premium: r.status === 402,
+          });
+          return;
+        }
+        setResult({
+          issues: j.issues,
+          lines,
+          checked: j.checked ?? lines.length,
+          unchecked: j.unchecked ?? 0,
+        });
+        setState({});
+        refresh();
       });
-      setState({});
-      refresh();
-    } catch {
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') return;
       setProblem({ message: 'You seem to be offline. Please try again.' });
     } finally {
       setBusy(false);

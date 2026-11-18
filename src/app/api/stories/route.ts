@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { NextResponse } from 'next/server';
 import { apiError, readJson, requestId } from '@/lib/http';
 import { currentUser } from '@/modules/identity/session';
@@ -12,7 +13,7 @@ export const dynamic = 'force-dynamic';
 const noStore = { headers: { 'Cache-Control': 'no-store' } };
 
 /** GET → { stories, max, enabled } (the story bank of the signed-in person). */
-export async function GET() {
+async function handleGET() {
   const rid = requestId();
   const user = await currentUser();
   if (!user) return apiError('SIGN_IN_REQUIRED', 'Please sign in to keep stories.', rid);
@@ -24,7 +25,7 @@ export async function GET() {
 }
 
 /** POST StoryInput → the new story. Writing stories yourself is free, up to the plan's number. */
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   const rid = requestId();
   const user = await currentUser();
   if (user) await noteUse(user.uid, 'stories');
@@ -55,3 +56,6 @@ export async function POST(req: Request) {
   await store.putStory(user.uid, story);
   return NextResponse.json({ story }, noStore);
 }
+
+export const GET = withWorkspaceOwnerErrors(handleGET);
+export const POST = withWorkspaceOwnerErrors(handlePOST);

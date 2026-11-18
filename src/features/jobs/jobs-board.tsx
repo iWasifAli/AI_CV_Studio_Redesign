@@ -1,10 +1,24 @@
 'use client';
 
+import {
+  useWorkspaceState,
+  useWorkspaceTask,
+  useWorkspace,
+  useWorkspaceClean,
+} from '@/features/workspace/context';
+
 import { useT } from '@/i18n/client';
-import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
-import { BarChart3, Bell, Briefcase, Link2, Lock, Plus, X } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { useWorkspaceRouter as useRouter } from '@/features/workspace/navigation';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+  type SetStateAction,
+} from 'react';
+import { BarChart3, Bell, Link2, Lock, Plus, X } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -14,16 +28,9 @@ import { useAccount } from '@/features/account/account-context';
 import { useEntitlements } from '@/features/account/entitlements';
 import type { JobFromUrl } from '@/modules/jobs/from-url';
 import { resolveJobBoard, type JobBoardState } from '@/modules/jobs/board';
-import {
-  JOB_OUTCOMES,
-  JOB_STAGES,
-  OUTCOME_LABEL,
-  STAGE_LABEL,
-  type Job,
-  type JobOutcome,
-  type JobStage,
-} from '@/modules/jobs/schema';
+import { STAGE_LABEL, type Job, type JobOutcome, type JobStage } from '@/modules/jobs/schema';
 import { JobsError, jobsApi } from './api';
+import { creationIntent, keepLaterEdits, revisionOf, type CreationIntent } from './workspace-state';
 import { EnhancedBoard } from './enhanced-board';
 import {
   createBoardRequestScope,
@@ -45,7 +52,7 @@ const boardData = (data: { jobs: Job[]; max: number; board?: JobBoardState }): B
   board: resolveJobBoard(data.jobs, data.board),
 });
 
-/** Both renderers share account, add flow and one serialized mutation controller. */
+/** Account, add flow and board moves share one serialized mutation controller. */
 export function JobsBoard() {
   const account = useAccount();
   // Account identity owns the controller: a switch immediately discards its display state.
@@ -61,14 +68,46 @@ function JobsBoardSession() {
   const account = useAccount();
   const { ent } = useEntitlements();
   const toast = useToast();
+  const runTask = useWorkspaceTask();
+  const { ownerUid } = useWorkspace();
+  const [failedAction, setFailedAction] = useWorkspaceState<BoardAction | null>(
+    'jobs.JobsBoardSession.failedAction',
+    null,
+    { dirty: false },
+  );
   const [scope] = useState(createBoardRequestScope);
-  const [data, setData] = useState<BoardData | null>(null);
+  const [boardSnapshot, setBoardSnapshot] = useWorkspaceState<Pick<
+    BoardData,
+    'jobs' | 'board'
+  > | null>('jobs.JobsBoardSession.board', null, { dirty: false });
+  const [max, setMax] = useState(0);
+  const maxRef = useRef(max);
+  useEffect(() => {
+    maxRef.current = max;
+  }, [max]);
+  const data = boardSnapshot ? { ...boardSnapshot, max } : null;
+  const setData = useCallback(
+    (action: SetStateAction<BoardData | null>) => {
+      setBoardSnapshot((current) => {
+        const next =
+          typeof action === 'function'
+            ? action(current ? { ...current, max: maxRef.current } : null)
+            : action;
+        return next ? { jobs: next.jobs, board: next.board } : null;
+      });
+    },
+    [setBoardSnapshot],
+  );
   const confirmed = useRef<BoardData | null>(null);
   const requestGuard = useRef(true);
   const [pending, setPending] = useState(true);
   const [needsRetry, setNeedsRetry] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [opened, setOpened] = useState(false);
+  const [error, setError] = useWorkspaceState<string | null>('jobs.JobsBoardSession.error', null, {
+    dirty: false,
+  });
+  const [opened, setOpened] = useWorkspaceState('jobs.JobsBoardSession.opened', false, {
+    dirty: false,
+  });
   // The Create sheet and Studio Home link here with ?new=1 to open the form straight away.
   const params = useSearchParams();
   const router = useRouter();
@@ -79,18 +118,22 @@ function JobsBoardSession() {
     if (!v && wantsNew) router.replace('/jobs', { scroll: false });
   };
 
-  const refetch = useCallback(async (isCurrent: () => boolean) => {
-    const atStart = confirmed.current?.jobs ?? [];
-    const response = await jobsApi.list();
-    if (!isCurrent()) return false;
-    const next = boardData({
-      ...response,
-      jobs: reconcileBoardRefreshJobs(response.jobs, atStart, confirmed.current?.jobs ?? []),
-    });
-    confirmed.current = next;
-    setData(next);
-    return true;
-  }, []);
+  const refetch = useCallback(
+    async (isCurrent: () => boolean) => {
+      const atStart = confirmed.current?.jobs ?? [];
+      const response = await jobsApi.list({ ownerUid });
+      setMax(response.max);
+      if (!isCurrent()) return false;
+      const next = boardData({
+        ...response,
+        jobs: reconcileBoardRefreshJobs(response.jobs, atStart, confirmed.current?.jobs ?? []),
+      });
+      confirmed.current = next;
+      setData(next);
+      return true;
+    },
+    [ownerUid, setData],
+  );
 
   const load = useCallback(async () => {
     const isCurrent = scope.capture();
@@ -108,15 +151,16 @@ function JobsBoardSession() {
       setError((e as Error).message);
       setNeedsRetry(true);
     }
-  }, [refetch, scope]);
+  }, [refetch, scope, setError]);
   useEffect(() => {
     if (account.status !== 'signedIn') return;
     scope.open();
     const isCurrent = scope.capture();
     requestGuard.current = true;
-    void jobsApi.list().then(
+    void jobsApi.list({ ownerUid }).then(
       (response) => {
         if (!isCurrent()) return;
+        setMax(response.max);
         const next = boardData(response);
         confirmed.current = next;
         setData(next);
@@ -134,7 +178,7 @@ function JobsBoardSession() {
       confirmed.current = null;
       requestGuard.current = true;
     };
-  }, [account.status, account.user?.uid, scope]);
+  }, [account.status, account.user?.uid, scope, ownerUid, setData, setError]);
 
   const move = async (action: BoardAction) => {
     const isCurrent = scope.capture();
@@ -152,6 +196,7 @@ function JobsBoardSession() {
     requestGuard.current = true;
     setPending(true);
     setError(null);
+    setFailedAction(action);
     setData(
       movement
         ? { ...snapshot, ...previewBoardMove(snapshot.jobs, snapshot.board, movement) }
@@ -165,37 +210,56 @@ function JobsBoardSession() {
           },
     );
     try {
-      const result = movement
-        ? await jobsApi.move(movement)
-        : {
-            job: await jobsApi.update(
-              job.id,
-              'stage' in action ? { stage: action.stage } : { outcome: action.outcome },
-            ),
-            board: undefined,
-          };
-      if (!isCurrent()) return;
-      // A job can be added while a move is in flight. Merge into the latest confirmed list.
-      const latest = confirmed.current ?? snapshot;
-      const next = boardData({
-        ...latest,
-        jobs: latest.jobs.map((item) => (item.id === job.id ? result.job : item)),
-        board: result.board ?? latest.board,
+      await runTask('jobs.JobsBoardSession.move', async (signal) => {
+        const result = movement
+          ? await jobsApi.move(movement, { signal, ownerUid })
+          : {
+              job: await jobsApi.update(
+                job.id,
+                'stage' in action ? { stage: action.stage } : { outcome: action.outcome },
+                { signal, ownerUid, expectedRevision: revisionOf(job) },
+              ),
+              board: undefined,
+            };
+        signal.throwIfAborted();
+        setFailedAction(null);
+        // A job can be added while a move is in flight. Merge into the latest confirmed list.
+        const latest = confirmed.current ?? snapshot;
+        const next = boardData({
+          ...latest,
+          jobs: latest.jobs.map((item) => (item.id === job.id ? result.job : item)),
+          board: result.board ?? latest.board,
+        });
+        confirmed.current = next;
+        setData((current) =>
+          current
+            ? boardData({
+                ...current,
+                jobs: current.jobs.map((item) =>
+                  item.id === job.id && revisionOf(item) <= revisionOf(result.job)
+                    ? result.job
+                    : item,
+                ),
+                board:
+                  result.board && result.board.revision >= current.board.revision
+                    ? result.board
+                    : current.board,
+              })
+            : next,
+        );
+        toast.show({
+          tone: 'success',
+          message:
+            movement && movement.fromStage !== movement.toStage
+              ? t('Moved to {stage}', { stage: t(STAGE_LABEL[movement.toStage]) })
+              : t('Saved'),
+        });
+        requestGuard.current = false;
+        setPending(false);
       });
-      confirmed.current = next;
-      setData(next);
-      toast.show({
-        tone: 'success',
-        message:
-          movement && movement.fromStage !== movement.toStage
-            ? t('Moved to {stage}', { stage: t(STAGE_LABEL[movement.toStage]) })
-            : t('Saved'),
-      });
-      requestGuard.current = false;
-      setPending(false);
     } catch (e) {
-      if (!isCurrent()) return;
       setError((e as Error).message);
+      if (!isCurrent()) return;
       setData(confirmed.current);
       try {
         // A failed request may have committed. Reconcile before accepting any more edits.
@@ -306,14 +370,31 @@ function JobsBoardSession() {
           {needsRetry && <p>{t('Refresh the board before moving jobs again.')}</p>}
         </Banner>
       )}
+      {failedAction && error && (
+        <Banner
+          tone="warning"
+          title="Your board change is kept"
+          action={
+            <Button size="sm" disabled={pending} onClick={() => move(failedAction)}>
+              {t('Retry this change')}
+            </Button>
+          }
+        >
+          <p>{JSON.stringify(failedAction)}</p>
+        </Banner>
+      )}
       {adding && (
         <AddJob
           initialUrl={wantsNew ? (params.get('url') ?? '') : ''}
           canFetch={ent?.features.jobFromUrl !== false}
           onCancel={() => setAdding(false)}
           onAdded={(job) => {
-            if (!scope.capture()()) return;
             setAdding(false);
+            setBoardSnapshot((current) =>
+              current
+                ? { ...current, jobs: [job, ...current.jobs.filter((j) => j.id !== job.id)] }
+                : { jobs: [job], board: resolveJobBoard([job]) },
+            );
             const latest = confirmed.current;
             if (latest) {
               // A recovery GET may acknowledge creation before its POST response arrives.
@@ -352,16 +433,60 @@ function AddJob({
   canFetch?: boolean;
 }) {
   const t = useT();
-  const [title, setTitle] = useState('');
-  const [company, setCompany] = useState('');
-  const [location, setLocation] = useState('');
-  const [url, setUrl] = useState(initialUrl);
-  const [advert, setAdvert] = useState('');
+  const runTask = useWorkspaceTask();
+  const { ownerUid, store, tabId, routeKey } = useWorkspace();
+  const markClean = useWorkspaceClean();
+  const [intent, setIntent] = useWorkspaceState<CreationIntent | null>('jobs.AddJob.intent', null, {
+    dirty: false,
+  });
+  const [suggestion, setSuggestion] = useWorkspaceState<JobFromUrl | null>(
+    'jobs.AddJob.suggestion',
+    null,
+    { dirty: false },
+  );
+  const [title, setTitle] = useWorkspaceState('jobs.AddJob.title', '', { dirty: true });
+  const [company, setCompany] = useWorkspaceState('jobs.AddJob.company', '', { dirty: true });
+  const [location, setLocation] = useWorkspaceState('jobs.AddJob.location', '', { dirty: true });
+  const [url, setUrl] = useWorkspaceState('jobs.AddJob.url', initialUrl, { dirty: true });
+  const [advert, setAdvert] = useWorkspaceState('jobs.AddJob.advert', '', { dirty: true });
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useWorkspaceState<string | null>('jobs.AddJob.error', null, {
+    dirty: false,
+  });
+  const latestInputs = useRef({ title, company, location, url, advert });
+  useEffect(() => {
+    latestInputs.current = { title, company, location, url, advert };
+  }, [title, company, location, url, advert]);
+  const generationInputs = () =>
+    JSON.stringify(
+      store && tabId
+        ? Object.fromEntries(
+            Object.entries({ title, company, location, url, advert }).map(([field, value]) => [
+              field,
+              store.readFeature(tabId, `${routeKey}:jobs.AddJob.${field}`) ?? value,
+            ]),
+          )
+        : latestInputs.current,
+    );
+  const applyRead = (job: JobFromUrl, submitted: string) => {
+    if (generationInputs() !== submitted) {
+      setSuggestion(job);
+      return;
+    }
+    setTitle(job.title);
+    setCompany(job.company);
+    setLocation(job.location);
+    setUrl(job.url);
+    setAdvert(job.advert);
+    setSuggestion(null);
+  };
   // R9.5: fill the form from the advert's link (the person checks it, then saves).
   const [reading, setReading] = useState(false);
-  const [read, setRead] = useState<{ host: string; via: JobFromUrl['via'] } | null>(null);
+  const [read, setRead] = useWorkspaceState<{ host: string; via: JobFromUrl['via'] } | null>(
+    'jobs.AddJob.read',
+    null,
+    { dirty: false },
+  );
   const fill = async (link = url) => {
     if (!/^https?:\/\/\S+\.\S+/i.test(link.trim())) {
       setError('Paste the full link to the job advert, starting with https://');
@@ -371,12 +496,11 @@ function AddJob({
     setError(null);
     setRead(null);
     try {
-      const job = await jobsApi.fromUrl(link.trim());
-      setTitle(job.title);
-      setCompany(job.company);
-      setLocation(job.location);
-      setUrl(job.url);
-      setAdvert(job.advert);
+      const submitted = generationInputs();
+      const job = await runTask('jobs.AddJob.readUrl', (signal) =>
+        jobsApi.fromUrl(link.trim(), { signal, ownerUid }),
+      );
+      applyRead(job, submitted);
       setRead({ host: new URL(job.url).hostname.replace(/^www\./, ''), via: job.via });
     } catch (err) {
       // Show where to go next: the advert text box.
@@ -387,20 +511,22 @@ function AddJob({
     }
   };
   // When a site can't be read: fill the form from the advert text the person pasted instead.
-  const [pasteHelp, setPasteHelp] = useState(false);
+  const [pasteHelp, setPasteHelp] = useWorkspaceState('jobs.AddJob.pasteHelp', false, {
+    dirty: false,
+  });
   const [readingText, setReadingText] = useState(false);
   const fillFromText = async () => {
     setReadingText(true);
     setError(null);
     try {
-      const job = await jobsApi.fromText(
-        advert,
-        /^https?:\/\//i.test(url.trim()) ? url.trim() : '',
+      const submitted = generationInputs();
+      const job = await runTask('jobs.AddJob.readText', (signal) =>
+        jobsApi.fromText(advert, /^https?:\/\//i.test(url.trim()) ? url.trim() : '', {
+          signal,
+          ownerUid,
+        }),
       );
-      if (job.title) setTitle(job.title);
-      if (job.company) setCompany(job.company);
-      if (job.location) setLocation(job.location);
-      if (job.advert) setAdvert(job.advert);
+      applyRead(job, submitted);
       setRead({ host: '', via: job.via });
       setPasteHelp(false);
     } catch (err) {
@@ -409,21 +535,64 @@ function AddJob({
       setReadingText(false);
     }
   };
-  const started = useRef(false);
+  const [initialLinkRead, setInitialLinkRead] = useWorkspaceState(
+    'jobs.AddJob.initialLinkRead',
+    '',
+    { dirty: false },
+  );
+  const autoStarted = useRef(false);
   useEffect(() => {
-    if (initialUrl && canFetch && !started.current) {
-      started.current = true;
-      void fill(initialUrl);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialUrl, canFetch]);
+    if (!initialUrl || !canFetch || autoStarted.current || initialLinkRead === initialUrl) return;
+    autoStarted.current = true;
+    setInitialLinkRead(initialUrl);
+    // Persist the first-visit intent before a link can incur AI work; reload never replays it.
+    const start = async () => {
+      if (store && tabId) {
+        await store.flush();
+        if (
+          !store.isLive() ||
+          store.readFeature(tabId, `${routeKey}:jobs.AddJob.url`) !== initialUrl
+        )
+          return;
+      }
+      await fill(initialUrl);
+    };
+    void start().catch(() =>
+      setError('Recovery storage is unavailable. Download a copy before leaving.'),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one automatic attempt per external link, captured by the durable marker
+  }, [initialUrl, canFetch, initialLinkRead]);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setBusy(true);
     setError(null);
     try {
-      onAdded(await jobsApi.create({ title, company, location, url, advert }));
+      await runTask('jobs.AddJob.create', async (signal) => {
+        const input = { title, company, location, url, advert };
+        const nextIntent = creationIntent(intent, input);
+        setIntent(nextIntent);
+        const created = await jobsApi.create(input, {
+          signal,
+          ownerUid,
+          idempotencyKey: nextIntent.key,
+        });
+        const unchanged =
+          !store ||
+          !tabId ||
+          Object.entries(input).every(
+            ([field, value]) =>
+              store.readFeature(tabId, `${routeKey}:jobs.AddJob.${field}`) === value,
+          );
+        onAdded(created);
+        setTitle((current) => keepLaterEdits(current, title, ''));
+        setCompany((current) => keepLaterEdits(current, company, ''));
+        setLocation((current) => keepLaterEdits(current, location, ''));
+        setUrl((current) => keepLaterEdits(current, url, ''));
+        setAdvert((current) => keepLaterEdits(current, advert, ''));
+        setIntent(null);
+        if (unchanged) markClean();
+      });
     } catch (err) {
       setError(err instanceof JobsError ? err.message : 'That didn’t work. Please try again.');
     } finally {
@@ -444,6 +613,35 @@ function AddJob({
             onClick={onCancel}
           />
         </div>
+        {suggestion && (
+          <Banner
+            tone="info"
+            title="Advert details are ready"
+            action={
+              <Button
+                size="sm"
+                onClick={() => {
+                  setTitle(suggestion.title);
+                  setCompany(suggestion.company);
+                  setLocation(suggestion.location);
+                  setUrl(suggestion.url);
+                  setAdvert(suggestion.advert);
+                  setSuggestion(null);
+                }}
+              >
+                {t('Use advert details')}
+              </Button>
+            }
+          >
+            <details>
+              <summary>{t('Review advert details')}</summary>
+              <p>
+                {suggestion.title} — {suggestion.company}
+              </p>
+              <p className="whitespace-pre-wrap">{suggestion.advert}</p>
+            </details>
+          </Banner>
+        )}
         {canFetch && (
           <div className="bg-primary-soft/40 flex flex-col gap-2 rounded-lg p-3">
             <div className="flex flex-wrap items-end gap-2">
@@ -536,6 +734,35 @@ function AddJob({
           maxLength={20000}
           autoFocus={pasteHelp}
         />
+        {suggestion && (
+          <Banner
+            tone="info"
+            title="Advert details are ready"
+            action={
+              <Button
+                size="sm"
+                onClick={() => {
+                  setTitle(suggestion.title);
+                  setCompany(suggestion.company);
+                  setLocation(suggestion.location);
+                  setUrl(suggestion.url);
+                  setAdvert(suggestion.advert);
+                  setSuggestion(null);
+                }}
+              >
+                {t('Use advert details')}
+              </Button>
+            }
+          >
+            <details>
+              <summary>{t('Review advert details')}</summary>
+              <p>
+                {suggestion.title} — {suggestion.company}
+              </p>
+              <p className="whitespace-pre-wrap">{suggestion.advert}</p>
+            </details>
+          </Banner>
+        )}
         {canFetch && (
           <Button
             variant="secondary"

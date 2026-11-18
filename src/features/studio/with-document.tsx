@@ -6,10 +6,27 @@ import { FileQuestion } from 'lucide-react';
 import { ButtonLink } from '@/components/ui/button';
 import type { ResumeDocument } from '@/modules/resume/schema';
 import { getRepository } from '@/modules/storage/repository';
+import { useWorkspace } from '@/features/workspace/context';
 import { useAccount } from '@/features/account/account-context';
 
 /** Loads a CV from this browser. Rendered client-side only (see studio pages). */
 export function WithDocument({
+  id,
+  children,
+}: {
+  id: string;
+  children: (doc: ResumeDocument) => ReactNode;
+}) {
+  const { tabId } = useWorkspace();
+  const account = useAccount();
+  return (
+    <DocumentScope key={`${account.user?.uid ?? 'visitor'}:${tabId ?? 'native'}:${id}`} id={id}>
+      {children}
+    </DocumentScope>
+  );
+}
+
+function DocumentScope({
   id,
   children,
 }: {
@@ -34,7 +51,7 @@ export function MissingDocument() {
   return (
     <main
       id="main"
-      className="flex min-h-dvh flex-col items-center justify-center gap-4 px-6 text-center"
+      className="flex min-h-[calc(100dvh-var(--workspace-tab-height,0px))] flex-col items-center justify-center gap-4 px-6 text-center"
     >
       <span className="bg-sunken text-ink-muted inline-flex size-14 items-center justify-center rounded-full">
         <FileQuestion aria-hidden size={26} />
@@ -63,7 +80,11 @@ export function MissingDocument() {
 export function StudioLoading() {
   const t = useT();
   return (
-    <div className="flex min-h-dvh flex-col" aria-busy="true" aria-label={t('Loading your CV')}>
+    <div
+      className="flex min-h-[calc(100dvh-var(--workspace-tab-height,0px))] flex-col"
+      aria-busy="true"
+      aria-label={t('Loading your CV')}
+    >
       <div className="border-line bg-surface h-16 border-b" />
       <div className="flex flex-1">
         <div className="flex w-full flex-col gap-4 p-5 lg:w-[460px]">

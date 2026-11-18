@@ -1,5 +1,14 @@
 'use client';
 
+import { sameSnapshotValue } from '@/features/workspace/equality';
+import { useCurrentWorkspaceValue } from '@/features/workspace/use-current-value';
+
+import { workspaceFetch } from '@/features/workspace/request';
+
+import { useWorkspaceTask } from '@/features/workspace/context';
+
+import { useWorkspaceState, useWorkspaceScope } from '@/features/workspace/context';
+
 import { useT } from '@/i18n/client';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { CheckCircle2, CircleAlert, CirclePlus, FileUp, Sparkles } from 'lucide-react';
@@ -7,7 +16,7 @@ import { Banner } from '@/components/ui/banner';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { TextField } from '@/components/ui/field';
-import { useAccount } from '@/features/account/account-context';
+import { useAccount, useRepositoryVersion } from '@/features/account/account-context';
 import { useEntitlements } from '@/features/account/entitlements';
 import { cn } from '@/lib/cn';
 import {
@@ -19,7 +28,13 @@ import {
 import { getRepository } from '@/modules/storage/repository';
 import { CopyField } from './copy-field';
 
-type Saved = Review & { compared: boolean; createdAt: string; file: string };
+type Saved = Review & {
+  compared: boolean;
+  createdAt: string;
+  file: string;
+  target?: string;
+  docId?: string;
+};
 const KEY = 'cvstudio:v1:linkedin-review';
 
 const STATUS: Record<
@@ -35,18 +50,20 @@ const STATUS: Record<
   missing: { label: 'Missing', icon: CirclePlus, className: 'bg-info-soft text-info' },
 };
 
-function load(): Saved | null {
+function load(scope: string | null): Saved | null {
+  if (scope) return null;
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = localStorage.getItem(scope ? `${KEY}:${scope}` : KEY);
     return raw ? (JSON.parse(raw) as Saved) : null;
   } catch {
     return null;
   }
 }
-function keep(r: Saved | null) {
+function keep(r: Saved | null, scope: string | null) {
+  if (scope) return;
   try {
-    if (r) localStorage.setItem(KEY, JSON.stringify(r));
-    else localStorage.removeItem(KEY);
+    if (r) localStorage.setItem(scope ? `${KEY}:${scope}` : KEY, JSON.stringify(r));
+    else localStorage.removeItem(scope ? `${KEY}:${scope}` : KEY);
   } catch {
     /* storage full or blocked: the review still shows */
   }
@@ -58,17 +75,56 @@ function keep(r: Saved | null) {
  * the review is kept in this browser.
  */
 export function LinkedinReview() {
+  const runTask = useWorkspaceTask();
+
   const t = useT();
   const account = useAccount();
+  const scope = useWorkspaceScope();
   const { ent, refresh } = useEntitlements();
+  const repositoryVersion = useRepositoryVersion();
   const repo = typeof window === 'undefined' ? null : getRepository();
-  const cvs = useMemo(() => repo?.list() ?? [], [repo]);
-  const [file, setFile] = useState<File | null>(null);
-  const [docId, setDocId] = useState(cvs.find((c) => c.role === 'profile')?.id ?? cvs[0]?.id ?? '');
-  const [target, setTarget] = useState('');
+  const cvs = useMemo(() => repo?.list() ?? [], [repo, repositoryVersion]); // eslint-disable-line react-hooks/exhaustive-deps -- repository event revision
+  const [file, setFile] = useWorkspaceState<File | null>('linkedin.LinkedinReview.file', null, {
+    dirty: true,
+  });
+  const [docId, setDocId] = useWorkspaceState(
+    'linkedin.LinkedinReview.docId',
+    cvs.find((c) => c.role === 'profile')?.id ?? cvs[0]?.id ?? '',
+    { dirty: true },
+  );
+  const [sourceChosen, setSourceChosen] = useWorkspaceState(
+    'linkedin.LinkedinReview.sourceChosen',
+    false,
+    { dirty: false },
+  );
+  useEffect(() => {
+    const next = cvs.find((c) => c.role === 'profile')?.id ?? cvs[0]?.id ?? '';
+    // An explicit 'Don’t compare' choice must remain empty across later syncs.
+    if (!sourceChosen && !docId && next) setDocId((current) => current || next);
+  }, [cvs, docId, sourceChosen, setDocId]);
+  const [target, setTarget] = useWorkspaceState('linkedin.LinkedinReview.target', '', {
+    dirty: true,
+  });
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<{ message: string; premium?: boolean } | null>(null);
-  const [review, setReview] = useState<Saved | null>(load);
+  const [error, setError] = useWorkspaceState<{ message: string; premium?: boolean } | null>(
+    'linkedin.LinkedinReview.error',
+    null,
+    { dirty: false },
+  );
+  const [review, setReview] = useWorkspaceState<Saved | null>(
+    'linkedin.LinkedinReview.review',
+    () => load(scope),
+    { dirty: true },
+  );
+  const [suggestion, setSuggestion] = useWorkspaceState<Saved | null>(
+    'linkedin.LinkedinReview.suggestion',
+    null,
+    { dirty: false },
+  );
+  const currentFile = useCurrentWorkspaceValue('linkedin.LinkedinReview.file', file);
+  const currentDocId = useCurrentWorkspaceValue('linkedin.LinkedinReview.docId', docId);
+  const currentTarget = useCurrentWorkspaceValue('linkedin.LinkedinReview.target', target);
+  const currentReview = useCurrentWorkspaceValue('linkedin.LinkedinReview.review', review);
   const input = useRef<HTMLInputElement>(null);
   const heading = useRef<HTMLHeadingElement>(null);
   const fresh = useRef(false);
@@ -85,49 +141,72 @@ export function LinkedinReview() {
   const off = ent ? !ent.features.linkedinReview : false;
 
   async function run() {
-    if (!file) return;
-    setBusy(true);
-    setError(null);
-    const form = new FormData();
-    form.set('file', file);
-    const doc = docId ? repo?.get(docId) : null;
-    if (doc) form.set('document', JSON.stringify(doc));
-    if (target.trim()) form.set('target', target.trim());
-    try {
-      const r = await fetch('/api/linkedin/review', { method: 'POST', body: form });
-      const j = (await r.json().catch(() => null)) as {
-        review?: Review & { compared: boolean; createdAt: string };
-        error?: { code: string; message: string };
-      } | null;
-      if (!r.ok || !j?.review) {
-        const code = j?.error?.code ?? '';
-        setError({
-          message: j?.error?.message ?? 'The review couldn’t be made. Please try again.',
-          premium: code === 'PREMIUM_REQUIRED' || code === 'LIMIT_REACHED',
+    return runTask('linkedin.LinkedinReview.run', async (signal) => {
+      if (!file) return;
+      setBusy(true);
+      setError(null);
+      const form = new FormData();
+      form.set('file', file);
+      const doc = docId ? repo?.get(docId) : null;
+      if (doc) form.set('document', JSON.stringify(doc));
+      if (target.trim()) form.set('target', target.trim());
+      try {
+        const r = await workspaceFetch('/api/linkedin/review', {
+          signal,
+          method: 'POST',
+          body: form,
+          headers: account.user?.uid ? { 'X-Workspace-Owner': account.user.uid } : undefined,
         });
-        return;
+        signal.throwIfAborted();
+        const j = (await r.json().catch(() => null)) as {
+          review?: Review & { compared: boolean; createdAt: string };
+          error?: { code: string; message: string };
+        } | null;
+        signal.throwIfAborted();
+        if (!r.ok || !j?.review) {
+          const code = j?.error?.code ?? '';
+          setError({
+            message: j?.error?.message ?? 'The review couldn’t be made. Please try again.',
+            premium: code === 'PREMIUM_REQUIRED' || code === 'LIMIT_REACHED',
+          });
+          return;
+        }
+        const next: Saved = {
+          ...j.review,
+          sections: j.review.sections.map((s) => ({ ...s, rewrite: visibleMarkers(s.rewrite) })),
+          file: file.name,
+          target,
+          docId,
+        };
+        if (
+          currentFile() === file &&
+          currentDocId() === docId &&
+          currentTarget() === target &&
+          sameSnapshotValue(currentReview(), review) &&
+          sameSnapshotValue(docId ? repo?.get(docId) : null, doc)
+        ) {
+          fresh.current = true;
+          setReview(next);
+          setSuggestion(null);
+          keep(next, scope);
+        } else setSuggestion(next);
+      } catch {
+        signal.throwIfAborted();
+        setError({ message: 'You seem to be offline. Please try again.' });
+      } finally {
+        setBusy(false);
+        refresh();
       }
-      const next: Saved = {
-        ...j.review,
-        sections: j.review.sections.map((s) => ({ ...s, rewrite: visibleMarkers(s.rewrite) })),
-        file: file.name,
-      };
-      fresh.current = true;
-      setReview(next);
-      keep(next);
-    } catch {
-      setError({ message: 'You seem to be offline. Please try again.' });
-    } finally {
-      setBusy(false);
-      refresh();
-    }
+    }).catch((error: unknown) => {
+      if (!(error instanceof Error && error.name === 'AbortError')) throw error;
+    });
   }
 
   const edit = (i: number, rewrite: string) =>
     setReview((r) => {
       if (!r) return r;
       const next = { ...r, sections: r.sections.map((s, j) => (j === i ? { ...s, rewrite } : s)) };
-      keep(next);
+      keep(next, scope);
       return next;
     });
 
@@ -165,6 +244,26 @@ export function LinkedinReview() {
 
   return (
     <>
+      {suggestion && (
+        <Card className="flex flex-col gap-3 p-5">
+          <h2 className="font-semibold">{t('New review of {file}', { file: suggestion.file })}</h2>
+          {suggestion.target && <p>{t('Target: {target}', { target: suggestion.target })}</p>}
+          {suggestion.sections.map((section, i) => (
+            <p key={i} className="whitespace-pre-wrap">
+              {section.rewrite}
+            </p>
+          ))}
+          <Button
+            onClick={() => {
+              setReview(suggestion);
+              keep(suggestion, scope);
+              setSuggestion(null);
+            }}
+          >
+            {t('Use this review')}
+          </Button>
+        </Card>
+      )}
       <Card className="flex flex-col gap-5 p-5" data-testid="linkedin-review-form">
         <ol className="text-ink-muted flex list-decimal flex-col gap-1 pl-5 text-sm">
           <li>{t('On LinkedIn, open your own profile.')}</li>
@@ -205,7 +304,10 @@ export function LinkedinReview() {
             <select
               className="border-line-strong bg-surface min-h-11 rounded-md border px-3 text-[15px] font-normal"
               value={docId}
-              onChange={(e) => setDocId(e.target.value)}
+              onChange={(e) => {
+                setSourceChosen(true);
+                setDocId(e.target.value);
+              }}
             >
               <option value="">{t('Don’t compare')}</option>
               {cvs.map((c) => (
@@ -349,7 +451,7 @@ export function LinkedinReview() {
             className="self-start"
             onClick={() => {
               setReview(null);
-              keep(null);
+              keep(null, scope);
               setFile(null);
             }}
           >

@@ -129,11 +129,13 @@
 :root:has([data-shell='studio']) {
   --shell-bottom: 4rem;
   --shell-left: 0px;
+  --workspace-top: 3.5rem;
 }
 @media (min-width: 48rem) {
   :root:has([data-shell='studio']) {
     --shell-bottom: 0px;
     --shell-left: 15rem;
+    --workspace-top: 0px;
   }
 }
 

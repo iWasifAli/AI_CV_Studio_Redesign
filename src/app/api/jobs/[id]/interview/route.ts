@@ -1,10 +1,11 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { NextResponse } from 'next/server';
 import { apiError } from '@/lib/http';
 import { runTask } from '@/modules/ai/run';
 import { prepareJobAi } from '@/modules/jobs/ai-route';
 import { profileDigest } from '@/modules/jobs/digest';
 import { checkInterview } from '@/modules/jobs/interview';
-import { saveJobUpdate } from '@/modules/jobs/updates';
+import { saveGeneratedJobUpdate } from '@/modules/jobs/updates';
 import { noteUse } from '@/modules/metrics/activity';
 
 export const runtime = 'nodejs';
@@ -12,7 +13,7 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 90;
 
 /** POST { document } → job with fresh interview preparation (notes from the person's CV). */
-export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
+async function handlePOST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const p = await prepareJobAi(req, ctx);
   if ('error' in p) return p.error;
   await noteUse(p.user.uid, 'mock');
@@ -38,7 +39,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   const interview = checkInterview(r.result, digest, { sourceTitle: p.doc.title });
   // New questions: earlier notes no longer line up, so they are cleared.
   const now = new Date().toISOString();
-  const saved = await saveJobUpdate(p.user.uid, p.job.id, p.rid, (latest) => ({
+  const saved = await saveGeneratedJobUpdate(p, (latest) => ({
     ...latest,
     interview,
     interviewNotes: [],
@@ -51,3 +52,5 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     { headers: { 'Cache-Control': 'no-store' } },
   );
 }
+
+export const POST = withWorkspaceOwnerErrors(handlePOST);

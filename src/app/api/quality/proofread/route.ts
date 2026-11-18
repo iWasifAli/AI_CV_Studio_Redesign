@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { NextResponse } from 'next/server';
 import { apiError, readJson, requestId } from '@/lib/http';
 import { aiModels, getAiProvider } from '@/modules/ai/config';
@@ -21,7 +22,7 @@ const MAX_BODY = 768 * 1024;
  * issue quotes words that are really in one field of the CV, with a fix for exactly those words;
  * the person accepts them one by one in the editor. Nothing is stored.
  */
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   const rid = requestId();
   const user = await currentUser();
   if (user) await noteUse(user.uid, 'proofread');
@@ -112,3 +113,5 @@ export async function POST(req: Request) {
     { headers: { 'Cache-Control': 'no-store' } },
   );
 }
+
+export const POST = withWorkspaceOwnerErrors(handlePOST);

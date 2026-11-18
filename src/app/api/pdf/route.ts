@@ -1,3 +1,4 @@
+import { withWorkspaceOwnerErrors } from '@/modules/identity/api-boundary';
 import { after } from 'next/server';
 import { safeParseResumeDocument } from '@/modules/resume/schema';
 import { pdfFilename } from '@/modules/export/filename';
@@ -19,7 +20,7 @@ const limiter = createRateLimiter({ capacity: PER_MINUTE * 2, refillPerMinute: P
 let inFlight = 0;
 const MAX_CONCURRENT = 4;
 
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   const rid = requestId();
   const rate = limiter(clientKey(req));
   if (!rate.ok)
@@ -125,3 +126,5 @@ function timer() {
   mark.header = () => parts.join(', ');
   return mark;
 }
+
+export const POST = withWorkspaceOwnerErrors(handlePOST);

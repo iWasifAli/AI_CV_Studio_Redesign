@@ -1,5 +1,7 @@
 'use client';
 
+import { useWorkspaceState } from '@/features/workspace/context';
+
 import {
   closestCenter,
   DndContext,
@@ -105,7 +107,11 @@ export function EnhancedBoard({ jobs, board, pending, onMove, onOutcome, reminde
   const destinationRef = useRef<BoardPosition | null>(null);
   const [destination, setDestination] = useState<BoardPosition | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [jumpStage, setJumpStage] = useState<JobStage>('saved');
+  const [jumpStage, setJumpStage] = useWorkspaceState<JobStage>(
+    'jobs.EnhancedBoard.jumpStage',
+    'saved',
+    { dirty: false },
+  );
   const byId = new Map(jobs.map((job) => [job.id, job]));
   // Hidden IDs remain in persisted metadata; only visible cards participate in hit testing.
   const columns = Object.fromEntries(

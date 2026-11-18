@@ -1,9 +1,11 @@
 'use client';
 
 import { useT } from '@/i18n/client';
-import { useId, useState, type KeyboardEvent } from 'react';
+import { useId, type KeyboardEvent } from 'react';
 import { Chip } from '@/components/ui/chip';
 import { cn } from '@/lib/cn';
+import { useWorkspaceState } from '@/features/workspace/context';
+import { useAiField } from '@/features/ai/context';
 import { useSelectionAssist } from '@/features/ai/selection-assist';
 
 const control =
@@ -115,7 +117,11 @@ export function LinesField({
   const auto = useId();
   const id = givenId ?? auto;
   const rows = Math.min(10, Math.max(3, value.length + 1));
-  const assist = useSelectionAssist(value.join('\n'), (next) => onChange(next.split('\n')));
+  const assist = useSelectionAssist(
+    value.join('\n'),
+    (next) => onChange(next.split('\n')),
+    givenId ?? label,
+  );
   return (
     <div className="flex flex-col gap-1.5">
       <label htmlFor={id} className="text-ink text-sm font-semibold">
@@ -160,7 +166,12 @@ export function TagsField({
   const t = useT();
   const auto = useId();
   const id = givenId ?? auto;
-  const [draft, setDraft] = useState('');
+  const field = useAiField();
+  const [draft, setDraft] = useWorkspaceState(
+    `editor.tags.${field}.${givenId ?? label}.draft`,
+    '',
+    { dirty: true },
+  );
   const has = (s: string) => value.some((v) => v.toLowerCase() === s.toLowerCase());
   const add = (raw: string) => {
     const parts = raw

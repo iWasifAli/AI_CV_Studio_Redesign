@@ -3,6 +3,7 @@ import '@fontsource-variable/figtree';
 import '@fontsource-variable/fraunces';
 import '@/styles/globals.css';
 import { ToastProvider } from '@/components/ui/toast';
+import { WorkspaceProvider } from '@/features/workspace/context';
 import { AccountProvider } from '@/features/account/account-context';
 import { ServiceWorker } from '@/features/app/service-worker';
 import { I18nProvider } from '@/i18n/client';
@@ -47,7 +48,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body>
         <I18nProvider lang={lang} dict={DICTS[lang]}>
           <ToastProvider>
-            <AccountProvider>{children}</AccountProvider>
+            <AccountProvider>
+              <WorkspaceProvider enabled={process.env.WORKSPACE_TABS_ENABLED === '1'}>
+                {children}
+              </WorkspaceProvider>
+            </AccountProvider>
             <ServiceWorker />
           </ToastProvider>
         </I18nProvider>
