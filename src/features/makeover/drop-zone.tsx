@@ -59,6 +59,8 @@ export function DropZone({
         <p className="text-lg font-semibold">{t('Drop your CV here')}</p>
         <p className="text-ink-muted text-sm">
           {t('PDF, Word or a photo of a paper CV · up to 10 MB')}
+          {' · '}
+          {t('Free CV score included')}
         </p>
         <input
           ref={input}

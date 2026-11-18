@@ -73,6 +73,7 @@ export function GET() {
           failed: n(t, 'makeover_fail'),
           saved: n(t, 'makeover_saved'),
           designSwitches: n(t, 'makeover_design_switch'),
+          scoreShares: n(t, 'score_share'),
           scansRead: n(t, 'vision_ok'),
           polish: n(t, 'polish_ok'),
         },

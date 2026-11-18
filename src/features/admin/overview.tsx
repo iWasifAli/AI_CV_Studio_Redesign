@@ -46,6 +46,7 @@ type Overview = {
       failed: number;
       saved: number;
       designSwitches: number;
+      scoreShares?: number;
       scansRead: number;
       polish: number;
     };
@@ -200,6 +201,9 @@ function Funnel({ m }: { m: NonNullable<Overview['numbers']['makeover']> }) {
           </li>
         ))}
       </ol>
+      <p className="text-ink-muted mt-2 text-sm" data-testid="score-shares">
+        {t('{n} CV scores shared', { n: m.scoreShares ?? 0 })}
+      </p>
       <p className="text-ink-muted mt-2 text-sm">
         {t(
           '{failed} failed · {previews} previews · {scansRead} scans or photos read ·{v} {designSwitches} design switches · {polish} polish checks',

@@ -2186,6 +2186,8 @@ export const de: Dict = {
   'PDF, PNG or JPG, up to 5 MB each.': 'PDF, PNG oder JPG, jeweils bis zu 5 MB.',
   'PDF, Word or a photo of a paper CV · up to 10 MB':
     'PDF, Word oder ein Foto eines Lebenslaufs auf Papier · bis zu 10 MB',
+  'Free CV score included': 'Kostenloser CV-Score inklusive',
+  '{n} CV scores shared': '{n} CV-Scores geteilt',
   Peek: 'Vorschau',
   'People who can vouch for you — or “Available on request”':
     'Personen, die für Sie bürgen können – oder „Auf Anfrage“',
