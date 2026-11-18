@@ -636,6 +636,308 @@ export const ARTICLES: Article[] = [
     ],
     related: ['editor', 'letters', 'jobs'],
   },
+  {
+    slug: 'download',
+    title: 'Download your CV',
+    summary: 'Get a PDF, a plain ATS PDF, a Word file, a pack with certificates, or a backup.',
+    forWho: 'Anyone ready to send a CV to an employer.',
+    open: { href: '/documents', label: 'Open my CVs' },
+    shots: [
+      {
+        file: 'download-1',
+        alt: 'The Ready to send page with Download PDF, ATS PDF, Download Word and CV with certificates buttons beside a preview of the CV',
+        caption: 'The Ready to send page. The PDF is the same as the preview.',
+      },
+    ],
+    steps: [
+      {
+        title: 'Open Download from your CV',
+        text: 'In your CV choose Download at the top right. You land on Ready to send, with a last check and a preview of the final page.',
+        shot: 0,
+      },
+      {
+        title: 'Choose the file you need',
+        text: 'Download PDF is the CV exactly as designed, for people. ATS PDF is the same CV in one plain column for online application forms. Download Word (.docx) gives you an editable file with the same words and colour in a simple one-column layout.',
+      },
+      {
+        title: 'Add certificates if you need them',
+        text: 'Choose CV with certificates to get your CV and your certificates as one PDF or a ZIP.',
+      },
+      {
+        title: 'Keep a backup',
+        text: 'Choose Save a backup file to keep a copy of the CV on your own device.',
+      },
+    ],
+    tips: [
+      'You need to be signed in to download. The page shows how many downloads you have left this month.',
+      'If a download fails you can use your browser print window and choose Save as PDF.',
+    ],
+    faqs: [
+      {
+        q: 'Will the PDF look like the preview?',
+        a: 'Yes. The page says so: the PDF looks exactly like the preview.',
+      },
+      {
+        q: 'Why can I not download a design?',
+        a: 'Some designs are part of Premium. The page offers Premium, or a free design instead.',
+      },
+    ],
+    related: ['ats', 'check', 'documents'],
+  },
+  {
+    slug: 'ats',
+    title: 'ATS: making your CV readable by employer software',
+    summary: 'What an applicant tracking system is, and when to use the plain ATS version.',
+    forWho: 'Anyone applying through online forms and job sites.',
+    open: { href: '/templates', label: 'Browse designs' },
+    shots: [
+      {
+        file: 'download-1',
+        alt: 'The Ready to send page showing the ATS PDF button with its explanation',
+        caption: 'ATS PDF (plain, one column) sits under Download PDF.',
+      },
+    ],
+    steps: [
+      {
+        title: 'Know what it is',
+        text: 'Many employers use software, called an applicant tracking system, to read CVs before a person does. It needs real text in a clear order. Every design here is built so this software can read it.',
+      },
+      {
+        title: 'Two versions of the same CV',
+        text: 'The designed PDF is for people. The ATS PDF puts the same words in one plain column, in reading order, for online application forms.',
+        shot: 0,
+      },
+      {
+        title: 'Choose the ATS PDF for forms',
+        text: 'On the download page choose ATS PDF (plain, one column) when a form asks you to upload a CV. Send the designed one by email or in person.',
+      },
+    ],
+    tips: [
+      'No format can promise that every system reads a CV perfectly, so keep headings plain and text real.',
+    ],
+    faqs: [
+      {
+        q: 'Do I need both?',
+        a: 'It helps. The designed version looks better to people; the ATS version is the safest for forms.',
+      },
+    ],
+    related: ['download', 'designs', 'check'],
+  },
+  {
+    slug: 'translate',
+    title: 'Translate your CV',
+    summary: 'Get a new CV in another language, check it beside the original, then save it.',
+    forWho: 'Anyone applying in another language, for example German.',
+    open: { href: '/documents', label: 'Open my CVs' },
+    shots: [
+      {
+        file: 'translate-1',
+        alt: 'The Translate this CV dialog with a Translate into language choice and a note that a machine translation is a good start',
+        caption: 'Choose the language. Your CV stays as it is; you get a new one.',
+      },
+    ],
+    steps: [
+      {
+        title: 'Open Translate',
+        text: 'In your CV use the translate button at the top, next to undo and redo.',
+        shot: 0,
+      },
+      {
+        title: 'Choose the language',
+        text: 'Pick the language in Translate into and choose Translate. Translation is part of Premium.',
+      },
+      {
+        title: 'Check it beside the original',
+        text: 'Your name, employers, places, dates, numbers and web links stay exactly as they are. Pieces that need you are marked: write the translation, or keep the original.',
+      },
+      {
+        title: 'Save it as a new CV',
+        text: 'Create the CV. It is saved as a new CV with the language in its name, and your original is untouched.',
+      },
+    ],
+    tips: [
+      'A machine translation is a good start. Ask someone who speaks the language to read it before you send it.',
+      'The studio itself can also be shown in German, from the language choice in the menu.',
+    ],
+    faqs: [{ q: 'Does it use AI actions?', a: 'Yes. The dialog says how many it counts for.' }],
+    related: ['editor', 'premium', 'download'],
+  },
+  {
+    slug: 'premium',
+    title: 'Free account and Premium',
+    summary: 'What is free, what Premium adds, and how to see your own plan and usage.',
+    forWho: 'Anyone deciding whether they need more than the free account.',
+    open: { href: '/premium', label: 'See Premium' },
+    shots: [
+      {
+        file: 'premium-1',
+        alt: 'The Premium page with a table comparing Free and Premium for designs, PDF downloads, AI writing help and imports',
+        caption: 'The Premium page compares Free and Premium line by line.',
+      },
+      {
+        file: 'account-1',
+        alt: 'The Account page showing your plan and how many downloads, imports and AI actions you used this month',
+        caption: 'Your Account page shows your plan and what you have used this month.',
+      },
+    ],
+    steps: [
+      {
+        title: 'Start free',
+        text: 'A free account includes the free designs, a monthly number of PDF downloads and CV imports, and your CVs saved in your account.',
+      },
+      {
+        title: 'See what Premium adds',
+        text: 'Premium is a one-time pass: every design, more downloads and imports, and AI writing help. It never renews by itself.',
+        shot: 0,
+      },
+      {
+        title: 'Check your own usage',
+        text: 'Open Account to see your plan, and your downloads, imports and AI actions this month.',
+        shot: 1,
+      },
+    ],
+    tips: [
+      'The Premium page always shows the current limits and prices; this guide does not repeat them.',
+    ],
+    faqs: [
+      {
+        q: 'Does Premium renew by itself?',
+        a: 'No. It is a one-time pass, and you only pay again if you choose to.',
+      },
+      {
+        q: 'What happens to my CVs if I do not buy it?',
+        a: 'They stay yours, whatever you decide.',
+      },
+    ],
+    related: ['download', 'saving-and-privacy', 'translate'],
+  },
+  {
+    slug: 'saving-and-privacy',
+    title: 'Saving, privacy and deleting',
+    summary: 'Where your CV is kept, what we store, and how to delete a CV or your account.',
+    forWho: 'Anyone who wants to know what happens to their information.',
+    open: { href: '/privacy', label: 'Read the privacy page' },
+    shots: [
+      {
+        file: 'privacy-1',
+        alt: 'The privacy page in plain words with What we store and When information leaves your device',
+        caption:
+          'The privacy page explains what is stored and when information leaves your device.',
+      },
+      {
+        file: 'account-1',
+        alt: 'The Account page with your email, plan, reminder emails and the app install note',
+        caption: 'Account settings, including deleting your account, are on the Account page.',
+      },
+    ],
+    steps: [
+      {
+        title: 'Where your CV is saved',
+        text: 'Without an account, only in this browser. With an account, also in your account, with the last 10 versions of each CV so you can go back. Signing out removes your CVs from that device; they stay in your account.',
+      },
+      {
+        title: 'Read what we store',
+        text: 'The privacy page lists what is kept and when information leaves your device, for example when you download a PDF or use AI help.',
+        shot: 0,
+      },
+      {
+        title: 'Turn AI help off if you prefer',
+        text: 'You can turn AI help off on the privacy page.',
+      },
+      {
+        title: 'Delete a CV or your account',
+        text: 'Delete a CV from Documents; it is removed with all its earlier versions. To delete your whole account, open Account and choose Delete my account.',
+        shot: 1,
+      },
+    ],
+    tips: ['Download a backup before deleting anything you may want later.'],
+    faqs: [
+      {
+        q: 'Does the AI add things about me?',
+        a: 'No. It never adds jobs, dates, qualifications or numbers you did not give. When a detail only you know is needed, it asks and highlights the part until you fill it in.',
+      },
+    ],
+    related: ['documents', 'premium', 'download'],
+  },
+  {
+    slug: 'phone',
+    title: 'Use it on your phone',
+    summary: 'Every step works on a phone, and you can install the app on your home screen.',
+    forWho: 'Anyone who prefers to build or check their CV on a phone.',
+    open: { href: '/start', label: 'Start on my phone' },
+    shots: [
+      {
+        file: 'help-1',
+        alt: 'The Help page with common questions, including Can I use it on my phone',
+        caption: 'The Help page answers common questions, including this one.',
+      },
+    ],
+    steps: [
+      {
+        title: 'Open the site on your phone',
+        text: 'Every step works on a phone. For detailed editing a bigger screen is more comfortable, but it is not required.',
+      },
+      {
+        title: 'Install it',
+        text: 'In Chrome or Edge, choose Install in the address bar or the browser menu. On iPhone and iPad, use Safari: Share, then Add to Home Screen.',
+      },
+      {
+        title: 'Sign in to keep going on any device',
+        text: 'Your CVs are saved in your account and appear on every device you sign in on.',
+        shot: 0,
+      },
+    ],
+    tips: ['On a phone the preview opens on its own tab inside your CV.'],
+    faqs: [
+      {
+        q: 'Is the installed app different?',
+        a: 'No. It is the same studio, opened from your home screen.',
+      },
+    ],
+    related: ['start', 'saving-and-privacy', 'editor'],
+  },
+];
+
+export type Category = { id: string; title: string; blurb: string; slugs: string[] };
+
+/** How the guides are grouped on the learning centre page. Every guide is in exactly one group. */
+export const CATEGORIES: Category[] = [
+  {
+    id: 'get-started',
+    title: 'Get started',
+    blurb: 'Make your first CV, or bring the one you have.',
+    slugs: ['start', 'makeover', 'phone'],
+  },
+  {
+    id: 'write',
+    title: 'Write and improve',
+    blurb: 'Polish your words and check them before anyone else sees them.',
+    slugs: ['editor', 'check', 'letters', 'stories', 'translate'],
+  },
+  {
+    id: 'design',
+    title: 'Design',
+    blurb: 'Choose the look, and the plain version for online forms.',
+    slugs: ['designs', 'ats'],
+  },
+  {
+    id: 'apply',
+    title: 'Apply for jobs',
+    blurb: 'Keep track, practise and plan your next step.',
+    slugs: ['jobs', 'coach', 'skills'],
+  },
+  {
+    id: 'share',
+    title: 'Share and present',
+    blurb: 'Put your story where employers will find it.',
+    slugs: ['linkedin', 'portfolio'],
+  },
+  {
+    id: 'account',
+    title: 'Download, account and privacy',
+    blurb: 'Get your files, and know what happens to your information.',
+    slugs: ['download', 'documents', 'premium', 'saving-and-privacy'],
+  },
 ];
 
 export const articleBySlug = (slug: string) => ARTICLES.find((a) => a.slug === slug);

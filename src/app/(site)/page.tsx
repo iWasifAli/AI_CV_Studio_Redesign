@@ -21,6 +21,7 @@ import { ButtonLink } from '@/components/ui/button';
 import { Container } from '@/components/ui/misc';
 import { StudioPreview } from '@/features/home/studio-preview';
 import { GUIDES } from '@/features/guides/guides';
+import { articleBySlug } from '@/features/learn/articles';
 import { LandingDrop } from '@/features/makeover/landing-drop';
 import { ContinueCardClient } from '@/features/library/client';
 import { PROFESSIONS } from '@/modules/resume/professions';
@@ -298,6 +299,50 @@ export default async function HomePage() {
             </ol>
           </Container>
         </div>
+      </section>
+
+      <section aria-labelledby="learn">
+        <Container className="py-16 lg:py-20">
+          <div className="flex flex-col gap-3 md:max-w-2xl">
+            <h2
+              id="learn"
+              className="font-display text-3xl font-semibold tracking-tight sm:text-4xl"
+            >
+              {t('See everything it can do')}
+            </h2>
+            <p className="text-ink-muted text-lg">
+              {t(
+                'Short videos, real screens and plain steps for every feature, from your first CV to your next interview.',
+              )}
+            </p>
+          </div>
+          <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {['start', 'makeover', 'designs', 'check', 'letters', 'jobs'].map((slug) => {
+              const a = articleBySlug(slug)!;
+              return (
+                <li key={slug}>
+                  <Link
+                    href={`/how-to/${slug}`}
+                    className="border-line bg-surface hover:border-violet block h-full rounded-xl border p-4 transition-colors"
+                  >
+                    <span className="font-semibold">{a.title}</span>
+                    <span className="text-ink-muted mt-1 block text-[15px] leading-relaxed">
+                      {a.summary}
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+          <p className="mt-6">
+            <Link
+              href="/how-to"
+              className="text-violet inline-flex items-center gap-1.5 font-semibold underline-offset-2 hover:underline"
+            >
+              {t('Open the guides')} <ArrowRight aria-hidden size={16} />
+            </Link>
+          </p>
+        </Container>
       </section>
 
       <section aria-labelledby="every-job">

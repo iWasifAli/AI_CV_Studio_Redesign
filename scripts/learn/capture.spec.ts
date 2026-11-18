@@ -116,5 +116,47 @@ test('capture screens', async ({ page }) => {
     await page.goto('/documents');
     await shot(page, 'documents', 1);
   });
+  await step('download', async () => {
+    await page.goto(`/cv/${doc.id}/download`);
+    await page.waitForTimeout(3500);
+    await shot(page, 'download', 1);
+  });
+  await step('translate', async () => {
+    await page.goto(`/cv/${doc.id}`);
+    await page.waitForTimeout(2000);
+    await page.getByTestId('translate-open').click();
+    await page.waitForTimeout(800);
+    await shot(page, 'translate', 1);
+  });
+  await step('privacy', async () => {
+    await page.goto('/privacy');
+    await shot(page, 'privacy', 1);
+  });
+  await step('account', async () => {
+    await page.goto('/account');
+    await page.waitForTimeout(2500);
+    await page.evaluate(() => {
+      const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      for (let n = w.nextNode(); n; n = w.nextNode())
+        n.textContent = (n.textContent ?? '').replace(/api-[\w-]+@example\.com/g, 'you@example.com');
+    });
+    await shot(page, 'account', 1);
+  });
+  await step('help', async () => {
+    await page.goto('/help');
+    await shot(page, 'help', 1);
+  });
+  await step('premium', async () => {
+    // Seen as a visitor, so the page shows the plans and not the test account's pass.
+    await page.context().clearCookies();
+    await page.goto('/premium');
+    // The test setup has sales switched off; hide that notice so the screen shows the plans only.
+    await page.evaluate(() => {
+      for (const el of Array.from(document.querySelectorAll('div,section')))
+        if (/^Premium opens soon/.test(el.textContent ?? '') && el.querySelectorAll('div').length < 3)
+          (el as HTMLElement).style.display = 'none';
+    });
+    await shot(page, 'premium', 1);
+  });
   expect(fs.readdirSync(OUT).length).toBeGreaterThan(10);
 });

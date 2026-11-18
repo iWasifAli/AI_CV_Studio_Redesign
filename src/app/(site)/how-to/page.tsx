@@ -5,7 +5,8 @@ import { JsonLd } from '@/components/seo/json-ld';
 import { ButtonLink } from '@/components/ui/button';
 import { Container } from '@/components/ui/misc';
 import { SITE_URL } from '@/lib/seo';
-import { ARTICLES } from '@/features/learn/articles';
+import { ARTICLES, CATEGORIES, articleBySlug } from '@/features/learn/articles';
+import { GuideFinder, type FinderGroup } from '@/features/learn/guide-finder';
 
 export const metadata: Metadata = {
   title: 'How to use AI CV Studio: features and video tutorials',
@@ -66,6 +67,31 @@ const TUTORIALS: Tutorial[] = [
   },
 ];
 
+const GROUPS: FinderGroup[] = CATEGORIES.map((c) => ({
+  id: c.id,
+  title: c.title,
+  blurb: c.blurb,
+  items: c.slugs.map((slug) => {
+    const a = articleBySlug(slug)!;
+    return {
+      slug,
+      title: a.title,
+      summary: a.summary,
+      category: c.title,
+      text: [
+        a.title,
+        a.summary,
+        a.forWho,
+        ...a.steps.map((x) => `${x.title} ${x.text}`),
+        ...a.faqs.map((f) => `${f.q} ${f.a}`),
+        ...a.tips,
+      ]
+        .join(' ')
+        .toLowerCase(),
+    };
+  }),
+}));
+
 const iso = (s: number) => `PT${s}S`;
 
 export default function HowToPage() {
@@ -96,43 +122,50 @@ export default function HowToPage() {
           real screens, tips and answers. The videos use a sample CV, not anyone&apos;s real one.
         </p>
 
-        <section id="features" aria-labelledby="features-h" className="mt-12 scroll-mt-24">
-          <h2 id="features-h" className="font-display text-2xl font-semibold sm:text-3xl">
-            What is inside
+        <section
+          aria-labelledby="about"
+          className="bg-primary-soft/55 mt-10 rounded-2xl p-6 sm:p-8"
+        >
+          <h2 id="about" className="font-display text-2xl font-semibold sm:text-3xl">
+            What AI CV Studio is
           </h2>
-          <p className="text-ink-muted mt-2 max-w-2xl">
-            Each guide has the steps with real screens, tips and answers. Start with the first
-            three; the rest help once you are applying for jobs.
+          <p className="mt-3 max-w-2xl leading-relaxed">
+            A studio for making a CV that looks professional and that employer software can read.
+            Your words stay yours: it never adds jobs, dates, qualifications or numbers you did not
+            give it.
           </p>
-          <ul className="mt-6 grid gap-4 sm:grid-cols-2">
-            {ARTICLES.map((f) => (
-              <li
-                key={f.slug}
-                className="border-line bg-surface flex flex-col rounded-2xl border p-5 sm:p-6"
-              >
-                <h3 className="text-lg font-semibold">
-                  <Link href={`/how-to/${f.slug}`} className="hover:underline">
-                    {f.title}
-                  </Link>
-                </h3>
-                <p className="text-ink-muted mt-1.5 text-[15px] leading-relaxed">{f.summary}</p>
-                <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
-                  <Link
-                    href={`/how-to/${f.slug}`}
-                    className="text-violet inline-flex items-center gap-1.5 font-semibold underline-offset-2 hover:underline"
-                  >
-                    Read the guide <ArrowRight aria-hidden size={16} />
-                  </Link>
-                  <Link
-                    href={f.open.href}
-                    className="text-ink-muted font-semibold underline-offset-2 hover:underline"
-                  >
-                    {f.open.label}
-                  </Link>
-                </div>
+          <ol className="mt-5 grid gap-4 sm:grid-cols-3">
+            {[
+              [
+                '1. Make it',
+                'Start from your kind of work, or upload the CV you have. Pick a design.',
+              ],
+              [
+                '2. Improve it',
+                'Edit, check and proofread it, add a letter, and translate if you need to.',
+              ],
+              [
+                '3. Use it',
+                'Download a PDF, the ATS version or Word. Track jobs, practise, share a page.',
+              ],
+            ].map(([h, t]) => (
+              <li key={h} className="bg-surface border-line rounded-xl border p-4">
+                <p className="font-semibold">{h}</p>
+                <p className="text-ink-muted mt-1 text-[15px] leading-relaxed">{t}</p>
               </li>
             ))}
-          </ul>
+          </ol>
+        </section>
+
+        <section id="features" aria-labelledby="features-h" className="mt-12 scroll-mt-24">
+          <h2 id="features-h" className="font-display text-2xl font-semibold sm:text-3xl">
+            All the guides
+          </h2>
+          <p className="text-ink-muted mt-2 mb-6 max-w-2xl">
+            {ARTICLES.length} guides, each with a short video, the steps with real screens, tips and
+            answers. Search, or browse by topic.
+          </p>
+          <GuideFinder groups={GROUPS} />
         </section>
 
         <h2 className="font-display mt-16 text-2xl font-semibold sm:text-3xl">Video tutorials</h2>

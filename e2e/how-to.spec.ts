@@ -19,6 +19,15 @@ test('every guide opens, its screenshots load, and the steps are numbered', asyn
   const { ARTICLES } = await import('../src/features/learn/articles');
   await page.goto('/how-to');
   await expect(page.getByRole('link', { name: 'Read the guide' })).toHaveCount(ARTICLES.length);
+  // Search narrows the list across topics.
+  await page.getByRole('searchbox', { name: 'Search the guides' }).fill('ats');
+  await expect(page.getByRole('link', { name: 'Read the guide' }).first()).toBeVisible();
+  const found = await page.getByRole('link', { name: 'Read the guide' }).count();
+  expect(found).toBeGreaterThan(0);
+  expect(found).toBeLessThan(ARTICLES.length);
+  await page.getByRole('searchbox', { name: 'Search the guides' }).fill('zzzz');
+  await expect(page.getByText('Nothing found for that')).toBeVisible();
+  await page.getByRole('searchbox', { name: 'Search the guides' }).fill('');
   for (const a of ARTICLES) {
     await page.goto(`/how-to/${a.slug}`);
     await expect(page.getByRole('heading', { level: 1, name: a.title })).toBeVisible();
@@ -29,4 +38,11 @@ test('every guide opens, its screenshots load, and the steps are numbered', asyn
       expect((await page.request.get(`/learn/${s.file}.webp`)).status(), s.file).toBe(200);
     }
   }
+});
+
+test('the home page links to the guides', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'See everything it can do' })).toBeVisible();
+  await page.getByRole('link', { name: /Open the guides/ }).click();
+  await expect(page).toHaveURL(/\/how-to$/);
 });

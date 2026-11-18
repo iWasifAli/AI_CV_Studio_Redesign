@@ -1,10 +1,16 @@
 import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { ARTICLES, articleBySlug } from './articles';
+import { ARTICLES, CATEGORIES, articleBySlug } from './articles';
 
 describe('learning centre guides', () => {
   it('has unique slugs', () => {
     expect(new Set(ARTICLES.map((a) => a.slug)).size).toBe(ARTICLES.length);
+  });
+
+  it('puts every guide in exactly one group', () => {
+    const all = CATEGORIES.flatMap((c) => c.slugs);
+    expect(new Set(all).size).toBe(all.length);
+    expect([...all].sort()).toEqual(ARTICLES.map((a) => a.slug).sort());
   });
 
   for (const a of ARTICLES) {

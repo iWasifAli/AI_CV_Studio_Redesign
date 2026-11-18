@@ -16,6 +16,7 @@ const PAGES = [
   '/cv-for/nurses-and-carers',
   '/how-to/jobs',
   '/how-to/check',
+  '/how-to/download',
   '/start',
   '/cv/import',
   '/makeover',
