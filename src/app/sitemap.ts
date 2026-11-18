@@ -11,6 +11,7 @@ export const PUBLIC_PATHS = [
   '/start',
   '/makeover',
   '/cv-for',
+  '/how-to',
   '/premium',
   '/portfolio',
   '/linkedin',

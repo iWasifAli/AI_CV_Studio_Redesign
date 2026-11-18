@@ -36,6 +36,7 @@ describe('seo helpers', () => {
     expect(urls).toContain('https://aicvstudio.app');
     expect(urls).toContain('https://aicvstudio.app/templates');
     expect(urls).toContain('https://aicvstudio.app/cv-for/drivers');
+    expect(urls).toContain('https://aicvstudio.app/how-to');
     const live = DEFAULT_CONFIG.designs.filter(isLive);
     for (const d of live) expect(urls).toContain(`https://aicvstudio.app/templates/${d.id}`);
     expect(new Set(urls).size).toBe(urls.length);

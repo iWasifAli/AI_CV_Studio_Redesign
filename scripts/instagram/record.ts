@@ -15,6 +15,22 @@ const OUT = process.argv[3] ?? '.ig-out/videos';
 const SAMPLE_PDF = process.env.SAMPLE_PDF ?? '/tmp/qa3/clarity-engineer.pdf';
 const doc = { ...withPhoto(teacher, PHOTO_FOR['teacher'] ?? 'a'), title: 'My teaching CV' };
 const wait = (p: Page, ms: number) => p.waitForTimeout(ms);
+/** Caption lines with their start times (ms), written out as a WebVTT file next to each video. */
+let cues: { t: number; text: string }[] = [];
+let t0 = 0;
+const mark = (text: string) => cues.push({ t: Date.now() - t0, text });
+const vttTime = (ms: number) => {
+  const s = Math.max(0, ms) / 1000;
+  return `${String(Math.floor(s / 60)).padStart(2, '0')}:${(s % 60).toFixed(3).padStart(6, '0')}`;
+};
+const toVtt = (end: number) =>
+  'WEBVTT\n\n' +
+  cues
+    .map(
+      (c, i) =>
+        `${vttTime(c.t)} --> ${vttTime(cues[i + 1]?.t ?? end)}\n${c.text.replace(/<br>/g, ' ')}\n`,
+    )
+    .join('\n');
 
 /** The caption bar and the intro/end cards live in the page, so they are burned into the video. */
 async function overlay(p: Page) {
@@ -36,11 +52,11 @@ async function overlay(p: Page) {
   // The test setup labels its stand-in AI "DEMO AI"; the real product does not show that.
   await p.evaluate(() => {
     for (const el of Array.from(document.querySelectorAll('span,div,p,small')))
-      if (/^\s*demo ai\s*$/i.test(el.textContent ?? ''))
-        el.setAttribute('data-rec-hide', '1');
+      if (/^\s*demo ai\s*$/i.test(el.textContent ?? '')) el.setAttribute('data-rec-hide', '1');
   });
 }
 const say = async (p: Page, text: string) => {
+  mark(text);
   await overlay(p);
   await p.evaluate((t) => {
     let c = document.getElementById('rec-cap');
@@ -53,6 +69,7 @@ const say = async (p: Page, text: string) => {
   }, text);
 };
 const card = async (p: Page, kicker: string, title: string, foot: string) => {
+  mark(`${kicker}: ${title}`);
   await overlay(p);
   await p.evaluate(
     ([k, t, f]) => {
@@ -186,8 +203,12 @@ for (const name of names) {
     localStorage.setItem(`cvstudio:v1:doc:${d.id}`, JSON.stringify(d));
   }, doc);
   const page = await ctx.newPage();
+  cues = [];
+  t0 = Date.now();
   await scene.run(page);
+  const total = Date.now() - t0;
   await ctx.close();
+  fs.writeFileSync(path.join(OUT, `${name}.vtt`), toVtt(total));
   const webm = fs.readdirSync(tmp).find((f) => f.endsWith('.webm'))!;
   const mp4 = path.join(OUT, `${name}.mp4`);
   execFileSync(

@@ -1495,6 +1495,7 @@ export const de: Dict = {
     'Wie viele KI-Aktionen größere Aufgaben vom monatlichen Kontingent eines Tarifs verbrauchen.',
   'How the studio is doing this month.': 'So läuft das Studio diesen Monat.',
   'How to pay': 'So bezahlen Sie',
+  'How to use': 'Anleitung',
   'How well?': 'Wie gut?',
   'How you fit': 'Wie Sie passen',
   'How you found them or who introduced you':

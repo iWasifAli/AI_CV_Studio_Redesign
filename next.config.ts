@@ -43,6 +43,8 @@ const nextConfig: NextConfig = {
     '/templates': ['./public/templates/**'],
     // The link-preview image used by every page's <meta property="og:image">.
     '/': ['./public/og/**'],
+    // The how-to videos, their captions and poster images.
+    '/how-to': ['./public/videos/**'],
     // The installable app: service worker and icons (served from public/).
     '/offline': ['./public/sw.js', './public/icons/**'],
   },

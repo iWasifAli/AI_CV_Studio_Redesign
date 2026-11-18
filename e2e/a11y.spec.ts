@@ -12,6 +12,7 @@ const PAGES = [
   '/templates',
   '/templates/clarity',
   '/cv-for',
+  '/how-to',
   '/cv-for/nurses-and-carers',
   '/start',
   '/cv/import',
