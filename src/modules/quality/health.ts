@@ -1,4 +1,5 @@
 import type { ExperienceItem, ResumeDocument } from '@/modules/resume/schema';
+import { standardOf } from '@/modules/resume/standards';
 import { findGaps, gapLength } from './gaps';
 
 /**
@@ -381,9 +382,9 @@ export function healthCheck(
   // Personal details and photos: the advice depends on where the person applies (doc.market,
   // chosen in the editor; without it the advice stays general). In Germany, Austria and Switzerland a date of birth, nationality and a photo are
   // still common; in the UK, Ireland, the US, Canada and Australia they are discouraged.
-  const country = doc.market ?? '';
-  const dach = ['DE', 'AT', 'CH', 'LI', 'LU'].includes(country);
-  const strict = ['GB', 'UK', 'IE', 'US', 'CA', 'AU', 'NZ'].includes(country);
+  const std = standardOf(doc);
+  const dach = std?.personalDetailsUsual === true;
+  const strict = std !== undefined && std.id !== 'international' && !std.personalDetailsUsual;
   const personal = allText.match(PERSONAL_DETAILS);
   const sensitive = allText.match(SENSITIVE_DETAILS);
   if (dach) {
@@ -392,8 +393,7 @@ export function healthCheck(
         id: 'personal-details',
         severity: 'improve',
         title: 'Leave out religion, marital status and ID numbers',
-        detail:
-          'In German-speaking countries a date of birth and nationality are still common on a CV, but religion, marital status and ID or passport numbers are not needed. Leave them out unless the job asks.',
+        detail: `For ${std!.name} CVs a date of birth and nationality are customary, but religion, marital status and ID or passport numbers are not needed. Leave them out unless the job asks.`,
         examples: [sensitive[0]],
       });
   } else if (personal)
@@ -412,7 +412,7 @@ export function healthCheck(
       severity: 'improve',
       title: 'A photo is unusual here',
       detail:
-        'In the UK, Ireland, the US, Canada and Australia most employers prefer CVs without a photo, to avoid unfair judgements. You can hide it with “Hide on CV” and keep it for other applications.',
+        'For this CV standard most employers prefer CVs without a photo, to avoid unfair judgements. You can hide it with “Hide on CV” and keep it for other applications.',
     });
 
   if (opts.pages && opts.pages > 2)

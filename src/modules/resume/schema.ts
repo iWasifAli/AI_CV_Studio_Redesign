@@ -304,6 +304,11 @@ export const resumeDocument = z.object({
     .regex(/^[A-Z]{2}$/)
     .optional()
     .catch(undefined),
+  /** CV standard the person converted to (see standards.ts); falls back to the country's. */
+  standard: z
+    .enum(['international', 'uk', 'us', 'europe', 'gulf', 'southasia'])
+    .optional()
+    .catch(undefined),
   createdAt: z.string(),
   updatedAt: z.string(),
   parentId: z.string().optional(),

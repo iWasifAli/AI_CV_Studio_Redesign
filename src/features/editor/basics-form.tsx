@@ -10,6 +10,14 @@ import { newId } from '@/modules/resume/create';
 import type { ResumeDocument } from '@/modules/resume/schema';
 import { CV_LANGUAGES, cvLang, withCvLanguage } from '@/modules/resume/cv-words';
 import { MARKETS } from '@/modules/resume/markets';
+import {
+  STANDARDS,
+  applyStandard,
+  standardForMarket,
+  standardGaps,
+  standardOf,
+  type StandardId,
+} from '@/modules/resume/standards';
 import { PhotoField } from './photo-field';
 import type { DocumentEditor } from './use-document-editor';
 
@@ -83,6 +91,39 @@ export function BasicsForm({
         onChange={(e) => set({ location: e.target.value }, 'location')}
       />
       <label className="col-span-2 flex flex-col gap-1.5 text-sm font-semibold">
+        {t('CV standard')}
+        <span className="text-ink-muted font-normal">
+          {t(
+            'Pick the style employers expect. Your CV is converted: paper size, photo and advice. Your text is not changed.',
+          )}
+        </span>
+        <select
+          className="border-line-strong bg-surface min-h-11 rounded-md border px-3 text-[15px] font-normal"
+          value={standardOf(doc)?.id ?? ''}
+          onChange={(e) => {
+            const id = e.target.value as StandardId | '';
+            update((d) => (id ? applyStandard(d, id) : { ...d, standard: undefined }), 'standard');
+          }}
+          data-testid="standard"
+        >
+          <option value="">{t('Not chosen')}</option>
+          {STANDARDS.map((st) => (
+            <option key={st.id} value={st.id}>
+              {t(st.name)}
+            </option>
+          ))}
+        </select>
+        {standardOf(doc) && (
+          <span className="text-ink-muted text-[13px] font-normal" data-testid="standard-info">
+            {t(standardOf(doc)!.summary)}
+            {standardGaps(doc).length > 0 &&
+              ` ${standardGaps(doc)
+                .map((g) => t(g))
+                .join('. ')}.`}
+          </span>
+        )}
+      </label>
+      <label className="col-span-2 flex flex-col gap-1.5 text-sm font-semibold">
         {t('Where you’re applying')}
         <span className="text-ink-muted font-normal">
           {t('For advice that fits the country (photo, date of birth). Optional.')}
@@ -99,7 +140,12 @@ export function BasicsForm({
                   ? 'Letter'
                   : 'A4'
                 : d.design.pageSize;
-              return { ...ops.setDesign(d, { pageSize }), market };
+              const next = { ...ops.setDesign(d, { pageSize }), market };
+              // Choosing a country converts the CV to that country's standard, unless the person
+              // picked a standard themselves.
+              const std = standardForMarket(market);
+              const own = d.standard && d.standard !== standardForMarket(d.market)?.id;
+              return std && !own ? applyStandard(next, std.id) : next;
             }, 'market')
           }
           data-testid="market"
