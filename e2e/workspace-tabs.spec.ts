@@ -54,3 +54,36 @@ test('tabs remember their own page, switch, close and survive a reload', async (
   await expect(page).toHaveURL(/\/studio/);
   await expect(page.getByTestId('tab-strip').getByTestId('tab')).toHaveCount(1);
 });
+
+test('unsaved input stays with its own tab through a switch and a reload', async ({
+  page,
+  request,
+}) => {
+  await on(request, true);
+  await page.goto('/letters/new?type=cover');
+  const strip = page.getByTestId('tab-strip');
+  await expect(strip).toBeVisible();
+  const to = page.getByLabel('Who it’s to').first();
+  await expect(to).toBeVisible();
+  await to.fill('Acme Ltd');
+
+  // A second tab on the same kind of page starts empty and keeps its own text.
+  await strip.getByTestId('tab-new').click();
+  await page.goto('/letters/new?type=cover');
+  const second = page.getByLabel('Who it’s to').first();
+  await expect(second).toHaveValue('');
+  await second.fill('Beta Inc');
+
+  // Switching back shows the first tab's text, and the second keeps its own after a reload.
+  await strip.getByTestId('tab').nth(0).click();
+  await expect(page.getByLabel('Who it’s to').first()).toHaveValue('Acme Ltd');
+  await strip.getByTestId('tab').nth(1).click();
+  await page.reload();
+  await expect(page.getByLabel('Who it’s to').first()).toHaveValue('Beta Inc');
+
+  // Closing the second tab throws its draft away; opening a new one does not bring it back.
+  await page.getByTestId('tab-strip').getByTestId('tab-close').nth(1).click();
+  await page.getByTestId('tab-strip').getByTestId('tab-new').click();
+  await page.goto('/letters/new?type=cover');
+  await expect(page.getByLabel('Who it’s to').first()).toHaveValue('');
+});

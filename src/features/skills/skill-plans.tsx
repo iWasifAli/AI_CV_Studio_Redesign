@@ -4,6 +4,7 @@ import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
+import { useDraft } from '@/features/workspace/use-draft';
 import { BookOpen, CircleCheck, CircleDashed, Lock, PenLine, Sparkles, Trash2 } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
 import { Button, ButtonLink } from '@/components/ui/button';
@@ -60,11 +61,14 @@ export function SkillPlans() {
   const [error, setError] = useState<string | null>(null);
   // ?role= comes from Career paths ("Plan the skills for this role").
   const askedRole = (params.get('role') ?? '').slice(0, 80);
-  const [target, setTarget] = useState<{ kind: 'job' | 'role'; jobId: string; role: string }>({
-    kind: askedRole ? 'role' : 'job',
-    jobId: params.get('job') ?? '',
-    role: askedRole,
-  });
+  const [target, setTarget] = useDraft<{ kind: 'job' | 'role'; jobId: string; role: string }>(
+    'skills:target',
+    {
+      kind: askedRole ? 'role' : 'job',
+      jobId: params.get('job') ?? '',
+      role: askedRole,
+    },
+  );
   const [openId, setOpenId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<{ message: string; premium?: boolean } | null>(null);

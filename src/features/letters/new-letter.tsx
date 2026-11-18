@@ -5,6 +5,7 @@ import { cvWords } from '@/modules/resume/cv-words';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useMemo, useState, type FormEvent } from 'react';
+import { useDraft } from '@/features/workspace/use-draft';
 import { ArrowLeft, Lock, PenLine, Sparkles } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
 import { Button, ButtonLink } from '@/components/ui/button';
@@ -97,9 +98,15 @@ function LetterForm({ type }: { type: LetterType }) {
   const repo = typeof window === 'undefined' ? null : getRepository();
   const cvs = useMemo(() => repo?.list() ?? [], [repo]);
   const [sourceId, setSourceId] = useState(() => defaultSourceCv(cvs));
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [to, setTo] = useState('');
-  const [tone, setTone] = useState<'warm' | 'formal'>(type.id === 'cover' ? 'warm' : 'formal');
+  const [answers, setAnswers, clearAnswers] = useDraft<Record<string, string>>(
+    `letter-new:${type.id}:answers`,
+    {},
+  );
+  const [to, setTo, clearTo] = useDraft(`letter-new:${type.id}:to`, '');
+  const [tone, setTone, clearTone] = useDraft<'warm' | 'formal'>(
+    `letter-new:${type.id}:tone`,
+    type.id === 'cover' ? 'warm' : 'formal',
+  );
   const [busy, setBusy] = useState<null | 'ai' | 'self'>(null);
   const [problem, setProblem] = useState<{ message: string; premium?: boolean } | null>(null);
   const [touched, setTouched] = useState(false);
@@ -148,10 +155,16 @@ function LetterForm({ type }: { type: LetterType }) {
           await lettersApi.draft(letter.id, source, tone);
         } catch (err) {
           // The letter is kept with the starter draft; say why the AI draft is missing.
+          clearAnswers();
+          clearTo();
+          clearTone();
           router.push(`/letters/${letter.id}?ai=${encodeURIComponent((err as Error).message)}`);
           return;
         }
       }
+      clearAnswers();
+      clearTo();
+      clearTone();
       router.push(`/letters/${letter.id}`);
     } catch (err) {
       setProblem(

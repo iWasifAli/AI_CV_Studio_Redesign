@@ -3,6 +3,7 @@
 import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import { useDraft } from '@/features/workspace/use-draft';
 import { BookOpen, Lock, Pencil, Plus, Sparkles, Trash2 } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
 import { Button, ButtonLink } from '@/components/ui/button';
@@ -52,7 +53,7 @@ export function StoryBank() {
     null,
   );
   const [error, setError] = useState<string | null>(null);
-  const [editing, setEditing] = useState<Draft | null>(null);
+  const [editing, setEditing] = useDraft<Draft | null>('story-edit', null);
   const [busy, setBusy] = useState<string | null>(null);
   const [problem, setProblem] = useState<{ message: string; premium?: boolean } | null>(null);
 

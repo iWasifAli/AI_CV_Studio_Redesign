@@ -4,6 +4,7 @@ import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import { useDraftSlot } from '@/features/workspace/use-draft';
 import { ArrowLeft, ExternalLink, Trash2 } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
@@ -72,6 +73,7 @@ export function JobDetail({ id }: { id: string }) {
   const { ent } = useEntitlements();
   const [job, setJob] = useState<Job | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
+  const slot = useDraftSlot<Draft>(`job-edit:${id}`);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -79,11 +81,18 @@ export function JobDetail({ id }: { id: string }) {
     jobsApi.get(id).then(
       (j) => {
         setJob(j);
-        setDraft(pick(j));
+        // Unsaved edits from this tab come back; otherwise the saved record.
+        setDraft(slot.read() ?? pick(j));
       },
       (e: Error) => setError(e.message),
     );
-  }, [id]);
+  }, [id, slot]);
+  // Keep edits that are not saved yet, for this tab only.
+  useEffect(() => {
+    if (!job || !draft) return;
+    if (JSON.stringify(pick(job)) !== JSON.stringify(draft)) slot.write(draft);
+    else slot.clear();
+  }, [job, draft, slot]);
 
   if (!job || !draft)
     return error ? (

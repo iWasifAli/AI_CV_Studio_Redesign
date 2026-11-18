@@ -3,6 +3,7 @@
 import { useT } from '@/i18n/client';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useDraft } from '@/features/workspace/use-draft';
 import { Lock, Send, Sparkles, Trash2 } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
 import { Button, ButtonLink } from '@/components/ui/button';
@@ -65,7 +66,7 @@ export function CoachChat({ jobs }: { jobs: Job[] }) {
   const toast = useToast();
   const { ent, refresh } = useEntitlements();
   const [thread, setThread] = useState<CoachThread | null | undefined>(undefined);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useDraft('coach:message', '');
   const [busy, setBusy] = useState<string | null>(null);
   const [problem, setProblem] = useState<{ message: string; premium?: boolean } | null>(null);
   const end = useRef<HTMLLIElement>(null);

@@ -1,12 +1,13 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { useEffect, useSyncExternalStore, type ReactNode } from 'react';
+import { Fragment, useEffect, useSyncExternalStore, type ReactNode } from 'react';
 import { AnnouncementBar } from '@/components/layout/announcement-bar';
 import { SiteFooter } from '@/components/layout/site-footer';
 import { SiteHeader } from '@/components/layout/site-header';
 import { useAccount } from '@/features/account/account-context';
 import { useEntitlements } from '@/features/account/entitlements';
+import { activeTab } from '@/features/workspace/active';
 import { TabStrip } from '@/features/workspace/tab-strip';
 import { ShellBottom, ShellTop } from './studio-shell';
 
@@ -19,6 +20,12 @@ const HINT = 'aicv.shell';
 export function SiteChrome({ children }: { children: ReactNode }) {
   const { status } = useAccount();
   const { ent } = useEntitlements();
+  // A new epoch (switching tabs) remounts the page, so each tab shows its own state.
+  const epoch = useSyncExternalStore(
+    activeTab.subscribe,
+    () => activeTab.get().epoch,
+    () => 0,
+  );
   const hint = useSyncExternalStore(
     () => () => {},
     () => {
@@ -57,7 +64,7 @@ export function SiteChrome({ children }: { children: ReactNode }) {
         id="main"
         className={shell ? 'min-h-dvh pb-20 md:pb-0' : 'min-h-[calc(100dvh-4rem)] flex-1'}
       >
-        {children}
+        <Fragment key={epoch}>{children}</Fragment>
       </main>
       <Bottom shell={shell} />
     </div>

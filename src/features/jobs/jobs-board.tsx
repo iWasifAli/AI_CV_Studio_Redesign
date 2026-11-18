@@ -4,6 +4,7 @@ import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
+import { useDraft } from '@/features/workspace/use-draft';
 import { BarChart3, Bell, Briefcase, Link2, Lock, Plus, X } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
 import { Button, ButtonLink } from '@/components/ui/button';
@@ -352,11 +353,13 @@ function AddJob({
   canFetch?: boolean;
 }) {
   const t = useT();
-  const [title, setTitle] = useState('');
-  const [company, setCompany] = useState('');
-  const [location, setLocation] = useState('');
-  const [url, setUrl] = useState(initialUrl);
-  const [advert, setAdvert] = useState('');
+  const [title, setTitle, clearTitle] = useDraft('job-new:title', '');
+  const [company, setCompany, clearCompany] = useDraft('job-new:company', '');
+  const [location, setLocation, clearLocation] = useDraft('job-new:location', '');
+  const [url, setUrl, clearUrl] = useDraft('job-new:url', initialUrl);
+  const [advert, setAdvert, clearAdvert] = useDraft('job-new:advert', '');
+  const clearDrafts = () =>
+    [clearTitle, clearCompany, clearLocation, clearUrl, clearAdvert].forEach((f) => f());
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // R9.5: fill the form from the advert's link (the person checks it, then saves).
@@ -423,7 +426,9 @@ function AddJob({
     setBusy(true);
     setError(null);
     try {
-      onAdded(await jobsApi.create({ title, company, location, url, advert }));
+      const created = await jobsApi.create({ title, company, location, url, advert });
+      clearDrafts();
+      onAdded(created);
     } catch (err) {
       setError(err instanceof JobsError ? err.message : 'That didn’t work. Please try again.');
     } finally {
@@ -441,7 +446,10 @@ function AddJob({
             size="sm"
             aria-label={t('Close')}
             icon={<X aria-hidden size={18} />}
-            onClick={onCancel}
+            onClick={() => {
+              clearDrafts();
+              onCancel();
+            }}
           />
         </div>
         {canFetch && (
@@ -558,7 +566,13 @@ function AddJob({
           <Button type="submit" loading={busy}>
             {t('Save job')}
           </Button>
-          <Button variant="ghost" onClick={onCancel}>
+          <Button
+            variant="ghost"
+            onClick={() => {
+              clearDrafts();
+              onCancel();
+            }}
+          >
             {t('Cancel')}
           </Button>
         </div>

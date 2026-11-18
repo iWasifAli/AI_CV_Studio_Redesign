@@ -6,6 +6,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Plus, X } from 'lucide-react';
 import { useAccount } from '@/features/account/account-context';
 import { cn } from '@/lib/cn';
+import { activeTab } from './active';
+import { clearAllDrafts, clearTabDrafts } from './drafts';
 import {
   MAX_TABS,
   activate,
@@ -69,16 +71,34 @@ export function TabStrip() {
   }, [uid, state]);
 
   const go = useCallback(
-    (next: TabsState) => {
+    (next: TabsState, closed?: string) => {
+      if (!uid) return;
       const target = next.tabs.find((x) => x.id === next.active)!.href;
+      // Saved before navigating, so the page that opens can find its tab and its drafts at once.
+      try {
+        sessionStorage.setItem(key(uid), JSON.stringify(next));
+      } catch {}
+      if (closed) clearTabDrafts(uid, closed);
       setState(() => next);
+      const switched = next.active !== activeTab.get().id;
+      if (switched) activeTab.set(next.active, true);
       if (target !== here) {
         heading.current = target;
         router.push(target);
       }
     },
-    [here, router, setState],
+    [uid, here, router, setState],
   );
+
+  // Which tab is on screen: known from the first load, and cleared with the account.
+  useEffect(() => {
+    if (!uid || !state) {
+      activeTab.set(null, false);
+      if (!uid) clearAllDrafts();
+      return;
+    }
+    if (activeTab.get().id === null) activeTab.set(state.active, false);
+  }, [uid, state]);
 
   if (!uid || !state) return null;
   const full = state.tabs.length >= MAX_TABS;
@@ -115,7 +135,7 @@ export function TabStrip() {
                 type="button"
                 aria-label={t('Close {title}', { title: t(tab.title) })}
                 className="text-ink-muted hover:text-ink grid size-9 place-items-center"
-                onClick={() => go(close(state, tab.id))}
+                onClick={() => go(close(state, tab.id), tab.id)}
                 data-testid="tab-close"
               >
                 <X aria-hidden size={14} />
