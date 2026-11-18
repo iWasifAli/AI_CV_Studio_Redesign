@@ -9,6 +9,7 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { apiSignUp, setPremium } from '../../e2e/support/auth';
+import { GUIDES } from '../../src/features/guides/guides';
 import { teacher, withPhoto, PHOTO_FOR } from '../../src/modules/resume/fixtures';
 
 const BASE = process.env.BASE_URL ?? 'http://localhost:3100';
@@ -181,7 +182,10 @@ const scroll = (dy: number) => async (p: Page) => {
 };
 
 /** Signed-in scenes need the Auth emulator and a server started with E2E_TEST_HOOKS=1 (see the e2e config). */
-const scenes: Record<string, { title: string; auth?: boolean; plain?: boolean; run: Scene }> = {
+const scenes: Record<
+  string,
+  { title: string; auth?: boolean; plain?: boolean; trim?: boolean; run: Scene }
+> = {
   makeover: {
     title: 'Upload your CV, see it redesigned',
     run: async (p) => {
@@ -678,6 +682,37 @@ const scenes: Record<string, { title: string; auth?: boolean; plain?: boolean; r
   ),
 };
 
+// One text-only tips reel per profession guide: the guide's own advice on cards.
+const firstSentence = (t: string, max = 130) => {
+  const one = t.split(/(?<=[.!?])\s/)[0] ?? t;
+  if (one.length <= max) return one;
+  const head = one.slice(0, max);
+  const at = Math.max(head.lastIndexOf(','), head.lastIndexOf(';'));
+  return at > 40 ? `${head.slice(0, at)}.` : '';
+};
+for (const g of GUIDES) {
+  scenes[`tips-${g.slug}`] = {
+    title: `${g.short}: CV tips`,
+    trim: true,
+    run: async (p) => {
+      await p.goto(`${BASE}/`);
+      await p.waitForLoadState('networkidle');
+      await card(p, 'CV tips', `A CV for<br>${g.short.replace(' & ', ' and ')}`, 'aicvstudio.app');
+      await wait(p, 2600);
+      for (const [i, tip] of g.tips.slice(0, 3).entries()) {
+        await card(p, `Tip ${i + 1} of 3`, tip.title, firstSentence(tip.body));
+        await wait(p, 4200);
+      }
+      const m = g.mistakes[0];
+      if (m) {
+        await card(p, 'Avoid this', m.replace(/\.$/, ''), 'A common mistake');
+        await wait(p, 4000);
+      }
+      await card(p, 'Read the full guide', 'Free to start', `aicvstudio.app/cv-for/${g.slug}`);
+      await wait(p, 3000);
+    },
+  };
+}
 const names = process.argv[2] === 'all' ? Object.keys(scenes) : [process.argv[2] ?? 'makeover'];
 fs.mkdirSync(OUT, { recursive: true });
 const browser = await chromium.launch();
@@ -715,6 +750,7 @@ for (const name of names) {
     'ffmpeg',
     [
       '-y',
+      ...(scene.trim ? ['-ss', String(Math.max(0, (cues[0]?.t ?? 0) / 1000 - 0.2))] : []),
       '-i',
       path.join(tmp, webm),
       '-vf',
