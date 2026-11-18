@@ -22,6 +22,14 @@ const shot = async (page: Page, slug: string, n: number) => {
       if (/demo ai/i.test(el.textContent ?? '') && (el.textContent ?? '').length < 12)
         (el as HTMLElement).style.display = 'none';
   });
+  // The stand-in AI prefixes some explanations with its own name; the real product does not.
+  await page.evaluate(() => {
+    const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    for (let t = w.nextNode(); t; t = w.nextNode())
+      t.textContent = (t.textContent ?? '')
+        .replace(/Demo AI:\s*a quick/g, 'A quick')
+        .replace(/Demo AI:\s*/g, '');
+  });
   await page.waitForTimeout(600);
   await page.screenshot({ path: `${OUT}/${slug}-${n}.png` });
 };
@@ -170,7 +178,7 @@ test('capture screens', async ({ page }) => {
 // Own account and a CV without a photo: the mock interview reads the CV text, and a photo only slows that down.
 test('capture interview', async ({ page }) => {
   test.setTimeout(240_000);
-  await seedDocument(page, teacher);
+  await seedDocument(page, { ...teacher, title: 'My teaching CV' });
   await page.goto('/cv');
   await page.waitForTimeout(1500);
   await step('interview', async () => {
@@ -201,5 +209,44 @@ test('capture interview', async ({ page }) => {
     await mock.getByTestId('mock-feedback').first().waitFor({ timeout: 30_000 });
     await mock.scrollIntoViewIfNeeded();
     await shot(page, 'interview', 3);
+  });
+});
+
+// Job tools: how your CV matches an advert, tailoring, the cover letter. Plain CV, own account.
+test('capture apply', async ({ page }) => {
+  test.setTimeout(240_000);
+  await seedDocument(page, { ...teacher, title: 'My teaching CV' });
+  await page.goto('/cv');
+  await page.waitForTimeout(1500);
+  await step('apply', async () => {
+    const r = await page.request.post('/api/jobs', {
+      data: {
+        title: 'Primary School Teacher',
+        company: 'Oakfield Primary',
+        advert:
+          'We are looking for a caring Year 4 class teacher. Essential: qualified teacher status and experience teaching Key Stage 2. You will plan engaging lessons, support pupils with additional needs and work closely with parents. Experience of phonics teaching is desirable.',
+      },
+    });
+    const id = ((await r.json()) as { job: { id: string } }).job.id;
+    await page.goto(`/jobs/${id}`);
+    await page.waitForTimeout(1500);
+    const apply = page.getByText('Get ready to apply').first();
+    await apply.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(500);
+    await shot(page, 'apply', 1);
+    await page.getByRole('button', { name: /Check how my CV matches/ }).click();
+    await page
+      .getByTestId('match')
+      .or(page.getByLabel('How your CV matches'))
+      .first()
+      .waitFor({ timeout: 30_000 });
+    await page.getByLabel('How your CV matches').scrollIntoViewIfNeeded();
+    await page.waitForTimeout(600);
+    await shot(page, 'apply', 2);
+    await page.getByRole('button', { name: 'Write a cover letter' }).click();
+    await page.getByLabel('Greeting').waitFor({ timeout: 30_000 });
+    await page.getByLabel('Greeting').scrollIntoViewIfNeeded();
+    await page.waitForTimeout(600);
+    await shot(page, 'apply', 3);
   });
 });

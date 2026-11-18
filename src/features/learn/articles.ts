@@ -17,6 +17,13 @@ export const VIDEO_SECONDS = {
   linkedin: 20,
   portfolio: 23,
   documents: 20,
+  'interview-practice': 31,
+  'apply-to-a-job': 30,
+  download: 25,
+  ats: 29,
+  translate: 29,
+  'saving-and-privacy': 25,
+  phone: 26,
 } as const;
 export type VideoId = keyof typeof VIDEO_SECONDS;
 
@@ -399,7 +406,7 @@ export const ARTICLES: Article[] = [
         a: 'No. It keeps your applications organised; you apply on the employer site.',
       },
     ],
-    related: ['interview-practice', 'coach', 'letters'],
+    related: ['apply-to-a-job', 'interview-practice', 'coach'],
   },
   {
     slug: 'coach',
@@ -444,12 +451,86 @@ export const ARTICLES: Article[] = [
     related: ['interview-practice', 'jobs', 'stories'],
   },
   {
+    slug: 'apply-to-a-job',
+    title: 'Apply to a job: match, tailor and cover letter',
+    summary: 'Compare your CV with a job advert, then tailor it and write the letter and email.',
+    forWho: 'Anyone about to apply for a specific job.',
+    open: { href: '/jobs', label: 'Choose a job' },
+    video: 'apply-to-a-job',
+    shots: [
+      {
+        file: 'apply-1',
+        alt: 'The Get ready to apply panel on a job with the Use this CV choice and the Application kit',
+        caption: 'On each job: choose the CV to use, then check the match or create the kit.',
+      },
+      {
+        file: 'apply-2',
+        alt: 'How your CV matches: 3 of 4 requirements clearly shown, with what is not in your CV and what your CV shows',
+        caption: 'The match check shows what your CV already shows, and what it does not.',
+      },
+      {
+        file: 'apply-3',
+        alt: 'A cover letter draft with Warm and Formal tone choices, a greeting and editable paragraphs',
+        caption: 'The cover letter is a draft you edit. Choose Warm or Formal.',
+      },
+    ],
+    steps: [
+      {
+        title: 'Add the job and paste the whole advert',
+        text: 'Open the job in the tracker and paste the full advert under The job, then save. The advert is what your CV is compared with.',
+      },
+      {
+        title: 'Choose which CV to use',
+        text: 'In Get ready to apply, pick the CV under Use this CV. Everything uses only what is in your CV. Nothing is invented.',
+        shot: 0,
+      },
+      {
+        title: 'Check how your CV matches',
+        text: 'Choose Check how my CV matches. You see how many requirements are clearly shown, which ones are not in your CV, and words from the advert that are or are not in it. Show me takes you to the line in your CV.',
+        shot: 1,
+      },
+      {
+        title: 'Only add what is true',
+        text: 'Add a missing word only if it is true for you; employers check. If you are missing something real, choose Make a learning plan for this job.',
+      },
+      {
+        title: 'Tailor your CV, or create the whole kit',
+        text: 'Make a tailored CV adjusts your CV to the job. The Application kit makes a tailored CV, a cover letter and a covering email together, from your own facts.',
+      },
+      {
+        title: 'Write and edit the cover letter',
+        text: 'Choose Warm or Formal, then Write a cover letter. Edit the greeting, paragraphs and sign-off, and replace any highlighted [brackets] with your own details. Save the letter, or Download PDF.',
+        shot: 2,
+      },
+      {
+        title: 'Send the email',
+        text: 'Use the Application email section: copy the subject and text, or open it in your email app.',
+      },
+    ],
+    tips: [
+      'Paste the whole advert, not just the title. The check is only as good as the advert you give it.',
+      'Read every line of a draft before you send it. Drafts are a start, not the final word.',
+    ],
+    faqs: [
+      {
+        q: 'Is this free?',
+        a: 'Job match, tailoring and cover letters are part of Premium and use AI actions; the kit says how many it uses.',
+      },
+      {
+        q: 'Will it add skills I do not have?',
+        a: 'No. It uses only what is in your CV, and the match check tells you what is missing.',
+      },
+    ],
+    related: ['interview-practice', 'letters', 'jobs'],
+  },
+  {
     slug: 'interview-practice',
     title: 'Interview practice',
     summary:
       'Practise five questions for a real job, one at a time, and get feedback on every answer.',
     forWho: 'Anyone with an interview coming up, or who finds interviews hard.',
     open: { href: '/jobs', label: 'Choose a job to practise' },
+    video: 'interview-practice',
     shots: [
       {
         file: 'interview-1',
@@ -715,6 +796,7 @@ export const ARTICLES: Article[] = [
     summary: 'Get a PDF, a plain ATS PDF, a Word file, a pack with certificates, or a backup.',
     forWho: 'Anyone ready to send a CV to an employer.',
     open: { href: '/documents', label: 'Open my CVs' },
+    video: 'download',
     shots: [
       {
         file: 'download-1',
@@ -763,6 +845,7 @@ export const ARTICLES: Article[] = [
     summary: 'What an applicant tracking system is, and when to use the plain ATS version.',
     forWho: 'Anyone applying through online forms and job sites.',
     open: { href: '/templates', label: 'Browse designs' },
+    video: 'ats',
     shots: [
       {
         file: 'download-1',
@@ -802,6 +885,7 @@ export const ARTICLES: Article[] = [
     summary: 'Get a new CV in another language, check it beside the original, then save it.',
     forWho: 'Anyone applying in another language, for example German.',
     open: { href: '/documents', label: 'Open my CVs' },
+    video: 'translate',
     shots: [
       {
         file: 'translate-1',
@@ -890,6 +974,7 @@ export const ARTICLES: Article[] = [
     summary: 'Where your CV is kept, what we store, and how to delete a CV or your account.',
     forWho: 'Anyone who wants to know what happens to their information.',
     open: { href: '/privacy', label: 'Read the privacy page' },
+    video: 'saving-and-privacy',
     shots: [
       {
         file: 'privacy-1',
@@ -938,6 +1023,7 @@ export const ARTICLES: Article[] = [
     summary: 'Every step works on a phone, and you can install the app on your home screen.',
     forWho: 'Anyone who prefers to build or check their CV on a phone.',
     open: { href: '/start', label: 'Start on my phone' },
+    video: 'phone',
     shots: [
       {
         file: 'help-1',
@@ -997,7 +1083,7 @@ export const CATEGORIES: Category[] = [
     id: 'apply',
     title: 'Apply for jobs',
     blurb: 'Keep track, practise and plan your next step.',
-    slugs: ['jobs', 'interview-practice', 'coach', 'skills'],
+    slugs: ['jobs', 'apply-to-a-job', 'interview-practice', 'coach', 'skills'],
   },
   {
     id: 'share',

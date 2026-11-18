@@ -50,6 +50,19 @@ async function overlay(p: Page) {
 @keyframes rr{from{transform:scale(.4);opacity:1}to{transform:scale(1.25);opacity:0}}`;
     document.head.appendChild(s);
   });
+  // Test accounts have made-up addresses; show a neutral one instead.
+  await p.evaluate(() => {
+    const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    for (let n = w.nextNode(); n; n = w.nextNode())
+      n.textContent = (n.textContent ?? '').replace(/api-[\w-]+@example\.com/g, 'you@example.com');
+  });
+  await p.evaluate(() => {
+    const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    for (let n = w.nextNode(); n; n = w.nextNode())
+      n.textContent = (n.textContent ?? '')
+        .replace(/Demo AI:\s*a quick/g, 'A quick')
+        .replace(/Demo AI:\s*/g, '');
+  });
   // The test setup labels its stand-in AI "DEMO AI"; the real product does not show that.
   await p.evaluate(() => {
     for (const el of Array.from(document.querySelectorAll('span,div,p,small')))
@@ -102,6 +115,24 @@ async function tap(p: Page, target: ReturnType<Page['locator']>) {
   await target.first().click();
 }
 
+/** Shows the tap ring on an element without clicking it (for buttons that would start a download). */
+async function point(p: Page, target: ReturnType<Page['locator']>) {
+  await target.first().scrollIntoViewIfNeeded();
+  const box = await target.first().boundingBox();
+  if (box)
+    await p.evaluate(
+      ([x, y]) => {
+        const r = document.createElement('div');
+        r.className = 'rec-ring';
+        r.style.left = x + 'px';
+        r.style.top = y + 'px';
+        document.body.appendChild(r);
+        setTimeout(() => r.remove(), 700);
+      },
+      [box.x + box.width / 2, box.y + box.height / 2],
+    );
+}
+
 type Scene = (p: Page) => Promise<void>;
 /** One short signed-in tutorial: intro card, a few captioned beats, outro card. A missed tap never stops the video. */
 const guide = (
@@ -109,9 +140,11 @@ const guide = (
   intro: [string, string],
   beats: { say: string; do?: (p: Page) => Promise<void>; hold?: number }[],
   outro: [string, string],
-): { title: string; auth: true; run: Scene } => ({
+  opts: { auth?: boolean; plain?: boolean } = {},
+): { title: string; auth: boolean; plain?: boolean; run: Scene } => ({
   title,
-  auth: true,
+  auth: opts.auth ?? true,
+  plain: opts.plain,
   run: async (p) => {
     await p.goto(`${BASE}/documents`);
     await p.waitForLoadState('networkidle');
@@ -141,7 +174,7 @@ const scroll = (dy: number) => async (p: Page) => {
 };
 
 /** Signed-in scenes need the Auth emulator and a server started with E2E_TEST_HOOKS=1 (see the e2e config). */
-const scenes: Record<string, { title: string; auth?: boolean; run: Scene }> = {
+const scenes: Record<string, { title: string; auth?: boolean; plain?: boolean; run: Scene }> = {
   makeover: {
     title: 'Upload your CV, see it redesigned',
     run: async (p) => {
@@ -382,6 +415,222 @@ const scenes: Record<string, { title: string; auth?: boolean; run: Scene }> = {
     ],
     ['Safe and<br>always there.', 'aicvstudio.app'],
   ),
+  'interview-practice': guide(
+    'Practise a mock interview',
+    ['Practise the interview<br>before the interview.', 'aicvstudio.app'],
+    [
+      {
+        say: 'Open a job you are going for',
+        do: async (p) => {
+          const r = await p.request.post(`${BASE}/api/jobs`, {
+            data: {
+              title: 'Primary School Teacher',
+              company: 'Oakfield Primary',
+              advert:
+                'We are looking for a caring Year 4 class teacher. You will plan engaging lessons, support pupils with additional needs and work closely with parents. A teaching qualification is essential.',
+            },
+          });
+          const id = ((await r.json()) as { job: { id: string } }).job.id;
+          await p.goto(`${BASE}/jobs/${id}#mock`);
+          await p.waitForLoadState('networkidle');
+          await p.getByTestId('mock').scrollIntoViewIfNeeded();
+        },
+        hold: 2400,
+      },
+      {
+        say: 'Start the mock interview: five questions, one at a time',
+        do: async (p) => {
+          await tap(p, p.getByRole('button', { name: 'Start the mock interview' }));
+          await p.getByTestId('mock-question').waitFor({ timeout: 30_000 });
+        },
+        hold: 2600,
+      },
+      {
+        say: 'Answer in your own words',
+        do: async (p) => {
+          const a = p.getByLabel('Your answer');
+          await tap(p, a);
+          await a.fill(
+            'When a pupil struggled with reading, I set up short daily sessions with her, and as a result she moved up two reading levels in a term.',
+          );
+        },
+        hold: 2400,
+      },
+      {
+        say: 'Get feedback on every answer',
+        do: async (p) => {
+          await tap(p, p.getByRole('button', { name: 'Send answer' }));
+          await p.getByTestId('mock-feedback').first().waitFor({ timeout: 30_000 });
+          await p.getByTestId('mock').scrollIntoViewIfNeeded();
+        },
+        hold: 3200,
+      },
+      { say: 'Save your best answers to your story bank', hold: 2400 },
+    ],
+    ['Walk in<br>ready.', 'aicvstudio.app'],
+    { plain: true },
+  ),
+  download: guide(
+    'Download your CV',
+    ['Download your CV<br>the way you need it.', 'aicvstudio.app'],
+    [
+      { say: 'Open Download from your CV', do: go(`/cv/${doc.id}/download`), hold: 2600 },
+      {
+        say: 'Download PDF: the CV exactly as designed',
+        do: async (p) => point(p, p.getByRole('button', { name: /Download PDF/ })),
+      },
+      {
+        say: 'ATS PDF: plain, one column, for online forms',
+        do: async (p) => point(p, p.getByRole('button', { name: /ATS PDF/ })),
+      },
+      {
+        say: 'Word file if you want to keep editing',
+        do: async (p) => point(p, p.getByRole('button', { name: /Download Word/ })),
+      },
+      {
+        say: 'Add certificates, or save a backup',
+        do: async (p) => point(p, p.getByRole('button', { name: /Save a backup file/ })),
+      },
+    ],
+    ['Ready to send.', 'aicvstudio.app'],
+  ),
+  ats: guide(
+    'ATS: make your CV readable by employer software',
+    ['Will employer software<br>read your CV?', 'aicvstudio.app'],
+    [
+      { say: 'Many employers use software to read CVs first', do: go('/templates'), hold: 2800 },
+      { say: 'Every design is built to be read correctly', do: scroll(450) },
+      {
+        say: 'For online forms, use the plain ATS version',
+        do: go(`/cv/${doc.id}/download`),
+        hold: 2200,
+      },
+      {
+        say: 'Same words, one plain column',
+        do: async (p) => point(p, p.getByRole('button', { name: /ATS PDF/ })),
+        hold: 2800,
+      },
+      { say: 'Designed one for people. ATS one for forms', hold: 2400 },
+    ],
+    ['Both versions,<br>one CV.', 'aicvstudio.app'],
+  ),
+  translate: guide(
+    'Translate your CV',
+    ['Your CV in<br>another language.', 'aicvstudio.app'],
+    [
+      { say: 'Open your CV', do: go(`/cv/${doc.id}`), hold: 2000 },
+      {
+        say: 'Tap Translate',
+        do: async (p) => {
+          await tap(p, p.getByTestId('translate-open'));
+        },
+        hold: 2400,
+      },
+      {
+        say: 'Choose the language',
+        do: async (p) => {
+          const d = p.getByRole('dialog', { name: 'Translate this CV' });
+          await point(p, d.getByLabel('Translate into'));
+        },
+        hold: 2800,
+      },
+      { say: 'Your name, dates and numbers never change', hold: 3000 },
+      { say: 'Check it beside the original, then save a new CV', hold: 2600 },
+    ],
+    ['Apply in<br>any language.', 'aicvstudio.app'],
+  ),
+  premium: guide(
+    'Free account and Premium',
+    ['What is free,<br>what is Premium?', 'aicvstudio.app'],
+    [
+      { say: 'Start free: designs, downloads and imports', do: go('/premium'), hold: 2600 },
+      {
+        say: 'Premium: every design, more downloads, AI writing help',
+        do: scroll(160),
+        hold: 3000,
+      },
+      { say: 'One-time pass. It never renews by itself', hold: 2600 },
+      { say: 'Your CVs stay yours either way', hold: 2400 },
+    ],
+    ['Start free.', 'aicvstudio.app'],
+    { auth: false },
+  ),
+  'saving-and-privacy': guide(
+    'Saving, privacy and deleting',
+    ['Your CV.<br>Your information.', 'aicvstudio.app'],
+    [
+      { say: 'Signed in, your CVs are saved to your account', do: go('/documents'), hold: 2400 },
+      { say: 'Read what we store, in plain words', do: go('/privacy'), hold: 2600 },
+      { say: 'And when information leaves your device', do: scroll(600), hold: 2600 },
+      { say: 'Delete a CV or your account any time', do: go('/account'), hold: 2400 },
+    ],
+    ['You are in<br>control.', 'aicvstudio.app'],
+  ),
+  phone: guide(
+    'Use it on your phone',
+    ['Make your CV<br>on your phone.', 'aicvstudio.app'],
+    [
+      { say: 'Every step works on a phone', do: go('/start'), hold: 2600 },
+      { say: 'Edit, check and download from your pocket', do: go(`/cv/${doc.id}`), hold: 2600 },
+      {
+        say: 'Install it on your home screen',
+        do: async (p) => {
+          await p.goto(`${BASE}/account`);
+          await p.waitForLoadState('networkidle');
+          await p.getByText('The app on your phone or computer').scrollIntoViewIfNeeded();
+        },
+        hold: 3200,
+      },
+      { say: 'iPhone: Share, then Add to Home Screen', hold: 2600 },
+    ],
+    ['Your CV,<br>always with you.', 'aicvstudio.app'],
+  ),
+  'apply-to-a-job': guide(
+    'Apply to a job: match, tailor, cover letter',
+    ['Match your CV<br>to the job.', 'aicvstudio.app'],
+    [
+      {
+        say: 'Open a job and paste the advert',
+        do: async (p) => {
+          const r = await p.request.post(`${BASE}/api/jobs`, {
+            data: {
+              title: 'Primary School Teacher',
+              company: 'Oakfield Primary',
+              advert:
+                'We are looking for a caring Year 4 class teacher. Essential: qualified teacher status and experience teaching Key Stage 2. You will plan engaging lessons, support pupils with additional needs and work closely with parents. Experience of phonics teaching is desirable.',
+            },
+          });
+          const id = ((await r.json()) as { job: { id: string } }).job.id;
+          await p.goto(`${BASE}/jobs/${id}`);
+          await p.waitForLoadState('networkidle');
+          await p.getByText('Get ready to apply').first().scrollIntoViewIfNeeded();
+        },
+        hold: 2600,
+      },
+      {
+        say: 'Check how your CV matches the advert',
+        do: async (p) => {
+          await tap(p, p.getByRole('button', { name: /Check how my CV matches/ }));
+          await p.getByLabel('How your CV matches').waitFor({ timeout: 30_000 });
+          await p.getByLabel('How your CV matches').scrollIntoViewIfNeeded();
+        },
+        hold: 3200,
+      },
+      { say: 'See what is shown, and what is missing', do: scroll(450), hold: 2800 },
+      {
+        say: 'Write a cover letter. Warm or formal',
+        do: async (p) => {
+          await tap(p, p.getByRole('button', { name: 'Write a cover letter' }));
+          await p.getByLabel('Greeting').waitFor({ timeout: 30_000 });
+          await p.getByLabel('Greeting').scrollIntoViewIfNeeded();
+        },
+        hold: 3200,
+      },
+      { say: 'Edit it until it sounds like you', do: scroll(300), hold: 2600 },
+    ],
+    ['Apply with<br>confidence.', 'aicvstudio.app'],
+    { plain: true },
+  ),
 };
 
 const names = process.argv[2] === 'all' ? Object.keys(scenes) : [process.argv[2] ?? 'makeover'];
@@ -397,9 +646,13 @@ for (const name of names) {
     viewport: { width: 540, height: 960 },
     recordVideo: { dir: tmp, size: { width: 540, height: 960 } },
   });
-  await ctx.addInitScript((d) => {
-    localStorage.setItem(`cvstudio:v1:doc:${d.id}`, JSON.stringify(d));
-  }, doc);
+  // The mock interview reads the CV text; a plain CV (no photo) keeps that quick and reliable.
+  await ctx.addInitScript(
+    (d) => {
+      localStorage.setItem(`cvstudio:v1:doc:${d.id}`, JSON.stringify(d));
+    },
+    scene.plain ? { ...teacher, title: 'My teaching CV' } : doc,
+  );
   if (scene.auth) {
     await apiSignUp(ctx.request);
     await setPremium(ctx.request, true);
