@@ -23,6 +23,8 @@ test('every guide opens, its screenshots load, and the steps are numbered', asyn
     await page.goto(`/how-to/${a.slug}`);
     await expect(page.getByRole('heading', { level: 1, name: a.title })).toBeVisible();
     await expect(page.locator('ol > li h3')).toHaveCount(a.steps.length);
+    await expect(page.locator('video')).toHaveCount(a.video ? 1 : 0);
+    if (a.video) expect((await page.request.get(`/videos/${a.video}.mp4`)).status()).toBe(200);
     for (const s of a.shots) {
       expect((await page.request.get(`/learn/${s.file}.webp`)).status(), s.file).toBe(200);
     }

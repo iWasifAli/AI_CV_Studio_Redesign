@@ -92,8 +92,8 @@ export default function HowToPage() {
           How to use AI CV Studio
         </h1>
         <p className="text-ink-muted mt-4 max-w-2xl text-lg leading-relaxed">
-          Everything the studio does, in one place, and three short videos that show the main steps.
-          The videos use a sample CV, not anyone&apos;s real one.
+          Everything the studio does, in one place. Every guide has a short video, the steps with
+          real screens, tips and answers. The videos use a sample CV, not anyone&apos;s real one.
         </p>
 
         <section id="features" aria-labelledby="features-h" className="mt-12 scroll-mt-24">

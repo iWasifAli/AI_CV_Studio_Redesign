@@ -3,6 +3,23 @@
  * Every screenshot is a real screen of the studio captured with sample data (scripts/learn/capture.spec.ts).
  * Write only what the product really does; learn.test.ts checks the files and links exist.
  */
+export const VIDEO_SECONDS = {
+  start: 13,
+  makeover: 21,
+  designs: 18,
+  editor: 22,
+  check: 24,
+  letters: 25,
+  jobs: 23,
+  coach: 23,
+  stories: 20,
+  skills: 23,
+  linkedin: 20,
+  portfolio: 23,
+  documents: 20,
+} as const;
+export type VideoId = keyof typeof VIDEO_SECONDS;
+
 export type Shot = { file: string; alt: string; caption: string };
 export type Article = {
   slug: string;
@@ -13,8 +30,8 @@ export type Article = {
   forWho: string;
   /** Opens the feature. */
   open: { href: string; label: string };
-  /** Id of a video in /videos (makeover, designs, start), when one exists. */
-  video?: 'start' | 'makeover' | 'designs';
+  /** Id of a video in /videos (mp4, vtt captions and webp poster), when one exists. */
+  video?: VideoId;
   shots: Shot[];
   steps: { title: string; text: string; shot?: number }[];
   tips: string[];
@@ -196,6 +213,7 @@ export const ARTICLES: Article[] = [
     summary: 'Change your words, ask AI for edits you approve, and watch the page update.',
     forWho: 'Everyone, after the first draft. This is where you polish.',
     open: { href: '/documents', label: 'Open my CVs' },
+    video: 'editor',
     shots: [
       {
         file: 'editor-1',
@@ -241,6 +259,7 @@ export const ARTICLES: Article[] = [
     summary: 'Find gaps and weak spots before an employer does.',
     forWho: 'Anyone about to send a CV. A last look catches what you stop seeing.',
     open: { href: '/documents', label: 'Open my CVs' },
+    video: 'check',
     shots: [
       {
         file: 'check-1',
@@ -285,6 +304,7 @@ export const ARTICLES: Article[] = [
     summary: 'Write a letter in the same design as your CV and keep it with your documents.',
     forWho: 'Anyone applying, resigning, asking for a reference or following up.',
     open: { href: '/documents?type=letters', label: 'Write a letter' },
+    video: 'letters',
     shots: [
       {
         file: 'letters-1',
@@ -334,6 +354,7 @@ export const ARTICLES: Article[] = [
     summary: 'Keep every job you are going for, where you are with it, and which CV you sent.',
     forWho: 'Anyone applying to more than one job at a time.',
     open: { href: '/jobs', label: 'Track my jobs' },
+    video: 'jobs',
     shots: [
       {
         file: 'jobs-1',
@@ -386,6 +407,7 @@ export const ARTICLES: Article[] = [
     summary: 'Practise for the role with advice that comes from your own CV and jobs.',
     forWho: 'Anyone preparing for an interview or unsure what to improve next.',
     open: { href: '/coach', label: 'Open Coach' },
+    video: 'coach',
     shots: [
       {
         file: 'coach-1',
@@ -427,6 +449,7 @@ export const ARTICLES: Article[] = [
     summary: 'Write your best work stories once, then reuse them in interviews and letters.',
     forWho: 'Anyone who freezes at "tell me about a time when...".',
     open: { href: '/stories', label: 'Open Story bank' },
+    video: 'stories',
     shots: [
       {
         file: 'stories-1',
@@ -463,6 +486,7 @@ export const ARTICLES: Article[] = [
     summary: 'See which skills to build next for the work you want.',
     forWho: 'Anyone planning a next step or a change of direction.',
     open: { href: '/skills', label: 'Plan my skills' },
+    video: 'skills',
     shots: [
       {
         file: 'skills-1',
@@ -495,6 +519,7 @@ export const ARTICLES: Article[] = [
     summary: 'Write a headline and About section from your CV, or review your profile.',
     forWho: 'Anyone who wants their LinkedIn to match their CV.',
     open: { href: '/linkedin', label: 'Open LinkedIn' },
+    video: 'linkedin',
     shots: [
       {
         file: 'linkedin-1',
@@ -533,6 +558,7 @@ export const ARTICLES: Article[] = [
     forWho:
       'Anyone who wants a link to share on LinkedIn, in an email signature or on a business card.',
     open: { href: '/portfolio', label: 'Set up my page' },
+    video: 'portfolio',
     shots: [
       {
         file: 'portfolio-1',
@@ -574,6 +600,7 @@ export const ARTICLES: Article[] = [
     summary: 'All your CVs and letters in one place, with a backup you can download and restore.',
     forWho: 'Everyone. It is the home for what you have made.',
     open: { href: '/documents', label: 'Open Documents' },
+    video: 'documents',
     shots: [
       {
         file: 'documents-1',

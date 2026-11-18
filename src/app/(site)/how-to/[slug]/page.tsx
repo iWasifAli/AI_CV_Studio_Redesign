@@ -6,11 +6,9 @@ import { JsonLd } from '@/components/seo/json-ld';
 import { ButtonLink } from '@/components/ui/button';
 import { Container } from '@/components/ui/misc';
 import { SITE_URL } from '@/lib/seo';
-import { ARTICLES, articleBySlug, type Shot } from '@/features/learn/articles';
+import { ARTICLES, VIDEO_SECONDS, articleBySlug, type Shot } from '@/features/learn/articles';
 
 type Props = { params: Promise<{ slug: string }> };
-
-const VIDEO_SECONDS = { start: 13, makeover: 21, designs: 18 };
 
 export const dynamicParams = false;
 export function generateStaticParams() {
@@ -71,6 +69,19 @@ export default async function LearnArticlePage({ params }: Props) {
                 text: s.text,
               })),
             },
+            ...(a.video
+              ? [
+                  {
+                    '@type': 'VideoObject',
+                    name: a.title,
+                    description: a.summary,
+                    thumbnailUrl: `${SITE_URL}/videos/${a.video}.webp`,
+                    contentUrl: `${SITE_URL}/videos/${a.video}.mp4`,
+                    uploadDate: '2026-11-18',
+                    duration: `PT${VIDEO_SECONDS[a.video]}S`,
+                  },
+                ]
+              : []),
             {
               '@type': 'FAQPage',
               mainEntity: a.faqs.map((f) => ({
