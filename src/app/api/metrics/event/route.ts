@@ -6,7 +6,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /** Events only the browser sees (funnel steps). A fixed list; counts only, nothing personal. */
-const ALLOWED = new Set(['landing_view', 'makeover_design_switch'] as const);
+const ALLOWED = new Set(['landing_view', 'makeover_design_switch', 'score_share'] as const);
 type Allowed = typeof ALLOWED extends Set<infer T> ? T : never;
 const limiter = createRateLimiter({ capacity: 30, refillPerMinute: 30 });
 
