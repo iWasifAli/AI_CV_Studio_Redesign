@@ -5,7 +5,7 @@ import { setLanguage } from '@/i18n/language-switch';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { CircleHelp, CircleUserRound, LogOut, Plus, Search } from 'lucide-react';
+import { CircleHelp, GraduationCap, CircleUserRound, LogOut, Plus, Search } from 'lucide-react';
 import { Dialog } from '@/components/ui/dialog';
 import { Menu } from '@/components/ui/menu';
 import { Logo } from '@/components/layout/logo';
@@ -50,6 +50,7 @@ export function ShellTop() {
     { label: 'My designs', onSelect: () => router.push('/templates') },
     { label: 'Plan and Premium', onSelect: () => router.push('/premium') },
     { label: 'Account and settings', onSelect: () => router.push('/account') },
+    { label: 'How to use', onSelect: () => router.push('/how-to') },
     { label: 'Help', onSelect: () => router.push('/help') },
     // The other interface language, named in its own language.
     lang === 'de'
@@ -136,6 +137,12 @@ export function ShellTop() {
           <kbd className="bg-sunken ml-auto rounded px-1.5 text-xs">{t('Ctrl K')}</kbd>
         </button>
         <div className="mt-auto flex flex-col gap-1">
+          <Link
+            href="/how-to"
+            className="text-ink-muted hover:bg-sunken inline-flex min-h-11 items-center gap-2 rounded-md px-3 text-[15px] font-semibold"
+          >
+            <GraduationCap aria-hidden size={20} /> {t('How to use')}
+          </Link>
           <Link
             href="/help"
             className="text-ink-muted hover:bg-sunken inline-flex min-h-11 items-center gap-2 rounded-md px-3 text-[15px] font-semibold"

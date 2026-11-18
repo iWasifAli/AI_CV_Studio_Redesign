@@ -15,7 +15,7 @@ import { CircleUserRound } from 'lucide-react';
 /** Visitor (marketing) top bar, complete-studio-spec §11.1. Signed-in people get the studio shell. */
 const NAV = [
   { href: '/templates', label: 'Templates' },
-  { href: '/#how', label: 'Features' },
+  { href: '/how-to', label: 'Features' },
   { href: '/premium', label: 'Pricing' },
 ];
 

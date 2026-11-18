@@ -79,8 +79,10 @@ const shot = async (html, w, h, out) => {
 if (process.argv[2] === '--brand') {
   const out = process.argv[3];
   fs.mkdirSync(out, { recursive: true });
+  // Avatar: bold "CV" on a violet-to-navy field with a gold underline and a small spark for the AI.
+  // Everything sits inside the central circle so Instagram's round crop never touches it.
   await shot(
-    `<body style="width:1000px;height:1000px;display:flex;align-items:center;justify-content:center"><div style="width:500px;height:500px">${MARK('#fbf9f6', '#b9a8e6', '#172a3d')}</div></body>`,
+    `<body style="width:1000px;height:1000px;background:linear-gradient(145deg,#6b53b8 0%,#4a3891 45%,#172a3d 100%);display:flex;align-items:center;justify-content:center"><div style="position:relative;width:520px;text-align:center"><div style="font:700 330px/0.9 F;color:#fbf9f6;letter-spacing:-8px">CV</div><div style="margin:34px auto 0;width:300px;height:22px;border-radius:11px;background:#c69a61"></div><svg style="position:absolute;right:-70px;top:-70px" width="130" height="130" viewBox="0 0 24 24"><path d="M12 1l2.6 7.4L22 11l-7.4 2.6L12 21l-2.6-7.4L2 11l7.4-2.6z" fill="#c69a61"/></svg></div></body>`,
     1000,
     1000,
     path.join(out, 'avatar.png'),
