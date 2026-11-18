@@ -14,3 +14,17 @@ test('the how-to page has three tutorials with captions and steps', async ({ pag
     expect((await page.request.get(`/videos/${v}.vtt`)).status()).toBe(200);
   }
 });
+
+test('every guide opens, its screenshots load, and the steps are numbered', async ({ page }) => {
+  const { ARTICLES } = await import('../src/features/learn/articles');
+  await page.goto('/how-to');
+  await expect(page.getByRole('link', { name: 'Read the guide' })).toHaveCount(ARTICLES.length);
+  for (const a of ARTICLES) {
+    await page.goto(`/how-to/${a.slug}`);
+    await expect(page.getByRole('heading', { level: 1, name: a.title })).toBeVisible();
+    await expect(page.locator('ol > li h3')).toHaveCount(a.steps.length);
+    for (const s of a.shots) {
+      expect((await page.request.get(`/learn/${s.file}.webp`)).status(), s.file).toBe(200);
+    }
+  }
+});

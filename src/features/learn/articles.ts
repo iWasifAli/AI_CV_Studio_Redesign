@@ -1,0 +1,614 @@
+/**
+ * The learning centre: one guide per feature, at /how-to/<slug>.
+ * Every screenshot is a real screen of the studio captured with sample data (scripts/learn/capture.spec.ts).
+ * Write only what the product really does; learn.test.ts checks the files and links exist.
+ */
+export type Shot = { file: string; alt: string; caption: string };
+export type Article = {
+  slug: string;
+  title: string;
+  /** One line for lists and search results. */
+  summary: string;
+  /** Who it helps and when to use it. */
+  forWho: string;
+  /** Opens the feature. */
+  open: { href: string; label: string };
+  /** Id of a video in /videos (makeover, designs, start), when one exists. */
+  video?: 'start' | 'makeover' | 'designs';
+  shots: Shot[];
+  steps: { title: string; text: string; shot?: number }[];
+  tips: string[];
+  faqs: { q: string; a: string }[];
+  related: string[];
+};
+
+export const ARTICLES: Article[] = [
+  {
+    slug: 'start',
+    title: 'Create a CV from scratch',
+    summary: 'Pick your kind of work and answer simple questions, one step at a time.',
+    forWho: 'Anyone without a CV, or who wants to begin fresh. No blank page and no jargon.',
+    open: { href: '/start', label: 'Start a CV' },
+    video: 'start',
+    shots: [
+      {
+        file: 'start-1',
+        alt: 'The Start page asking what kind of work you do, with a list of work types',
+        caption:
+          'Choose the closest kind of work. It sets the right sections and a matching design.',
+      },
+      {
+        file: 'start-2',
+        alt: 'Step 1 of 6, About you, with name, job title, phone, email and town',
+        caption: 'Step 1 of 6: about you. Your CV appears on the right as you go.',
+      },
+    ],
+    steps: [
+      {
+        title: 'Choose your kind of work',
+        text: 'Open Start and pick the closest match, for example driving, teaching, healthcare, shops and hotels, trades, office, technology or management. If none fits, use the general option.',
+        shot: 0,
+      },
+      {
+        title: 'Answer one short step at a time',
+        text: 'The first step is about you: your name, the job you want, phone, email and town. Then your work, education and skills. Press Continue after each step; use Back to change something.',
+        shot: 1,
+      },
+      {
+        title: 'Check how it looks',
+        text: 'Use the preview to see the page as an employer will. You can change the design at any time without losing a word.',
+      },
+      {
+        title: 'Save and download',
+        text: 'Your CV is saved to your account when you are signed in. Use Download when you are happy with it.',
+      },
+    ],
+    tips: [
+      'You can change anything later; the first draft does not have to be perfect.',
+      'Write what is true. The studio asks questions but never adds experience you did not give.',
+    ],
+    faqs: [
+      {
+        q: 'Do I need an account?',
+        a: 'You can start without one. Sign in to keep your CV saved across devices and to download it.',
+      },
+      {
+        q: 'Can I already import a CV I have?',
+        a: 'Yes. Use Upload your CV instead and the studio lays out your existing words in a new design.',
+      },
+    ],
+    related: ['makeover', 'designs', 'editor'],
+  },
+  {
+    slug: 'makeover',
+    title: 'Upload the CV you have',
+    summary: 'Drop in a PDF, Word file or a photo of a paper CV and see it redesigned.',
+    forWho: 'Anyone who already has a CV that looks dated or hard to read.',
+    open: { href: '/makeover', label: 'Upload my CV' },
+    video: 'makeover',
+    shots: [
+      {
+        file: 'makeover-1',
+        alt: 'The upload page with a dashed box saying Drop your CV here',
+        caption: 'Drop your file in the box, or choose a file. PDF, Word or a photo, up to 10 MB.',
+      },
+      {
+        file: 'makeover-2',
+        alt: 'The result page with Here is your new CV, a Your new CV and Your original switch, and designs chosen for you',
+        caption:
+          'Your new CV, with designs chosen for your kind of work. Switch to Your original to compare.',
+      },
+    ],
+    steps: [
+      {
+        title: 'Choose your file',
+        text: 'Drop a PDF, a Word document or a photo of a paper CV (up to 10 MB). No sign-in is needed to see the result.',
+        shot: 0,
+      },
+      {
+        title: 'Wait a few seconds',
+        text: 'The studio reads your CV and lays it out again. It takes well under a minute.',
+      },
+      {
+        title: 'Compare with your original',
+        text: 'Every word is checked against your file, and nothing is added that is not in your CV. Use Your new CV and Your original to compare, and try another design from the list.',
+        shot: 1,
+      },
+      {
+        title: 'Sign in to save and download',
+        text: 'Sign in to keep the CV, edit it, and download it as a PDF.',
+      },
+    ],
+    tips: [
+      'A clear PDF or Word file reads best. For a photo, use good light and keep the page flat.',
+      'Check names, dates and numbers once. They are the details that matter most.',
+    ],
+    faqs: [
+      {
+        q: 'Is my CV kept?',
+        a: 'Without signing in, the file is read to make the preview. See the privacy page for exactly what is stored once you sign in.',
+      },
+      {
+        q: 'Will it change my wording?',
+        a: 'It lays out the words you have. Nothing is added that is not in your CV.',
+      },
+    ],
+    related: ['designs', 'editor', 'check'],
+  },
+  {
+    slug: 'designs',
+    title: 'Designs for every kind of work',
+    summary: 'Try any design on your own words. Every design has a plain ATS version.',
+    forWho: 'Anyone who wants their CV to look right for their field, or to try a fresh look.',
+    open: { href: '/templates', label: 'Browse designs' },
+    video: 'designs',
+    shots: [
+      {
+        file: 'designs-1',
+        alt: 'The Designs page with search, filters such as Bold, Elegant and Minimal, and design thumbnails showing your CV',
+        caption: 'Browse by mood or kind of work. The designs show your own CV when you have one.',
+      },
+      {
+        file: 'designs-3',
+        alt: 'The Design tab in the CV editor with Describe a style and recommended designs',
+        caption: 'Inside your CV, open Design to see recommendations for your kind of work.',
+      },
+    ],
+    steps: [
+      {
+        title: 'Open the designs',
+        text: 'Use Designs from the menu, or open your CV and choose the Design tab.',
+        shot: 0,
+      },
+      {
+        title: 'Browse or describe a style',
+        text: 'Filter by mood (bold, elegant, minimal and more), search by name, or describe the style you want in a few words.',
+        shot: 1,
+      },
+      {
+        title: 'Try one',
+        text: 'Tap a design to try it on your CV. Use Preview to see the whole page. Your words never change.',
+      },
+      {
+        title: 'Use the ATS version for online forms',
+        text: 'Every design has an ATS-safe version: a plain layout that application systems read reliably. Use the designed one for people and the ATS one for forms.',
+      },
+    ],
+    tips: [
+      'Pick the design that suits the job, not only the one you like most. Calm and classic suits law and finance; bolder suits creative work.',
+      'Try two or three on your own CV; they look different with your own words.',
+    ],
+    faqs: [
+      {
+        q: 'Does switching design lose my edits?',
+        a: 'No. Your content is separate from the design.',
+      },
+      {
+        q: 'What is an ATS version?',
+        a: 'ATS means applicant tracking system, the software many employers use to read CVs. The ATS version keeps the same content in a plain layout so it is read correctly.',
+      },
+    ],
+    related: ['editor', 'check', 'portfolio'],
+  },
+  {
+    slug: 'editor',
+    title: 'Edit your CV',
+    summary: 'Change your words, ask AI for edits you approve, and watch the page update.',
+    forWho: 'Everyone, after the first draft. This is where you polish.',
+    open: { href: '/documents', label: 'Open my CVs' },
+    shots: [
+      {
+        file: 'editor-1',
+        alt: 'The CV editor with Content, Design and Check tabs, an Ask AI to edit your CV box, form fields and a live preview',
+        caption: 'Content, Design and Check are the three tabs. The preview is on the right.',
+      },
+    ],
+    steps: [
+      {
+        title: 'Open your CV',
+        text: 'Go to Documents and choose your CV. It opens on the Content tab.',
+        shot: 0,
+      },
+      {
+        title: 'Edit the sections',
+        text: 'Open a section such as About you and change the words. The preview updates as you type, and your changes are saved to your account.',
+      },
+      {
+        title: 'Ask AI to edit',
+        text: 'Type what to change, for example "make my profile shorter". You see every change before it is made and decide whether to keep it.',
+      },
+      {
+        title: 'Undo if you change your mind',
+        text: 'Use the undo and redo arrows at the top.',
+      },
+      {
+        title: 'Download',
+        text: 'Choose Download at the top right when your CV is ready.',
+      },
+    ],
+    tips: ['Lead with what an employer needs first; the order of sections can be changed.'],
+    faqs: [
+      {
+        q: 'Is AI editing free?',
+        a: 'Editing by hand is free. Some AI writing help is part of Premium; the Premium page lists exactly what is included.',
+      },
+    ],
+    related: ['check', 'designs', 'documents'],
+  },
+  {
+    slug: 'check',
+    title: 'Check your CV',
+    summary: 'Find gaps and weak spots before an employer does.',
+    forWho: 'Anyone about to send a CV. A last look catches what you stop seeing.',
+    open: { href: '/documents', label: 'Open my CVs' },
+    shots: [
+      {
+        file: 'check-1',
+        alt: 'The Check tab showing a CV check summary, a Proofread my CV button and an Add numbers to your points suggestion',
+        caption:
+          'The Check tab: a summary, a proofread, and prompts to add numbers to your points.',
+      },
+    ],
+    steps: [
+      {
+        title: 'Open the Check tab',
+        text: 'In your CV, choose Check. The top card says whether it is ready to send or what needs fixing.',
+        shot: 0,
+      },
+      {
+        title: 'Proofread',
+        text: 'Choose Proofread my CV. The AI reads every line for spelling, grammar and punctuation. You choose which fixes to keep.',
+      },
+      {
+        title: 'Add numbers to your points',
+        text: 'Points with a number (how many, how often, what changed) stand out. The studio asks; you answer with what is true. Nothing made up is added.',
+      },
+      {
+        title: 'Look at what is already good',
+        text: 'Use Show what is already good to see what the check is happy with.',
+      },
+    ],
+    tips: [
+      'Real numbers beat adjectives: "served 60 customers a day" says more than "hard-working".',
+    ],
+    faqs: [
+      {
+        q: 'Will it invent achievements?',
+        a: 'No. It asks questions and uses only your answers.',
+      },
+    ],
+    related: ['editor', 'letters', 'designs'],
+  },
+  {
+    slug: 'letters',
+    title: 'Cover letters and other letters',
+    summary: 'Write a letter in the same design as your CV and keep it with your documents.',
+    forWho: 'Anyone applying, resigning, asking for a reference or following up.',
+    open: { href: '/documents?type=letters', label: 'Write a letter' },
+    shots: [
+      {
+        file: 'letters-1',
+        alt: 'The Documents page on the Letters tab with a list of letter types to start',
+        caption:
+          'Pick a letter type: cover letter, resignation, reference request, thank-you and more.',
+      },
+      {
+        file: 'letters-2',
+        alt: 'A resignation letter form asking for your current role, organisation and last working day',
+        caption:
+          'Answer a few questions. Then write it yourself or, with Premium, ask for a draft.',
+      },
+    ],
+    steps: [
+      {
+        title: 'Choose a letter type',
+        text: 'Open Documents, then Letters. Types include cover letter, resignation, reference request, thank-you after an interview, application follow-up, accepting a job offer, salary negotiation, networking introduction, personal statement and professional bio.',
+        shot: 0,
+      },
+      {
+        title: 'Answer the questions',
+        text: 'Fill in the short form. Required answers are checked before anything is created.',
+        shot: 1,
+      },
+      {
+        title: 'Write it yourself or get a draft',
+        text: 'Choose Write it myself, or use an AI draft if you have Premium. Edit until it sounds like you.',
+      },
+      {
+        title: 'Download and find it again',
+        text: 'The letter uses the same design as your CV. It is kept in Documents, where you can download or delete it.',
+      },
+    ],
+    tips: ['Keep it short: three or four paragraphs are enough.'],
+    faqs: [
+      {
+        q: 'Is writing a letter free?',
+        a: 'Writing one yourself is free. AI drafts are part of Premium.',
+      },
+    ],
+    related: ['jobs', 'coach', 'editor'],
+  },
+  {
+    slug: 'jobs',
+    title: 'Job tracker',
+    summary: 'Keep every job you are going for, where you are with it, and which CV you sent.',
+    forWho: 'Anyone applying to more than one job at a time.',
+    open: { href: '/jobs', label: 'Track my jobs' },
+    shots: [
+      {
+        file: 'jobs-1',
+        alt: 'The Job tracker with no jobs yet and an Add a job button',
+        caption: 'The tracker starts empty. Choose Add a job.',
+      },
+      {
+        file: 'jobs-2',
+        alt: 'The Add a job form with link, job title, company, location and the job advert',
+        caption: 'Paste a link to fill it in, or type the title, company and advert.',
+      },
+      {
+        file: 'jobs-3',
+        alt: 'The job board with Saved, Applied, Interview, Offer and Closed columns and one saved job',
+        caption: 'Move each job along as you hear back.',
+      },
+    ],
+    steps: [
+      {
+        title: 'Add a job',
+        text: 'Choose Add a job. Paste a link and choose Fill in from the link, or type the job title and company yourself.',
+        shot: 1,
+      },
+      {
+        title: 'Paste the advert',
+        text: 'The advert stays private. It is used to check your CV against the job and to write a letter for it.',
+      },
+      {
+        title: 'Move it along',
+        text: 'Each job sits in a column: Saved, Applied, Interview, Offer or Closed. Use Move to when something changes.',
+        shot: 2,
+      },
+      {
+        title: 'Link the CV you sent',
+        text: 'Attach the CV you used so you always know which version an employer has.',
+      },
+    ],
+    tips: ['A free account can track up to 3 jobs at a time.'],
+    faqs: [
+      {
+        q: 'Does it apply for me?',
+        a: 'No. It keeps your applications organised; you apply on the employer site.',
+      },
+    ],
+    related: ['coach', 'letters', 'check'],
+  },
+  {
+    slug: 'coach',
+    title: 'Coach',
+    summary: 'Practise for the role with advice that comes from your own CV and jobs.',
+    forWho: 'Anyone preparing for an interview or unsure what to improve next.',
+    open: { href: '/coach', label: 'Open Coach' },
+    shots: [
+      {
+        file: 'coach-1',
+        alt: 'The Coach page with an Ask your coach box, suggested questions, and Practise for your jobs with Mock interview and Check my match',
+        caption: 'Ask a question, or practise for a job you track.',
+      },
+    ],
+    steps: [
+      {
+        title: 'Track a job first',
+        text: 'Coaching works from the jobs you track, so the questions fit the role. Add one in the Job tracker.',
+      },
+      {
+        title: 'Ask your coach',
+        text: 'Type a question or tap a suggestion, such as which of your skills to lead with.',
+        shot: 0,
+      },
+      {
+        title: 'Practise',
+        text: 'For a tracked job, choose Mock interview to practise, or Check my match to see how well your CV fits.',
+      },
+      {
+        title: 'Use your stories',
+        text: 'Stories from your Story bank are offered in the mock interview.',
+      },
+    ],
+    tips: ['Advice comes from your own CV and jobs. It never makes up experience for you.'],
+    faqs: [
+      {
+        q: 'Is Coach free?',
+        a: 'Plans and limits are on the Premium page; see Help for the details.',
+      },
+    ],
+    related: ['jobs', 'stories', 'skills'],
+  },
+  {
+    slug: 'stories',
+    title: 'Story bank',
+    summary: 'Write your best work stories once, then reuse them in interviews and letters.',
+    forWho: 'Anyone who freezes at "tell me about a time when...".',
+    open: { href: '/stories', label: 'Open Story bank' },
+    shots: [
+      {
+        file: 'stories-1',
+        alt: 'The Story bank with a first story prompt and a New story button',
+        caption: 'Start with one story: what happened, what you did, how it turned out.',
+      },
+    ],
+    steps: [
+      {
+        title: 'Choose New story',
+        text: 'Give it a short name, for example "Kept deliveries on time after a depot closed".',
+        shot: 0,
+      },
+      {
+        title: 'Say what happened',
+        text: 'Write the situation, what you did and the result, in your own words. Drafting help is part of Premium; writing it yourself is free.',
+      },
+      {
+        title: 'Replace placeholders',
+        text: 'If a draft has questions in curly brackets, replace each with the real detail or delete it before you use the story.',
+      },
+      {
+        title: 'Reuse it',
+        text: 'Your stories are ready for mock interviews, the coach and letters.',
+      },
+    ],
+    tips: ['Three or four good stories cover most interview questions.'],
+    faqs: [{ q: 'How many can I keep?', a: 'The page shows your count against your limit.' }],
+    related: ['coach', 'jobs', 'letters'],
+  },
+  {
+    slug: 'skills',
+    title: 'Skill plan',
+    summary: 'See which skills to build next for the work you want.',
+    forWho: 'Anyone planning a next step or a change of direction.',
+    open: { href: '/skills', label: 'Plan my skills' },
+    shots: [
+      {
+        file: 'skills-1',
+        alt: 'The Skill plan page with Where could you go next and Make a learning plan',
+        caption: 'Find paths from your CV, then make a learning plan for a job you track.',
+      },
+    ],
+    steps: [
+      {
+        title: 'Ask where you could go next',
+        text: 'Optionally say what you want more of, for example "working with people" or "less driving". Choose Show me.',
+        shot: 0,
+      },
+      {
+        title: 'Read the paths',
+        text: 'Roles your CV already points to, what you have for each, what you still need, and a first step. Nothing is added to your CV.',
+      },
+      {
+        title: 'Make a learning plan',
+        text: 'Choose one of your jobs, or describe a role you would like, then Make my plan.',
+      },
+    ],
+    tips: ['Start with the first step only. Small and finished beats big and planned.'],
+    faqs: [{ q: 'Does it change my CV?', a: 'No. It only suggests; you decide what to add.' }],
+    related: ['coach', 'jobs', 'stories'],
+  },
+  {
+    slug: 'linkedin',
+    title: 'LinkedIn profile',
+    summary: 'Write a headline and About section from your CV, or review your profile.',
+    forWho: 'Anyone who wants their LinkedIn to match their CV.',
+    open: { href: '/linkedin', label: 'Open LinkedIn' },
+    shots: [
+      {
+        file: 'linkedin-1',
+        alt: 'The LinkedIn page with Write from my CV and Review my profile tabs',
+        caption: 'Write from my CV, or Review my profile.',
+      },
+    ],
+    steps: [
+      {
+        title: 'Choose Write from my CV',
+        text: 'Pick the CV to write from and, if you like, the kind of role you want next.',
+        shot: 0,
+      },
+      {
+        title: 'Create your text',
+        text: 'Choose Write my LinkedIn profile for a headline, an About section and job descriptions, ready to paste. Nothing is invented.',
+      },
+      {
+        title: 'Or review your profile',
+        text: 'Choose Review my profile, export your data from LinkedIn and upload the file here. We read it and do not keep it.',
+      },
+    ],
+    tips: ['Copy the text into LinkedIn and edit it so it sounds like you.'],
+    faqs: [
+      {
+        q: 'Do you connect to my LinkedIn account?',
+        a: 'No. You paste text in, or upload your own export.',
+      },
+    ],
+    related: ['portfolio', 'editor', 'letters'],
+  },
+  {
+    slug: 'portfolio',
+    title: 'Portfolio page',
+    summary: 'A personal web page made from your CV, in your colours, that updates with it.',
+    forWho:
+      'Anyone who wants a link to share on LinkedIn, in an email signature or on a business card.',
+    open: { href: '/portfolio', label: 'Set up my page' },
+    shots: [
+      {
+        file: 'portfolio-1',
+        alt: 'The Portfolio settings page with a CV choice, theme styles such as Clean, Classic, Sidebar, Editorial and Timeline, and an address',
+        caption: 'Pick the CV, choose a theme, and choose your address.',
+      },
+    ],
+    steps: [
+      {
+        title: 'Sign in and open Portfolio',
+        text: 'The page is made from one of your CVs, so you need to be signed in.',
+      },
+      {
+        title: 'Choose a theme',
+        text: 'Match my CV uses your CV design. Other themes include Clean, Classic, Sidebar, Editorial and Timeline. Use Preview to see each.',
+        shot: 0,
+      },
+      {
+        title: 'Choose what to share',
+        text: 'Decide what the page shows and set your address.',
+      },
+      {
+        title: 'Share the link',
+        text: 'Copy the link. The page updates when you change your CV.',
+      },
+    ],
+    tips: ['Check what is shown before sharing; show only what you are happy for anyone to see.'],
+    faqs: [
+      {
+        q: 'Is the page public?',
+        a: 'Yes. Anyone with the link can see it, so show only what you are happy for anyone to see.',
+      },
+    ],
+    related: ['linkedin', 'designs', 'documents'],
+  },
+  {
+    slug: 'documents',
+    title: 'Documents and backups',
+    summary: 'All your CVs and letters in one place, with a backup you can download and restore.',
+    forWho: 'Everyone. It is the home for what you have made.',
+    open: { href: '/documents', label: 'Open Documents' },
+    shots: [
+      {
+        file: 'documents-1',
+        alt: 'The Documents page with CVs and Letters tabs, a message that your CVs are saved to your account, and Download a backup and Restore from a backup buttons',
+        caption: 'CVs and letters together. Download or restore a backup from here.',
+      },
+    ],
+    steps: [
+      {
+        title: 'Open Documents',
+        text: 'Choose Documents in the menu. Use the tabs All, CVs and Letters to filter.',
+        shot: 0,
+      },
+      {
+        title: 'Start something new',
+        text: 'Choose New CV or New letter at the top right.',
+      },
+      {
+        title: 'Keep a backup',
+        text: 'Choose Download a backup to save a copy of your CVs. Choose Restore from a backup to bring them back.',
+      },
+      {
+        title: 'Filter by job',
+        text: 'Use the For job filter to see the documents you made for one application.',
+      },
+    ],
+    tips: ['Download a backup now and then, especially before big changes.'],
+    faqs: [
+      {
+        q: 'Are my CVs saved automatically?',
+        a: 'Yes, when you are signed in they are saved to your account and appear on every device you sign in on.',
+      },
+    ],
+    related: ['editor', 'letters', 'jobs'],
+  },
+];
+
+export const articleBySlug = (slug: string) => ARTICLES.find((a) => a.slug === slug);

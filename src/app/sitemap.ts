@@ -1,3 +1,4 @@
+import { ARTICLES } from '@/features/learn/articles';
 import type { MetadataRoute } from 'next';
 import { DEFAULT_CONFIG } from '@/modules/billing/config';
 import { isLive } from '@/modules/design/lifecycle';
@@ -23,7 +24,8 @@ export const PUBLIC_PATHS = [
 export default function sitemap(): MetadataRoute.Sitemap {
   const designs = DEFAULT_CONFIG.designs.filter(isLive).map((d) => `/templates/${d.id}`);
   const guides = GUIDES.map((g) => `/cv-for/${g.slug}`);
-  return [...PUBLIC_PATHS, ...guides, ...designs].map((p) => ({
+  const learn = ARTICLES.map((a) => `/how-to/${a.slug}`);
+  return [...PUBLIC_PATHS, ...guides, ...learn, ...designs].map((p) => ({
     url: `${SITE_URL}${p === '/' ? '' : p}`,
     priority: p === '/' ? 1 : p === '/templates' || p === '/start' ? 0.8 : 0.5,
   }));

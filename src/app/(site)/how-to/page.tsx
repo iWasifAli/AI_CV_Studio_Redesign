@@ -5,6 +5,7 @@ import { JsonLd } from '@/components/seo/json-ld';
 import { ButtonLink } from '@/components/ui/button';
 import { Container } from '@/components/ui/misc';
 import { SITE_URL } from '@/lib/seo';
+import { ARTICLES } from '@/features/learn/articles';
 
 export const metadata: Metadata = {
   title: 'How to use AI CV Studio: features and video tutorials',
@@ -65,127 +66,6 @@ const TUTORIALS: Tutorial[] = [
   },
 ];
 
-type Feature = {
-  id: string;
-  title: string;
-  what: string;
-  how: string[];
-  href: string;
-  cta: string;
-};
-
-/** Everything the studio does, in the order a job seeker meets it. Each entry says what it is for and how to begin. */
-const FEATURES: Feature[] = [
-  {
-    id: 'start',
-    title: 'Create a CV from scratch',
-    what: 'Tell us what work you do and answer simple questions. No blank page.',
-    how: [
-      'Choose your kind of work.',
-      'Answer one short step at a time.',
-      'Edit anything later; your words are saved as you go.',
-    ],
-    href: '/start',
-    cta: 'Start a CV',
-  },
-  {
-    id: 'makeover',
-    title: 'Upload the CV you have',
-    what: 'Drop in a PDF, Word file or a photo of a paper CV and see it redesigned in a minute.',
-    how: [
-      'Choose your file (up to 10 MB).',
-      'See the new layout. Nothing is added that is not in your CV.',
-      'Compare with your original, then sign in to save it.',
-    ],
-    href: '/makeover',
-    cta: 'Upload my CV',
-  },
-  {
-    id: 'designs',
-    title: 'Designs for every kind of work',
-    what: 'Try any design on your own words. Every design has a plain ATS version for online forms.',
-    how: [
-      'Open Design in your CV.',
-      'Browse the recommended ones or search by mood.',
-      'Tap to try it; your words never change.',
-    ],
-    href: '/templates',
-    cta: 'Browse designs',
-  },
-  {
-    id: 'check',
-    title: 'Check your CV',
-    what: 'The Check tab points out gaps and weak spots before an employer does.',
-    how: ['Open your CV.', 'Choose Check.', 'Work through the suggestions that matter to you.'],
-    href: '/studio',
-    cta: 'Open my studio',
-  },
-  {
-    id: 'letters',
-    title: 'Cover letters',
-    what: 'Write a letter for a job, based on your CV, and keep it with the job.',
-    how: [
-      'Choose New letter.',
-      'Pick the CV and the job.',
-      'Edit the draft until it sounds like you.',
-    ],
-    href: '/letters/new',
-    cta: 'Write a letter',
-  },
-  {
-    id: 'jobs',
-    title: 'Job tracker',
-    what: 'Keep every job you are going for, where you are with it, and which CV you sent.',
-    how: ['Add a job.', 'Attach the CV you used.', 'Update the stage as you hear back.'],
-    href: '/jobs',
-    cta: 'Track my jobs',
-  },
-  {
-    id: 'coach',
-    title: 'Coach',
-    what: 'Practise for the role. Coaching works from the jobs you track, so the questions fit.',
-    how: ['Track a job first.', 'Open Coach.', 'Practise and improve your answers.'],
-    href: '/coach',
-    cta: 'Open Coach',
-  },
-  {
-    id: 'stories',
-    title: 'Story bank',
-    what: 'Write your best work stories once, then use them in interviews and letters.',
-    how: [
-      'Add a story: what happened, what you did, how it turned out.',
-      'Replace any placeholder with a real detail.',
-      'Reuse it wherever you need it.',
-    ],
-    href: '/stories',
-    cta: 'Open Story bank',
-  },
-  {
-    id: 'skills',
-    title: 'Skill plan',
-    what: 'See which skills to build next for the work you want.',
-    how: ['Say what you want from work.', 'Review the paths suggested.', 'Keep the plan you like.'],
-    href: '/skills',
-    cta: 'Plan my skills',
-  },
-  {
-    id: 'linkedin',
-    title: 'LinkedIn review',
-    what: 'Upload your LinkedIn data file; we read it and do not keep it.',
-    how: ['Export your data from LinkedIn.', 'Upload the file here.', 'Read the suggestions.'],
-    href: '/linkedin',
-    cta: 'Review my profile',
-  },
-  {
-    id: 'portfolio',
-    title: 'Portfolio page and share links',
-    what: 'A page you can share, built from your CV, and links you control.',
-    how: ['Sign in.', 'Open Portfolio.', 'Choose what to share and copy the link.'],
-    href: '/portfolio',
-    cta: 'Set up my page',
-  },
-];
-
 const iso = (s: number) => `PT${s}S`;
 
 export default function HowToPage() {
@@ -221,27 +101,35 @@ export default function HowToPage() {
             What is inside
           </h2>
           <p className="text-ink-muted mt-2 max-w-2xl">
-            Start with the first three. The rest help once you are applying for jobs.
+            Each guide has the steps with real screens, tips and answers. Start with the first
+            three; the rest help once you are applying for jobs.
           </p>
           <ul className="mt-6 grid gap-4 sm:grid-cols-2">
-            {FEATURES.map((f) => (
+            {ARTICLES.map((f) => (
               <li
-                key={f.id}
+                key={f.slug}
                 className="border-line bg-surface flex flex-col rounded-2xl border p-5 sm:p-6"
               >
-                <h3 className="text-lg font-semibold">{f.title}</h3>
-                <p className="text-ink-muted mt-1.5 text-[15px] leading-relaxed">{f.what}</p>
-                <ol className="mt-3 flex list-decimal flex-col gap-1 pl-5 text-[15px] marker:font-bold">
-                  {f.how.map((h) => (
-                    <li key={h}>{h}</li>
-                  ))}
-                </ol>
-                <Link
-                  href={f.href}
-                  className="text-violet mt-4 inline-flex items-center gap-1.5 font-semibold underline-offset-2 hover:underline"
-                >
-                  {f.cta} <ArrowRight aria-hidden size={16} />
-                </Link>
+                <h3 className="text-lg font-semibold">
+                  <Link href={`/how-to/${f.slug}`} className="hover:underline">
+                    {f.title}
+                  </Link>
+                </h3>
+                <p className="text-ink-muted mt-1.5 text-[15px] leading-relaxed">{f.summary}</p>
+                <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
+                  <Link
+                    href={`/how-to/${f.slug}`}
+                    className="text-violet inline-flex items-center gap-1.5 font-semibold underline-offset-2 hover:underline"
+                  >
+                    Read the guide <ArrowRight aria-hidden size={16} />
+                  </Link>
+                  <Link
+                    href={f.open.href}
+                    className="text-ink-muted font-semibold underline-offset-2 hover:underline"
+                  >
+                    {f.open.label}
+                  </Link>
+                </div>
               </li>
             ))}
           </ul>
