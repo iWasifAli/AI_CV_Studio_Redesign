@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-17",
+  "updated": "2026-11-18",
   "existing": [
     {
       "id": "clarity",
@@ -710,7 +710,7 @@
       "name": "Neon",
       "family": "Graphic",
       "look": "Graphic spotlight",
-      "description": "A deep navy header with your name set huge, an arched portrait standing on a bright band of key numbers, and a timeline beside your skills.",
+      "description": "A deep navy header with your name set huge, an arched portrait, and a timeline beside your skills.",
       "status": "live",
       "label": "Creative",
       "structure": {
@@ -732,7 +732,7 @@
       "name": "Coral",
       "family": "Graphic",
       "look": "Graphic spotlight",
-      "description": "A plum header with soft light beams and a rounded portrait; your key numbers float on cards over its edge. Warm, confident and modern.",
+      "description": "A plum header with soft light beams and a rounded portrait over its edge. Warm, confident and modern.",
       "status": "live",
       "label": "Creative",
       "structure": {
@@ -776,7 +776,7 @@
       "name": "Emerald",
       "family": "Graphic",
       "look": "Graphic spotlight",
-      "description": "A forest-green header with a dot grid and a leaf-shaped portrait, a bright band of key numbers and numbered sections.",
+      "description": "A forest-green header with a dot grid and a leaf-shaped portrait and numbered sections.",
       "status": "live",
       "label": "Creative",
       "structure": {
@@ -798,7 +798,7 @@
       "name": "Magenta",
       "family": "Graphic",
       "look": "Graphic spotlight",
-      "description": "A berry header with angled blocks and a hexagon portrait; key numbers on cards and a left side column. Bold and personal.",
+      "description": "A berry header with angled blocks and a hexagon portrait and a left side column. Bold and personal.",
       "status": "live",
       "label": "Creative",
       "structure": {
@@ -820,7 +820,7 @@
       "name": "Citrus",
       "family": "Graphic",
       "look": "Graphic rail",
-      "description": "A dark full-height column with a notched portrait, contact details and skill bars; a huge two-tone name and a sunny box of key numbers.",
+      "description": "A dark full-height column with a notched portrait, contact details and skill bars; and a huge two-tone name.",
       "status": "live",
       "label": "Creative",
       "structure": {
@@ -842,7 +842,7 @@
       "name": "Cyber",
       "family": "Graphic",
       "look": "Graphic rail",
-      "description": "A near-black column with a grid motif and a round portrait; lime highlights, numbered sections and figures set in columns. Built for tech.",
+      "description": "A near-black column with a grid motif and a round portrait; lime highlights and numbered sections. Built for tech.",
       "status": "live",
       "label": "Creative",
       "structure": {
@@ -864,7 +864,7 @@
       "name": "Ruby",
       "family": "Graphic",
       "look": "Graphic rail",
-      "description": "A wine-dark column with a tall arched portrait and light stripes; rose highlights, figures on dark pills and a closing link band.",
+      "description": "A wine-dark column with a tall arched portrait and light stripes; and rose highlights.",
       "status": "live",
       "label": "Creative",
       "structure": {
@@ -886,7 +886,7 @@
       "name": "Blueprint",
       "family": "Graphic",
       "look": "Graphic rail",
-      "description": "A navy column with a slanted portrait and a quiet ring; sky-blue lines, figures in ruled columns and an outlined link band. Precise.",
+      "description": "A navy column with a slanted portrait and a quiet ring; and sky-blue lines. Precise.",
       "status": "live",
       "label": "Creative",
       "structure": {
@@ -908,7 +908,7 @@
       "name": "Cobalt",
       "family": "Graphic",
       "look": "Graphic rail",
-      "description": "A deep blue column with a square framed portrait and a dot field; serif name in two tones, a box of key numbers. Analytical and calm.",
+      "description": "A deep blue column with a square framed portrait and a dot field; serif name in two tones. Analytical and calm.",
       "status": "live",
       "label": "Creative",
       "structure": {
@@ -1040,7 +1040,7 @@
       "name": "Electric",
       "family": "Graphic",
       "look": "Graphic cover",
-      "description": "A magazine-cover header with fine diagonal hatching and a tilted, framed portrait; a bright strip carries your contact line above your key numbers.",
+      "description": "A magazine-cover header with fine diagonal hatching and a tilted, framed portrait; a bright strip carries your contact line.",
       "status": "live",
       "label": "Creative",
       "structure": {
@@ -1585,6 +1585,254 @@
         "date": "2026-11-17",
         "reason": "Structurally the stacked entry (Margin, Counsel) with caption typography; no new body arrangement."
       }
+    },
+    {
+      "id": "raster",
+      "date": "2026-11-18",
+      "name": "Raster",
+      "concept": "The CV set on a visible six-column modular grid (Swiss grid systems, Vignelli's Unigrid). Page 1 opens with a row of two modules: a solid colour module (columns 1-4) carrying the name and role, and a portrait module (columns 5-6) of the same height, with the contact details aligned to the grid beneath. The body is made of modules instead of a stack of entries: each job's achievements are set as tiles two to a row, each tile opened by a short rule; education, projects and similar entries are half-width modules side by side; skill groups, languages and certificates are rows of three modules. Every continuation page opens with the same two-module row in small: a name strip over columns 1-4 and a page-number module over columns 5-6.",
+      "structureKey": "two module masthead over a modular grid body with achievement tiles and half width entry modules",
+      "references": [
+        {
+          "title": "Josef Muller-Brockmann, Grid Systems in Graphic Design (Niggli)",
+          "url": "https://niggli.ch/en/grid-systems-in-graphic-design.html",
+          "idea": "A modular grid where every element occupies whole module fields"
+        },
+        {
+          "title": "Unigrids (Vignelli, US National Park Service)",
+          "url": "https://en.wikipedia.org/wiki/Unigrids",
+          "idea": "A strong title band and content placed in standard panels of one system"
+        },
+        {
+          "title": "IxDF: how to use grid systems",
+          "url": "https://ixdf.org/literature/article/how-to-use-grid-systems",
+          "idea": "Modular grid vs column grid: content units snap to modules in both directions"
+        },
+        {
+          "title": "Navig8: annual report design, the year's highlights",
+          "url": "https://wearenavig8.squarespace.com/knowledge-comment/2024/1/17/annual-report-design-the-years-highlights-7s55h",
+          "idea": "Highlights set as a grid of separate tiles rather than a list"
+        }
+      ],
+      "status": "incomplete",
+      "nearestExisting": "aurora / coral / electric / magenta / solar (0.788 by the tool); by eye the poster family for the header, Grid/Tiles/Mosaic for the body",
+      "scores": {
+        "scout": {
+          "visual": 8.5,
+          "originality": 8.5,
+          "graphical": 8.5,
+          "typography": 8.5,
+          "layout": 8.5,
+          "professional": 9,
+          "engine": 9,
+          "print": 9,
+          "average": 8.69
+        },
+        "reviewer": {
+          "visual": 8,
+          "originality": 8,
+          "graphical": 7.5,
+          "typography": 8,
+          "layout": 8,
+          "professional": 8.5,
+          "engine": 8,
+          "print": 8,
+          "average": 8
+        }
+      },
+      "decision": {
+        "by": "reviewer agent (main-development-thread authority)",
+        "date": "2026-11-18",
+        "reason": "APPROVE (conditional): the body is structurally new: a job's points are tiles two to a row, entries are half-width modules, and short sections share a row as modules; no catalogue body or past proposal does this, and it is the gap the 11-16/11-17 learnings name. The continuation pages are new too: a small name strip beside a page module on the grid. The header is the weakest zone (near the poster family) but acceptable. It is sober enough for engineering, operations, healthcare and trades. Risks: the grid idea is under-expressed (the grid is never visible; the only art is the corner square and the same red square on every heading), and there are visible defects: a broken email on the extreme CV, a ~25% page 2 for the typical CV on Letter, blank page feet, and orphan half-width modules."
+      },
+      "implementation": {
+        "branch": "scout/2026-11-18",
+        "pr": "https://github.com/nisar87/AI_CV_Studio_Redesign/pull/6",
+        "designId": "raster",
+        "rounds": [
+          {
+            "round": "approval",
+            "average": 8
+          },
+          {
+            "round": 1,
+            "scores": {
+              "visual": 8.6,
+              "originality": 8.3,
+              "graphical": 8.5,
+              "typography": 8.7,
+              "layout": 8,
+              "professional": 8.8,
+              "engine": 9.2,
+              "print": 9.2
+            },
+            "average": 8.66
+          },
+          {
+            "round": 2,
+            "scores": {
+              "visual": 8.6,
+              "originality": 8.5,
+              "graphical": 8.5,
+              "typography": 8.7,
+              "layout": 8,
+              "professional": 8.8,
+              "engine": 8,
+              "print": 9
+            },
+            "average": 8.51
+          },
+          {
+            "round": 3,
+            "scores": {
+              "visual": 8.6,
+              "originality": 8.3,
+              "graphical": 8,
+              "typography": 8.6,
+              "layout": 8.2,
+              "professional": 9,
+              "engine": 9,
+              "print": 8.8
+            },
+            "average": 8.56
+          },
+          {
+            "round": 4,
+            "scores": {
+              "visual": 8.5,
+              "originality": 8.3,
+              "graphical": 8.5,
+              "typography": 8.8,
+              "layout": 8,
+              "professional": 9,
+              "engine": 9,
+              "print": 8.8
+            },
+            "average": 8.61
+          }
+        ],
+        "finalScore": 8.61,
+        "blockers": [
+          "Concept ceiling (rounds 3 and 4 reviewers): one top-to-bottom column whose points sit two to a row; header still reads as a dark band plus photo, openers are conventional; originality and visual sophistication top out about 8.5-8.8",
+          "Points carried to the next page have no job context (no 'continued' marker); the engine only repeats the running header",
+          "Blank page feet (about 13-15% on dense and extreme page 1) because tile rows and two-row jobs are kept whole",
+          "Uneven tile rows: a short point beside a long one leaves a hole; module rows of unequal length (dense page 3)",
+          "Weak header art: faint gutter stubs, flat initials slab without a photo; short profile leaves columns 5-6 empty, long profile in two columns breaks mid-sentence"
+        ],
+        "note": "Converged at 8.5-8.7 over four rounds; the fifth round was not spent. PR #6 stays open as a draft and must not be merged. It also holds a real engine fix: the generated design index now imports JSON with { type: 'json' }, without which the first design file on main breaks the Playwright e2e step."
+      }
+    },
+    {
+      "id": "lexicon",
+      "date": "2026-11-18",
+      "name": "Lexicon",
+      "concept": "A who's-who / dictionary entry: name as a headword run in with the role and contacts; every entry one run-in paragraph (dates, role, organisation, then the points separated inline); skills run in.",
+      "structureKey": "run in headword header over run in paragraph entries",
+      "references": [
+        {
+          "title": "We and the Color: editorial InDesign CV",
+          "url": "https://weandthecolor.com/resume-layout-strategy-why-this-minimalist-indesign-template-is-not-your-ordinary-cv/207469",
+          "idea": "Editorial typography for CVs"
+        }
+      ],
+      "status": "rejected",
+      "decision": {
+        "by": "scout (not shortlisted)",
+        "date": "2026-11-18",
+        "reason": "Body is new (run-in points), but points set as prose are slow for a recruiter to scan and the design has almost no graphic language; it cannot plausibly reach 9.0 on graphical quality or professional suitability outside academia."
+      }
+    },
+    {
+      "id": "pillars",
+      "date": "2026-11-18",
+      "name": "Pillars",
+      "concept": "Jobs set side by side as columns, three to a row, newest left.",
+      "structureKey": "jobs as side by side columns three to a row",
+      "references": [],
+      "status": "rejected",
+      "decision": {
+        "by": "scout (not shortlisted)",
+        "date": "2026-11-18",
+        "reason": "Sibling of Raster (entry modules side by side) and too narrow for real job descriptions: a 55 mm column with five points becomes a tall ragged strip."
+      }
+    },
+    {
+      "id": "lead-story",
+      "date": "2026-11-18",
+      "name": "Lead story",
+      "concept": "Each job as a newspaper story: kicker, headline role, deck organisation, and the points set in two justified columns with a column rule.",
+      "structureKey": "newspaper story entries with two column justified points",
+      "references": [
+        {
+          "title": "Smashing Magazine: table of contents examples",
+          "url": "https://smashingmagazine.com/2008/07/table-of-contents-creative-and-beautiful-examples",
+          "idea": "Editorial devices for structured lists"
+        }
+      ],
+      "status": "rejected",
+      "decision": {
+        "by": "scout (not shortlisted)",
+        "date": "2026-11-18",
+        "reason": "Its header and feel would be the Byline family (editorial masthead) and points in balanced columns read top-to-bottom then across, which a recruiter scans poorly; Raster takes the stronger form of the same body idea."
+      }
+    },
+    {
+      "id": "tenure-bars",
+      "date": "2026-11-18",
+      "name": "Tenure bars",
+      "concept": "Each job carries a bar whose length is its tenure.",
+      "structureKey": "tenure proportional bars beside each role",
+      "references": [],
+      "status": "rejected",
+      "decision": {
+        "by": "scout (not shortlisted)",
+        "date": "2026-11-18",
+        "reason": "Needs reliable parsing of free-text dates (the career-gantt problem) and draws a number the person did not write."
+      }
+    },
+    {
+      "id": "periodic",
+      "date": "2026-11-18",
+      "name": "Periodic",
+      "concept": "Skills as element tiles with symbols.",
+      "structureKey": "skills as periodic table element tiles",
+      "references": [],
+      "status": "rejected",
+      "decision": {
+        "by": "scout (not shortlisted)",
+        "date": "2026-11-18",
+        "reason": "Would invent symbols and groupings the person never wrote; a gimmick, not a structure."
+      }
+    },
+    {
+      "id": "spreads",
+      "date": "2026-11-18",
+      "name": "Spreads",
+      "concept": "Mirrored verso and recto pages: the side column and page furniture always on the outer edge, like a bound book.",
+      "structureKey": "mirrored verso recto pages with outer edge side column",
+      "references": [],
+      "status": "rejected",
+      "kind": "continuation-variant",
+      "decision": {
+        "by": "scout (not shortlisted)",
+        "date": "2026-11-18",
+        "reason": "Only the side of the side column changes per page, which never counts as new; kept as a possible continuation option for existing sidebar blocks."
+      }
+    },
+    {
+      "id": "wayfinding",
+      "date": "2026-11-18",
+      "name": "Wayfinding",
+      "concept": "Section heads as signage panels with pictograms and arrows.",
+      "structureKey": "signage panel section heads with pictograms over a single column",
+      "references": [],
+      "status": "rejected",
+      "kind": "heading-variant",
+      "decision": {
+        "by": "scout (not shortlisted)",
+        "date": "2026-11-18",
+        "reason": "A heading treatment over an existing body; icons never count as new."
+      }
     }
   ],
   "learnings": [
@@ -1594,6 +1842,9 @@
     "2026-11-16 (owner): uniqueness is judged for the whole template — the body must always be structurally new, plus the header or continuation pages. Header-only ideas (e.g. Byline's statement masthead, Tessera's bento tiles) are kept as header variants for existing building blocks, not proposed as new designs.",
     "2026-11-17: Tabula (everything as ruled tables with When/What/Where heads) was rejected: rows of date | role | organisation are still the dates-left entry with the company moved right. A column-head row and hairlines are dressing, not structure. In this engine the body is a stack of additive blocks per column, so real body novelty has to change what a block shows or how columns relate, not how a stacked entry is ruled.",
     "2026-11-17: before building, check that every claimed zone is actually drawn: the proposal claimed continued sections reopen with their heads, but the paginator only repeats the running header. Also check the typical CV's page fill (a ~40% page 2 is a defect) and the option variants, not only the default.",
-    "2026-11-17: gaps still open after two runs: a graphic body that is structurally new (not gutter/label/timeline/stacked); healthcare, trades and academic. Gloss (per-entry margin notes) was dropped for the same reason as Tabula: meta in a gutter is the Linea/Press family. Engine notes: the stress executive fixture is US Letter by default (set pageSize for A4 PDFs); text in [data-num]/.g-mono is flattened to pictures in the PDF, which is how furniture text stays out of the ATS read; randomGraphic can take a new layout without an extra random draw so other random specs stay unchanged."
+    "2026-11-17: gaps still open after two runs: a graphic body that is structurally new (not gutter/label/timeline/stacked); healthcare, trades and academic. Gloss (per-entry margin notes) was dropped for the same reason as Tabula: meta in a gutter is the Linea/Press family. Engine notes: the stress executive fixture is US Letter by default (set pageSize for A4 PDFs); text in [data-num]/.g-mono is flattened to pictures in the PDF, which is how furniture text stays out of the ATS read; randomGraphic can take a new layout without an extra random draw so other random specs stay unchanged.",
+    "2026-11-18: a structurally new body was approved for the first time (Raster: points as tiles two to a row, entries and short sections as modules), but four review rounds converged at 8.5-8.7. Reviewers judged that bullets in two columns still read as a single column, and that a modular body needs the grid to shape the header and openers too, plus points that page-break gracefully. Next: before building, sketch how the idea looks on page 2 of a 3-page CV, not only on page 1.",
+    "2026-11-18: engine lessons: (1) text filled in after measuring ([data-num] section numbers) must not change a block's height, or blocks overflow the page foot (give the number and title one line box); (2) a two-column profile below ~300 characters broke the import read-back of short CVs; (3) the first design file on main needs the JSON import attribute in data/index.ts or Playwright e2e fails (fixed in the generator on the Raster PR); (4) bulletRow/entryRow/sectionRow are reusable body capabilities left on the Raster branch.",
+    "2026-11-18: gaps still open: a graphic design whose header, openers and body share one expressive structure; healthcare, trades and academic still thin. Recorded variants: wayfinding (heading), spreads (continuation); dropped: lexicon (run-in prose is slow to scan), pillars, lead-story (Byline family), tenure-bars, periodic."
   ]
 }
