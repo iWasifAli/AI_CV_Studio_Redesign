@@ -395,8 +395,9 @@ export const DEFAULT_CONFIG: BusinessConfig = {
     }),
   ),
   passes: [
+    { id: 'week', label: '1 week', days: 7, pricePkr: 199, active: true },
     { id: 'month', label: '1 month', days: 30, pricePkr: 499, active: true },
-    { id: 'quarter', label: '3 months', days: 90, pricePkr: 1299, active: true },
+    { id: 'quarter', label: '3 months', days: 90, pricePkr: 1099, active: true },
   ],
   features: {
     ai: true,

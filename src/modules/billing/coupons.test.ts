@@ -34,8 +34,8 @@ const cfg: BusinessConfig = {
     },
   ],
 };
-const month = cfg.passes[0]!;
-const quarter = cfg.passes[1]!;
+const month = cfg.passes.find((p) => p.id === 'month')!;
+const quarter = cfg.passes.find((p) => p.id === 'quarter')!;
 const at = new Date('2026-11-12T10:00:00Z');
 
 describe('coupons', () => {
