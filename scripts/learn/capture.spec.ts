@@ -138,7 +138,10 @@ test('capture screens', async ({ page }) => {
     await page.evaluate(() => {
       const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
       for (let n = w.nextNode(); n; n = w.nextNode())
-        n.textContent = (n.textContent ?? '').replace(/api-[\w-]+@example\.com/g, 'you@example.com');
+        n.textContent = (n.textContent ?? '').replace(
+          /api-[\w-]+@example\.com/g,
+          'you@example.com',
+        );
     });
     await shot(page, 'account', 1);
   });
@@ -153,7 +156,10 @@ test('capture screens', async ({ page }) => {
     // The test setup has sales switched off; hide that notice so the screen shows the plans only.
     await page.evaluate(() => {
       for (const el of Array.from(document.querySelectorAll('div,section')))
-        if (/^Premium opens soon/.test(el.textContent ?? '') && el.querySelectorAll('div').length < 3)
+        if (
+          /^Premium opens soon/.test(el.textContent ?? '') &&
+          el.querySelectorAll('div').length < 3
+        )
           (el as HTMLElement).style.display = 'none';
     });
     await shot(page, 'premium', 1);
