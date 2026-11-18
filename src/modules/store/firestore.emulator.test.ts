@@ -4,6 +4,8 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { driver } from '@/modules/resume/fixtures';
 import { FirestoreUserStore } from './firestore';
 import { MAX_VERSIONS } from './types';
+import { jobInput, type Job } from '@/modules/jobs/schema';
+import type { JobBoardMove } from '@/modules/jobs/board';
 
 /**
  * The Firestore store against the real emulator (`npm run test:store`, in CI). The in-memory
@@ -18,6 +20,46 @@ const store = () => {
 const uid = () => `u-${Math.random().toString(36).slice(2)}`;
 
 describe.skipIf(!on)('Firestore store (emulator)', () => {
+  it('serializes job moves and scoped saves without changing ordering-only timestamps', async () => {
+    const s = store();
+    const u = uid();
+    const original: Job = {
+      ...jobInput.parse({ title: 'Driver' }),
+      id: 'a',
+      createdAt: '2026-11-18T10:00:00.000Z',
+      updatedAt: '2026-11-18T10:00:00.000Z',
+    };
+    await s.putJob(u, original);
+    await s.putJob(u, { ...original, id: 'b' });
+    const input: JobBoardMove = {
+      jobId: 'a',
+      fromStage: 'saved',
+      toStage: 'saved',
+      beforeId: null,
+      revision: 0,
+      expectedJobUpdatedAt: original.updatedAt,
+    };
+    await s.moveJobOnBoard(u, input, () => {
+      throw new Error('order-only must skip transition');
+    });
+    expect(await s.getJob(u, 'a')).toEqual(original);
+    const revision = (await s.getJobBoard(u)).board.revision;
+    await Promise.all([
+      s.moveJobOnBoard(u, { ...input, toStage: 'applied', revision }, (cur) => ({
+        ...cur,
+        stage: 'applied',
+      })),
+      s.updateJob(u, 'a', (cur) => ({ ...cur, notes: 'kept' })),
+    ]);
+    expect(await s.getJob(u, 'a')).toMatchObject({ stage: 'applied', notes: 'kept' });
+    expect((await s.getJobBoard(u)).board.columns.applied).toEqual(['a']);
+    await s.deleteJob(u, 'a');
+    expect(await s.updateJob(u, 'a', (cur) => cur)).toBeNull();
+    expect((await s.getJobBoard(u)).board.columns.applied).toEqual([]);
+    await s.deleteUserData(u);
+    expect((await s.getJobBoard(u)).board.revision).toBe(0);
+  }, 30_000);
+
   it('monthly counters with dotted names count up to the limit, by weight, and release', async () => {
     const s = store();
     const u = uid();

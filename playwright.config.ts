@@ -53,6 +53,8 @@ export default defineConfig({
     {
       command: `npm run start -- -p ${PORT}`,
       env: {
+        // Exercise the new board by default; set 0 to verify rollback/legacy flows.
+        JOBS_BOARD_V2_ENABLED: process.env.JOBS_BOARD_V2_ENABLED ?? '1',
         RATE_LIMIT_PDF_PER_MINUTE: '1000',
         RATE_LIMIT_IMPORT_PER_MINUTE: '1000',
         MAKEOVER_VISITOR_PER_DAY: '100000',

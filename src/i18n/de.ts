@@ -2,6 +2,37 @@ import type { Dict } from './core';
 
 /** German interface text, keyed by the English source text (built by scripts/i18n-compile.mjs). */
 export const de: Dict = {
+  Actions: 'Aktionen',
+  'Add a job to start tracking your applications.':
+    'Fügen Sie eine Stelle hinzu, um Ihre Bewerbungen zu verfolgen.',
+  'Application stages': 'Bewerbungsphasen',
+  'Drag a handle to move a job, or use Actions.':
+    'Verschieben Sie eine Stelle am Griff oder nutzen Sie die Aktionen.',
+  'Drag {title}': '{title} verschieben',
+  'Draggable job': 'Verschiebbare Stelle',
+  'Drop here': 'Hier ablegen',
+  'Dropped. Saving the job position.': 'Abgelegt. Die Position wird gespeichert.',
+  'Jump to stage': 'Zur Phase springen',
+  'Move cancelled. The job has not moved.':
+    'Verschieben abgebrochen. Die Stelle wurde nicht verschoben.',
+  'Move down': 'Nach unten',
+  'Move up': 'Nach oben',
+  'Moved to {stage}': 'Nach {stage} verschoben',
+  'No jobs in this stage': 'Keine Stellen in dieser Phase',
+  'Outside the board. Drop to cancel.': 'Außerhalb der Übersicht. Zum Abbrechen loslassen.',
+  'Picked up {title}.': '{title} aufgenommen.',
+  'Press Space or Enter to pick up a job. Use Up and Down to reorder, Left and Right to change stage, Space or Enter to drop, and Escape to cancel.':
+    'Drücken Sie die Leertaste oder Eingabe, um eine Stelle aufzunehmen. Mit den Pfeiltasten nach oben und unten ändern Sie die Reihenfolge, mit links und rechts die Phase. Leertaste oder Eingabe legt die Stelle ab, Escape bricht ab.',
+  'Refresh the board before moving jobs again.':
+    'Aktualisieren Sie die Übersicht, bevor Sie weitere Stellen verschieben.',
+  Retry: 'Erneut versuchen',
+  '{title}, {stage}, position {position}.': '{title}, {stage}, Position {position}.',
+  'Your board has changed. Refresh it and try again.':
+    'Ihre Übersicht wurde geändert. Aktualisieren Sie sie und versuchen Sie es erneut.',
+  'Choose a different card as the destination.': 'Wählen Sie eine andere Karte als Ziel.',
+  'Invalid job move.': 'Ungültige Verschiebung der Stelle.',
+  'We couldn’t move this job. Refresh the board and try again.':
+    'Diese Stelle konnte nicht verschoben werden. Aktualisieren Sie die Übersicht und versuchen Sie es erneut.',
   '— comment from {author}': '– Kommentar von {author}',
   '— make your own professional CV, free.':
     '– erstellen Sie Ihren eigenen professionellen Lebenslauf, kostenlos.',

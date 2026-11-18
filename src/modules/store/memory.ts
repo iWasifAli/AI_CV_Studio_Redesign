@@ -2,6 +2,14 @@ import type { CommunityDesign, CommunityStatus } from '@/modules/community/types
 import type { Activity } from '@/modules/metrics/numbers';
 import type { ShareComment } from '@/modules/share/comments';
 import type { Job } from '@/modules/jobs/schema';
+import {
+  planJobMove,
+  removeFromJobBoard,
+  resolveJobBoard,
+  type JobBoardMove,
+  type JobBoardState,
+  type JobEditor,
+} from '@/modules/jobs/board';
 import type { SavedLetter } from '@/modules/letters/schema';
 import type { Story } from '@/modules/stories/schema';
 import type { SkillPlan } from '@/modules/skills/gap';
@@ -57,6 +65,23 @@ export class MemoryUserStore implements UserStore {
   }
 
   private jobs = new Map<string, Map<string, Job>>();
+  private jobBoards = new Map<string, JobBoardState>();
+  private jobLocks = new Map<string, Promise<void>>();
+  private async withJobLock<T>(uid: string, work: () => T | Promise<T>): Promise<T> {
+    const previous = this.jobLocks.get(uid) ?? Promise.resolve();
+    let release!: () => void;
+    const lock = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    this.jobLocks.set(uid, lock);
+    await previous;
+    try {
+      return await work();
+    } finally {
+      release();
+      if (this.jobLocks.get(uid) === lock) this.jobLocks.delete(uid);
+    }
+  }
   private jobBucket(uid: string) {
     let b = this.jobs.get(uid);
     if (!b) this.jobs.set(uid, (b = new Map()));
@@ -72,10 +97,45 @@ export class MemoryUserStore implements UserStore {
     return j ? structuredClone(j) : null;
   }
   async putJob(uid: string, job: Job) {
-    this.jobBucket(uid).set(job.id, structuredClone(job));
+    await this.withJobLock(uid, () => {
+      this.jobBucket(uid).set(job.id, structuredClone(job));
+    });
+  }
+  async updateJob(uid: string, id: string, edit: JobEditor) {
+    return this.withJobLock(uid, async () => {
+      const current = this.jobBucket(uid).get(id);
+      if (!current) return null;
+      const next = await edit(structuredClone(current));
+      if (next.id !== id) throw new Error('A job update cannot change its ID.');
+      this.jobBucket(uid).set(id, structuredClone(next));
+      return structuredClone(next);
+    });
+  }
+  async getJobBoard(uid: string) {
+    return this.withJobLock(uid, async () => {
+      const jobs = await this.listJobs(uid);
+      return { jobs, board: resolveJobBoard(jobs, this.jobBoards.get(uid)) };
+    });
+  }
+  async moveJobOnBoard(uid: string, input: JobBoardMove, edit: JobEditor) {
+    return this.withJobLock(uid, async () => {
+      const planned = planJobMove(await this.listJobs(uid), this.jobBoards.get(uid), input);
+      const job = planned.stageChanged ? await edit(structuredClone(planned.job)) : planned.job;
+      if (job.id !== input.jobId || (planned.stageChanged && job.stage !== input.toStage))
+        throw new Error('Invalid job stage transition.');
+      if (planned.changed) {
+        if (planned.stageChanged) this.jobBucket(uid).set(job.id, structuredClone(job));
+        this.jobBoards.set(uid, structuredClone(planned.board));
+      }
+      return structuredClone({ job, board: planned.board });
+    });
   }
   async deleteJob(uid: string, id: string) {
-    this.jobBucket(uid).delete(id);
+    await this.withJobLock(uid, () => {
+      this.jobBucket(uid).delete(id);
+      const board = this.jobBoards.get(uid);
+      if (board) this.jobBoards.set(uid, removeFromJobBoard(board, id));
+    });
   }
 
   private coach = new Map<string, CoachThread>();
@@ -253,7 +313,10 @@ export class MemoryUserStore implements UserStore {
     for (const k of [...this.comments.keys()]) if (k.startsWith(`${uid}/`)) this.comments.delete(k);
     this.images.delete(uid);
     this.passes.delete(uid);
-    this.jobs.delete(uid);
+    await this.withJobLock(uid, () => {
+      this.jobs.delete(uid);
+      this.jobBoards.delete(uid);
+    });
     this.letters.delete(uid);
     this.stories.delete(uid);
     this.skillPlans.delete(uid);

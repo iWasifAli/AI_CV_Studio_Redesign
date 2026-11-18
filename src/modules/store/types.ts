@@ -7,6 +7,12 @@ import type {
 } from '@/modules/portfolio/themes';
 import type { ShareComment } from '@/modules/share/comments';
 import type { Job } from '@/modules/jobs/schema';
+import type {
+  JobBoardMove,
+  JobBoardResult,
+  JobBoardSnapshot,
+  JobEditor,
+} from '@/modules/jobs/board';
 import type { SavedLetter } from '@/modules/letters/schema';
 import type { Story } from '@/modules/stories/schema';
 import type { SkillPlan } from '@/modules/skills/gap';
@@ -49,6 +55,10 @@ export interface UserStore {
   listJobs(uid: string): Promise<Job[]>;
   getJob(uid: string, id: string): Promise<Job | null>;
   putJob(uid: string, job: Job): Promise<void>;
+  /** Retryable callback on the latest job; no external side effects. Missing jobs stay deleted. */
+  updateJob(uid: string, id: string, edit: JobEditor): Promise<Job | null>;
+  getJobBoard(uid: string): Promise<JobBoardSnapshot>;
+  moveJobOnBoard(uid: string, input: JobBoardMove, edit: JobEditor): Promise<JobBoardResult>;
   deleteJob(uid: string, id: string): Promise<void>;
 
   // Career coach (R9): one conversation per account.

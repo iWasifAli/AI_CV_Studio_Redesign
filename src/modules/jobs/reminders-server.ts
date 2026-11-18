@@ -4,7 +4,7 @@ import { track } from '@/modules/metrics/server';
 import { reminderEmail, sendMail, SITE } from '@/modules/notify/server';
 import { getUserStore } from '@/modules/store';
 import type { ReminderQueue } from '@/modules/store/types';
-import { dueNow, nextDue, safeZone, todayIn } from './reminders';
+import { dueNow, nextDue, pending, safeZone, todayIn } from './reminders';
 
 const token = () => {
   const b = new Uint8Array(16);
@@ -110,15 +110,15 @@ export async function runReminders(
       result.skipped += due.length;
     }
     // Each due reminder is handled once: emailed, or passed over for someone with emails off.
-    const ids = new Set(due.map((d) => d.reminder.id));
     for (const j of jobs) {
-      if (!(j.reminders ?? []).some((r) => ids.has(r.id))) continue;
-      await store.putJob(q.uid, {
-        ...j,
-        reminders: j.reminders!.map((r) =>
-          ids.has(r.id) ? { ...r, emailedAt: sent ? stamp : `off:${stamp}` } : r,
+      const ids = new Set(due.filter((d) => d.job.id === j.id).map((d) => d.reminder.id));
+      if (!ids.size) continue;
+      await store.updateJob(q.uid, j.id, (latest) => ({
+        ...latest,
+        reminders: (latest.reminders ?? []).map((r) =>
+          ids.has(r.id) && pending(r) ? { ...r, emailedAt: sent ? stamp : `off:${stamp}` } : r,
         ),
-      });
+      }));
     }
     await store.putReminderQueue({
       ...q,

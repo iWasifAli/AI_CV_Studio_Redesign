@@ -12,7 +12,7 @@ import {
 } from '@/modules/jobs/reminders';
 import { syncQueue } from '@/modules/jobs/reminders-server';
 import { track } from '@/modules/metrics/server';
-import { getUserStore } from '@/modules/store';
+import { JobUpdateError, saveJobUpdate } from '@/modules/jobs/updates';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -31,35 +31,35 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   const tz = safeZone(parsed.data.tz);
   const problem = checkDay(parsed.data.on, tz);
   if (problem) return apiError('INVALID_INPUT', problem, r.rid);
-  const list = r.job.reminders ?? [];
-  if (list.filter((x) => !x.done).length >= MAX_REMINDERS)
-    return apiError(
-      'LIMIT_REACHED',
-      `A job can have up to ${MAX_REMINDERS} open reminders.`,
-      r.rid,
-      {
-        reason: 'limit',
-      },
-    );
   const now = new Date().toISOString();
   const reminder: Reminder = {
     id: crypto.randomUUID(),
     on: parsed.data.on,
-    note: parsed.data.note || defaultNote(r.job),
+    note: parsed.data.note,
     done: false,
     dueAt: dueAtFor(parsed.data.on, tz),
     emailedAt: '',
     createdAt: now,
   };
-  const job = {
-    ...r.job,
-    // Kept in date order; at most 30 including done ones (the oldest done ones go first).
-    reminders: [...list, reminder]
-      .sort((a, b) => a.on.localeCompare(b.on))
-      .filter((x, i, all) => !x.done || all.length - i <= 30),
-    updatedAt: now,
-  };
-  await getUserStore().putJob(r.user.uid, job);
+  const saved = await saveJobUpdate(r.user.uid, r.job.id, r.rid, (latest) => {
+    const list = latest.reminders ?? [];
+    if (list.filter((x) => !x.done).length >= MAX_REMINDERS)
+      throw new JobUpdateError(
+        'LIMIT_REACHED',
+        `A job can have up to ${MAX_REMINDERS} open reminders.`,
+        { reason: 'limit' },
+      );
+    return {
+      ...latest,
+      // Kept in date order; at most 30 including done ones (the oldest done ones go first).
+      reminders: [...list, { ...reminder, note: reminder.note || defaultNote(latest) }]
+        .sort((a, b) => a.on.localeCompare(b.on))
+        .filter((x, i, all) => !x.done || all.length - i <= 30),
+      updatedAt: now,
+    };
+  });
+  if ('error' in saved) return saved.error;
+  const { job } = saved;
   await syncQueue(r.user, { tz });
   await track('reminder_set');
   return NextResponse.json({ job }, noStore);

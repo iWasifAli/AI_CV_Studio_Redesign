@@ -16,11 +16,11 @@ export async function GET() {
   const rid = requestId();
   const user = await currentUser();
   if (!user) return apiError('SIGN_IN_REQUIRED', 'Please sign in to use the job tracker.', rid);
-  const [jobs, { max }] = await Promise.all([
-    getUserStore().listJobs(user.uid),
+  const [{ jobs, board }, { max }] = await Promise.all([
+    getUserStore().getJobBoard(user.uid),
     jobAllowance(user),
   ]);
-  return NextResponse.json({ jobs, max }, noStore);
+  return NextResponse.json({ jobs, max, board }, noStore);
 }
 
 /** POST JobInput → the new job. Refused past the plan's job limit. */

@@ -3,6 +3,7 @@
 import type { JobFromUrl } from '@/modules/jobs/from-url';
 import type { Insights } from '@/modules/jobs/insights';
 import type { Job, JobInput } from '@/modules/jobs/schema';
+import type { JobBoardMove, JobBoardResult, JobBoardState } from '@/modules/jobs/board';
 import type { ResumeDocument } from '@/modules/resume/schema';
 
 /** Browser helpers for the job tracker API. Errors carry the server's plain-language message. */
@@ -38,7 +39,12 @@ async function call<T>(path: string, init?: RequestInit): Promise<T> {
 export const jobsApi = {
   /** R9.10 application results. */
   insights: () => call<{ insights: Insights; total: number }>('/api/jobs/insights'),
-  list: () => call<{ jobs: Job[]; max: number }>('/api/jobs'),
+  list: () => call<{ jobs: Job[]; max: number; board?: JobBoardState }>('/api/jobs'),
+  move: (input: JobBoardMove) =>
+    call<JobBoardResult>('/api/jobs/board/move', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
   get: (id: string) => call<{ job: Job }>(`/api/jobs/${id}`).then((r) => r.job),
   create: (input: JobInput) =>
     call<{ job: Job }>('/api/jobs', { method: 'POST', body: JSON.stringify(input) }).then(
