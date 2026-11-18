@@ -37,6 +37,7 @@ export const EVENTS = [
   'makeover_fail',
   'makeover_saved',
   'makeover_design_switch',
+  'score_share',
   'vision_ok',
   'vision_fail',
   'polish_ok',

@@ -26,6 +26,9 @@ import { DESIGN_META } from '@/modules/design/designs';
 import { BeforeView } from './before-view';
 import { DropZone } from './drop-zone';
 import { PolishChips } from './polish-panel';
+import { ScoreCard } from './score-card';
+import { scoreCv } from '@/modules/quality/score';
+import { applyStandard } from '@/modules/resume/standards';
 import {
   clearPending,
   loadPending,
@@ -64,6 +67,8 @@ export function MakeoverScreen() {
   const [step, setStep] = useState(0);
   const [failure, setFailure] = useState<Failure | null>(null);
   const [result, setResult] = useState<MakeoverResult | null>(null);
+  // The score when the CV was first read, to show what the polish added.
+  const [firstScore, setFirstScore] = useState<number | null>(null);
   const [doc, setDoc] = useState<ResumeDocument | null>(null);
   const [portraitChoice, setPortraitChoice] = useState<'used' | 'left' | null>(null);
   const [templateId, setDesignId] = useState<DesignId>('clarity');
@@ -155,6 +160,7 @@ export function MakeoverScreen() {
         const first = j.ranking.find((x) => !locked(x.id)) ?? j.ranking[0];
         setResult(j);
         setDoc(j.document);
+        setFirstScore(scoreCv(j.document).total);
         setPortraitChoice(null);
         setDesignId(first?.id ?? 'clarity');
         setPhase('result');
@@ -183,6 +189,7 @@ export function MakeoverScreen() {
       if (!p) return;
       setResult(p.result);
       setDoc(p.doc);
+      setFirstScore(scoreCv(p.doc).total);
       setDesignId(p.templateId);
       setPhase('result');
       autoAction.current = p.action;
@@ -408,6 +415,11 @@ export function MakeoverScreen() {
         </div>
 
         <div className="flex flex-col gap-6">
+          <ScoreCard
+            doc={doc}
+            firstScore={firstScore}
+            onStandard={(id) => setDoc((d) => (d ? applyStandard(d, id) : d))}
+          />
           <section className="flex flex-col gap-3" aria-labelledby="mk-designs">
             <h3 id="mk-designs" className="font-semibold">
               {tx('Designs chosen for you')}
@@ -593,6 +605,7 @@ export function MakeoverScreen() {
                 clearPending();
                 setResult(null);
                 setDoc(null);
+                setFirstScore(null);
                 setFile(null);
                 setPhase('idle');
               }}

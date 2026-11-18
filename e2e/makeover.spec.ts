@@ -64,6 +64,39 @@ async function noSeriousA11y(page: Page) {
 test.describe('visitor', () => {
   test.use({ as: 'visitor' });
 
+  test('shows a free CV score with its parts and top fixes, and shares only the score', async ({
+    page,
+    context,
+  }) => {
+    await page.goto('/makeover');
+    await page.getByTestId('makeover-file').setInputFiles(join(FIX, 'word-sales.pdf'));
+    await expect(page.getByTestId('makeover-done')).toBeVisible({ timeout: 30_000 });
+    const card = page.getByTestId('cv-score-card');
+    await expect(card).toBeVisible();
+    const total = Number(await card.getByTestId('score-total').innerText());
+    expect(total).toBeGreaterThan(0);
+    expect(total).toBeLessThanOrEqual(100);
+    await expect(card).toContainText('Completeness');
+    await expect(card).toContainText('Wording and structure');
+    // Choosing a standard rescoring for it keeps the score a number out of 100.
+    await card.getByTestId('score-standard').selectOption('gulf');
+    const after = Number(await card.getByTestId('score-total').innerText());
+    expect(after).toBeGreaterThan(0);
+    expect(after).toBeLessThanOrEqual(100);
+    // Share: the WhatsApp text carries the score, never the person's name or CV text.
+    await context.route('https://wa.me/**', (r) =>
+      r.fulfill({ status: 200, contentType: 'text/html', body: 'ok' }),
+    );
+    const [popup] = await Promise.all([
+      context.waitForEvent('page'),
+      card.getByTestId('score-share').click(),
+    ]);
+    await popup.waitForLoadState();
+    const url = decodeURIComponent(popup.url());
+    expect(url).toContain('wa.me');
+    expect(url).toMatch(/scored \d+\/100/);
+  });
+
   test('drops a CV on the home page and sees it transformed, with six different designs', async ({
     page,
   }) => {
