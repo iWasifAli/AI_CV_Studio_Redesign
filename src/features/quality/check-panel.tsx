@@ -11,6 +11,7 @@ import { remaining, useEntitlements } from '@/features/account/entitlements';
 import { jobsApi } from '@/features/jobs/api';
 import type { Job } from '@/modules/jobs/schema';
 import type { AtsCheck, AtsReport } from '@/modules/quality/ats';
+import { ops } from '@/modules/resume/ops';
 import type { ResumeDocument } from '@/modules/resume/schema';
 import { CommentsPanel } from '@/features/share/comments-panel';
 import { HealthPanel } from './health-panel';
@@ -47,7 +48,7 @@ export function CheckPanel({
       {apply && <ProofreadPanel doc={doc} onShow={onShow} apply={apply} />}
       {apply && <QuantifyPanel doc={doc} onShow={onShow} apply={apply} />}
       {apply && <GapPanel doc={doc} apply={apply} />}
-      <AtsPanel doc={doc} onShow={onShow} onDesign={onDesign} />
+      <AtsPanel doc={doc} onShow={onShow} onDesign={onDesign} apply={apply} />
     </div>
   );
 }
@@ -56,12 +57,16 @@ function AtsPanel({
   doc,
   onShow,
   onDesign,
+  apply,
 }: {
   doc: ResumeDocument;
   onShow: (ref: string) => void;
   onDesign: () => void;
+  apply?: (fn: (d: ResumeDocument) => ResumeDocument) => void;
 }) {
   const tx = useT();
+  const [picked, setPicked] = useState<string[]>([]);
+  const [added, setAdded] = useState<string[]>([]);
   const account = useAccount();
   const { ent, refresh } = useEntitlements();
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -291,9 +296,28 @@ function AtsPanel({
                   <ul className="flex flex-col gap-2" aria-label={tx('Keywords not in your CV')}>
                     {report.keywords.missing.map((m) => (
                       <li key={m.term} className="text-sm">
-                        <span className="bg-sunken rounded-full px-2.5 py-1 font-semibold">
-                          {m.term}
-                        </span>
+                        {apply && !added.includes(m.term) ? (
+                          <label className="inline-flex min-h-8 cursor-pointer items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={picked.includes(m.term)}
+                              onChange={(e) =>
+                                setPicked((p) =>
+                                  e.target.checked ? [...p, m.term] : p.filter((x) => x !== m.term),
+                                )
+                              }
+                              data-testid="keyword-pick"
+                            />
+                            <span className="bg-sunken rounded-full px-2.5 py-1 font-semibold">
+                              {m.term}
+                            </span>
+                          </label>
+                        ) : (
+                          <span className="bg-sunken rounded-full px-2.5 py-1 font-semibold">
+                            {added.includes(m.term) ? '✓ ' : ''}
+                            {m.term}
+                          </span>
+                        )}
                         {m.line && (
                           <span className="text-ink-muted mt-1 block">
                             {tx('You may already show this: “{text}”{v}', {
@@ -312,6 +336,27 @@ function AtsPanel({
                       </li>
                     ))}
                   </ul>
+                  {apply && (
+                    <div className="mt-3 flex flex-col gap-1.5">
+                      <Button
+                        variant="secondary"
+                        disabled={picked.length === 0}
+                        onClick={() => {
+                          apply((d) => ops.addKeywords(d, picked));
+                          setAdded((a) => [...a, ...picked]);
+                          setPicked([]);
+                        }}
+                        data-testid="keyword-add"
+                      >
+                        {tx('Add ticked words to my skills')}
+                      </Button>
+                      <p className="text-ink-muted text-xs">
+                        {tx(
+                          'Tick only the words that are true for you. They go in your Skills section. Run the check again to see your match.',
+                        )}
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

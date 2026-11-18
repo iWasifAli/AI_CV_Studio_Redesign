@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { CircleAlert, CircleCheck, Lightbulb } from 'lucide-react';
 import { healthCheck, type Finding } from '@/modules/quality/health';
+import { scoreCv } from '@/modules/quality/score';
 import type { ResumeDocument } from '@/modules/resume/schema';
 
 /** CV health check: what to fix before sending, what could be stronger, and what is already good. */
@@ -20,6 +21,7 @@ export function HealthPanel({
 }) {
   const t = useT();
   const report = useMemo(() => healthCheck(doc, { pages }), [doc, pages]);
+  const score = useMemo(() => scoreCv(doc, { pages }), [doc, pages]);
   const [showPassed, setShowPassed] = useState(false);
   const fixes = report.findings.filter((f) => f.severity === 'fix');
   const improve = report.findings.filter((f) => f.severity === 'improve');
@@ -43,6 +45,37 @@ export function HealthPanel({
             ? t('Ready to send. A few ideas could make it stronger.')
             : t('Ready to send. Nothing to fix.')}
       </p>
+      <div className="bg-sunken mb-4 rounded-md p-3" data-testid="cv-score">
+        <p className="flex items-baseline gap-2">
+          <span className="text-3xl font-bold" data-testid="cv-score-total">
+            {score.total}
+          </span>
+          <span className="text-ink-muted text-sm">
+            {t('out of 100')} · {t(score.grade)}
+          </span>
+        </p>
+        <ul className="mt-2 flex flex-col gap-1.5">
+          {score.parts.map((p) => (
+            <li key={p.id} className="text-sm">
+              <div className="flex justify-between">
+                <span>{t(p.label)}</span>
+                <span className="text-ink-muted">
+                  {p.points} / {p.max}
+                </span>
+              </div>
+              <div className="bg-line h-1.5 overflow-hidden rounded-full" aria-hidden>
+                <div
+                  className="bg-primary h-full"
+                  style={{ width: `${Math.round((p.points / p.max) * 100)}%` }}
+                />
+              </div>
+            </li>
+          ))}
+        </ul>
+        <p className="text-ink-muted mt-2 text-xs">
+          {t('Worked out from the checks below. No AI, so the same CV always scores the same.')}
+        </p>
+      </div>
       {fixes.length > 0 && (
         <Group title={t('Fix before sending')} items={fixes} doc={doc} tone="fix" onShow={onShow} />
       )}

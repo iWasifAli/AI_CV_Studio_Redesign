@@ -148,6 +148,60 @@ export const ops = {
     sections.splice(index, 0, section);
     return { doc: touch(doc, { sections }), sectionId: section.id };
   },
+  /**
+   * Add keywords (words from a job advert the person confirmed are true for them) to the skills
+   * section. Already-present words are skipped; a skills section is created if there is none.
+   */
+  addKeywords(doc: ResumeDocument, terms: string[]): ResumeDocument {
+    const have = new Set(
+      doc.sections.flatMap((s) =>
+        s.kind === 'skills'
+          ? s.items.flatMap((g) => g.keywords.map((k) => k.trim().toLowerCase()))
+          : [],
+      ),
+    );
+    const fresh: string[] = [];
+    for (const raw of terms) {
+      const t = raw.trim().slice(0, 160);
+      if (t && !have.has(t.toLowerCase())) {
+        have.add(t.toLowerCase());
+        fresh.push(t);
+      }
+    }
+    if (!fresh.length) return doc;
+    let sections = doc.sections;
+    let i = sections.findIndex((s) => s.kind === 'skills');
+    if (i < 0) {
+      const made = ops.addSection(doc, 'skills', 'Skills');
+      sections = made.doc.sections.map((s) =>
+        s.id === made.sectionId && s.kind === 'skills'
+          ? { ...s, items: [{ ...s.items[0]!, label: 'Skills' }] }
+          : s,
+      );
+      i = sections.findIndex((s) => s.id === made.sectionId);
+    }
+    const sec = sections[i]!;
+    if (sec.kind !== 'skills') return doc;
+    const items = sec.items.slice();
+    if (!items.length)
+      items.push({ ...(emptyItem('skills') as (typeof items)[number]), label: 'Skills' });
+    for (const t of fresh) {
+      let g = items[items.length - 1]!;
+      if (g.keywords.length >= 60) {
+        g = { ...(emptyItem('skills') as typeof g), id: newId(), label: g.label };
+        items.push(g);
+      }
+      // Keep optional levels in step with the keywords (0 = not set).
+      items[items.length - 1] = {
+        ...g,
+        keywords: [...g.keywords, t],
+        ...(g.levels ? { levels: [...g.levels, 0] } : {}),
+      };
+    }
+    const next = sections.slice();
+    next[i] = { ...sec, hidden: false, items };
+    return touch(doc, { sections: next });
+  },
   removeSection(doc: ResumeDocument, sectionId: string) {
     return touch(doc, { sections: doc.sections.filter((s) => s.id !== sectionId) });
   },
