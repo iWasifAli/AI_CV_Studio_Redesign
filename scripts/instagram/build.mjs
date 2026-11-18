@@ -45,8 +45,9 @@ p.sub{font-size:52px;line-height:1.36;color:#d9d4ee;margin:40px 0 0}
 .bar i{display:block;height:100%;border-radius:4px;background:#c69a61}
 `;
 
-const MARK = (fill, fold, line) =>
-  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path d="M6 4h14l6 6v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" fill="${fill}"/><path d="M20 4v4a2 2 0 0 0 2 2h4" fill="${fold}"/><rect x="8.5" y="14" width="11" height="2.2" rx="1.1" fill="${line}"/><rect x="8.5" y="18.5" width="15" height="1.6" rx=".8" fill="${line}" fill-opacity=".6"/><rect x="8.5" y="22" width="12" height="1.6" rx=".8" fill="${line}" fill-opacity=".6"/></svg>`;
+// Brand mark: ribbon A + CV card + AI spark (docs/brand/aligned-logos, 03 RibbonProfile).
+const MARK = () =>
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="70 70 380 345"><defs><linearGradient id="ribbon" x1=".12" y1=".93" x2=".92" y2=".08"><stop offset="0" stop-color="#FF9365"/><stop offset=".33" stop-color="#D44AD7"/><stop offset=".66" stop-color="#7137E9"/><stop offset="1" stop-color="#4E5AFF"/></linearGradient></defs><path d="M86 400 L205 107 Q213 87 237 87 L287 87 Q308 87 319 109 L432 400 L345 400 L263 177 L175 400 Z" fill="url(#ribbon)"/> <path d="M186 307 L348 307 L373 371 L160 371 Z" fill="url(#ribbon)"/><g transform="rotate(5 288 238)"><rect x="236" y="125" width="112" height="201" rx="16" fill="#FFFFFF" stroke="#D7C8FF" stroke-width="3"/><circle cx="273" cy="174" r="15" fill="#6846CD"/><path d="M245 207 Q271 177 297 207" fill="#6846CD"/><rect x="307" y="164" width="28" height="7" rx="3.5" fill="#A4A1D7"/><rect x="307" y="181" width="22" height="7" rx="3.5" fill="#A4A1D7"/><rect x="250" y="231" width="82" height="7" rx="3.5" fill="#B0ABD8"/><rect x="250" y="250" width="69" height="7" rx="3.5" fill="#B0ABD8"/><rect x="250" y="269" width="78" height="7" rx="3.5" fill="#B0ABD8"/></g><path d="M399 83 Q404 106 427 111 Q404 116 399 139 Q394 116 371 111 Q394 106 399 83Z" fill="#FF9B49"/></svg>`;
 
 const slideHtml = (s, i, n) => {
   const foot = `<div class="foot"><span>AI CV Studio</span><span>@aicvstudio.app</span></div>`;
@@ -79,10 +80,9 @@ const shot = async (html, w, h, out) => {
 if (process.argv[2] === '--brand') {
   const out = process.argv[3];
   fs.mkdirSync(out, { recursive: true });
-  // Avatar: bold "CV" on a violet-to-navy field with a gold underline and a small spark for the AI.
-  // Everything sits inside the central circle so Instagram's round crop never touches it.
+  // Avatar: the brand mark on the dark tile, centred well inside Instagram's round crop.
   await shot(
-    `<body style="width:1000px;height:1000px;background:linear-gradient(145deg,#6b53b8 0%,#4a3891 45%,#172a3d 100%);display:flex;align-items:center;justify-content:center"><div style="position:relative;width:520px;text-align:center"><div style="font:700 330px/0.9 F;color:#fbf9f6;letter-spacing:-8px">CV</div><div style="margin:34px auto 0;width:300px;height:22px;border-radius:11px;background:#c69a61"></div><svg style="position:absolute;right:-70px;top:-70px" width="130" height="130" viewBox="0 0 24 24"><path d="M12 1l2.6 7.4L22 11l-7.4 2.6L12 21l-2.6-7.4L2 11l7.4-2.6z" fill="#c69a61"/></svg></div></body>`,
+    `<body style="width:1000px;height:1000px;background:#12122b;display:flex;align-items:center;justify-content:center"><div style="width:620px">${MARK()}</div></body>`,
     1000,
     1000,
     path.join(out, 'avatar.png'),
@@ -94,7 +94,7 @@ if (process.argv[2] === '--brand') {
     ['faq', 'FAQ'],
   ])
     await shot(
-      `<body style="width:1080px;height:1920px;background:#5b45a0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:56px"><div style="width:260px;height:260px;background:#172a3d;border-radius:50%;display:flex;align-items:center;justify-content:center"><div style="width:130px">${MARK('#fbf9f6', '#b9a8e6', '#172a3d')}</div></div><div style="font:600 84px F;color:#fbf9f6">${glyph}</div></body>`,
+      `<body style="width:1080px;height:1920px;background:#5b45a0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:56px"><div style="width:260px;height:260px;background:#172a3d;border-radius:50%;display:flex;align-items:center;justify-content:center"><div style="width:130px">${MARK()}</div></div><div style="font:600 84px F;color:#fbf9f6">${glyph}</div></body>`,
       1080,
       1920,
       path.join(out, `highlight-${name}.png`),
