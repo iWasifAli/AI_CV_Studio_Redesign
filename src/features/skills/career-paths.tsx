@@ -55,9 +55,7 @@ export function CareerPaths({
         body: JSON.stringify({ document: source, interests }),
       });
       const j = (await r.json().catch(() => null)) as
-        | { paths: Path[] }
-        | { error: { message: string } }
-        | null;
+        { paths: Path[] } | { error: { message: string } } | null;
       if (!r.ok || !j || 'error' in j) {
         setProblem({
           message: (j && 'error' in j && j.error.message) || 'That didn’t work. Please try again.',

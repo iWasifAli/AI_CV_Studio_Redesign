@@ -25,8 +25,7 @@ const SKIP = new Set(['id', 'current', 'levels', 'level']);
 type Rec = Record<string, unknown>;
 const itemOf = (doc: ResumeDocument, sectionId: string, itemId: string) =>
   doc.sections.find((s) => s.id === sectionId)?.items.find((i) => i.id === itemId) as
-    | Rec
-    | undefined;
+    Rec | undefined;
 
 /** Facts changed since `before` (the CV when the editor opened) that the profile still has as they were. */
 export function profileChanges(

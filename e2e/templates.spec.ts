@@ -91,8 +91,7 @@ test.describe('template engine parity (desktop only)', () => {
         if (doc.basics.name)
           expect(text.toLowerCase()).toContain(doc.basics.name.split(' ')[0]!.toLowerCase());
         const firstRole = doc.sections.find((s) => s.kind === 'experience')?.items[0] as
-          | { role?: string }
-          | undefined;
+          { role?: string } | undefined;
         if (firstRole?.role)
           expect(text.toLowerCase()).toContain(firstRole.role.split(' ')[0]!.toLowerCase());
       }

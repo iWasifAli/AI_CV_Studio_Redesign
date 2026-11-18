@@ -27,12 +27,7 @@ export type GenerateResult = {
 };
 
 export type ProviderErrorKind =
-  | 'timeout'
-  | 'rate_limited'
-  | 'unavailable'
-  | 'blocked'
-  | 'bad_request'
-  | 'auth';
+  'timeout' | 'rate_limited' | 'unavailable' | 'blocked' | 'bad_request' | 'auth';
 
 export class AiProviderError extends Error {
   constructor(

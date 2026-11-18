@@ -12,9 +12,7 @@ async function call<T>(path: string, init?: RequestInit): Promise<T> {
     headers: init?.body ? { 'content-type': 'application/json' } : undefined,
   });
   const j = (await r.json().catch(() => null)) as
-    | (T & { error?: undefined })
-    | { error: { message: string; reason?: string } }
-    | null;
+    (T & { error?: undefined }) | { error: { message: string; reason?: string } } | null;
   if (!r.ok || !j || ('error' in j && j.error))
     throw new JobsError(
       (j && 'error' in j && j.error?.message) || 'That didn’t work. Please try again.',

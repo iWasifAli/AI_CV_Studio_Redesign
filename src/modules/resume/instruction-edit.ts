@@ -267,8 +267,7 @@ export function applyChanges(doc: ResumeDocument, changes: EditChange[]): Resume
     .forEach((r) => {
       // Found again by id: a move in the same batch may have changed the section's position.
       const item = out.sections.find((x) => x.id === r.sid)?.items.find((x) => x.id === r.iid) as
-        | Record<string, unknown>
-        | undefined;
+        Record<string, unknown> | undefined;
       const list = item?.[r.key] as string[] | undefined;
       if (list && r.n < list.length) list.splice(r.n, 1);
     });

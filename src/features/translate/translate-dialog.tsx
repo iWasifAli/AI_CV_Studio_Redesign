@@ -59,9 +59,7 @@ export function TranslateButton({ doc }: { doc: ResumeDocument }) {
         body: JSON.stringify({ document: doc, language: lang }),
       });
       const j = (await r.json().catch(() => null)) as
-        | { pieces: Piece[] }
-        | { error: { message: string } }
-        | null;
+        { pieces: Piece[] } | { error: { message: string } } | null;
       if (!r.ok || !j || 'error' in j) {
         setProblem({
           message: (j && 'error' in j && j.error.message) || 'That didn’t work. Please try again.',

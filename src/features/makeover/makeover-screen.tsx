@@ -116,9 +116,7 @@ export function MakeoverScreen() {
           headers: { accept: 'application/x-ndjson' },
         });
         type Answer =
-          | MakeoverResult
-          | { error: { message: string; details?: { reason?: string } } }
-          | null;
+          MakeoverResult | { error: { message: string; details?: { reason?: string } } } | null;
         let j: Answer = null;
         let ok = r.ok;
         if (r.ok && r.body && (r.headers.get('content-type') ?? '').includes('ndjson')) {
@@ -213,9 +211,7 @@ export function MakeoverScreen() {
           body: JSON.stringify({ makeoverId: result.makeoverId }),
         });
         const j = (await r.json().catch(() => null)) as
-          | { ok: true }
-          | { error: { message: string; details?: { reason?: string } } }
-          | null;
+          { ok: true } | { error: { message: string; details?: { reason?: string } } } | null;
         if (!r.ok || !j || 'error' in j) {
           setSaveFailure({
             message:

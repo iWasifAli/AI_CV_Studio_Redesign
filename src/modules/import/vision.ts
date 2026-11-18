@@ -5,8 +5,7 @@ import { runTask } from '@/modules/ai/run';
 import { aiBudgetSpent } from '@/modules/metrics/server';
 
 export type Transcribed =
-  | { ok: true; lines: string[]; photo: boolean; photoBox: number[] }
-  | { ok: false; reason: string };
+  { ok: true; lines: string[]; photo: boolean; photoBox: number[] } | { ok: false; reason: string };
 
 /**
  * Vision fallback (spec §6.2 step 3): a scanned PDF or a photo of a CV is sent to the multimodal

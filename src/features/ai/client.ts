@@ -76,8 +76,7 @@ export function deviceId(): string {
 }
 
 export type AiCallResult<T extends TaskId> =
-  | { ok: true; data: AiResponse<T> }
-  | { ok: false; message: string; code: string };
+  { ok: true; data: AiResponse<T> } | { ok: false; message: string; code: string };
 
 const CLIENT_TIMEOUT_MS = 45_000;
 
@@ -97,9 +96,7 @@ export async function callAi<T extends TaskId>(
       signal: combined,
     });
     const json = (await res.json().catch(() => null)) as
-      | AiResponse<T>
-      | { error?: { code?: string; message?: string } }
-      | null;
+      AiResponse<T> | { error?: { code?: string; message?: string } } | null;
     if (res.ok && json && 'result' in json) return { ok: true, data: json };
     const err = json && 'error' in json ? json.error : undefined;
     return {
