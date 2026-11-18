@@ -2188,6 +2188,12 @@ export const de: Dict = {
     'PDF, Word oder ein Foto eines Lebenslaufs auf Papier · bis zu 10 MB',
   'Free CV score included': 'Kostenloser CV-Score inklusive',
   '{n} CV scores shared': '{n} CV-Scores geteilt',
+  'Open workspaces': 'Geöffnete Arbeitsbereiche',
+  'Close {title}': '{title} schließen',
+  'New workspace': 'Neuer Arbeitsbereich',
+  'You can keep up to {n} workspaces open': 'Sie können bis zu {n} Arbeitsbereiche offen halten',
+  'Workspace tabs (several places open at once in the app)':
+    'Arbeitsbereich-Tabs (mehrere Bereiche gleichzeitig in der App)',
   Peek: 'Vorschau',
   'People who can vouch for you — or “Available on request”':
     'Personen, die für Sie bürgen können – oder „Auf Anfrage“',

@@ -125,6 +125,8 @@ export const businessConfig = z.object({
     kit: z.boolean().default(true),
     /** R9 mock interview on jobs and in Coach. */
     mockInterview: z.boolean().default(true),
+    /** Several workspaces (tabs) open at once in the signed-in app. Off until switched on. */
+    workspaceTabs: z.boolean().default(false),
     /** R9 career coach chat. */
     coach: z.boolean().default(true),
     /** R9 story bank. */
@@ -417,6 +419,7 @@ export const DEFAULT_CONFIG: BusinessConfig = {
     letters: true,
     kit: true,
     mockInterview: true,
+    workspaceTabs: false,
     coach: true,
     stories: true,
     skillGap: true,

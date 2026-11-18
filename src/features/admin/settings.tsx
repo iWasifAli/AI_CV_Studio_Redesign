@@ -690,6 +690,11 @@ export function AdminSettings() {
             onChange={(v) => edit((c) => void (c.features.mockInterview = v))}
           />
           <CheckboxField
+            label={tx('Workspace tabs (several places open at once in the app)')}
+            checked={draft.features.workspaceTabs}
+            onChange={(v) => edit((c) => void (c.features.workspaceTabs = v))}
+          />
+          <CheckboxField
             label={tx('Career coach chat')}
             checked={draft.features.coach}
             onChange={(v) => edit((c) => void (c.features.coach = v))}

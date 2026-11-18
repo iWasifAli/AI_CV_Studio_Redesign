@@ -6,6 +6,8 @@ import { AnnouncementBar } from '@/components/layout/announcement-bar';
 import { SiteFooter } from '@/components/layout/site-footer';
 import { SiteHeader } from '@/components/layout/site-header';
 import { useAccount } from '@/features/account/account-context';
+import { useEntitlements } from '@/features/account/entitlements';
+import { TabStrip } from '@/features/workspace/tab-strip';
 import { ShellBottom, ShellTop } from './studio-shell';
 
 const HINT = 'aicv.shell';
@@ -16,6 +18,7 @@ const HINT = 'aicv.shell';
  */
 export function SiteChrome({ children }: { children: ReactNode }) {
   const { status } = useAccount();
+  const { ent } = useEntitlements();
   const hint = useSyncExternalStore(
     () => () => {},
     () => {
@@ -49,6 +52,7 @@ export function SiteChrome({ children }: { children: ReactNode }) {
       data-shell={shell ? 'studio' : 'site'}
     >
       <Top shell={shell} />
+      {status === 'signedIn' && ent?.features.workspaceTabs === true && <TabStrip />}
       <main
         id="main"
         className={shell ? 'min-h-dvh pb-20 md:pb-0' : 'min-h-[calc(100dvh-4rem)] flex-1'}
