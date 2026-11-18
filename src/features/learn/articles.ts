@@ -399,7 +399,7 @@ export const ARTICLES: Article[] = [
         a: 'No. It keeps your applications organised; you apply on the employer site.',
       },
     ],
-    related: ['coach', 'letters', 'check'],
+    related: ['interview-practice', 'coach', 'letters'],
   },
   {
     slug: 'coach',
@@ -441,7 +441,80 @@ export const ARTICLES: Article[] = [
         a: 'Plans and limits are on the Premium page; see Help for the details.',
       },
     ],
-    related: ['jobs', 'stories', 'skills'],
+    related: ['interview-practice', 'jobs', 'stories'],
+  },
+  {
+    slug: 'interview-practice',
+    title: 'Interview practice',
+    summary:
+      'Practise five questions for a real job, one at a time, and get feedback on every answer.',
+    forWho: 'Anyone with an interview coming up, or who finds interviews hard.',
+    open: { href: '/jobs', label: 'Choose a job to practise' },
+    shots: [
+      {
+        file: 'interview-1',
+        alt: 'A job page with Interview preparation, a Mock interview section with a Start the mock interview button, and a Company brief',
+        caption: 'On each job: interview preparation, the mock interview and a company brief.',
+      },
+      {
+        file: 'interview-2',
+        alt: 'The mock interview showing Question 1 of 5 with a text box for your answer',
+        caption: 'One question at a time, written for this job.',
+      },
+      {
+        file: 'interview-3',
+        alt: 'Feedback after an answer showing Strong answer, the Situation, Task, Action and Result parts, and a Save to my story bank button',
+        caption: 'After each answer: how it went, which parts it had, and what to improve.',
+      },
+    ],
+    steps: [
+      {
+        title: 'Add the job and its advert',
+        text: 'Practice is built around a real job. Add it in the Job tracker and paste the advert; the questions come from the advert and your CV.',
+      },
+      {
+        title: 'Open the job and look at the preparation',
+        text: 'On the job page, Prepare for the interview gives likely questions and tips. Company brief adds a one-page summary of the employer to read first.',
+        shot: 0,
+      },
+      {
+        title: 'Start the mock interview',
+        text: 'Choose Start the mock interview. You get five questions, one at a time. Say your answer out loud first if you like, then type it in the box and choose Send answer. A very short answer cannot be sent.',
+        shot: 1,
+      },
+      {
+        title: 'Read the feedback',
+        text: 'After every answer you see whether it was a strong or good answer, or one to work on. Situation, Task, Action and Result show which parts your answer had. The feedback quotes your own words and lists what to improve.',
+        shot: 2,
+      },
+      {
+        title: 'Keep your best answers',
+        text: 'Choose Save to my story bank to keep an answer you like. Later questions can offer your stories that fit, and you can use one with Use this story.',
+      },
+      {
+        title: 'Finish and go again',
+        text: 'At the end you get a summary, How it went. Choose Practise again for a fresh round, or Start over.',
+      },
+    ],
+    tips: [
+      'Use one real example from your CV and finish with the result. That is what the feedback looks for.',
+      'Practise the same job twice: once to see the questions, once to improve your answers.',
+    ],
+    faqs: [
+      {
+        q: 'Do I speak my answers?',
+        a: 'You type them. The page invites you to practise out loud or in writing, so saying it aloud first is a good habit.',
+      },
+      {
+        q: 'Is it free?',
+        a: 'The mock interview and company brief are part of Premium and use your AI actions: starting counts, and so does each answer. See the Premium page for your limits.',
+      },
+      {
+        q: 'Does it make up things about me?',
+        a: 'No. Feedback is about the words you wrote, and it quotes them.',
+      },
+    ],
+    related: ['coach', 'stories', 'jobs'],
   },
   {
     slug: 'stories',
@@ -478,7 +551,7 @@ export const ARTICLES: Article[] = [
     ],
     tips: ['Three or four good stories cover most interview questions.'],
     faqs: [{ q: 'How many can I keep?', a: 'The page shows your count against your limit.' }],
-    related: ['coach', 'jobs', 'letters'],
+    related: ['interview-practice', 'coach', 'jobs'],
   },
   {
     slug: 'skills',
@@ -924,7 +997,7 @@ export const CATEGORIES: Category[] = [
     id: 'apply',
     title: 'Apply for jobs',
     blurb: 'Keep track, practise and plan your next step.',
-    slugs: ['jobs', 'coach', 'skills'],
+    slugs: ['jobs', 'interview-practice', 'coach', 'skills'],
   },
   {
     id: 'share',

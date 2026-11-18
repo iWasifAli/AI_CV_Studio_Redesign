@@ -166,3 +166,40 @@ test('capture screens', async ({ page }) => {
   });
   expect(fs.readdirSync(OUT).length).toBeGreaterThan(10);
 });
+
+// Own account and a CV without a photo: the mock interview reads the CV text, and a photo only slows that down.
+test('capture interview', async ({ page }) => {
+  test.setTimeout(240_000);
+  await seedDocument(page, teacher);
+  await page.goto('/cv');
+  await page.waitForTimeout(1500);
+  await step('interview', async () => {
+    const r = await page.request.post('/api/jobs', {
+      data: {
+        title: 'Primary School Teacher',
+        company: 'Oakfield Primary',
+        advert:
+          'We are looking for a caring Year 4 class teacher. You will plan engaging lessons, support pupils with additional needs and work closely with parents. A teaching qualification is essential.',
+      },
+    });
+    const id = ((await r.json()) as { job: { id: string } }).job.id;
+    await page.goto(`/jobs/${id}#mock`);
+    const mock = page.getByTestId('mock');
+    await mock.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(800);
+    await shot(page, 'interview', 1);
+    await mock.getByRole('button', { name: 'Start the mock interview' }).click();
+    await mock.getByTestId('mock-question').waitFor({ timeout: 30_000 });
+    await mock.scrollIntoViewIfNeeded();
+    await shot(page, 'interview', 2);
+    await mock
+      .getByLabel('Your answer')
+      .fill(
+        'When a pupil in my class struggled with reading, I set up short daily sessions with her, and as a result she moved up two reading levels in a term.',
+      );
+    await mock.getByRole('button', { name: 'Send answer' }).click();
+    await mock.getByTestId('mock-feedback').first().waitFor({ timeout: 30_000 });
+    await mock.scrollIntoViewIfNeeded();
+    await shot(page, 'interview', 3);
+  });
+});
