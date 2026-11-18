@@ -27,6 +27,11 @@ test('pages opened before still open offline; others show the offline page', asy
   page,
   context,
 }) => {
+  // Reload is intentional; allow the workspace prompt if a snapshot is still being saved.
+  page.on('dialog', (dialog) => {
+    if (dialog.type() === 'beforeunload') void dialog.accept();
+    else void dialog.dismiss();
+  });
   await seedDocument(page, driver);
   await page.goto('/studio');
   await page.evaluate(() => navigator.serviceWorker.ready.then(() => true));
