@@ -66,7 +66,13 @@ describe('gallery: which designs show', () => {
       expect(fit(best[i - 1]!)).toBeGreaterThanOrEqual(fit(best[i]!));
     const newest = sortItems(items, 'newest', { preset: null, popularity: {} });
     expect(newest[0]!.addedAt >= newest.at(-1)!.addedAt).toBe(true);
-    expect(newest[0]!.meta.family).toBe('graphic');
+    // Newest first: whatever was added last (graphic designs, or later data designs).
+    expect(newest[0]!.addedAt).toBe(
+      items
+        .map((i) => i.addedAt)
+        .sort()
+        .at(-1),
+    );
     const popular = sortItems(items, 'popular', { preset: null, popularity: pop });
     expect(ids(popular).slice(0, 2)).toEqual(['heritage', 'clarity']);
   });

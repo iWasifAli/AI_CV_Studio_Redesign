@@ -1,0 +1,73 @@
+{
+  "id": "slate",
+  "name": "Slate",
+  "style": "Split header, small-caps sidebar",
+  "description": "A split header with a side column on the left; overlined small-caps headings and stacked entries keep it calm and easy to scan.",
+  "family": "sidebar",
+  "fontPair": "modern",
+  "accent": "#2f4a6d",
+  "fit": {
+    "tech": 0.9,
+    "office": 0.9,
+    "student": 0.9,
+    "general": 0.8
+  },
+  "photo": true,
+  "tags": ["minimal", "first-job"],
+  "fallback": "clarity",
+  "status": "draft",
+  "addedAt": "2026-11-19",
+  "spec": {
+    "layout": {
+      "type": "sidebar-left",
+      "sideFill": "tint",
+      "sideWidthPct": 36
+    },
+    "placement": {
+      "side": ["skills", "languages", "certifications", "licences", "awards"],
+      "contactIn": "side"
+    },
+    "header": {
+      "style": "split",
+      "align": "center",
+      "name": {
+        "size": "S"
+      },
+      "contact": {
+        "layout": "inline",
+        "icons": false
+      },
+      "photo": {
+        "size": "S"
+      },
+      "headline": "beside"
+    },
+    "headings": {
+      "style": "overline",
+      "case": "small-caps",
+      "color": "ink"
+    },
+    "entries": {
+      "layout": "stacked"
+    },
+    "sections": {
+      "container": "outlined"
+    },
+    "lists": {
+      "skills": {
+        "style": "grouped-list"
+      }
+    },
+    "decor": {
+      "kind": "top-bar"
+    },
+    "page": {
+      "marginMm": 12
+    },
+    "spacing": {
+      "density": "compact",
+      "sectionGapPt": 10,
+      "itemGapPt": 7
+    }
+  }
+}

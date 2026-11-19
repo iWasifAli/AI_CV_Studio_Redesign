@@ -1,0 +1,73 @@
+{
+  "id": "prism",
+  "name": "Prism",
+  "style": "Card header, three rails",
+  "description": "A card header over three rails of short sections and filled headings, with tinted section titles for fast scanning.",
+  "family": "compact",
+  "fontPair": "modern",
+  "accent": "#4338ca",
+  "fit": {
+    "tech": 0.9,
+    "student": 0.8,
+    "office": 0.8,
+    "general": 0.7
+  },
+  "photo": false,
+  "tags": ["bold", "creative"],
+  "fallback": "clarity",
+  "status": "draft",
+  "addedAt": "2026-11-19",
+  "spec": {
+    "layout": {
+      "type": "rails",
+      "sideFill": "none",
+      "sideWidthPct": 27
+    },
+    "placement": {
+      "side": ["certifications", "languages", "licences"],
+      "third": ["awards", "skills"]
+    },
+    "header": {
+      "style": "card",
+      "align": "center",
+      "name": {
+        "size": "S"
+      },
+      "contact": {
+        "layout": "inline",
+        "icons": false
+      },
+      "photo": {
+        "size": "S",
+        "show": false
+      },
+      "headline": "beside"
+    },
+    "headings": {
+      "style": "filled",
+      "case": "upper"
+    },
+    "entries": {
+      "layout": "stacked"
+    },
+    "sections": {
+      "container": "tinted-heading"
+    },
+    "lists": {
+      "skills": {
+        "style": "tags"
+      }
+    },
+    "decor": {
+      "kind": "top-bar"
+    },
+    "page": {
+      "marginMm": 12
+    },
+    "spacing": {
+      "density": "compact",
+      "sectionGapPt": 8,
+      "itemGapPt": 6
+    }
+  }
+}

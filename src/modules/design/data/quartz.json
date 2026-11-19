@@ -1,0 +1,73 @@
+{
+  "id": "quartz",
+  "name": "Quartz",
+  "style": "Centred banner, boxed headings",
+  "description": "A centred colour banner, a right-hand side column and boxed headings give a friendly, modern look that stays easy to read.",
+  "family": "bold",
+  "fontPair": "rounded",
+  "accent": "#0f766e",
+  "fit": {
+    "tech": 0.9,
+    "student": 0.9,
+    "healthcare": 0.8,
+    "general": 0.7
+  },
+  "photo": true,
+  "tags": ["bold", "creative", "first-job"],
+  "fallback": "clarity",
+  "status": "draft",
+  "addedAt": "2026-11-19",
+  "spec": {
+    "layout": {
+      "type": "sidebar-right",
+      "sideFill": "tint",
+      "sideWidthPct": 36
+    },
+    "placement": {
+      "side": ["skills", "languages", "certifications", "licences", "awards"],
+      "contactIn": "side"
+    },
+    "header": {
+      "style": "band",
+      "band": "solid",
+      "align": "center",
+      "name": {
+        "size": "S"
+      },
+      "contact": {
+        "layout": "inline",
+        "icons": false
+      },
+      "photo": {
+        "size": "S"
+      },
+      "headline": "beside"
+    },
+    "headings": {
+      "style": "boxed",
+      "case": "upper"
+    },
+    "entries": {
+      "layout": "stacked"
+    },
+    "sections": {
+      "container": "card"
+    },
+    "lists": {
+      "skills": {
+        "style": "tags"
+      }
+    },
+    "decor": {
+      "kind": "top-bar"
+    },
+    "page": {
+      "marginMm": 12
+    },
+    "spacing": {
+      "density": "compact",
+      "sectionGapPt": 10,
+      "itemGapPt": 7
+    }
+  }
+}

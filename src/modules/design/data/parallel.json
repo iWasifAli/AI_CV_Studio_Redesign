@@ -1,0 +1,55 @@
+{
+  "id": "parallel",
+  "name": "Parallel",
+  "style": "Two even columns, centred title",
+  "description": "Two even columns under a centred title keep a long history on one page, with a thin top rule and dates before each role.",
+  "family": "compact",
+  "fontPair": "classic",
+  "accent": "#5b2a4a",
+  "fit": {
+    "general": 0.9,
+    "office": 0.8,
+    "retail": 0.8,
+    "student": 0.7
+  },
+  "photo": false,
+  "tags": ["classic", "minimal"],
+  "fallback": "clarity",
+  "status": "draft",
+  "addedAt": "2026-11-19",
+  "spec": {
+    "layout": {
+      "type": "two-equal",
+      "sideFill": "none",
+      "sideWidthPct": 40
+    },
+    "placement": {
+      "side": ["skills", "languages", "certifications", "licences", "awards"]
+    },
+    "header": {
+      "style": "plain",
+      "align": "center",
+      "photo": {
+        "show": false
+      }
+    },
+    "headings": {
+      "style": "rule-after",
+      "case": "normal"
+    },
+    "entries": {
+      "layout": "dates-left"
+    },
+    "sections": {
+      "container": "none"
+    },
+    "lists": {
+      "skills": {
+        "style": "inline"
+      }
+    },
+    "decor": {
+      "kind": "top-bar"
+    }
+  }
+}

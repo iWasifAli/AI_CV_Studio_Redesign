@@ -1,0 +1,49 @@
+{
+  "id": "banner",
+  "name": "Banner",
+  "style": "Colour banner, label column",
+  "description": "A solid colour banner carries the name; section names sit in a label column, with card sections and skill tags.",
+  "family": "bold",
+  "fontPair": "bold",
+  "accent": "#c2410c",
+  "fit": {
+    "retail": 0.9,
+    "trades": 0.8,
+    "driver": 0.8,
+    "general": 0.8
+  },
+  "photo": true,
+  "tags": ["bold", "creative"],
+  "fallback": "clarity",
+  "status": "draft",
+  "addedAt": "2026-11-19",
+  "spec": {
+    "layout": {
+      "type": "label-column",
+      "sideFill": "none"
+    },
+    "header": {
+      "style": "band",
+      "band": "solid",
+      "align": "left"
+    },
+    "headings": {
+      "style": "bar-left",
+      "case": "upper"
+    },
+    "entries": {
+      "layout": "stacked"
+    },
+    "sections": {
+      "container": "card"
+    },
+    "lists": {
+      "skills": {
+        "style": "tags"
+      }
+    },
+    "decor": {
+      "kind": "top-bar"
+    }
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "id": "atlas",
+  "name": "Atlas",
+  "style": "Label column, centred title",
+  "description": "A quiet label column: each section name sits in the margin and the work in a clean column beside it, under a centred name.",
+  "family": "editorial",
+  "fontPair": "editorial",
+  "accent": "#1f5f6b",
+  "fit": {
+    "office": 0.9,
+    "general": 0.9,
+    "executive": 0.8,
+    "teacher": 0.8,
+    "healthcare": 0.7
+  },
+  "photo": true,
+  "tags": ["elegant", "minimal"],
+  "fallback": "clarity",
+  "status": "draft",
+  "addedAt": "2026-11-19",
+  "spec": {
+    "layout": {
+      "type": "label-column",
+      "sideFill": "none"
+    },
+    "header": {
+      "style": "plain",
+      "align": "center",
+      "name": {
+        "size": "L",
+        "weight": 600
+      }
+    },
+    "headings": {
+      "style": "underline",
+      "case": "normal",
+      "color": "ink"
+    },
+    "entries": {
+      "layout": "stacked"
+    },
+    "sections": {
+      "container": "outlined"
+    },
+    "lists": {
+      "skills": {
+        "style": "columns"
+      }
+    },
+    "decor": {
+      "kind": "top-bar"
+    },
+    "bullets": {
+      "marker": "dash",
+      "color": "ink"
+    }
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "id": "prose",
+  "name": "Prose",
+  "style": "Soft sidebar, centred title",
+  "description": "A centred title over a light side column for skills and languages, with dates leading each entry and plain, readable headings.",
+  "family": "sidebar",
+  "fontPair": "humanist",
+  "accent": "#7a4a2b",
+  "fit": {
+    "teacher": 0.9,
+    "healthcare": 0.9,
+    "general": 0.9,
+    "office": 0.7
+  },
+  "photo": true,
+  "tags": ["classic", "elegant"],
+  "fallback": "clarity",
+  "status": "draft",
+  "addedAt": "2026-11-19",
+  "spec": {
+    "layout": {
+      "type": "sidebar-right",
+      "sideFill": "tint",
+      "sideWidthPct": 38
+    },
+    "placement": {
+      "side": ["skills", "languages", "certifications", "licences", "awards"]
+    },
+    "header": {
+      "style": "centered",
+      "align": "left",
+      "name": {
+        "size": "M"
+      },
+      "contact": {
+        "layout": "inline",
+        "icons": false
+      },
+      "photo": {
+        "size": "S"
+      }
+    },
+    "headings": {
+      "style": "plain",
+      "case": "normal",
+      "color": "ink"
+    },
+    "entries": {
+      "layout": "dates-right"
+    },
+    "sections": {
+      "container": "outlined"
+    },
+    "lists": {
+      "skills": {
+        "style": "grouped-list"
+      }
+    },
+    "decor": {
+      "kind": "top-bar"
+    },
+    "bullets": {
+      "marker": "disc",
+      "color": "accent"
+    },
+    "page": {
+      "marginMm": 14
+    },
+    "spacing": {
+      "density": "compact",
+      "sectionGapPt": 12,
+      "itemGapPt": 8
+    }
+  }
+}

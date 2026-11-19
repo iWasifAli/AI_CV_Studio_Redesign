@@ -1,0 +1,48 @@
+{
+  "id": "kiln",
+  "name": "Kiln",
+  "style": "Card header, side stripe",
+  "description": "A card header over a label column, boxed headings with tinted section titles and a bold stripe down the page edge.",
+  "family": "editorial",
+  "fontPair": "editorial",
+  "accent": "#9a3412",
+  "fit": {
+    "executive": 0.9,
+    "office": 0.8,
+    "tech": 0.7,
+    "general": 0.7
+  },
+  "photo": true,
+  "tags": ["bold", "elegant"],
+  "fallback": "clarity",
+  "status": "draft",
+  "addedAt": "2026-11-19",
+  "spec": {
+    "layout": {
+      "type": "label-column",
+      "sideFill": "none"
+    },
+    "header": {
+      "style": "card",
+      "align": "center"
+    },
+    "headings": {
+      "style": "boxed",
+      "case": "upper"
+    },
+    "entries": {
+      "layout": "dates-left"
+    },
+    "sections": {
+      "container": "tinted-heading"
+    },
+    "lists": {
+      "skills": {
+        "style": "tags"
+      }
+    },
+    "decor": {
+      "kind": "side-stripe"
+    }
+  }
+}
