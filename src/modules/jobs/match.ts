@@ -11,6 +11,8 @@ import { digestPlain, type Digest } from './digest';
 export type MatchResult = {
   at: string;
   sourceTitle: string;
+  sourceDocumentId?: string;
+  advertFingerprint?: string;
   summary: string;
   requirements: {
     text: string;
@@ -62,7 +64,7 @@ const SELF_DESCRIBED = new Set(['NAME', 'HEADLINE', 'SUMMARY']);
 export function checkMatch(
   out: TaskOutput<'job.match'>,
   digest: Digest,
-  opts: { sourceTitle: string; now?: Date },
+  opts: { sourceTitle: string; sourceDocumentId?: string; advertFingerprint?: string; now?: Date },
 ): MatchResult {
   const plain = digestPlain(digest);
   const requirements = out.requirements.map((r) => {
@@ -90,6 +92,8 @@ export function checkMatch(
   return {
     at: (opts.now ?? new Date()).toISOString(),
     sourceTitle: opts.sourceTitle.slice(0, 120),
+    ...(opts.sourceDocumentId ? { sourceDocumentId: opts.sourceDocumentId } : {}),
+    ...(opts.advertFingerprint ? { advertFingerprint: opts.advertFingerprint } : {}),
     summary: out.summary,
     requirements,
     keywords,

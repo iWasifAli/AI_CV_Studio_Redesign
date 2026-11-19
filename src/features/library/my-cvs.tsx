@@ -3,7 +3,7 @@
 import { useT } from '@/i18n/client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useSyncExternalStore } from 'react';
 import {
   Copy,
   Download,
@@ -35,6 +35,10 @@ function load(): ResumeDocument[] {
     .filter((d): d is ResumeDocument => d !== null);
 }
 
+const subscribeDocuments = (notify: () => void) => getRepository().subscribe(notify);
+const documentRevision = () => getRepository().revision;
+const serverRevision = () => 0;
+
 function when(iso: string): string {
   const d = new Date(iso);
   const days = Math.floor((Date.now() - d.getTime()) / 86_400_000);
@@ -49,11 +53,10 @@ export function MyCvs({ only }: { only?: (doc: ResumeDocument) => boolean } = {}
   const t = useT();
   const toast = useToast();
   const router = useRouter();
-  const [docs, setDocs] = useState<ResumeDocument[]>(load);
+  // React rechecks this snapshot after subscribing, including changes during initial sync.
+  useSyncExternalStore(subscribeDocuments, documentRevision, serverRevision);
+  const docs = load();
   const fileInput = useRef<HTMLInputElement>(null);
-  const refresh = () => setDocs(load());
-  // CVs can also arrive from the account (sync on another device).
-  useEffect(() => getRepository().subscribe(() => setDocs(load())), []);
   const repo = getRepository();
   const account = useAccount();
   const signedIn = account.status === 'signedIn';
@@ -69,14 +72,12 @@ export function MyCvs({ only }: { only?: (doc: ResumeDocument) => boolean } = {}
 
   const remove = (doc: ResumeDocument) => {
     repo.remove(doc.id);
-    refresh();
     toast.show({
       message: `“${doc.title}” deleted`,
       action: {
         label: 'Undo',
         onAction: () => {
           repo.save(doc);
-          refresh();
         },
       },
     });
@@ -84,7 +85,6 @@ export function MyCvs({ only }: { only?: (doc: ResumeDocument) => boolean } = {}
 
   const duplicate = (doc: ResumeDocument) => {
     repo.save(duplicateDocument(doc));
-    refresh();
     toast.show({ message: 'Copy created', tone: 'success' });
   };
 
@@ -103,7 +103,6 @@ export function MyCvs({ only }: { only?: (doc: ResumeDocument) => boolean } = {}
     try {
       if (file.size > 5_000_000) throw new Error('This file is too large to be a backup.');
       const result = repo.importAll(JSON.parse(await file.text()));
-      refresh();
       toast.show({
         tone: result.added ? 'success' : 'error',
         message: result.added

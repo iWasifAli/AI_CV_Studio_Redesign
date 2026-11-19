@@ -6,9 +6,16 @@
 type Snapshot = { id: string | null; epoch: number };
 let current: Snapshot = { id: null, epoch: 0 };
 const listeners = new Set<() => void>();
+const beforeSwitch = new Set<() => void>();
 
 export const activeTab = {
   get: (): Snapshot => current,
+  beforeSwitch(fn: () => void) {
+    beforeSwitch.add(fn);
+    return () => {
+      beforeSwitch.delete(fn);
+    };
+  },
   subscribe(fn: () => void) {
     listeners.add(fn);
     return () => void listeners.delete(fn);
@@ -16,6 +23,7 @@ export const activeTab = {
   /** The tab on screen. `switched` bumps the epoch (a switch), otherwise it is only recorded. */
   set(id: string | null, switched: boolean) {
     if (current.id === id && !switched) return;
+    if (switched) for (const flush of [...beforeSwitch]) flush();
     current = { id, epoch: switched ? current.epoch + 1 : current.epoch };
     listeners.forEach((l) => l());
   },

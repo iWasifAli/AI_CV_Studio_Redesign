@@ -26,6 +26,8 @@ export type AtsCheck = {
 };
 export type AtsKeywords = {
   jobTitle: string;
+  jobId?: string;
+  advertFingerprint?: string;
   present: string[];
   /** Missing terms; `line` is the person's own line that shows it in other words, if any. */
   missing: { term: string; line?: { text: string; ref: string } }[];

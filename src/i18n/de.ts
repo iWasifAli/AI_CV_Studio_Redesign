@@ -2203,6 +2203,21 @@ export const de: Dict = {
   'Free CV score included': 'Kostenloser CV-Score inklusive',
   '{n} CV scores shared': '{n} CV-Scores geteilt',
   'Open workspaces': 'Geöffnete Arbeitsbereiche',
+  'Workspace name': 'Name des Arbeitsbereichs',
+  'Workspace actions': 'Arbeitsbereich-Aktionen',
+  'Actions for {title}': 'Aktionen für {title}',
+  Rename: 'Umbenennen',
+  'Reset name': 'Name zurücksetzen',
+  'Move left': 'Nach links verschieben',
+  'Move right': 'Nach rechts verschieben',
+  'Enter a workspace name': 'Geben Sie einen Namen für den Arbeitsbereich ein',
+  'Drag to reorder, or use the workspace actions menu.':
+    'Zum Umordnen ziehen oder das Aktionsmenü des Arbeitsbereichs verwenden.',
+  'Moving {title}. Press Escape to cancel.':
+    '{title} wird verschoben. Zum Abbrechen Escape drücken.',
+  'Move cancelled.': 'Verschieben abgebrochen.',
+  '{title} moved to position {position} of {count}.':
+    '{title} wurde an Position {position} von {count} verschoben.',
   'Close {title}': '{title} schließen',
   'Reopen closed workspace': 'Geschlossenen Arbeitsbereich wieder öffnen',
   'New workspace': 'Neuer Arbeitsbereich',
@@ -3979,4 +3994,54 @@ export const de: Dict = {
   'Yours, wherever you are': 'Ihrer, wo immer Sie sind',
   'ZIP of separate files': 'ZIP mit einzelnen Dateien',
   Zoom: 'Zoom',
+  'Select only skills and qualifications that are true for you. Selecting a keyword confirms you have it.':
+    'Wählen Sie nur Kenntnisse und Qualifikationen, die Sie tatsächlich besitzen. Mit der Auswahl bestätigen Sie dies.',
+  'Rewrite your profile and relevant work or project bullets. Changes save together in one Undo step.':
+    'Formulieren Sie Ihr Profil und passende Stichpunkte zu Arbeit oder Projekten um. Alle Änderungen werden gemeinsam gespeichert und lassen sich zusammen rückgängig machen.',
+  'Rewrite with selected keywords': 'Mit ausgewählten Schlüsselwörtern umformulieren',
+  'Rewriting your CV…': 'Ihr Lebenslauf wird umformuliert…',
+  '{count} selected · 1 AI action for usable changes':
+    '{count} ausgewählt · 1 KI-Aktion für verwendbare Änderungen',
+  'Keyword rewrite result': 'Ergebnis der Umformulierung',
+  'No changes were applied': 'Es wurden keine Änderungen übernommen',
+  'Included: {terms}': 'Eingefügt: {terms}',
+  'Keyword coverage above follows your current CV, including Undo and Redo.':
+    'Die obige Schlüsselwortliste zeigt Ihren aktuellen Lebenslauf, auch nach Rückgängig und Wiederholen.',
+  'Not inserted': 'Nicht eingefügt',
+  '(empty)': '(leer)',
+  'Keyword rewriting is part of Premium.':
+    'Das Umformulieren mit Schlüsselwörtern ist Teil von Premium.',
+  'Turn on AI help to rewrite with keywords.':
+    'Aktivieren Sie die KI-Hilfe, um mit Schlüsselwörtern umzuformulieren.',
+  'Run the ATS check again to confirm the current job keywords.':
+    'Führen Sie die ATS-Prüfung erneut aus, um die aktuellen Schlüsselwörter der Stelle zu bestätigen.',
+  'Your CV changed. Run the ATS check again to refresh the PDF findings.':
+    'Ihr Lebenslauf wurde geändert. Führen Sie die ATS-Prüfung erneut aus, um die PDF-Ergebnisse zu aktualisieren.',
+  'Your CV changed in another window or could not be saved. Reload it before rewriting.':
+    'Ihr Lebenslauf wurde in einem anderen Fenster geändert oder konnte nicht gespeichert werden. Laden Sie ihn vor dem Umformulieren neu.',
+  'Your CV changed while rewriting. Your edits are safe. Select keywords and try again.':
+    'Ihr Lebenslauf wurde während des Umformulierens geändert. Ihre Änderungen sind erhalten. Wählen Sie Schlüsselwörter und versuchen Sie es erneut.',
+  'We couldn’t safely apply this response. Please try again.':
+    'Diese Antwort konnte nicht sicher übernommen werden. Bitte versuchen Sie es erneut.',
+  'We couldn’t rewrite this CV just now. Please try again.':
+    'Ihr Lebenslauf konnte gerade nicht umformuliert werden. Bitte versuchen Sie es erneut.',
+  'The rewrite could not finish. Check your connection and try again.':
+    'Die Umformulierung konnte nicht abgeschlossen werden. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.',
+  'Rewrite cancelled.': 'Umformulierung abgebrochen.',
+  'No safe, natural replacement was returned.':
+    'Es wurde keine sichere, natürlich formulierte Änderung gefunden.',
+  'Already in your CV.': 'Bereits in Ihrem Lebenslauf.',
+  'The job advert changed. Check keywords again.':
+    'Die Stellenanzeige wurde geändert. Prüfen Sie die Schlüsselwörter erneut.',
+  'Choose keywords from the current job advert.':
+    'Wählen Sie Schlüsselwörter aus der aktuellen Stellenanzeige.',
+  'Choose a CV, job and up to 25 keywords.':
+    'Wählen Sie einen Lebenslauf, eine Stelle und bis zu 25 Schlüsselwörter.',
+  'Keyword rewriting is switched off right now.':
+    'Das Umformulieren mit Schlüsselwörtern ist derzeit ausgeschaltet.',
+  'This match report is outdated. Run the ATS check for current keywords.':
+    'Dieser Vergleich ist veraltet. Führen Sie die ATS-Prüfung für aktuelle Schlüsselwörter aus.',
+  'Add missing keywords to this CV': 'Fehlende Schlüsselwörter in diesen Lebenslauf einfügen',
+  'Check again to open keyword rewriting for the CV used in this report.':
+    'Prüfen Sie erneut, um den in diesem Bericht verwendeten Lebenslauf mit Schlüsselwörtern umzuformulieren.',
 };

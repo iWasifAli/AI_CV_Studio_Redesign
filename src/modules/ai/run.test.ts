@@ -225,6 +225,15 @@ describe('mock provider', () => {
       profile: profileDigest(F.driver).text,
       tone: 'formal',
     },
+    'quality.rewriteKeywords': {
+      advert: ADVERT,
+      keywords: ['Cold chain'],
+      fields: [
+        { target: 'basics.summary', before: 'Delivery professional.', max: 1500, protected: false },
+      ],
+      contentLanguage: 'en',
+      adviceLanguage: 'en',
+    },
     'quality.atsKeywords': { advert: ADVERT, profile: profileDigest(F.driver).text },
     'quality.proofread': { lines: 'L1: Recieved parcels and and loaded vans' },
     'write.quantify': { mode: 'ask', point: 'Delivered parcels across Leicester', job: 'Driver' },

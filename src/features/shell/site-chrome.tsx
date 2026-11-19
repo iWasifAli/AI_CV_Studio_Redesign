@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { Fragment, useEffect, useSyncExternalStore, type ReactNode } from 'react';
+import { Fragment, useEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { AnnouncementBar } from '@/components/layout/announcement-bar';
 import { SiteFooter } from '@/components/layout/site-footer';
 import { SiteHeader } from '@/components/layout/site-header';
@@ -18,7 +18,19 @@ const HINT = 'aicv.shell';
  * While the account is loading, a remembered hint picks the likely chrome so it doesn't flash.
  */
 export function SiteChrome({ children }: { children: ReactNode }) {
-  const { status } = useAccount();
+  const { status, user } = useAccount();
+  const pathname = usePathname();
+  const [initialOwner, setInitialOwner] = useState<{ uid: string | null } | null>(null);
+  if (initialOwner === null && status !== 'loading') setInitialOwner({ uid: user?.uid ?? null });
+  const [lastUid, setLastUid] = useState(user?.uid ?? null);
+  if (user && user.uid !== lastUid) setLastUid(user.uid);
+  // AccountScreen keeps its explicit sign-out navigation intent until it leaves /account.
+  // Data editors still remount immediately; a different signed-in UID always gets a fresh tree.
+  const pageOwner = user?.uid ?? (pathname === '/account' ? lastUid : null);
+  // Resolving the first session is not an account switch: uploads and other live page work
+  // must survive it. Later owner changes still discard the previous account's page state.
+  const ownerKey =
+    initialOwner === null || pageOwner === initialOwner.uid ? 'initial' : (pageOwner ?? 'visitor');
   const { ent } = useEntitlements();
   // A new epoch (switching tabs) remounts the page, so each tab shows its own state.
   const epoch = useSyncExternalStore(
@@ -45,7 +57,7 @@ export function SiteChrome({ children }: { children: ReactNode }) {
   }, [status]);
   const shell = status === 'signedIn' || (status === 'loading' && hint);
   // The visitor home page wears the new look (see `.landing` in globals.css).
-  const landing = usePathname() === '/' && !shell;
+  const landing = pathname === '/' && !shell;
   // One tree for both chromes: <main> keeps its place so the page never remounts on a switch.
   return (
     <div
@@ -64,7 +76,7 @@ export function SiteChrome({ children }: { children: ReactNode }) {
         id="main"
         className={shell ? 'min-h-dvh pb-20 md:pb-0' : 'min-h-[calc(100dvh-4rem)] flex-1'}
       >
-        <Fragment key={epoch}>{children}</Fragment>
+        <Fragment key={`${ownerKey}:${epoch}`}>{children}</Fragment>
       </main>
       <Bottom shell={shell} />
     </div>

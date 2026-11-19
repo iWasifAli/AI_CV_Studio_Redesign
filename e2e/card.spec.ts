@@ -39,14 +39,12 @@ test('signature and card from a CV: preview, copy, and an 85 × 55 mm two-sided 
   expect(Math.round(height)).toBe(156);
 });
 
-test('the card API needs an account and a safe link', async ({ page, browser }) => {
+test('the card API needs an account and a safe link', async ({ page, browser, baseURL }) => {
   const bad = await page.request.post('/api/card', {
     data: { document: driver, options: { url: 'javascript:alert(1)' } },
   });
   expect(bad.status()).toBe(400);
-  const ctx = await browser.newContext();
-  expect((await ctx.request.post('http://localhost:3100/api/card', { data: {} })).status()).toBe(
-    401,
-  );
+  const ctx = await browser.newContext({ baseURL });
+  expect((await ctx.request.post('/api/card', { data: {} })).status()).toBe(401);
   await ctx.close();
 });

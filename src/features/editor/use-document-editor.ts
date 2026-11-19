@@ -2,6 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ResumeDocument } from '@/modules/resume/schema';
+import { activeTab } from '@/features/workspace/active';
+import { onSessionLeaving } from '@/features/account/session-lifecycle';
+import { EditorPersistence, type EditorSnapshot } from './persistence';
 import { getRepository } from '@/modules/storage/repository';
 import { commit, initHistory, redo as redoH, undo as undoH, type History } from './history';
 
@@ -17,6 +20,11 @@ export type DocumentEditor = {
   canRedo: boolean;
   saveState: SaveState;
   flush: () => void;
+  captureSnapshot: () => { document: ResumeDocument; snapshot: EditorSnapshot } | null;
+  commitSnapshot: (
+    snapshot: EditorSnapshot,
+    edit: (d: ResumeDocument) => ResumeDocument,
+  ) => boolean;
 };
 
 const SAVE_DELAY = 400;
@@ -29,8 +37,11 @@ export function useDocumentEditor(initial: ResumeDocument): DocumentEditor {
     setHistory(next);
   }, []);
   const [saveState, setSaveState] = useState<SaveState>('saved');
+  const alive = useRef(true);
   const pending = useRef<ResumeDocument | null>(null);
   const timer = useRef<number | null>(null);
+  const storage = useRef<EditorPersistence | null>(null);
+  if (storage.current == null) storage.current = new EditorPersistence(getRepository(), initial);
 
   const persist = useCallback(() => {
     if (timer.current) window.clearTimeout(timer.current);
@@ -38,9 +49,10 @@ export function useDocumentEditor(initial: ResumeDocument): DocumentEditor {
     const doc = pending.current;
     if (!doc) return;
     try {
-      getRepository().save(doc);
-      pending.current = null;
-      setSaveState('saved');
+      if (storage.current!.persist(doc)) {
+        pending.current = null;
+        setSaveState('saved');
+      } else setSaveState('error');
     } catch {
       setSaveState('error');
     }
@@ -58,6 +70,7 @@ export function useDocumentEditor(initial: ResumeDocument): DocumentEditor {
 
   const update = useCallback(
     (fn: (d: ResumeDocument) => ResumeDocument, key?: string) => {
+      if (!alive.current || !storage.current!.owned) return;
       const h = historyRef.current;
       const next = fn(h.present);
       if (next === h.present) return;
@@ -75,6 +88,7 @@ export function useDocumentEditor(initial: ResumeDocument): DocumentEditor {
     present: { ...n.present, updatedAt: new Date().toISOString() },
   });
   const undo = useCallback(() => {
+    if (!alive.current || !storage.current!.owned) return;
     const h = historyRef.current;
     const u = undoH(h);
     if (u === h) return;
@@ -84,6 +98,7 @@ export function useDocumentEditor(initial: ResumeDocument): DocumentEditor {
   }, [apply, schedule]);
 
   const redo = useCallback(() => {
+    if (!alive.current || !storage.current!.owned) return;
     const h = historyRef.current;
     const r = redoH(h);
     if (r === h) return;
@@ -91,6 +106,60 @@ export function useDocumentEditor(initial: ResumeDocument): DocumentEditor {
     apply(n);
     schedule(n.present);
   }, [apply, schedule]);
+
+  const captureSnapshot = useCallback(() => {
+    if (!alive.current) return null;
+    const document = historyRef.current.present;
+    const snapshot = storage.current!.capture(document);
+    if (!snapshot) {
+      setSaveState('error');
+      return null;
+    }
+    if (timer.current) window.clearTimeout(timer.current);
+    timer.current = null;
+    pending.current = null;
+    setSaveState('saved');
+    return { document, snapshot };
+  }, []);
+  const commitSnapshot = useCallback(
+    (snapshot: EditorSnapshot, edit: (d: ResumeDocument) => ResumeDocument) => {
+      if (!alive.current) return false;
+      const h = historyRef.current;
+      const next = storage.current!.commit(snapshot, h.present, edit);
+      if (!next) return false;
+      if (timer.current) window.clearTimeout(timer.current);
+      timer.current = null;
+      pending.current = null;
+      apply(commit(h, next, null, Date.now()));
+      setSaveState('saved');
+      return true;
+    },
+    [apply],
+  );
+  useEffect(
+    () =>
+      onSessionLeaving(() => {
+        persist();
+        storage.current!.revoke();
+        if (timer.current) window.clearTimeout(timer.current);
+        timer.current = null;
+        pending.current = null;
+      }),
+    [persist],
+  );
+
+  useEffect(
+    () =>
+      activeTab.beforeSwitch(() => {
+        // Run before the replacement editor reads storage, not in passive unmount cleanup.
+        persist();
+        storage.current!.revoke();
+        if (timer.current) window.clearTimeout(timer.current);
+        timer.current = null;
+        pending.current = null;
+      }),
+    [persist],
+  );
 
   // Keyboard shortcuts: Ctrl/Cmd+Z, Shift+Ctrl/Cmd+Z, Ctrl+Y.
   useEffect(() => {
@@ -112,6 +181,7 @@ export function useDocumentEditor(initial: ResumeDocument): DocumentEditor {
 
   // Save immediately when the tab is hidden or closed; warn only if saving failed.
   useEffect(() => {
+    alive.current = true;
     const onHide = () => persist();
     const onBeforeUnload = (e: BeforeUnloadEvent) => {
       persist();
@@ -122,6 +192,7 @@ export function useDocumentEditor(initial: ResumeDocument): DocumentEditor {
     window.addEventListener('beforeunload', onBeforeUnload);
     return () => {
       persist();
+      alive.current = false;
       document.removeEventListener('visibilitychange', onHide);
       window.removeEventListener('pagehide', onHide);
       window.removeEventListener('beforeunload', onBeforeUnload);
@@ -137,5 +208,7 @@ export function useDocumentEditor(initial: ResumeDocument): DocumentEditor {
     canRedo: history.future.length > 0,
     saveState,
     flush: persist,
+    captureSnapshot,
+    commitSnapshot,
   };
 }

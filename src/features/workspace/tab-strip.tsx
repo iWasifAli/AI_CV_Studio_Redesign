@@ -2,12 +2,33 @@
 
 import { useT } from '@/i18n/client';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { Plus, Undo2, X } from 'lucide-react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react';
+import { createPortal } from 'react-dom';
+import {
+  closestCenter,
+  DndContext,
+  DragOverlay,
+  MouseSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type CollisionDetection,
+  type DragEndEvent,
+  type Modifier,
+} from '@dnd-kit/core';
+import { horizontalListSortingStrategy, SortableContext } from '@dnd-kit/sortable';
+import { Plus, Undo2 } from 'lucide-react';
 import { useAccount } from '@/features/account/account-context';
-import { cn } from '@/lib/cn';
 import { activeTab, settledWork } from './active';
 import { clearAllDrafts, clearTabDrafts } from './drafts';
+import { WorkspaceTabItem } from './tab-item';
 import {
   MAX_TABS,
   activate,
@@ -16,179 +37,318 @@ import {
   isTabHref,
   open,
   parse,
+  rename,
+  reorder,
   settle,
   visit,
+  type Tab,
   type TabsState,
 } from './tabs';
 
 const key = (uid: string) => `aicv.tabs:${uid}`;
+const subscribeMotion = (notify: () => void) => {
+  const query = window.matchMedia('(prefers-reduced-motion: reduce)');
+  query.addEventListener('change', notify);
+  return () => query.removeEventListener('change', notify);
+};
+const motionSnapshot = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const serverMotion = () => true;
+const horizontalOnly: Modifier = ({ transform }) => ({ ...transform, y: 0 });
 
-/**
- * The tab strip of the signed-in app. Each browser window keeps its own tabs (sessionStorage, per
- * account); closing the window forgets them, signing out clears them. Switching a tab opens the
- * page that tab was last on. Only the active tab's page is mounted, so one record is never open
- * twice at once and saved work stays the single source of truth.
- */
+/** Account-keyed children discard transient interactions and closed history on account changes. */
 export function TabStrip() {
+  const { user } = useAccount();
+  const uid = user?.uid ?? null;
+  useEffect(() => {
+    if (!uid) {
+      activeTab.set(null, false);
+      clearAllDrafts();
+    }
+  }, [uid]);
+  return uid ? <AccountTabStrip key={uid} uid={uid} /> : null;
+}
+
+function AccountTabStrip({ uid }: { uid: string }) {
   const t = useT();
   const router = useRouter();
   const pathname = usePathname();
   const search = useSearchParams().toString();
-  const { user } = useAccount();
-  const uid = user?.uid ?? null;
   const here = pathname + (search ? `?${search}` : '');
-  // The tabs of this account in this window. Read once when the account is known (during render,
-  // so there is no flash of an empty strip and no extra effect).
-  const [slot, setSlot] = useState<{ uid: string; state: TabsState } | null>(null);
-  if (uid && slot?.uid !== uid) {
+  const [state, setState] = useState<TabsState>(() => {
     let saved: string | null = null;
     try {
       saved = sessionStorage.getItem(key(uid));
     } catch {}
-    setSlot({ uid, state: parse(saved) ?? initial(isTabHref(here) ? here : undefined) });
-  }
-  const state = slot && slot.uid === uid ? slot.state : null;
-  const setState = useCallback(
-    (fn: (s: TabsState) => TabsState) => setSlot((c) => (c ? { ...c, state: fn(c.state) } : c)),
-    [],
-  );
-  // Where a tab switch is heading, so the arrival is not mistaken for ordinary navigation.
+    return parse(saved) ?? initial(isTabHref(here) ? here : undefined);
+  });
+  const [recent, setRecent] = useState<Pick<Tab, 'href' | 'customTitle'>[]>([]);
+  const [editing, setEditing] = useState<string | null>(null);
+  const [dragging, setDragging] = useState<string | null>(null);
+  const [announcement, setAnnouncement] = useState('');
   const heading = useRef<string | null>(null);
-  // The last few closed tabs' pages, newest last, so a slip of the finger can be undone.
-  const [recent, setRecent] = useState<string[]>([]);
+  const scroller = useRef<HTMLDivElement>(null);
+  const buttons = useRef(new Map<string, HTMLButtonElement>());
+  const suppressClicks = useRef(false);
+  const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reducedMotion = useSyncExternalStore(subscribeMotion, motionSnapshot, serverMotion);
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
+  );
 
-  // Ordinary navigation inside the active tab updates that tab's page.
   useEffect(() => {
     if (heading.current !== null) {
       if (heading.current !== here) return;
       heading.current = null;
     }
     setState((s) => visit(s, here));
-  }, [here, setState]);
+  }, [here]);
 
   useEffect(() => {
-    if (!uid || !state) return;
     try {
       sessionStorage.setItem(key(uid), JSON.stringify(state));
     } catch {}
   }, [uid, state]);
 
-  // Slow work that finished in a tab the person had left: point that tab at the result.
+  useEffect(() => settledWork.subscribe((id, href) => setState((s) => settle(s, id, href))), []);
+
   useEffect(
-    () => settledWork.subscribe((id, href) => setState((s) => settle(s, id, href))),
-    [setState],
-  );
-
-  const go = useCallback(
-    (next: TabsState, closed?: string) => {
-      if (!uid) return;
-      const target = next.tabs.find((x) => x.id === next.active)!.href;
-      // Saved before navigating, so the page that opens can find its tab and its drafts at once.
-      try {
-        sessionStorage.setItem(key(uid), JSON.stringify(next));
-      } catch {}
-      if (closed) clearTabDrafts(uid, closed);
-      setState(() => next);
-      const switched = next.active !== activeTab.get().id;
-      if (switched) activeTab.set(next.active, true);
-      if (target !== here) {
-        heading.current = target;
-        router.push(target);
-      }
+    () => () => {
+      if (clickTimer.current) clearTimeout(clickTimer.current);
     },
-    [uid, here, router, setState],
+    [],
   );
 
-  // Which tab is on screen: known from the first load, and cleared with the account.
   useEffect(() => {
-    if (!uid || !state) {
-      activeTab.set(null, false);
-      if (!uid) clearAllDrafts();
-      return;
-    }
-    if (activeTab.get().id === null) activeTab.set(state.active, false);
-  }, [uid, state]);
+    if (activeTab.get().id !== state.active) activeTab.set(state.active, false);
+  }, [state.active]);
 
-  if (!uid || !state) return null;
+  const register = useCallback((id: string, node: HTMLButtonElement | null) => {
+    if (node) buttons.current.set(id, node);
+    else buttons.current.delete(id);
+  }, []);
+
+  const reveal = useCallback((id: string) => {
+    const item = buttons.current.get(id)?.closest('li');
+    const list = scroller.current;
+    if (!item || !list) return;
+    const bounds = item.getBoundingClientRect();
+    const viewport = list.getBoundingClientRect();
+    if (bounds.left < viewport.left) list.scrollLeft += bounds.left - viewport.left - 4;
+    else if (bounds.right > viewport.right) list.scrollLeft += bounds.right - viewport.right + 4;
+  }, []);
+
+  const order = state.tabs.map((tab) => tab.id).join(',');
+  useLayoutEffect(() => {
+    if (dragging) return;
+    const list = scroller.current;
+    if (!list) return;
+    const observer = new ResizeObserver(() => reveal(state.active));
+    observer.observe(list);
+    reveal(state.active);
+    return () => observer.disconnect();
+  }, [state.active, order, dragging, reveal]);
+
+  const focus = (id: string) =>
+    requestAnimationFrame(() => {
+      reveal(id);
+      buttons.current.get(id)?.focus({ preventScroll: true });
+    });
+
+  // Only real workspace switches take this path. Metadata never touches the router/epoch.
+  const go = (next: TabsState, closed?: string) => {
+    const target = next.tabs.find((x) => x.id === next.active)!.href;
+    try {
+      sessionStorage.setItem(key(uid), JSON.stringify(next));
+    } catch {}
+    if (closed) clearTabDrafts(uid, closed);
+    setState(next);
+    if (next.active !== activeTab.get().id) activeTab.set(next.active, true);
+    if (target !== here) {
+      heading.current = target;
+      router.push(target);
+    }
+  };
+
+  const commitMove = (tabId: string, overId: string) => {
+    // Reorder the latest objects so a result arriving during a drag is never lost.
+    setState((latest) => reorder(latest, tabId, overId));
+    const tab = state.tabs.find((tab) => tab.id === tabId);
+    const position = state.tabs.findIndex((tab) => tab.id === overId) + 1;
+    if (tab && position)
+      setAnnouncement(
+        t('{title} moved to position {position} of {count}.', {
+          title: tab.customTitle ?? t(tab.title),
+          position,
+          count: state.tabs.length,
+        }),
+      );
+    focus(tabId);
+  };
+
+  const collision: CollisionDetection = (args) => {
+    const point = args.pointerCoordinates;
+    const viewport = scroller.current?.getBoundingClientRect();
+    if (
+      !point ||
+      !viewport ||
+      point.x < viewport.left ||
+      point.x > viewport.right ||
+      point.y < viewport.top ||
+      point.y > viewport.bottom
+    )
+      return [];
+    return closestCenter(args);
+  };
+
+  const endDrag = (event?: DragEndEvent) => {
+    suppressClicks.current = true;
+    if (clickTimer.current) clearTimeout(clickTimer.current);
+    clickTimer.current = setTimeout(() => {
+      suppressClicks.current = false;
+    }, 350);
+    setDragging(null);
+    if (event?.over && event.active.id !== event.over.id)
+      commitMove(String(event.active.id), String(event.over.id));
+    else if (event) focus(String(event.active.id));
+  };
+
   const full = state.tabs.length >= MAX_TABS;
+  const preview = dragging ? state.tabs.find((tab) => tab.id === dragging) : null;
   return (
-    <div
-      className="border-line bg-paper sticky top-14 z-20 flex items-center gap-1 overflow-x-auto border-b px-2 py-1 md:top-0"
-      data-testid="tab-strip"
-    >
-      <ul aria-label={t('Open workspaces')} className="m-0 flex min-w-0 list-none gap-1 p-0">
-        {state.tabs.map((tab) => {
-          const selected = tab.id === state.active;
-          return (
-            <li
-              key={tab.id}
-              className={cn(
-                'flex shrink-0 items-center rounded-md border text-sm',
-                selected
-                  ? 'border-line-strong bg-surface font-semibold'
-                  : 'text-ink-muted hover:bg-sunken border-transparent',
-              )}
-            >
-              <button
-                type="button"
-                aria-current={selected ? 'page' : undefined}
-                className="min-h-9 max-w-40 truncate px-3"
-                onClick={() => go(activate(state, tab.id))}
-                data-testid="tab"
-              >
-                {t(tab.title)}
-                {tab.ready && !selected ? (
-                  <span
-                    className="bg-primary ml-2 inline-block size-2 rounded-full align-middle"
-                    data-testid="tab-ready"
-                    role="img"
-                    aria-label={t('Ready')}
-                  />
-                ) : null}
-              </button>
-              <button
-                type="button"
-                aria-label={t('Close {title}', { title: t(tab.title) })}
-                className="text-ink-muted hover:text-ink grid size-9 place-items-center"
-                onClick={() => {
-                  setRecent((r) => [...r, tab.href].slice(-5));
-                  go(close(state, tab.id), tab.id);
-                }}
-                data-testid="tab-close"
-              >
-                <X aria-hidden size={14} />
-              </button>
-            </li>
-          );
-        })}
-      </ul>
-      <button
-        type="button"
-        aria-label={t('New workspace')}
-        title={full ? t('You can keep up to {n} workspaces open', { n: MAX_TABS }) : undefined}
-        disabled={full}
-        className="text-ink-muted hover:bg-sunken grid size-9 shrink-0 place-items-center rounded-md disabled:opacity-40"
-        onClick={() => go(open(state))}
-        data-testid="tab-new"
-      >
-        <Plus aria-hidden size={16} />
-      </button>
-      {recent.length > 0 && !full ? (
-        <button
-          type="button"
-          aria-label={t('Reopen closed workspace')}
-          title={t('Reopen closed workspace')}
-          className="text-ink-muted hover:bg-sunken grid size-9 shrink-0 place-items-center rounded-md"
-          onClick={() => {
-            const href = recent[recent.length - 1]!;
-            setRecent((r) => r.slice(0, -1));
-            go(open(state, href));
+    <div className="workspace-tab-rail sticky top-14 z-20 min-w-0 md:top-0" data-testid="tab-strip">
+      <div className="workspace-tab-container">
+        <DndContext
+          sensors={sensors}
+          modifiers={[horizontalOnly]}
+          collisionDetection={collision}
+          autoScroll={{ threshold: { x: 0.15, y: 0 }, acceleration: 8 }}
+          accessibility={{
+            screenReaderInstructions: {
+              draggable: t('Drag to reorder, or use the workspace actions menu.'),
+            },
+            announcements: {
+              onDragStart: ({ active }) =>
+                t('Moving {title}. Press Escape to cancel.', {
+                  title:
+                    state.tabs.find((tab) => tab.id === active.id)?.customTitle ??
+                    t(state.tabs.find((tab) => tab.id === active.id)?.title),
+                }),
+              onDragOver: () => undefined,
+              onDragEnd: () => undefined,
+              onDragCancel: () => t('Move cancelled.'),
+            },
           }}
-          data-testid="tab-reopen"
+          onDragStart={({ active }) => {
+            suppressClicks.current = true;
+            setDragging(String(active.id));
+          }}
+          onDragEnd={endDrag}
+          onDragCancel={({ active }) => {
+            endDrag();
+            focus(String(active.id));
+          }}
         >
-          <Undo2 aria-hidden size={16} />
-        </button>
-      ) : null}
+          <div ref={scroller} className="workspace-tab-scroll" data-testid="tab-scroll">
+            <SortableContext
+              items={state.tabs.map((tab) => tab.id)}
+              strategy={horizontalListSortingStrategy}
+            >
+              <ul aria-label={t('Open workspaces')} className="workspace-tab-list">
+                {state.tabs.map((tab, index) => (
+                  <WorkspaceTabItem
+                    key={tab.id}
+                    tab={tab}
+                    selected={tab.id === state.active}
+                    editing={editing === tab.id}
+                    dragging={dragging !== null}
+                    reducedMotion={reducedMotion}
+                    index={index}
+                    count={state.tabs.length}
+                    register={register}
+                    onSelect={() => go(activate(state, tab.id))}
+                    onClose={() => {
+                      setRecent((recent) =>
+                        [...recent, { href: tab.href, customTitle: tab.customTitle }].slice(-5),
+                      );
+                      const next = close(state, tab.id);
+                      go(next, tab.id);
+                      if (tab.id === state.active) focus(next.active);
+                    }}
+                    onStartRename={() => {
+                      setEditing(tab.id);
+                      reveal(tab.id);
+                    }}
+                    onFinishRename={(name, restoreFocus) => {
+                      if (name !== undefined) setState((latest) => rename(latest, tab.id, name));
+                      setEditing(null);
+                      if (restoreFocus) focus(tab.id);
+                    }}
+                    onReset={() => {
+                      setState((latest) => rename(latest, tab.id, null));
+                      focus(tab.id);
+                    }}
+                    onMove={(direction) => {
+                      const neighbour = state.tabs[index + direction];
+                      if (neighbour) commitMove(tab.id, neighbour.id);
+                    }}
+                    suppressClick={() => suppressClicks.current}
+                  />
+                ))}
+              </ul>
+            </SortableContext>
+          </div>
+          {preview &&
+            createPortal(
+              <DragOverlay dropAnimation={null} style={{ pointerEvents: 'none' }}>
+                <div className="workspace-tab-preview" aria-hidden data-testid="tab-drag-preview">
+                  <span className="truncate">{preview.customTitle ?? t(preview.title)}</span>
+                </div>
+              </DragOverlay>,
+              document.body,
+            )}
+        </DndContext>
+        <div className="workspace-tab-tools">
+          <button
+            type="button"
+            aria-label={t('New workspace')}
+            title={
+              full
+                ? t('You can keep up to {n} workspaces open', { n: MAX_TABS })
+                : t('New workspace')
+            }
+            disabled={full || dragging !== null}
+            className="workspace-tab-tool workspace-tab-new"
+            onClick={() => go(open(state))}
+            data-testid="tab-new"
+          >
+            <Plus aria-hidden size={19} />
+          </button>
+          {recent.length > 0 && (
+            <button
+              type="button"
+              aria-label={t('Reopen closed workspace')}
+              title={t('Reopen closed workspace')}
+              disabled={full || dragging !== null}
+              className="workspace-tab-tool"
+              onClick={() => {
+                const entry = recent.at(-1)!;
+                let next = open(state, entry.href);
+                if (next === state) return;
+                if (entry.customTitle) next = rename(next, next.active, entry.customTitle);
+                setRecent((recent) => recent.slice(0, -1));
+                go(next);
+              }}
+              data-testid="tab-reopen"
+            >
+              <Undo2 aria-hidden size={18} />
+            </button>
+          )}
+        </div>
+      </div>
+      <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        {announcement}
+      </span>
     </div>
   );
 }

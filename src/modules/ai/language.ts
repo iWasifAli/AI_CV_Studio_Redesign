@@ -18,6 +18,7 @@ const COPY: ReadonlySet<string> = new Set([
   'design.interpret',
   'intake.interpret',
   'quality.atsKeywords',
+  'quality.rewriteKeywords',
 ]);
 const CONTENT: ReadonlySet<string> = new Set([
   'write.summary',

@@ -22,6 +22,8 @@ import { Button, ButtonLink } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { TextArea, TextField } from '@/components/ui/field';
 import { useToast } from '@/components/ui/toast';
+import { useAccount } from '@/features/account/account-context';
+import { useRequestScope } from '@/features/account/use-request-scope';
 import { useEntitlements } from '@/features/account/entitlements';
 import { saveBlob } from '@/lib/save-blob';
 import { ScaledPage, resolvePage } from '@/features/letters/scaled-page';
@@ -61,6 +63,8 @@ export function JobTools({ job, onJobChange }: { job: Job; onJobChange: (j: Job)
   const [sourceId, setSourceId] = useState(() => defaultSourceCv(cvs));
   const [busy, setBusy] = useState<Busy>(null);
   const [problem, setProblem] = useState<Problem | null>(null);
+  const { user } = useAccount();
+  const matchRequest = useRequestScope(`${user?.uid}:${job.id}:${sourceId}`);
 
   const source = (sourceId && repo?.get(sourceId)) || null;
   const aiLocked = ent ? ent.limits['ai.action'] === 0 : false;
@@ -80,10 +84,23 @@ export function JobTools({ job, onJobChange }: { job: Job; onJobChange: (j: Job)
     }
   }
 
-  const checkMatch = () =>
-    run('match', async (doc) => {
-      onJobChange(await jobAiApi.match(job.id, doc));
-    });
+  const checkMatch = async () => {
+    if (!source) return;
+    const request = matchRequest.begin();
+    setBusy('match');
+    setProblem(null);
+    try {
+      const next = await jobAiApi.match(job.id, source);
+      if (request.valid()) {
+        onJobChange(next);
+        refresh();
+      }
+    } catch (error) {
+      if (request.valid()) setProblem(toProblem(error));
+    } finally {
+      if (request.valid()) setBusy(null);
+    }
+  };
 
   const tailor = () =>
     run('tailor', async (doc) => {
@@ -170,6 +187,7 @@ export function JobTools({ job, onJobChange }: { job: Job; onJobChange: (j: Job)
             <select
               className="border-line-strong bg-surface min-h-11 rounded-md border px-3 text-[15px] font-normal"
               value={sourceId}
+              disabled={busy !== null}
               onChange={(e) => setSourceId(e.target.value)}
             >
               {cvs.map((c) => (
@@ -238,7 +256,7 @@ export function JobTools({ job, onJobChange }: { job: Job; onJobChange: (j: Job)
             </Banner>
           )}
 
-          {job.match && <MatchView match={job.match} cvId={sourceId} />}
+          {job.match && <MatchView match={job.match} jobId={job.id} />}
           {job.match && ent?.features.skillGap !== false && (
             <p className="text-sm">
               {tx('Missing some of it?')}{' '}
@@ -547,7 +565,8 @@ const STATUS = {
   missing: { label: 'Not in your CV', Icon: CircleX, cls: 'text-danger' },
 } as const;
 
-function MatchView({ match, cvId }: { match: MatchResult; cvId: string }) {
+function MatchView({ match, jobId }: { match: MatchResult; jobId: string }) {
+  const cvId = match.sourceDocumentId ?? '';
   const tx = useT();
   const groups = (['missing', 'partial', 'met'] as const)
     .map((s) => ({ s, items: match.requirements.filter((r) => r.status === s) }))
@@ -637,6 +656,20 @@ function MatchView({ match, cvId }: { match: MatchResult; cvId: string }) {
           <p className="text-ink-muted text-xs">
             {tx('Only add a missing word if it’s true for you. Employers check.')}
           </p>
+          {cvId && match.advertFingerprint ? (
+            <ButtonLink
+              href={`/cv/${encodeURIComponent(cvId)}?tab=check&job=${encodeURIComponent(jobId)}&keywords=match#ats-keywords`}
+              variant="secondary"
+              className="h-auto min-h-11 self-start py-2 whitespace-normal"
+              data-testid="match-keyword-rewrite"
+            >
+              {tx('Add missing keywords to this CV')}
+            </ButtonLink>
+          ) : (
+            <p className="text-ink-muted text-sm">
+              {tx('Check again to open keyword rewriting for the CV used in this report.')}
+            </p>
+          )}
         </div>
       )}
     </section>

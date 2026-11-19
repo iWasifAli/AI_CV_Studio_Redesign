@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { keywordRewriteOutput } from '@/modules/quality/keyword-rewrite';
 import { PRESET_IDS } from '@/modules/resume/professions';
 import {
   DENSITIES,
@@ -50,6 +51,7 @@ export const TASK_IDS = [
   'letter.write',
   'letter.generic',
   'quality.atsKeywords',
+  'quality.rewriteKeywords',
   'quality.proofread',
   'linkedin.write',
   'linkedin.review',
@@ -278,6 +280,24 @@ export const taskInputs = {
     /** "statement": personal statements and bios — no greeting or sign-off, more paragraphs. */
     form: z.enum(['letter', 'statement']).default('letter'),
   }),
+  'quality.rewriteKeywords': z.object({
+    advert: z.string().min(80).max(12_000),
+    keywords: z.array(z.string().min(1).max(60)).min(1).max(25),
+    fields: z
+      .array(
+        z.object({
+          target: z.string().max(240),
+          before: z.string().max(1500),
+          max: z.number(),
+          protected: z.boolean(),
+          eligibleKeywords: z.array(z.string().max(60)).max(25).default([]),
+        }),
+      )
+      .min(1)
+      .max(300),
+    contentLanguage: z.enum(['en', 'de']),
+    adviceLanguage: z.enum(['en', 'de']),
+  }),
   'quality.atsKeywords': z.object({
     advert: z.string().min(80).max(12_000),
     profile: z.string().min(20).max(24_000),
@@ -388,6 +408,7 @@ const ymd = z.string().max(10);
  * maxLength in the schema).
  */
 export const taskOutputs = {
+  'quality.rewriteKeywords': keywordRewriteOutput,
   'design.compose': z.object({
     candidates: z
       .array(

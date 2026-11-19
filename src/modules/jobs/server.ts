@@ -19,6 +19,7 @@ export function applyJobPatch(cur: Job, patch: unknown, now = new Date()): Job |
   const merged = jobInput.safeParse({ ...cur, ...(patch as object) });
   if (!merged.success) return { error: merged.error.issues[0]?.message ?? 'Invalid job.' };
   const next: Job = { ...cur, ...merged.data, updatedAt: now.toISOString() };
+  if (next.advert !== cur.advert) delete next.match;
   if (next.stage === 'applied' && cur.stage !== 'applied' && !next.appliedOn)
     next.appliedOn = now.toISOString().slice(0, 10);
   // R9.10: the stages reached, and how it ended (only while closed).

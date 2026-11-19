@@ -5,10 +5,19 @@
  * letters stay the one source of truth, so two tabs can never edit the same record at once (only
  * the active tab is mounted). This module is the pure model; the strip in tab-strip.tsx draws it.
  */
-export type Tab = { id: string; href: string; title: string; ready?: boolean };
+export type Tab = {
+  id: string;
+  href: string;
+  /** Automatic destination title, translated by the view. */
+  title: string;
+  /** A personal workspace name, displayed exactly as entered. */
+  customTitle?: string;
+  ready?: boolean;
+};
 export type TabsState = { tabs: Tab[]; active: string };
 
 export const MAX_TABS = 8;
+export const MAX_TAB_NAME_LENGTH = 64;
 const HOME = '/studio';
 
 const TITLES: Record<string, string> = {
@@ -88,6 +97,33 @@ export function activate(state: TabsState, id: string): TabsState {
   };
 }
 
+const customName = (value: unknown): string | undefined => {
+  if (typeof value !== 'string') return undefined;
+  const name = value.trim();
+  return name && Array.from(name).length <= MAX_TAB_NAME_LENGTH ? name : undefined;
+};
+
+/** Metadata changes retain identity, route and readiness, including on inactive tabs. */
+export function rename(state: TabsState, tabId: string, nameOrNull: string | null): TabsState {
+  const tab = state.tabs.find((t) => t.id === tabId);
+  const name = nameOrNull === null ? undefined : customName(nameOrNull);
+  if (!tab || (nameOrNull !== null && !name) || tab.customTitle === name) return state;
+  const next = { ...tab };
+  if (name) next.customTitle = name;
+  else delete next.customTitle;
+  return { ...state, tabs: state.tabs.map((t) => (t.id === tabId ? next : t)) };
+}
+
+/** Move the existing object to its destination's position; never recreate a tab or activate it. */
+export function reorder(state: TabsState, tabId: string, overId: string): TabsState {
+  const from = state.tabs.findIndex((tab) => tab.id === tabId);
+  const to = state.tabs.findIndex((tab) => tab.id === overId);
+  if (from < 0 || to < 0 || from === to) return state;
+  const tabs = [...state.tabs];
+  tabs.splice(to, 0, tabs.splice(from, 1)[0]!);
+  return { ...state, tabs };
+}
+
 /**
  * Work started in a tab finished after the person left it: that tab now points at the finished
  * record and shows "ready". If the tab is the one on screen (or gone) nothing changes.
@@ -127,8 +163,16 @@ export function parse(raw: string | null): TabsState | null {
         typeof t.href === 'string' &&
         isTabHref(t.href) &&
         !tabs.some((x) => x.id === t.id)
-      )
-        tabs.push({ id: t.id, href: t.href, title: titleFor(t.href), ready: t.ready === true });
+      ) {
+        const name = customName(t.customTitle);
+        tabs.push({
+          id: t.id,
+          href: t.href,
+          title: titleFor(t.href),
+          ready: t.ready === true,
+          ...(name ? { customTitle: name } : {}),
+        });
+      }
     }
     if (!tabs.length) return null;
     return { tabs, active: tabs.some((t) => t.id === v.active) ? v.active : tabs[0]!.id };

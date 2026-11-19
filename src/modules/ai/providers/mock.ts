@@ -261,6 +261,15 @@ function answer(task: TaskId, input: unknown, attempt: number, files: AiFile[] =
         closing: i.tone === 'formal' ? 'Yours sincerely,' : 'Kind regards,',
       };
     }
+    case 'quality.rewriteKeywords': {
+      const i = input as ParsedInput<'quality.rewriteKeywords'>;
+      const f = i.fields.find((f) => f.target === 'basics.summary')!;
+      const after = `${f.before}${f.before ? ' ' : ''}${i.contentLanguage === 'de' ? 'Kenntnisse' : 'Skills include'} ${i.keywords.join(', ')}.`;
+      return {
+        changes: after.length <= f.max ? [{ target: f.target, after, keywords: i.keywords }] : [],
+        skipped: [],
+      };
+    }
     case 'quality.atsKeywords': {
       const i = input as ParsedInput<'quality.atsKeywords'>;
       // Capitalised words and phrases from the advert, deterministic.

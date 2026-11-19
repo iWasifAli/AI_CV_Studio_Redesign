@@ -59,6 +59,7 @@ const TASK_LABEL: Record<TaskId, string> = {
   'job.tailor': 'Tailor a CV to a job',
   'letter.write': 'Cover letter for a job',
   'letter.generic': 'Letter library, statements and bios',
+  'quality.rewriteKeywords': 'Rewrite with selected keywords',
   'quality.atsKeywords': 'ATS check keywords',
   'quality.proofread': 'Proofread the whole CV',
   'linkedin.write': 'LinkedIn profile text',

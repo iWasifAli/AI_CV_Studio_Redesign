@@ -15,6 +15,7 @@ import { ops } from '@/modules/resume/ops';
 import type { ResumeDocument } from '@/modules/resume/schema';
 import { ContentPanel, type ContentPanelHandle } from './content-panel';
 import { DesignPanel } from './design-panel';
+import { useAtsWorkspace } from '@/features/quality/ats-workspace';
 import { CheckPanel } from '@/features/quality/check-panel';
 import { findInlineField, inlinePatch } from '@/modules/resume/inline-edit';
 import { ProfileSyncBanner } from './profile-sync-banner';
@@ -71,6 +72,11 @@ export function EditorScreen({ initial }: { initial: ResumeDocument }) {
   const { doc, update } = editor;
   const signedIn = useAccount().status === 'signedIn';
   const params = useSearchParams();
+  const [keywordEntry] = useState(() => ({
+    jobId: params.get('job') ?? '',
+    fromMatch: params.get('keywords') === 'match',
+  }));
+  const [ats, setAts] = useAtsWorkspace(doc);
   const [welcome, setWelcome] = useState(params.get('welcome') === '1');
   // ?tab=design opens the Look panel straight away (Studio Home and next-best-step links).
   const [view, setView] = useState<View>(() => {
@@ -228,6 +234,10 @@ export function EditorScreen({ initial }: { initial: ResumeDocument }) {
               ) : (
                 <CheckPanel
                   doc={doc}
+                  editor={editor}
+                  ats={ats}
+                  setAts={setAts}
+                  keywordEntry={keywordEntry}
                   pages={status?.pages}
                   onShow={(ref) => {
                     setView('content');

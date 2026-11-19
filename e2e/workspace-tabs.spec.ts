@@ -13,6 +13,58 @@ test.afterAll(async ({ request }) => {
   await setConfig(request, DEFAULT_CONFIG);
 });
 
+test('the initial account lookup preserves an in-progress page', async ({ page }) => {
+  let release!: () => void;
+  const session = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route(/\/api\/me$/, async (route) => {
+    await session;
+    await route.continue().catch(() => {});
+  });
+  try {
+    await page.goto('/makeover');
+    const input = await page.getByTestId('makeover-file').elementHandle();
+    release();
+    await expect(page.getByTestId('tab-strip')).toBeVisible();
+    expect(await input!.evaluate((node) => node.isConnected)).toBe(true);
+  } finally {
+    release();
+  }
+});
+
+test('a direct new-CV load waits for the account and creates exactly once', async ({ page }) => {
+  let release!: () => void;
+  let started!: () => void;
+  const session = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const requested = new Promise<void>((resolve) => {
+    started = resolve;
+  });
+  await page.route(/\/api\/me$/, async (route) => {
+    started();
+    await session;
+    await route.continue().catch(() => {});
+  });
+  try {
+    await page.goto('/cv/new?work=driver');
+    await requested;
+    await expect(page.getByLabel('Loading your CV', { exact: true })).toBeVisible();
+    expect(
+      await page.evaluate(
+        () => Object.keys(localStorage).filter((k) => k.startsWith('cvstudio:v1:doc:')).length,
+      ),
+    ).toBe(0);
+  } finally {
+    release();
+  }
+  await expect(page).toHaveURL(/\/cv\/[\w-]+\/guided$/);
+  await expect
+    .poll(async () => (await (await page.request.get('/api/documents')).json()).documents.length)
+    .toBe(1);
+});
+
 test('on by default, and the admin switch can turn it off', async ({ page, request }) => {
   expect(DEFAULT_CONFIG.features.workspaceTabs).toBe(true);
   await setConfig(request, DEFAULT_CONFIG);

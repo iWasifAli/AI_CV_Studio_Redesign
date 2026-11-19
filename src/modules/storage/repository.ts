@@ -17,6 +17,8 @@ export type DocumentSummary = Pick<
 export type RepositoryEvent = { type: 'save' | 'remove'; id: string };
 
 export interface DocumentRepository {
+  /** Stable external-store snapshot; changes before subscribers are notified. */
+  readonly revision: number;
   /** Notified after every local save/remove (used by cloud sync). Returns an unsubscribe. */
   subscribe(listener: (e: RepositoryEvent) => void): () => void;
   list(): DocumentSummary[];
@@ -41,7 +43,12 @@ type KV = Pick<Storage, 'getItem' | 'setItem' | 'removeItem' | 'key'> & { readon
 
 export class BrowserDocumentRepository implements DocumentRepository {
   private listeners = new Set<(e: RepositoryEvent) => void>();
+  private version = 0;
   constructor(private readonly store: KV) {}
+
+  get revision() {
+    return this.version;
+  }
 
   subscribe(listener: (e: RepositoryEvent) => void) {
     this.listeners.add(listener);
@@ -51,6 +58,7 @@ export class BrowserDocumentRepository implements DocumentRepository {
   }
 
   private emit(e: RepositoryEvent) {
+    this.version++;
     this.listeners.forEach((l) => l(e));
   }
 

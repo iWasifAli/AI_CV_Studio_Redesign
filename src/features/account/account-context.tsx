@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from 'react';
 import { getRepository } from '@/modules/storage/repository';
+import { leaveSession } from './session-lifecycle';
 import { signOutEverywhere } from './firebase-client';
 import { CloudSync, type SyncState } from './sync';
 
@@ -41,32 +42,41 @@ export function AccountProvider({ children }: { children: ReactNode }) {
   const [sync, setSync] = useState<SyncState>('idle');
   const [syncedFor, setSyncedFor] = useState<string | null>(null);
   const engine = useRef<CloudSync | null>(null);
+  const currentUid = useRef<string | null>(null);
+  const acceptUser = useCallback(async (next: AccountUser | null) => {
+    if (currentUid.current && currentUid.current !== next?.uid) {
+      leaveSession();
+      await engine.current?.signOutCleanup();
+      engine.current = null;
+    }
+    currentUid.current = next?.uid ?? null;
+    setUser(next);
+    setStatus(next ? 'signedIn' : 'signedOut');
+  }, []);
 
   const refresh = useCallback(async () => {
     try {
       const r = await fetch('/api/me', { cache: 'no-store' });
       const j = (await r.json()) as { user: AccountUser | null };
-      setUser(j.user);
-      setStatus(j.user ? 'signedIn' : 'signedOut');
+      await acceptUser(j.user);
     } catch {
       setStatus((s) => (s === 'loading' ? 'signedOut' : s));
     }
-  }, []);
+  }, [acceptUser]);
 
   useEffect(() => {
     let live = true;
     fetch('/api/me', { cache: 'no-store' })
       .then((r) => r.json() as Promise<{ user: AccountUser | null }>)
-      .then((j) => {
+      .then(async (j) => {
         if (!live) return;
-        setUser(j.user);
-        setStatus(j.user ? 'signedIn' : 'signedOut');
+        await acceptUser(j.user);
       })
       .catch(() => live && setStatus('signedOut'));
     return () => {
       live = false;
     };
-  }, []);
+  }, [acceptUser]);
 
   // Start or stop cloud sync when the signed-in user changes.
   const uid = user?.uid ?? null;
@@ -90,9 +100,11 @@ export function AccountProvider({ children }: { children: ReactNode }) {
   }, [uid]);
 
   const signOut = useCallback(async (everywhere = false) => {
+    leaveSession();
     await engine.current?.signOutCleanup();
     engine.current = null;
     await signOutEverywhere(everywhere);
+    currentUid.current = null;
     setUser(null);
     setStatus('signedOut');
     setSync('idle');

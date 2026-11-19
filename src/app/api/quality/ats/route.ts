@@ -7,6 +7,7 @@ import { denialCode, reserve } from '@/modules/billing/server';
 import { renderResumePdf } from '@/modules/export/pdf';
 import { currentUser } from '@/modules/identity/session';
 import { extractLines } from '@/modules/import/extract';
+import { advertFingerprint } from '@/modules/jobs/advert';
 import { profileDigest } from '@/modules/jobs/digest';
 import { aiBudgetSpent, track } from '@/modules/metrics/server';
 import { documentDesign } from '@/modules/design/render';
@@ -78,7 +79,15 @@ export async function POST(req: Request) {
         { provider, models: aiModels(), timeoutMs: 30_000 },
       );
       await track(r.ok ? 'ai_ok' : 'ai_fail');
-      if (r.ok) report.keywords = checkKeywords(r.result, digest, job.title);
+      if (r.ok) {
+        const latest = await getUserStore().getJob(user.uid, job.id);
+        if (latest?.advert === job.advert)
+          report.keywords = {
+            ...checkKeywords(r.result, digest, job.title),
+            jobId: job.id,
+            advertFingerprint: await advertFingerprint(job.advert),
+          };
+      }
     }
   }
   return NextResponse.json({ report }, { headers: { 'Cache-Control': 'no-store' } });

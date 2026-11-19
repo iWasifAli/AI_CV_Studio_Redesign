@@ -20,6 +20,7 @@ const INTERNAL = new Set<string>([
   'makeover.diagnose',
   'letter.generic',
   'quality.atsKeywords',
+  'quality.rewriteKeywords',
   'quality.proofread',
   'write.quantify',
   'coach.gap',

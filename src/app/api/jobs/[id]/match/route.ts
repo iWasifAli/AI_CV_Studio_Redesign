@@ -2,9 +2,10 @@ import { NextResponse } from 'next/server';
 import { apiError } from '@/lib/http';
 import { runTask } from '@/modules/ai/run';
 import { prepareJobAi } from '@/modules/jobs/ai-route';
+import { advertFingerprint } from '@/modules/jobs/advert';
 import { profileDigest } from '@/modules/jobs/digest';
 import { checkMatch } from '@/modules/jobs/match';
-import { saveJobUpdate } from '@/modules/jobs/updates';
+import { JobUpdateError, saveJobUpdate } from '@/modules/jobs/updates';
 import { noteUse } from '@/modules/metrics/activity';
 
 export const runtime = 'nodejs';
@@ -23,16 +24,22 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     0,
     p.deps,
   );
-  await p.done(r.ok);
-  if (!r.ok)
+  if (!r.ok) {
+    await p.done(false);
     return apiError('AI_UNAVAILABLE', 'We couldn’t check this just now. Please try again.', p.rid);
-  const match = checkMatch(r.result, digest, { sourceTitle: p.doc.title });
+  }
+  const match = checkMatch(r.result, digest, {
+    sourceTitle: p.doc.title,
+    sourceDocumentId: p.doc.id,
+    advertFingerprint: await advertFingerprint(p.job.advert),
+  });
   const now = new Date().toISOString();
-  const saved = await saveJobUpdate(p.user.uid, p.job.id, p.rid, (latest) => ({
-    ...latest,
-    match,
-    updatedAt: now,
-  }));
+  const saved = await saveJobUpdate(p.user.uid, p.job.id, p.rid, (latest) => {
+    if (latest.advert !== p.job.advert)
+      throw new JobUpdateError('CONFLICT', 'The job advert changed. Check again.');
+    return { ...latest, match, updatedAt: now };
+  });
+  await p.done(!('error' in saved));
   if ('error' in saved) return saved.error;
   const { job } = saved;
   return NextResponse.json({ job }, { headers: { 'Cache-Control': 'no-store' } });
