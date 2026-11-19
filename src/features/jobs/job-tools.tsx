@@ -2,7 +2,7 @@
 
 import { useT } from '@/i18n/client';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useGoWhenDone } from '@/features/workspace/go-when-done';
 import { useMemo, useState } from 'react';
 import {
   CircleCheck,
@@ -53,7 +53,7 @@ const toProblem = (e: unknown): Problem =>
  */
 export function JobTools({ job, onJobChange }: { job: Job; onJobChange: (j: Job) => void }) {
   const tx = useT();
-  const router = useRouter();
+  const goWhenDone = useGoWhenDone();
   const toast = useToast();
   const { ent, refresh } = useEntitlements();
   const repo = typeof window === 'undefined' ? null : getRepository();
@@ -97,7 +97,7 @@ export function JobTools({ job, onJobChange }: { job: Job; onJobChange: (j: Job)
         }),
       );
       toast.show({ tone: 'success', message: 'Tailored CV created' });
-      router.push(`/cv/${document.id}`);
+      goWhenDone(`/cv/${document.id}`);
     });
 
   const makeKit = () =>

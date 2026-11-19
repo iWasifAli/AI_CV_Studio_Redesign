@@ -87,3 +87,37 @@ test('unsaved input stays with its own tab through a switch and a reload', async
   await page.goto('/letters/new?type=cover');
   await expect(page.getByLabel('Who it’s to').first()).toHaveValue('');
 });
+
+test('slow work finished in a tab you left does not pull you away; the tab shows ready', async ({
+  page,
+  request,
+}) => {
+  await on(request, true);
+  // Make the save slow enough to leave the tab while it runs.
+  await page.route('**/api/letters', async (route) => {
+    if (route.request().method() === 'POST') await new Promise((r) => setTimeout(r, 2500));
+    await route.continue();
+  });
+  await page.goto('/letters/new?type=cover');
+  const strip = page.getByTestId('tab-strip');
+  await expect(strip).toBeVisible();
+  const form = page.getByRole('form', { name: 'Cover letter' });
+  await form.getByLabel('The role you’re applying for').fill('Delivery Driver');
+  await form.getByRole('button', { name: 'Write it myself' }).click();
+
+  // Leave for a new tab while it is still working.
+  await strip.getByTestId('tab-new').click();
+  await expect(page).toHaveURL(/\/studio/);
+  await expect(strip.getByTestId('tab-ready')).toBeVisible({ timeout: 15_000 });
+  await expect(page).toHaveURL(/\/studio/); // still where we are
+
+  // The first tab now opens the finished letter and the badge goes away.
+  await strip.getByTestId('tab').nth(0).click();
+  await expect(page).toHaveURL(/\/letters\/[\w-]+$/);
+  await expect(strip.getByTestId('tab-ready')).toHaveCount(0);
+
+  // A closed tab can be brought back.
+  await strip.getByTestId('tab-close').nth(0).click();
+  await strip.getByTestId('tab-reopen').click();
+  await expect(page).toHaveURL(/\/letters\/[\w-]+$/);
+});

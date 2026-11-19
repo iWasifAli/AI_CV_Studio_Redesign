@@ -2190,6 +2190,7 @@ export const de: Dict = {
   '{n} CV scores shared': '{n} CV-Scores geteilt',
   'Open workspaces': 'Geöffnete Arbeitsbereiche',
   'Close {title}': '{title} schließen',
+  'Reopen closed workspace': 'Geschlossenen Arbeitsbereich wieder öffnen',
   'New workspace': 'Neuer Arbeitsbereich',
   'You can keep up to {n} workspaces open': 'Sie können bis zu {n} Arbeitsbereiche offen halten',
   'Workspace tabs (several places open at once in the app)':

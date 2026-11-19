@@ -7,7 +7,7 @@ import { activeTab } from './active';
 import { clearDraft, readDraft, writeDraft } from './drafts';
 
 /** This screen's account and workspace tab (fixed when the screen mounts), and whether drafts are on. */
-function useTabScope() {
+export function useTabScope() {
   const { user } = useAccount();
   const { ent } = useEntitlements();
   const uid = user?.uid ?? null;

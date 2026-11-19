@@ -3,10 +3,10 @@
 import { useT } from '@/i18n/client';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Plus, X } from 'lucide-react';
+import { Plus, Undo2, X } from 'lucide-react';
 import { useAccount } from '@/features/account/account-context';
 import { cn } from '@/lib/cn';
-import { activeTab } from './active';
+import { activeTab, settledWork } from './active';
 import { clearAllDrafts, clearTabDrafts } from './drafts';
 import {
   MAX_TABS,
@@ -16,6 +16,7 @@ import {
   isTabHref,
   open,
   parse,
+  settle,
   visit,
   type TabsState,
 } from './tabs';
@@ -53,6 +54,8 @@ export function TabStrip() {
   );
   // Where a tab switch is heading, so the arrival is not mistaken for ordinary navigation.
   const heading = useRef<string | null>(null);
+  // The last few closed tabs' pages, newest last, so a slip of the finger can be undone.
+  const [recent, setRecent] = useState<string[]>([]);
 
   // Ordinary navigation inside the active tab updates that tab's page.
   useEffect(() => {
@@ -69,6 +72,12 @@ export function TabStrip() {
       sessionStorage.setItem(key(uid), JSON.stringify(state));
     } catch {}
   }, [uid, state]);
+
+  // Slow work that finished in a tab the person had left: point that tab at the result.
+  useEffect(
+    () => settledWork.subscribe((id, href) => setState((s) => settle(s, id, href))),
+    [setState],
+  );
 
   const go = useCallback(
     (next: TabsState, closed?: string) => {
@@ -130,12 +139,23 @@ export function TabStrip() {
                 data-testid="tab"
               >
                 {t(tab.title)}
+                {tab.ready && !selected ? (
+                  <span
+                    className="bg-primary ml-2 inline-block size-2 rounded-full align-middle"
+                    data-testid="tab-ready"
+                    role="img"
+                    aria-label={t('Ready')}
+                  />
+                ) : null}
               </button>
               <button
                 type="button"
                 aria-label={t('Close {title}', { title: t(tab.title) })}
                 className="text-ink-muted hover:text-ink grid size-9 place-items-center"
-                onClick={() => go(close(state, tab.id), tab.id)}
+                onClick={() => {
+                  setRecent((r) => [...r, tab.href].slice(-5));
+                  go(close(state, tab.id), tab.id);
+                }}
                 data-testid="tab-close"
               >
                 <X aria-hidden size={14} />
@@ -155,6 +175,22 @@ export function TabStrip() {
       >
         <Plus aria-hidden size={16} />
       </button>
+      {recent.length > 0 && !full ? (
+        <button
+          type="button"
+          aria-label={t('Reopen closed workspace')}
+          title={t('Reopen closed workspace')}
+          className="text-ink-muted hover:bg-sunken grid size-9 shrink-0 place-items-center rounded-md"
+          onClick={() => {
+            const href = recent[recent.length - 1]!;
+            setRecent((r) => r.slice(0, -1));
+            go(open(state, href));
+          }}
+          data-testid="tab-reopen"
+        >
+          <Undo2 aria-hidden size={16} />
+        </button>
+      ) : null}
     </div>
   );
 }

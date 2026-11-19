@@ -20,3 +20,16 @@ export const activeTab = {
     listeners.forEach((l) => l());
   },
 };
+
+/** Finished background work reports here when its screen is gone (see `useGoWhenDone`). */
+type Settled = (tabId: string, href: string) => void;
+const settledListeners = new Set<Settled>();
+export const settledWork = {
+  subscribe(fn: Settled) {
+    settledListeners.add(fn);
+    return () => void settledListeners.delete(fn);
+  },
+  emit(tabId: string, href: string) {
+    settledListeners.forEach((l) => l(tabId, href));
+  },
+};

@@ -3,9 +3,10 @@
 import { useLang, useT } from '@/i18n/client';
 import { cvWords } from '@/modules/resume/cv-words';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useMemo, useState, type FormEvent } from 'react';
 import { useDraft } from '@/features/workspace/use-draft';
+import { useGoWhenDone } from '@/features/workspace/go-when-done';
 import { ArrowLeft, Lock, PenLine, Sparkles } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
 import { Button, ButtonLink } from '@/components/ui/button';
@@ -93,7 +94,7 @@ export function NewLetter() {
 function LetterForm({ type }: { type: LetterType }) {
   const tx = useT();
   const lang = useLang();
-  const router = useRouter();
+  const goWhenDone = useGoWhenDone();
   const { ent } = useEntitlements();
   const repo = typeof window === 'undefined' ? null : getRepository();
   const cvs = useMemo(() => repo?.list() ?? [], [repo]);
@@ -158,14 +159,14 @@ function LetterForm({ type }: { type: LetterType }) {
           clearAnswers();
           clearTo();
           clearTone();
-          router.push(`/letters/${letter.id}?ai=${encodeURIComponent((err as Error).message)}`);
+          goWhenDone(`/letters/${letter.id}?ai=${encodeURIComponent((err as Error).message)}`);
           return;
         }
       }
       clearAnswers();
       clearTo();
       clearTone();
-      router.push(`/letters/${letter.id}`);
+      goWhenDone(`/letters/${letter.id}`);
     } catch (err) {
       setProblem(
         err instanceof JobsError

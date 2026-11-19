@@ -6,6 +6,7 @@ import {
   initial,
   isTabHref,
   open,
+  settle,
   parse,
   titleFor,
   visit,
@@ -82,5 +83,24 @@ describe('workspace tabs model', () => {
     expect(s.tabs.map((t) => t.id)).toEqual(['a']);
     expect(s.active).toBe('a');
     expect(s.tabs[0]!.title).toBe('Jobs');
+  });
+});
+
+describe('settle and ready', () => {
+  it('marks a tab the person left as ready, pointing at the result', () => {
+    const a = initial('/letters/new?type=cover');
+    const s1 = open(a, '/documents');
+    const left = a.tabs[0]!.id;
+    const s2 = settle(s1, left, '/letters/abc');
+    const t = s2.tabs.find((x) => x.id === left)!;
+    expect(t).toMatchObject({ href: '/letters/abc', title: 'Letters', ready: true });
+    expect(activate(s2, left).tabs.find((x) => x.id === left)!.ready).toBe(false);
+  });
+  it('does nothing for the tab on screen, a missing tab or a bad link', () => {
+    const a = initial('/jobs');
+    expect(settle(a, a.active, '/letters/x')).toBe(a);
+    expect(settle(a, 'nope', '/letters/x')).toBe(a);
+    const b = open(a, '/documents');
+    expect(settle(b, a.tabs[0]!.id, 'https://evil.example')).toBe(b);
   });
 });

@@ -4,6 +4,7 @@ import { useT } from '@/i18n/client';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDraft } from '@/features/workspace/use-draft';
+import { useGoWhenDone } from '@/features/workspace/go-when-done';
 import { Lock, Send, Sparkles, Trash2 } from 'lucide-react';
 import { Banner } from '@/components/ui/banner';
 import { Button, ButtonLink } from '@/components/ui/button';
@@ -63,6 +64,7 @@ function label(a: CoachAction, jobs: Job[]): string {
 export function CoachChat({ jobs }: { jobs: Job[] }) {
   const t = useT();
   const router = useRouter();
+  const goWhenDone = useGoWhenDone();
   const toast = useToast();
   const { ent, refresh } = useEntitlements();
   const [thread, setThread] = useState<CoachThread | null | undefined>(undefined);
@@ -132,7 +134,7 @@ export function CoachChat({ jobs }: { jobs: Job[] }) {
           const { document } = await jobAiApi.tailor(a.arg, source);
           getRepository().save(document);
           toast.show({ tone: 'success', message: 'Tailored CV created' });
-          router.push(`/cv/${document.id}`);
+          goWhenDone(`/cv/${document.id}`);
           break;
         }
         case 'application_kit': {

@@ -5,7 +5,7 @@
  * letters stay the one source of truth, so two tabs can never edit the same record at once (only
  * the active tab is mounted). This module is the pure model; the strip in tab-strip.tsx draws it.
  */
-export type Tab = { id: string; href: string; title: string };
+export type Tab = { id: string; href: string; title: string; ready?: boolean };
 export type TabsState = { tabs: Tab[]; active: string };
 
 export const MAX_TABS = 8;
@@ -81,7 +81,25 @@ export function open(state: TabsState, href: string = HOME): TabsState {
 }
 
 export function activate(state: TabsState, id: string): TabsState {
-  return state.tabs.some((t) => t.id === id) ? { ...state, active: id } : state;
+  if (!state.tabs.some((t) => t.id === id)) return state;
+  return {
+    active: id,
+    tabs: state.tabs.map((t) => (t.id === id && t.ready ? { ...t, ready: false } : t)),
+  };
+}
+
+/**
+ * Work started in a tab finished after the person left it: that tab now points at the finished
+ * record and shows "ready". If the tab is the one on screen (or gone) nothing changes.
+ */
+export function settle(state: TabsState, id: string, href: string): TabsState {
+  if (!isTabHref(href) || state.active === id || !state.tabs.some((t) => t.id === id)) return state;
+  return {
+    ...state,
+    tabs: state.tabs.map((t) =>
+      t.id === id ? { ...t, href, title: titleFor(href), ready: true } : t,
+    ),
+  };
 }
 
 /** Close a tab. The last tab is replaced by Home. Closing the active one moves to its neighbour. */
@@ -110,7 +128,7 @@ export function parse(raw: string | null): TabsState | null {
         isTabHref(t.href) &&
         !tabs.some((x) => x.id === t.id)
       )
-        tabs.push({ id: t.id, href: t.href, title: titleFor(t.href) });
+        tabs.push({ id: t.id, href: t.href, title: titleFor(t.href), ready: t.ready === true });
     }
     if (!tabs.length) return null;
     return { tabs, active: tabs.some((t) => t.id === v.active) ? v.active : tabs[0]!.id };
