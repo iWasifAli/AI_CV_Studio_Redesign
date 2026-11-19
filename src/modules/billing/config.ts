@@ -352,9 +352,9 @@ export const businessConfig = z.object({
       /** Opening hours or reply times, e.g. "Mon to Sat, 10am to 6pm (PKT)". */
       hours: z.string().max(120).default(''),
       /** Full legal name of the person who runs the service (payment providers match it to ID). */
-      operator: z.string().max(120).default(''),
+      operator: z.string().max(120).default('Nisar Ahmad'),
     })
-    .default({ email: SUPPORT_EMAIL, phone: '', address: '', hours: '', operator: '' }),
+    .default({ email: SUPPORT_EMAIL, phone: '', address: '', hours: '', operator: 'Nisar Ahmad' }),
 });
 export type BusinessConfig = z.infer<typeof businessConfig>;
 
@@ -463,7 +463,7 @@ export const DEFAULT_CONFIG: BusinessConfig = {
   emails: { approved: { subject: '', note: '' }, rejected: { subject: '', note: '' } },
   content: { hiddenLetterTypes: [], faq: DEFAULT_FAQ, offer: DEFAULT_OFFER, designerPrompts: [] },
   announcement: { enabled: false, text: '' },
-  support: { email: SUPPORT_EMAIL, phone: '', address: '', hours: '', operator: '' },
+  support: { email: SUPPORT_EMAIL, phone: '', address: '', hours: '', operator: 'Nisar Ahmad' },
   coupons: [],
   referrals: { enabled: false, rewardDays: 14, welcomeDays: 7 },
   payments: {
