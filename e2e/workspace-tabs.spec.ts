@@ -7,12 +7,17 @@ import { DEFAULT_CONFIG } from '../src/modules/billing/config';
 test.describe.configure({ mode: 'serial' });
 
 const ON = { ...DEFAULT_CONFIG, features: { ...DEFAULT_CONFIG.features, workspaceTabs: true } };
-const on = (r: APIRequestContext, v: boolean) => setConfig(r, v ? ON : DEFAULT_CONFIG);
+const OFF = { ...DEFAULT_CONFIG, features: { ...DEFAULT_CONFIG.features, workspaceTabs: false } };
+const on = (r: APIRequestContext, v: boolean) => setConfig(r, v ? ON : OFF);
 test.afterAll(async ({ request }) => {
-  await on(request, false);
+  await setConfig(request, DEFAULT_CONFIG);
 });
 
-test('off by default: no tab strip', async ({ page, request }) => {
+test('on by default, and the admin switch can turn it off', async ({ page, request }) => {
+  expect(DEFAULT_CONFIG.features.workspaceTabs).toBe(true);
+  await setConfig(request, DEFAULT_CONFIG);
+  await page.goto('/studio');
+  await expect(page.getByTestId('tab-strip')).toBeVisible();
   await on(request, false);
   await page.goto('/studio');
   await expect(page.locator('[data-shell="studio"]')).toBeVisible();
@@ -45,7 +50,7 @@ test('tabs remember their own page, switch, close and survive a reload', async (
   // Reload keeps both tabs and the active one.
   await page.reload();
   await expect(page.getByTestId('tab-strip').getByTestId('tab')).toHaveCount(2);
-  await expect(page.getByTestId('tab-strip').getByRole('tab', { selected: true })).toContainText(
+  await expect(page.getByTestId('tab-strip').locator('[aria-current="page"]')).toContainText(
     'Jobs',
   );
 

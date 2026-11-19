@@ -116,11 +116,11 @@ export function TabStrip() {
       className="border-line bg-paper sticky top-14 z-20 flex items-center gap-1 overflow-x-auto border-b px-2 py-1 md:top-0"
       data-testid="tab-strip"
     >
-      <div role="tablist" aria-label={t('Open workspaces')} className="flex min-w-0 gap-1">
+      <ul aria-label={t('Open workspaces')} className="m-0 flex min-w-0 list-none gap-1 p-0">
         {state.tabs.map((tab) => {
           const selected = tab.id === state.active;
           return (
-            <div
+            <li
               key={tab.id}
               className={cn(
                 'flex shrink-0 items-center rounded-md border text-sm',
@@ -131,9 +131,7 @@ export function TabStrip() {
             >
               <button
                 type="button"
-                role="tab"
-                id={`tab-${tab.id}`}
-                aria-selected={selected}
+                aria-current={selected ? 'page' : undefined}
                 className="min-h-9 max-w-40 truncate px-3"
                 onClick={() => go(activate(state, tab.id))}
                 data-testid="tab"
@@ -160,10 +158,10 @@ export function TabStrip() {
               >
                 <X aria-hidden size={14} />
               </button>
-            </div>
+            </li>
           );
         })}
-      </div>
+      </ul>
       <button
         type="button"
         aria-label={t('New workspace')}
