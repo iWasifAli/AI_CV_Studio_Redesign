@@ -1,8 +1,23 @@
 import AxeBuilder from '@axe-core/playwright';
 import type { Page } from '@playwright/test';
 import { expect, test } from './support/test';
+import { setConfig } from './support/auth';
+import { DEFAULT_CONFIG } from '../src/modules/billing/config';
 import type { Job } from '../src/modules/jobs/schema';
 import type { JobBoardState } from '../src/modules/jobs/board';
+
+// These tests use screen coordinates and exact focus on the board, so they run without the
+// workspace tab strip (it adds a row above the page); the strip has its own spec.
+const NO_TABS = {
+  ...DEFAULT_CONFIG,
+  features: { ...DEFAULT_CONFIG.features, workspaceTabs: false },
+};
+test.beforeEach(async ({ request }) => {
+  await setConfig(request, NO_TABS);
+});
+test.afterAll(async ({ request }) => {
+  await setConfig(request, DEFAULT_CONFIG);
+});
 
 type BoardResponse = { jobs: Job[]; board: JobBoardState };
 const read = async (page: Page): Promise<BoardResponse> =>
