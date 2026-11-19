@@ -2,12 +2,31 @@
 
 import { useT } from '@/i18n/client';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { Container } from '@/components/ui/misc';
 import { LanguageSwitch } from '@/i18n/language-switch';
 import { Logo } from './logo';
 
+type Contact = { email: string; phone: string };
+let contactPromise: Promise<Contact> | null = null;
+/** The public email and phone, read once per page load (they are edited in the admin console). */
+function loadContact(): Promise<Contact> {
+  contactPromise ??= fetch('/api/contact')
+    .then((r) => (r.ok ? (r.json() as Promise<Contact>) : { email: '', phone: '' }))
+    .catch(() => ({ email: '', phone: '' }));
+  return contactPromise;
+}
+
 export function SiteFooter() {
   const t = useT();
+  const [contact, setContact] = useState<Contact | null>(null);
+  useEffect(() => {
+    let live = true;
+    loadContact().then((c) => live && setContact(c));
+    return () => {
+      live = false;
+    };
+  }, []);
   return (
     <footer className="border-line bg-surface mt-24 border-t">
       <Container className="flex flex-col gap-8 py-10 md:flex-row md:items-start md:justify-between">
@@ -60,6 +79,14 @@ export function SiteFooter() {
       </Container>
       <Container className="border-line text-ink-subtle flex flex-wrap items-center justify-between gap-3 border-t py-5 text-xs">
         <span>{t('© {v} AI CV Studio', { v: new Date().getFullYear() })}</span>
+        {contact && (contact.email || contact.phone) && (
+          <span data-testid="footer-contact" className="flex flex-wrap gap-x-4">
+            {contact.email && <a href={`mailto:${contact.email}`}>{contact.email}</a>}
+            {contact.phone && (
+              <a href={`tel:+${contact.phone.replace(/\D/g, '')}`}>{contact.phone}</a>
+            )}
+          </span>
+        )}
         <LanguageSwitch />
       </Container>
     </footer>

@@ -1692,6 +1692,20 @@ export const de: Dict = {
   'Last 30 days': 'Letzte 30 Tage',
   'Last day': 'Letzter Tag',
   'Last sign-in': 'Letzte Anmeldung',
+  'Operator (your full legal name)': 'Betreiber (Ihr vollständiger rechtlicher Name)',
+  'Shown on Contact and Terms as who runs AI CV Studio. Use the name on your ID and bank account.':
+    'Wird auf Kontakt und AGB als Betreiber von AI CV Studio angezeigt. Verwenden Sie den Namen aus Ausweis und Bankkonto.',
+  'AI CV Studio is operated by {operator}.': 'AI CV Studio wird betrieben von {operator}.',
+  Complaints: 'Beschwerden',
+  'If something went wrong, write to us with what happened and your order number or account email. We acknowledge every complaint within 2 working days and aim to resolve it within 7 days.':
+    'Wenn etwas schiefgelaufen ist, schreiben Sie uns, was passiert ist, mit Bestellnummer oder Konto-E-Mail. Wir bestätigen jede Beschwerde innerhalb von 2 Werktagen und lösen sie möglichst innerhalb von 7 Tagen.',
+  'The 24 hours above applies only when you change your mind about an unused pass. For the other cases (not activated, charged twice, or not working) you have 7 days from payment.':
+    'Die 24 Stunden oben gelten nur, wenn Sie Ihre Meinung zu einem ungenutzten Pass ändern. In den anderen Fällen (nicht aktiviert, doppelt belastet oder funktioniert nicht) haben Sie 7 Tage ab Zahlung.',
+  'Who we are': 'Wer wir sind',
+  'Governing law': 'Anwendbares Recht',
+  'These terms are governed by the laws of Pakistan.':
+    'Diese Bedingungen unterliegen dem Recht von Pakistan.',
+  '{n} days': '{n} Tage',
   'Last updated {UPDATED}': 'Zuletzt aktualisiert: {UPDATED}',
   'Law, finance, academia and senior roles': 'Recht, Finanzen, Wissenschaft und Führungsrollen',
   'Laying out your pages': 'Ihre Seiten werden gesetzt',

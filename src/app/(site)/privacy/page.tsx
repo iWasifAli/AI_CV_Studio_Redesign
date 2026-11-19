@@ -22,6 +22,9 @@ export default async function PrivacyPage() {
       <h1 className="font-display text-[32px] leading-tight font-semibold tracking-tight sm:text-4xl">
         {t('Privacy, in plain words')}
       </h1>
+      <p className="text-ink-muted mt-2 text-sm">
+        {t('Last updated {UPDATED}', { UPDATED: '19 November 2026' })}
+      </p>
       <div className="text-ink-muted [&_h2]:text-ink [&_strong]:text-ink mt-6 flex flex-col gap-5 text-[17px] leading-relaxed [&_h2]:mt-4 [&_h2]:text-xl [&_h2]:font-semibold [&_li]:mt-2 [&_ul]:list-disc [&_ul]:pl-6">
         <p>
           {t(

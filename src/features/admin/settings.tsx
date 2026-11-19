@@ -1109,6 +1109,14 @@ export function AdminSettings() {
             onChange={(e) => edit((c) => void (c.support.email = e.target.value.trim()))}
           />
           <TextField
+            label={tx('Operator (your full legal name)')}
+            hint={tx(
+              'Shown on Contact and Terms as who runs AI CV Studio. Use the name on your ID and bank account.',
+            )}
+            value={draft.support.operator}
+            onChange={(e) => edit((c) => void (c.support.operator = e.target.value))}
+          />
+          <TextField
             label={tx('Phone or WhatsApp (with country code)')}
             value={draft.support.phone}
             onChange={(e) => edit((c) => void (c.support.phone = e.target.value.trim()))}

@@ -11,11 +11,14 @@ export const dynamic = 'force-dynamic';
 
 export default async function ContactPage() {
   const t = await getT();
-  const { email, phone, address, hours } = (await getBusinessConfig()).value.support;
+  const { email, phone, address, hours, operator } = (await getBusinessConfig()).value.support;
   const digits = phone.replace(/\D/g, '');
   return (
     <PolicyPage title={t('Contact us')}>
       <p>{t('Questions about your CV, a payment, a refund or your privacy? Reach us here.')}</p>
+      {operator && (
+        <p data-testid="operator">{t('AI CV Studio is operated by {operator}.', { operator })}</p>
+      )}
       <ul className="list-none! pl-0!" data-testid="contact-details">
         {email && (
           <li>
@@ -47,6 +50,12 @@ export default async function ContactPage() {
       <p>
         {t(
           'For a payment question, include your order number and the email on your account so we can find it quickly.',
+        )}
+      </p>
+      <h2>{t('Complaints')}</h2>
+      <p>
+        {t(
+          'If something went wrong, write to us with what happened and your order number or account email. We acknowledge every complaint within 2 working days and aim to resolve it within 7 days.',
         )}
       </p>
     </PolicyPage>

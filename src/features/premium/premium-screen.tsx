@@ -261,6 +261,15 @@ export function PremiumScreen() {
               'Everything else in the studio is ready to use now. Check back soon to get Premium.',
             )}
           </p>
+          {offer.priceList.length > 0 && (
+            <ul className="text-ink-muted mt-1 list-disc pl-5" data-testid="price-list">
+              {offer.priceList.map((p) => (
+                <li key={p.id}>
+                  {p.label}: {t('{n} days', { n: p.days })}, PKR {p.pricePkr.toLocaleString('en')}
+                </li>
+              ))}
+            </ul>
+          )}
         </Card>
       ) : (
         <>

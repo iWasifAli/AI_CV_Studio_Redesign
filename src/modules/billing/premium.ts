@@ -28,6 +28,10 @@ export async function premiumOffer(user: SessionUser | null) {
     // Only promise AI when it is both switched on and actually configured on the server.
     aiAvailable: cfg.features.ai && aiMode() !== 'off',
     passes: cfg.features.sales ? cfg.passes.filter((p) => p.active) : [],
+    // Shown even before sales open, so the prices are public (payment providers check for them).
+    priceList: cfg.passes
+      .filter((p) => p.active)
+      .map((p) => ({ id: p.id, label: p.label, days: p.days, pricePkr: p.pricePkr })),
     methods: cfg.features.sales ? cfg.payments.methods.filter((m) => m.active) : [],
     instructions: cfg.payments.instructions,
     supportEmail: cfg.support.email,

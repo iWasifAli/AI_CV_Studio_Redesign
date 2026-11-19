@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 export const dynamic = 'force-dynamic';
 
-const UPDATED = '18 November 2026';
+const UPDATED = '19 November 2026';
 
 export default async function RefundPage() {
   const t = await getT();
@@ -66,6 +66,11 @@ export default async function RefundPage() {
         </li>
       </ul>
       <h2>{t('How to ask for a refund')}</h2>
+      <p>
+        {t(
+          'The 24 hours above applies only when you change your mind about an unused pass. For the other cases (not activated, charged twice, or not working) you have 7 days from payment.',
+        )}
+      </p>
       <p>
         {rich(
           t,

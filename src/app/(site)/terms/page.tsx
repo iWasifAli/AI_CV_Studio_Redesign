@@ -12,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
 // Reads the support email from settings (cached 60 s on the server); not baked in at build time.
 export const dynamic = 'force-dynamic';
 
-const UPDATED = '12 November 2026';
+const UPDATED = '19 November 2026';
 
 export default async function TermsPage() {
   const t = await getT();
@@ -129,6 +129,18 @@ export default async function TermsPage() {
             'The studio helps you present your experience; it can’t guarantee interviews or jobs. As far as the law allows, we are not responsible for indirect losses. Nothing in these terms limits rights you have by law.',
           )}
         </p>
+
+        {support.operator && (
+          <>
+            <h2>{t('Who we are')}</h2>
+            <p>
+              {t('AI CV Studio is operated by {operator}.', { operator: support.operator })}
+              {support.address ? ` ${support.address.replace(/\s*\n\s*/g, ', ')}.` : ''}
+            </p>
+          </>
+        )}
+        <h2>{t('Governing law')}</h2>
+        <p>{t('These terms are governed by the laws of Pakistan.')}</p>
 
         <h2>{t('Changes and contact')}</h2>
         <p>
